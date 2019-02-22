@@ -72,8 +72,13 @@ def GetPlotParameters(settings):
     
 
 
-def export(save_folder_name, save_image_name, settings):    
-#    plt.show()
+
+def export(save_folder_name, save_image_name, settings, use_dpi = None):    
+    import NanoObjectDetection as nd
+    use_dpi, settings = nd.handle_data.SpecificValueOrSettings(use_dpi,settings, "Plot", "dpi")
+    use_dpi = int(use_dpi)
+    
+    
     my_dir_name = '%s\\{date:%y%m%d}\\'.format( date=datetime.datetime.now()) %save_folder_name
     
     try:
@@ -87,7 +92,7 @@ def export(save_folder_name, save_image_name, settings):
     
     entire_path_image = my_dir_name +  file_name_image
     
-    plt.savefig(entire_path_image, dpi=400, bbox_inches='tight')
+    plt.savefig(entire_path_image, dpi= use_dpi, bbox_inches='tight')
     print('Figure saved')    
 
     #here comes the json parameter file 
@@ -99,9 +104,10 @@ def export(save_folder_name, save_image_name, settings):
     with open(entire_path_json, 'w') as outfile:
         json.dump(settings, outfile, sort_keys=True, indent=4)
  
-    Image.open(entire_path_image).show()
+    #Image.open(entire_path_image).show()
     
     return settings
+
 
 
 def IntMedianFit(t1_gapless, my_particle = -1):

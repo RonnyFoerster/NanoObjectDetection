@@ -36,7 +36,8 @@ from PIL import Image
 import fnmatch
 from skimage import io
 from pdb import set_trace as bp #debugger
-  
+import NanoObjectDetection as nd
+
 # In[2]:
 
 def ReadJson(mypath):
@@ -55,7 +56,7 @@ def ReadJson(mypath):
 
 
 def GetVarOfSettings(settings, key, entry):
-
+#    bp()
     if entry in list(settings[key].keys()):
         # get value
         value = settings[key][entry]
@@ -135,7 +136,7 @@ def ReadImages_pims(data_folder_name, data_file_extension):
     return rawframes 
 
 
-import NanoObjectDetection as nd
+
 
 
 def ReadData2Numpy(settings):
@@ -168,32 +169,6 @@ def ReadData2Numpy(settings):
     return rawframes_np
 
 
-
-#def ReadData2Numpy(data_type, data_file_name = 0, data_folder_name = 0):
-#    if data_type == 'tif_series':
-#        if data_folder_name == 0:
-#            print('!!! data_folder_name required !!!')
-#            quit()
-#        else:
-#            rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name)
-#    
-#    elif data_type == 'tif_stack':
-#        if data_file_name == 0:
-#            print('!!! data_file_name required !!!')
-#        else:
-#            rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
-#    
-#    elif data_type == 'fits':
-#        if data_file_name == 0:
-#            print('!!! data_file_name required !!!')
-#        else:
-#            rawframes_np = nd.handle_data.ReadFits2Numpy(data_file_name)   
-#        
-#    else:
-#        print('unknown mode')
-#        
-#    return rawframes_np
-#    
 
 def ReadTiffStack2Numpy(data_file_name):
     
@@ -306,52 +281,35 @@ def RotImages(rawframes_np, settings, Do_rotation = None, rot_angle = None):
     return im_out, settings
 
 
-
-#def RotateImagesTiff(rawframes_np, settings):
-#    
-#    rot_angle = nd.handle_data.GetVarOfSettings(settings,"Processing","rot_angle")
-#    
-#    rot_angle = 10
-#    # create new folder NAME
-##    data_folder_name_save = (data_folder_name + '\\' + 'rotation_by_' + str(rot_angle) + '_degree')
-#    
-#    # if path not existing, than create it and fill it with rotated data
-##    if os.path.isdir(data_folder_name_save) == False:
-#        # make folder
-##        os.makedirs(data_folder_name_save)
-#    
-#        # go step by step through the raw data
-#        for loop_frame in range(0,len(rawframes_np)):
-#            print(loop_frame)
-#            # create array out of rawimage
-#            np_need_rot = rawframes_np[loop_frame,:,:];
-#            # create datatype 'image' out of array
-#            image_need_rot = PIL.Image.fromarray(np_need_rot.astype(np.uint32));
-#            # rotate the image
-#            # expand means that the image size is allowed to change in order to keep all informations
-#            # image DATA is rotated, but the axes stay x and y
-#            # resample is the method to interpolate the rotated image points onto the standard x-y-grid 
-#            # methods are: 'NEAREST', 'BILINEAR', 'BICUBIC'
-#            image_after_rot = image_need_rot.rotate(rot_angle, resample=PIL.Image.BILINEAR, expand=1);
-#            # save the stuff into the folder
-#            image_after_rot.save(data_folder_name_save + '\\image' + str(loop_frame) + '.' + data_file_extension)
-#            
-##    # keep unrotated data just in case
-##    frames_no_rot = rawframes
-##    
-##    # replace frames by rotated data, crops data
-##    rawframes = pims.ImageSequence(data_folder_name_save + '\\' + '*.' + data_file_extension, process_func=crop)
-##    return rot_angle
-#
-#
+def Plot2DImage(array_np,title, xlabel, ylabel):
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
+    
+    plt.figure()
+    plt.imshow(array_np)
+    plt.title(title, **title_font)
+    plt.xlabel(xlabel, **axis_font)
+    plt.ylabel(ylabel, **axis_font)
 
 
+def Plot1DPlot(plot_np,title, xlabel, ylabel):
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
+    
+    plt.figure()
+    plt.plot(plot_np)
+    plt.title(title, **title_font)
+    plt.xlabel(xlabel, **axis_font)
+    plt.ylabel(ylabel, **axis_font)
 
 
 def min_rawframes(rawframes_np, display = False):
     rawframes_min = np.min(rawframes_np,axis=0)
+    
     if display == True:
-        plt.imshow(rawframes_min)
+        title = "Background image"
+        xlabel = "long. Position [Px]"
+        ylabel = "trans. Position [Px]"
+        Plot2DImage(rawframes_min, title, xlabel, ylabel)
+
         
     return rawframes_min
     
@@ -399,7 +357,7 @@ def total_intensity(rawframes_np, display = False):
     rel_intensity = tot_intensity / np.mean(tot_intensity)
     
     if display == True:
-        plt.plot(rel_intensity)
+        Plot1DPlot(rel_intensity, "Laser Fluctuations", "Frame", "Relative Laser Intensity")
     
         
     return tot_intensity, rel_intensity

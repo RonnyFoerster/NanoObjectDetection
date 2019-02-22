@@ -19,20 +19,20 @@ def Main(rawframes_np, settings):
     
     if settings["PreProcessing"]["Remove_Laserfluctuation"] == 1:
         print('Laser fluctuations: removed')
-        rawframes_np = nd.PreProcessing.RemoveLaserfluctuation(rawframes_np)    
+        rawframes_np = nd.PreProcessing.RemoveLaserfluctuation(rawframes_np, settings)    
         # WARNING - this needs a roughly constant amount of particles in the object!
     else:
         print('Laser fluctuations: not removed')
     
     if settings["PreProcessing"]["Remove_StaticBackground"] == 1:
         print('Static background: removed')
-        rawframes_np, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np)
+        rawframes_np, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings)
     else:
         print('Static background: not removed')
         
     if settings["PreProcessing"]["RollingPercentilFilter"] == 1:
         print('Rolling percentil filter: applied')
-        rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings)
+        rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings, settings)
     else:
         print('Rolling percentil filter: not applied')
     
@@ -48,8 +48,7 @@ def Main(rawframes_np, settings):
 
 
 
-def SubtractCameraOffset(rawframes_np, settings, ShowBackground = False):
-    
+def SubtractCameraOffset(rawframes_np, settings):
     #That generates one image that holds the minimum-vaues for each pixel of all times
     rawframes_pixelCountOffsetArray = nd.handle_data.min_rawframes(rawframes_np)
         
@@ -61,36 +60,47 @@ def SubtractCameraOffset(rawframes_np, settings, ShowBackground = False):
     # Whenever there is a change in intensity, e.g. by fluctuations in incoupling,the lightsource etc., this affects mututally background and signal
     rawframes_np=rawframes_np-offsetCount
     
-    ShowBackground, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'ShowBackground')
-    
-    if ShowBackground == True:
-        # Plot it
-
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "CameraBackground", settings)
-        
-        # close it because its reopened anyway
-#        plt.close(fig)
     
     return rawframes_np
 
 
-def RemoveLaserfluctuation(rawframes_np):
+def RemoveLaserfluctuation(rawframes_np, settings):
+    Laserfluctuation_Show, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Laserfluctuation_Show')
+    Laserfluctuation_Save, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Laserfluctuation_Save')
+    
+    if Laserfluctuation_Save == True:
+        Laserfluctuation_Show = True
+    
+    
     # Mean-counts of a given frame
-    tot_intensity, rel_intensity = nd.handle_data.total_intensity(rawframes_np)
+    tot_intensity, rel_intensity = nd.handle_data.total_intensity(rawframes_np, Laserfluctuation_Show)
     
     rawframes_np = rawframes_np / rel_intensity[:, None, None]
+
     
+    if Laserfluctuation_Save == True:
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Intensity Fluctuations", settings)
+        
     return rawframes_np
 
 
-def Remove_StaticBackground(rawframes_np):
+def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False):
+    Background_Show, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Background_Show')
+    Background_Save, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Background_Save')
+    
+    if Background_Save == True:
+        Background_Show = True
     '''
     Subtracting back-ground and take out points that are constantly bright
     '''
 
-    static_background = nd.handle_data.min_rawframes(rawframes_np)
+    static_background = nd.handle_data.min_rawframes(rawframes_np,  display = Background_Show)
     
     rawframes_np = rawframes_np - static_background # Now, I'm subtracting a background, in case there shall be anything left
+    
+    if Background_Save == True:
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "CameraBackground", settings)
+    
     
     return rawframes_np, static_background
     

@@ -15,6 +15,3 @@ from . import PreProcessing
 from . import visualize
 
 
-#from . import WriteReportPDF as pdf
-
-
