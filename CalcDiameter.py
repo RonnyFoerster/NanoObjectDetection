@@ -10,8 +10,8 @@ import pandas as pd # Library for DataFrame Handling
 import math # offering some maths functions
 import warnings
 import NanoObjectDetection as nd
-
-
+from pdb import set_trace as bp #debugger
+import matplotlib.pyplot as plt # Libraries for plotting
 
 def rolling_with_step(s, window, step, func): 
     # Defining a function that allows to calculate another function over a window of a series,
@@ -34,7 +34,7 @@ def mean_func(d):
     
    
 def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None,
-         amount_lagtimes_auto = None, cutoff_size = None, binning = None, PlotDiameterHistogramm = True, PlotMsdOverLagtime = False):
+         amount_lagtimes_auto = None, cutoff_size = None, binning = None, Histogramm_Show = True, MSD_fit_Show = False):
     '''
     Calculating msd of individual particles:
     
@@ -55,12 +55,17 @@ def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_se
     
     microns_per_pixel, settings    = nd.handle_data.SpecificValueOrSettings(microns_per_pixel, settings, "Exp", "Microns_per_pixel")
     frames_per_second, settings    = nd.handle_data.SpecificValueOrSettings(frames_per_second, settings, "Exp", "fps")
-    binning, settings              = nd.handle_data.SpecificValueOrSettings(binning, settings, "Gui", "Bins")
-    cutoff_size, settings          = nd.handle_data.SpecificValueOrSettings(cutoff_size, settings, "Gui", "Cutoff Size [nm]")
+    binning, settings              = nd.handle_data.SpecificValueOrSettings(binning, settings, "Plot", "Bins")
+    cutoff_size, settings          = nd.handle_data.SpecificValueOrSettings(cutoff_size, settings, "Plot", "Cutoff Size [nm]")
     amount_summands, settings      = nd.handle_data.SpecificValueOrSettings(amount_summands, settings, "Processing", "Amount summands")
     amount_lagtimes, settings      = nd.handle_data.SpecificValueOrSettings(amount_lagtimes, settings, "Processing", "Amount lagtimes")
     amount_lagtimes_auto, settings = nd.handle_data.SpecificValueOrSettings(amount_lagtimes_auto, settings, "Processing", "Amount lagtimes auto")
-    
+ 
+    MSD_fit_Show, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'MSD_fit_Show')
+    MSD_fit_Save, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'MSD_fit_Save')
+        
+    if MSD_fit_Save == True:
+        MSD_fit_Show = True
     
     particle_list_value=list(t5_no_drift.particle.drop_duplicates())
     
@@ -95,7 +100,10 @@ def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_se
                                                                 current_amount_lagtimes, cutoff_size, binning)
 
             if enough_values == True:  
-                any_successful_check = True
+                if any_successful_check == False:
+                    any_successful_check = True
+                    plt.plot()
+                    
 
                 #iterative to find optimal number of lagtimes in the fit    
                 # Average MSD (several (independent) values for each lagtime)
@@ -103,7 +111,7 @@ def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_se
                 
                 # Fit MSD (slope is proportional to diffusion coefficent)
                 sizes_df_lin, diffusivity = FitMSD(settings, obj_all, lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct,
-                                      sizes_df_lin, particleid, binning, cutoff_size, PlotMsdOverLagtime = PlotMsdOverLagtime)
+                                      sizes_df_lin, particleid, binning, cutoff_size, PlotMsdOverLagtime = MSD_fit_Show)
                 
                 # calculate theoretical best number of considered lagtimes
                 p_min = OptimalMSDPoints(settings, obj_all, diffusivity, amount_frames_lagt1)
@@ -119,15 +127,37 @@ def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_se
                     # drop last line, because it is done again
                     sizes_df_lin = sizes_df_lin[:-1]                   
                     
-                
-            else:
-                any_successful_check = True
+#                
+#            else:
+#                any_successful_check = True
         
         
-    if any_successful_check == True:   
-        if PlotDiameterHistogramm == True:
-#            print(sizes_df_lin)
-            nd.visualize.DiameterHistogramm(sizes_df_lin, binning, cutoff_size)
+    if any_successful_check == True:  
+
+        if MSD_fit_Save == True:
+            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings)
+        
+        import time
+        print("do")
+        time.sleep(2)
+        print("done")
+        
+        Histogramm_Show, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Histogramm_Show')
+        Histogramm_Save, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Histogramm_Save')
+        
+        if Histogramm_Save == True:
+            Histogramm_Show = True
+        
+        if Histogramm_Show == True:
+#            print(sizes_df_lin)#
+            xlabel = 'diameter [nm]'
+            ylabel = 'absolute occurance'
+            title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
+            nd.visualize.DiameterHistogramm(sizes_df_lin, binning, cutoff_size, title, xlabel, ylabel)
+            
+            if Histogramm_Save == True:
+                settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings)
+            
     else:
         print("NO PARTICLE WAS MEASURED LONG ENOUGH FOR A GOOD STATISTIC !")
     

@@ -281,34 +281,18 @@ def RotImages(rawframes_np, settings, Do_rotation = None, rot_angle = None):
     return im_out, settings
 
 
-def Plot2DImage(array_np,title, xlabel, ylabel):
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
-    
-    plt.figure()
-    plt.imshow(array_np)
-    plt.title(title, **title_font)
-    plt.xlabel(xlabel, **axis_font)
-    plt.ylabel(ylabel, **axis_font)
 
-
-def Plot1DPlot(plot_np,title, xlabel, ylabel):
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
-    
-    plt.figure()
-    plt.plot(plot_np)
-    plt.title(title, **title_font)
-    plt.xlabel(xlabel, **axis_font)
-    plt.ylabel(ylabel, **axis_font)
 
 
 def min_rawframes(rawframes_np, display = False):
+    import NanoObjectDetection as nd
     rawframes_min = np.min(rawframes_np,axis=0)
     
     if display == True:
         title = "Background image"
         xlabel = "long. Position [Px]"
         ylabel = "trans. Position [Px]"
-        Plot2DImage(rawframes_min, title, xlabel, ylabel)
+        nd.visualize.Plot2DImage(rawframes_min, title, xlabel, ylabel)
 
         
     return rawframes_min
@@ -350,6 +334,7 @@ def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
  
     
 def total_intensity(rawframes_np, display = False):
+    import NanoObjectDetection as nd
     # intensity in each frame
     tot_intensity = np.sum(rawframes_np,axis=(1,2))
     
@@ -357,7 +342,7 @@ def total_intensity(rawframes_np, display = False):
     rel_intensity = tot_intensity / np.mean(tot_intensity)
     
     if display == True:
-        Plot1DPlot(rel_intensity, "Laser Fluctuations", "Frame", "Relative Laser Intensity")
+        nd.visualize.Plot1DPlot(rel_intensity, "Laser Fluctuations", "Frame", "Relative Laser Intensity")
     
         
     return tot_intensity, rel_intensity

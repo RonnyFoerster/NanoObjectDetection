@@ -49,6 +49,45 @@ pd.set_option('display.max_columns',20) # I'm just using this to tell my Spyder-
 
 
 # In[]
+def Plot1DPlot(plot_np,title, xlabel, ylabel):
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
+    
+    plt.figure()
+    plt.plot(plot_np)
+    plt.title(title, **title_font)
+    plt.xlabel(xlabel, **axis_font)
+    plt.ylabel(ylabel, **axis_font)
+
+
+def Plot2DImage(array_np,title, xlabel, ylabel):
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
+    
+    plt.figure()
+    plt.imshow(array_np)
+    plt.title(title, **title_font)
+    plt.xlabel(xlabel, **axis_font)
+    plt.ylabel(ylabel, **axis_font)
+    
+    
+def DiameterHistogramm(sizes_df_lin, binning, cutoff_size, title, xlabel, ylabel):
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
+    plt.figure()
+    fig, ax = plt.subplots()
+    ax.set_xlim(0, cutoff_size)
+    sns.distplot(sizes_df_lin.diameter[sizes_df_lin.diameter <= cutoff_size], 
+                 bins=binning, rug=True, kde=False) # histogram of sizes, only taking into account 
+    #those that are below threshold size as defined in the initial parameters
+    plt.title(title, **title_font)
+#   plt.ylabel(r'absolute occurance')
+    plt.ylabel(ylabel, **axis_font)
+    plt.xlabel(xlabel, **axis_font)
+    
+#    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+#    ax.text(0.05, 0.95, title, transform=ax.transAxes, fontsize=14,
+#            verticalalignment='top', bbox=props) 
+    
+
+
 
 def update_progress(job_title, progress):
     length = 50 # modify this to change the length
@@ -74,6 +113,8 @@ def GetPlotParameters(settings):
 
 
 def export(save_folder_name, save_image_name, settings, use_dpi = None):    
+    import os.path
+    import time
     import NanoObjectDetection as nd
     use_dpi, settings = nd.handle_data.SpecificValueOrSettings(use_dpi,settings, "Plot", "dpi")
     use_dpi = int(use_dpi)
@@ -105,6 +146,8 @@ def export(save_folder_name, save_image_name, settings, use_dpi = None):
         json.dump(settings, outfile, sort_keys=True, indent=4)
  
     #Image.open(entire_path_image).show()
+    
+
     
     return settings
 
@@ -346,23 +389,16 @@ def PlotGlobalDrift():
    
     
 def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, alpha_values = 0.1, alpha_fit = 0.3):
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
     plt.plot(lagt_direct, mean_displ_direct,'k-', alpha = alpha_values) # plotting msd-lag-time-tracks for all particles
     plt.plot(lagt_direct, mean_displ_fit_direct_lin, 'r', alpha = alpha_fit) # plotting the lin fits
     #ax.annotate(particleid, xy=(lagt_direct.max(), mean_displ_fit_direct_lin.max()))
+    plt.title("MSD fit", **title_font)
+    plt.xlabel("MSD", **axis_font)
+    plt.ylabel("Lagtime [s]", **axis_font)
     
-    
-def DiameterHistogramm(sizes_df_lin, binning, cutoff_size):
-    fig, ax = plt.subplots()
-    ax.set_xlim(0, cutoff_size)
-    sns.distplot(sizes_df_lin.diameter[sizes_df_lin.diameter <= cutoff_size], 
-                 bins=binning, rug=True, kde=False) # histogram of sizes, only taking into account 
-    #those that are below threshold size as defined in the initial parameters
-    plt.ylabel(r'absolute occurance')
-    plt.xlabel('diameter [nm]')
-    textstr = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
-            verticalalignment='top', bbox=props) 
+
+
     
     
     
