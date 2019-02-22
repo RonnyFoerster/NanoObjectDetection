@@ -361,7 +361,7 @@ def DiameterHistogramm(sizes_df_lin, binning, cutoff_size):
     
     
 def VarDiameterOverTracklength(sizes_df_lin, save_folder_name = r'Z:\Datenauswertung\19_ARHCF', save_image_name = 'errorpropagation_diameter_vs_trajectorie_length'):
-    import nanoobject_detection as nd
+    import NanoObjectDetection as nd
     from nd.PlotProperties import axis_font, title_font
     # NO WORKING AT THE MOMENT BECAUSE ERROR IS NOT RIGHT YET
     
@@ -397,7 +397,7 @@ def VarDiameterOverTracklength(sizes_df_lin, save_folder_name = r'Z:\Datenauswer
     
     
 def VarDiameterOverMinTracklength(settings, sizes_df_lin, obj_all, num_bins_traj_length = 100, min_traj_length = 0, max_traj_length = 1000):
-    import nanoobject_detection as nd
+    import NanoObjectDetection as nd
     from nd.PlotProperties import axis_font, title_font
           
     diameter_by_min_trajectorie = pd.DataFrame(np.zeros((max_traj_length, 6)),columns=['min_trajectorie_length', 'particles_min_length', 'tot_traj_length', 'rel_traj_length', 'mean_diam_min', 'std_diam_min'])

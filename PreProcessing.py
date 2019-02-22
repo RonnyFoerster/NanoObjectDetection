@@ -4,7 +4,7 @@ Created on Mon Feb 18 11:09:16 2019
 
 @author: foersterronny
 """
-import nanoobject_detection as nd
+import NanoObjectDetection as nd
 import numpy as np
 import matplotlib.pyplot as plt
 from pdb import set_trace as bp #debugger
@@ -69,7 +69,7 @@ def SubtractCameraOffset(rawframes_np, settings, ShowBackground = False):
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "CameraBackground", settings)
         
         # close it because its reopened anyway
-        plt.close(fig)
+#        plt.close(fig)
     
     return rawframes_np
 

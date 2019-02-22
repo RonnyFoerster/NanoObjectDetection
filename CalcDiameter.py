@@ -9,7 +9,7 @@ import numpy as np # Library for array-manipulation
 import pandas as pd # Library for DataFrame Handling
 import math # offering some maths functions
 import warnings
-import nanoobject_detection as nd
+import NanoObjectDetection as nd
 
 
 

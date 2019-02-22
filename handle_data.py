@@ -135,7 +135,7 @@ def ReadImages_pims(data_folder_name, data_file_extension):
     return rawframes 
 
 
-import nanoobject_detection as nd
+import NanoObjectDetection as nd
 
 
 def ReadData2Numpy(settings):

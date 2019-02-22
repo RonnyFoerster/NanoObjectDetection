@@ -20,7 +20,7 @@ import trackpy as tp # trackpy offers all tools needed for the analysis of diffu
 import warnings
 import sys
 
-import nanoobject_detection as nd
+import NanoObjectDetection as nd
 import matplotlib.pyplot as plt # Libraries for plotting
 import matplotlib as mpl # I import this entirely here, as it's needed to change colormaps
 
