@@ -96,6 +96,9 @@ def GetVarOfSettings(settings, key, entry):
 
 
 def SpecificValueOrSettings(try_value,settings, key, entry):
+#    print("key: ", key)
+#    print("entry: ", entry)
+#    bp()
     if try_value != None:
         use_value = try_value
     else:
@@ -340,7 +343,7 @@ def total_intensity(rawframes_np, display = False):
     
     # intensity in each frame relative to the others
     rel_intensity = tot_intensity / np.mean(tot_intensity)
-    
+
     if display == True:
         nd.visualize.Plot1DPlot(rel_intensity, "Laser Fluctuations", "Frame", "Relative Laser Intensity")
     

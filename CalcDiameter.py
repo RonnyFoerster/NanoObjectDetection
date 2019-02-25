@@ -110,8 +110,9 @@ def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_se
                 lagt_direct, mean_displ_direct, mean_displ_sigma_direct = AvgMsd(nan_tm_sq, frames_per_second)
                 
                 # Fit MSD (slope is proportional to diffusion coefficent)
-                sizes_df_lin, diffusivity = FitMSD(settings, obj_all, lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct,
-                                      sizes_df_lin, particleid, binning, cutoff_size, PlotMsdOverLagtime = MSD_fit_Show)
+                sizes_df_lin, diffusivity = FitMSD(settings, obj_all, lagt_direct, amount_frames_lagt1, \
+                                                   mean_displ_direct, mean_displ_sigma_direct, sizes_df_lin, \
+                                                   particleid, binning, cutoff_size, PlotMsdOverLagtime = MSD_fit_Show)
                 
                 # calculate theoretical best number of considered lagtimes
                 p_min = OptimalMSDPoints(settings, obj_all, diffusivity, amount_frames_lagt1)
@@ -154,9 +155,10 @@ def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_se
             ylabel = 'absolute occurance'
             title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
             nd.visualize.DiameterHistogramm(sizes_df_lin, binning, cutoff_size, title, xlabel, ylabel)
-            
+      
             if Histogramm_Save == True:
-                settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings)
+                settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings,
+                                               data = sizes_df_lin)
             
     else:
         print("NO PARTICLE WAS MEASURED LONG ENOUGH FOR A GOOD STATISTIC !")

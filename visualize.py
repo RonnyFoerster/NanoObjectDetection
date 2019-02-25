@@ -31,6 +31,9 @@ import pandas as pd # Library for DataFrame Handling
 import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
 import seaborn as sns # allows boxplots to be put in one graph
 import math # offering some maths functions
+import matplotlib
+matplotlib.rcParams['text.usetex'] = True
+matplotlib.rcParams['text.latex.unicode'] = True
 import matplotlib.pyplot as plt # Libraries for plotting
 from matplotlib import animation # Allows to create animated plots and videos from them
 import json
@@ -59,6 +62,16 @@ def Plot1DPlot(plot_np,title, xlabel, ylabel):
     plt.ylabel(ylabel, **axis_font)
 
 
+def Plot2DPlot(plot_np,title, xlabel, ylabel):
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
+    
+    plt.figure()
+    plt.plot(plot_np)
+    plt.title(title, **title_font)
+    plt.xlabel(xlabel, **axis_font)
+    plt.ylabel(ylabel, **axis_font)
+
+
 def Plot2DImage(array_np,title, xlabel, ylabel):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
@@ -77,15 +90,16 @@ def DiameterHistogramm(sizes_df_lin, binning, cutoff_size, title, xlabel, ylabel
     sns.distplot(sizes_df_lin.diameter[sizes_df_lin.diameter <= cutoff_size], 
                  bins=binning, rug=True, kde=False) # histogram of sizes, only taking into account 
     #those that are below threshold size as defined in the initial parameters
+    plt.rc('text', usetex=True)
     plt.title(title, **title_font)
-#   plt.ylabel(r'absolute occurance')
+    #   plt.ylabel(r'absolute occurance')
+    plt.ylabel(ylabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
     plt.xlabel(xlabel, **axis_font)
     
 #    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 #    ax.text(0.05, 0.95, title, transform=ax.transAxes, fontsize=14,
 #            verticalalignment='top', bbox=props) 
-    
 
 
 
@@ -112,9 +126,8 @@ def GetPlotParameters(settings):
 
 
 
-def export(save_folder_name, save_image_name, settings, use_dpi = None):    
+def export(save_folder_name, save_image_name, settings, use_dpi = None, data = None, data_header = None):    
     import os.path
-    import time
     import NanoObjectDetection as nd
     use_dpi, settings = nd.handle_data.SpecificValueOrSettings(use_dpi,settings, "Plot", "dpi")
     use_dpi = int(use_dpi)
@@ -146,9 +159,15 @@ def export(save_folder_name, save_image_name, settings, use_dpi = None):
         json.dump(settings, outfile, sort_keys=True, indent=4)
  
     #Image.open(entire_path_image).show()
-    
-
-    
+    if (data is None) == False:
+            #here comes the data file 
+            data_name_csv = '%s_%s.csv'.format( date=datetime.datetime.now()) %(time_string, save_image_name)
+            entire_path_csv = my_dir_name +  data_name_csv
+            if type(data) == np.ndarray:
+                np.savetxt(entire_path_csv, data, delimiter="," , fmt='%.10e', header = data_header)
+            else:
+                data.to_csv(entire_path_csv, index = False)
+            
     return settings
 
 
@@ -388,15 +407,15 @@ def PlotGlobalDrift():
     
    
     
-def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, alpha_values = 0.1, alpha_fit = 0.3):
+def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, collect_data = None, alpha_values = 0.1, alpha_fit = 0.3):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     plt.plot(lagt_direct, mean_displ_direct,'k-', alpha = alpha_values) # plotting msd-lag-time-tracks for all particles
     plt.plot(lagt_direct, mean_displ_fit_direct_lin, 'r', alpha = alpha_fit) # plotting the lin fits
     #ax.annotate(particleid, xy=(lagt_direct.max(), mean_displ_fit_direct_lin.max()))
     plt.title("MSD fit", **title_font)
-    plt.xlabel("MSD", **axis_font)
-    plt.ylabel("Lagtime [s]", **axis_font)
-    
+    plt.ylabel("MSD $[\mu m^2]$", **axis_font)
+    plt.xlabel("Lagtime [s]", **axis_font)
+
 
 
     
