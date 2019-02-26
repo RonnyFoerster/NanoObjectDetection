@@ -179,7 +179,6 @@ def batch_np(frames_np, settings, UseLog = False, diameter = None, minmass=None,
 
     """
     
-    
     UseLog = settings["Processing"]["Analyze in log"]
     
     if UseLog == True:
@@ -188,12 +187,11 @@ def batch_np(frames_np, settings, UseLog = False, diameter = None, minmass=None,
     
     separation, settings = nd.handle_data.SpecificValueOrSettings(separation, settings, "Processing", "Separation data")
     minmass, settings =  nd.handle_data.SpecificValueOrSettings(minmass, settings, "Processing", "Minimal bead brightness")
-         
     if UseLog == False:
         diameter, settings = nd.handle_data.SpecificValueOrSettings(diameter, settings, "Processing", "Estimated particle size [px]")
     else:
         diameter, settings = nd.handle_data.SpecificValueOrSettings(diameter, settings, "Processing", "Estimated particle size (log-scale) [px]")
-    
+
 #    settings = None, diameter = None, minmass=100, maxsize=None, separation=None,
 #          noise_size=1, smoothing_size=None, threshold=None, invert=False,
 #          percentile=64, topn=None, preprocess=True, max_iterations=10,

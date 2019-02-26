@@ -86,10 +86,10 @@ def AskMethodToImprove():
     return method
 
 
-def AskIfUserSatisfied():
+def AskIfUserSatisfied(QuestionForUser):
     valid_answer = False
     while valid_answer == False:
-        answer = input('Are you satisfied (y/n)? :')
+        answer = input(QuestionForUser + ' (y/n) :')
         if answer in ('y','n') == False:
             print("Warning: press y or n")
         else:
@@ -116,7 +116,7 @@ def FindSpot(rawframes_ROI, settings):
             
         if DoItAgain == False:
             # user happy?
-            UserSatisfied = AskIfUserSatisfied()
+            UserSatisfied = AskIfUserSatisfied('Are you satisfied?')
                
             if UserSatisfied == True:
                 print("Happy user =)")
@@ -146,8 +146,28 @@ def FindSpot(rawframes_ROI, settings):
             GetNumericalInput("Enhance >Separation data< from %d to (must be integer): "\
                               %settings["Processing"]["Separation data"])
             
-
-
         
     
     return settings
+
+
+def SpotSize(rawframes_rot, settings):
+    UserSatisfied = False
+    try_diameter = (3,3)
+    while UserSatisfied == False:
+        print('UserSatisfied? : ', UserSatisfied)
+        print('Try diameter:' , np.asarray(try_diameter))
+        obj_all, settings = nd.get_trajectorie.batch_np(rawframes_rot, settings, UseLog = False, diameter = try_diameter)
+        tp.subpx_bias(obj_all)
+        plt.draw()
+        plt.show()
+        plt.pause(3)
+        UserSatisfied = AskIfUserSatisfied('The histogramm should be flat. They should not have a dip in the middle!. Are you satisfied?')
+        
+        if UserSatisfied == False:
+            try_diameter = list(np.asarray(try_diameter) + 2)
+            
+    
+    return settings
+    
+    
