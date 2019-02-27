@@ -32,7 +32,7 @@ Here are alle the file locations of the input
 | data_folder_name | Location of the images  | "C:\\Data\\Mona_Nissen" | - |
 | data_type | File format of the images | "fits", "tif_stack", "tif_series" | - |
 | DefaultParameterJsonFile | If a json file is incomplete, for example due to an update, the json file is completed by the default value, whose path defined in here. | "Z:\\Datenauswertung\\19_ARHCF\\190802\\190225_default.json" | - |
-
+| json | path of the json file (if not given the code will write it into it.) | "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190227_Au50_922fps_mainChanOnly.json" | - |
 
 ### ROI - Region of interest
 Here a subregion (ROI) can be defined. This is especially helpfull for debugging, when not the entire image or all frames shall be used for the calculation in order to speed up the calculations. In addition, it can be helpfull if the image is large, but you just wanna evaluate a particle at a very defined region and time.
