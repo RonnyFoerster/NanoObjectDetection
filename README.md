@@ -21,11 +21,18 @@ Here are all experimental parameters
 | Microns_per_pixel | size of a camera pixel in object coordinate. This is given by the pixel pitch of the CCD and the magnification of the system. Be aware that the magnification written on an objective is only valid for the correct tube lens length. | 0.63 | µm/px |
 | Temperature | temperature of the specimen | 295.0 | °C |
 | const_Boltz | Boltzmann constant for the diffusion | 1.38e-23 | - |
-| data_file_extension | File format of the images. | "tif" | - |
+
+
+### File
+Here are alle the file locations of the input
+
+| Key  | Explanation | Example | Unit |
+| - | - | - | - |
 | data_file_name | Complete path of the first image  | "C:\\Data\\Mona_Nissen\\40nmgold.fits" | - |
 | data_folder_name | Location of the images  | "C:\\Data\\Mona_Nissen" | - |
-~~| data_type | File format of the images (old) | "fits" |~~ - |
+| data_type | File format of the images | "fits", "tif_stack", "tif_series" | - |
 | DefaultParameterJsonFile | If a json file is incomplete, for example due to an update, the json file is completed by the default value, whose path defined in here. | "Z:\\Datenauswertung\\19_ARHCF\\190802\\190225_default.json" | - |
+
 
 ### ROI - Region of interest
 Here a subregion (ROI) can be defined. This is especially helpfull for debugging, when not the entire image or all frames shall be used for the calculation in order to speed up the calculations. In addition, it can be helpfull if the image is large, but you just wanna evaluate a particle at a very defined region and time.
@@ -64,7 +71,8 @@ Start a routine that try to help you find the right parameters.
       
 | Key  | Explanation | Example |
 | - | - | - | - |
-| Help | Boolean if the help is activated | 1 | - |
+| ROI | Boolean if help with the ROI parameters is wanted | 1 | - |
+| Minimal bead brightness | Boolean if help with the "Minimal bead brightness" is wanted | 1 | - |
 
 
 ### Find
@@ -118,15 +126,7 @@ A drift can occur during the measurement. The drift needs to be measured and sub
 | Drift smoothing frames | Number of frames the drift is averaged over, since it assumed to change slowly | 20 | frames |
 | Drift rolling window size |  | If a lamiar flow is investigated, this value gives the total number of neighbouring slices that are used for averaging.| frames |
 | Min particle per block | If a lamiar flow is investigated, this is the minimum number of particles in one block | 40 | - |
-   
-### Old
-Parameters that are unused but still there in case they turn modern again
-   
-| Key  | Explanation | Example | Unit |
-| - | - | - | - |
-| Min displacement |  | 5 | - |
-| Rolling window size|  | 5 | - |
-   
+      
 
 ### MSD
 Parameters of the mean-squared-displacement fit.
@@ -160,3 +160,13 @@ Parameters that define what is ploted, how it looks like and where it is safed.
 | SaveProperties | Properties of the plot | "Z:\\Datenauswertung\\19_ARHCF\\PlotProperties.json" | - |
 | dpi | Used dpi of the plot | 120 | - |
   
+
+
+### Old
+Parameters that are unused but still there in case they turn modern again
+   
+| Key  | Explanation | Example | Unit |
+| - | - | - | - |
+| Min displacement |  | 5 | - |
+| Rolling window size|  | 5 | - |
+| data_file_extension | File format of the images. | "tif" | - |
