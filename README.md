@@ -5,7 +5,7 @@
 ## Important
 - All the experimental parameters are find in a *.json file.
 - The json datatype is quite strict with the format. The last entry of a key should not end whith a " , " . Booleans are written as 0 and 1.
-- A path does not except " \ " instead you have to use " \\ "
+- A path does not except " \ " instead you have to use " \ \ "
 
 ## Explenation of parameters
 
