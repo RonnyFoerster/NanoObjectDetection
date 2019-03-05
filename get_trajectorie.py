@@ -40,12 +40,15 @@ from tqdm import tqdm# progress bar
 from pdb import set_trace as bp #debugger
 
 # In[]
-def OptimizeParamFindSpots(rawframes_ROI, settings, SaveFig, gamma = 0.8, diameter=None , minmass=None, separation=None):
-    diameter, settings = nd.handle_data.SpecificValueOrSettings(diameter, settings, "Processing", "Estimated particle size [px]")
-    minmass, settings =  nd.handle_data.SpecificValueOrSettings(minmass, settings, "Processing", "Minimal bead brightness")
-    separation, settings = nd.handle_data.SpecificValueOrSettings(separation, settings, "Processing", "Separation data")
+def OptimizeParamFindSpots(rawframes_ROI, ParameterJsonFile, SaveFig, gamma = 0.8, diameter=None , minmass=None, separation=None):
     
-    obj, settings = nd.get_trajectorie.batch_np(rawframes_ROI[0:1,:,:], settings, diameter = diameter,
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    diameter = settings["Find"]["Estimated particle size"]
+    minmass = settings["Find"]["Minimal bead brightness"]
+    separation = settings["Find"]["Separation data"]
+    
+    obj = nd.get_trajectorie.batch_np(rawframes_ROI[0:1,:,:], ParameterJsonFile, diameter = diameter,
                                       minmass = minmass, separation = separation)
 
     params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
@@ -58,28 +61,87 @@ def OptimizeParamFindSpots(rawframes_ROI, settings, SaveFig, gamma = 0.8, diamet
 
     plt.imshow(nd.handle_data.DispWithGamma(rawframes_ROI[0,:,:] ,gamma = gamma))
 
-    plt.scatter(obj["x"],obj["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
     
+    plt.scatter(obj["x"],obj["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
+
+#    my_s = rawframes_ROI.shape[2] / 10
+#    my_linewidths = rawframes_ROI.shape[2] / 1000
+#    plt.scatter(obj["x"],obj["y"], s = my_s, facecolors='none', edgecolors='r', linewidths = my_linewidths)
+  
+
     plt.title("Identified Particles in first frame", **title_font)
     plt.xlabel("long. Position [Px]")
     plt.ylabel("trans. Position [Px]", **axis_font)
     
        
     if SaveFig == True:
-        save_folder_name = settings["Gui"]["SaveFolder"]
+        save_folder_name = settings["Plot"]["SaveFolder"]
         save_image_name = 'Optimize_First_Frame'
-    
-        settings = nd.visualize.export(save_folder_name, save_image_name, settings)
+
+        settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
         
         # close it because its reopened anyway
-        plt.close(fig)
+#        plt.close(fig)
     
 
     return obj, settings
 
 
 
-def batch_np(frames_np, settings, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None,
+def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None,
+          noise_size=1, smoothing_size=None, threshold=None, invert=False,
+          percentile=64, topn=None, preprocess=True, max_iterations=10,
+          filter_before=None, filter_after=None, characterize=True,
+          engine='auto', output=None, meta=None):
+    
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    DoSimulation = settings["Simulation"]["SimulateData"]
+    if DoSimulation == 1:
+        print("No data. A simulation is done instead")
+        diameter = settings["Simulation"]["DiameterOfParticles"]
+        num_particles = settings["Simulation"]["NumberOfParticles"]
+        frames = settings["Simulation"]["NumberOfFrames"]
+        frames_per_second = settings["Exp"]["fps"]
+        EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
+        mass = settings["Simulation"]["mass"]
+        microns_per_pixel = settings["Exp"]["Microns_per_pixel"]
+        temp_water = settings["Exp"]["Temperature"]
+        visc_water = settings["Exp"]["Viscocity"]
+        output = nd.Simulation.GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, \
+                                                  ep = EstimationPrecision, mass = mass, \
+                                                  microns_per_pixel = microns_per_pixel, temp_water = temp_water, \
+                                                  visc_water = visc_water)
+        
+        
+    else:
+        UseLog = settings["Find"]["Analyze in log"]
+        
+        if UseLog == True:
+            frames_np = nd.handle_data.LogData(frames_np)
+        
+        
+        separation = settings["Find"]["Separation data"]
+        minmass    = settings["Find"]["Minimal bead brightness"]
+        
+        if UseLog == False:
+            diameter = settings["Find"]["Estimated particle size"]
+        else:
+            diameter = settings["Find"]["Estimated particle size (log-scale)"]
+    
+    
+        output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations=10)
+       
+        output['abstime'] = output['frame'] / settings["MSD"]["effective_fps"]
+     
+    
+        nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+    
+    return output
+
+
+def batch_np(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None,
           noise_size=1, smoothing_size=None, threshold=None, invert=False,
           percentile=64, topn=None, preprocess=True, max_iterations=10,
           filter_before=None, filter_after=None, characterize=True,
@@ -179,18 +241,21 @@ def batch_np(frames_np, settings, UseLog = False, diameter = None, minmass=None,
 
     """
     
-    UseLog = settings["Processing"]["Analyze in log"]
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    UseLog = settings["Find"]["Analyze in log"]
     
     if UseLog == True:
         frames_np = nd.handle_data.LogData(frames_np)
     
     
-    separation, settings = nd.handle_data.SpecificValueOrSettings(separation, settings, "Processing", "Separation data")
-    minmass, settings =  nd.handle_data.SpecificValueOrSettings(minmass, settings, "Processing", "Minimal bead brightness")
+    separation = settings["Find"]["Separation data"]
+    minmass    = settings["Find"]["Minimal bead brightness"]
+    
     if UseLog == False:
-        diameter, settings = nd.handle_data.SpecificValueOrSettings(diameter, settings, "Processing", "Estimated particle size [px]")
+        diameter = settings["Find"]["Estimated particle size"]
     else:
-        diameter, settings = nd.handle_data.SpecificValueOrSettings(diameter, settings, "Processing", "Estimated particle size (log-scale) [px]")
+        diameter = settings["Find"]["Estimated particle size (log-scale)"]
 
 #    settings = None, diameter = None, minmass=100, maxsize=None, separation=None,
 #          noise_size=1, smoothing_size=None, threshold=None, invert=False,
@@ -239,8 +304,9 @@ def batch_np(frames_np, settings, UseLog = False, diameter = None, minmass=None,
     
     output['abstime'] = output['frame'] / settings["Exp"]["fps"]
  
-
-    return output, settings
+    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+    
+    return output
  
 
 
@@ -253,33 +319,43 @@ def batch_np(frames_np, settings, UseLog = False, diameter = None, minmass=None,
 #update_progress("Some job", 1)
 
 
-def link_df(obj, settings, SearchFixedParticles = False, max_displacement = None, dark_time = None):
+def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displacement = None, dark_time = None):
     
-    dark_time, settings = nd.handle_data.SpecificValueOrSettings(dark_time, settings, "Processing", "Dark time [frames]") 
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    dark_time = settings["Link"]["Dark time"]
     
     
     if SearchFixedParticles == False:
-        max_displacement, settings = nd.handle_data.SpecificValueOrSettings(max_displacement, settings, "Processing", "Max displacement [px]")
+        max_displacement = settings["Link"]["Max displacement"]
     else:
-        max_displacement, settings = nd.handle_data.SpecificValueOrSettings(max_displacement, settings, "Processing", "Max displacement fix [px]")
-    
+        max_displacement = settings["Link"]["Max displacement fix"]
     
     t1_orig = tp.link_df(obj, max_displacement, memory=dark_time)
     
-    return t1_orig, settings
+    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+    
+    
+    return t1_orig
 
 
 
-def filter_stubs(traj_all, settings, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
+def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
         # stationry particles
-        min_tracking_frames, settings = nd.handle_data.SpecificValueOrSettings(min_tracking_frames, settings, "Processing", "Dwell time stationary objects") 
+        min_tracking_frames = settings["Link"]["Dwell time stationary objects"]
+        
     elif (FixedParticles == False) and (BeforeDriftCorrection == True):
         # moving particle before drift correction
-        min_tracking_frames, settings = nd.handle_data.SpecificValueOrSettings(min_tracking_frames, settings, "Processing", "Min tracking frames before drift")
+        min_tracking_frames = settings["Link"]["Min tracking frames before drift"]
+        
     else:
         # moving particle after drift correction
-        min_tracking_frames, settings = nd.handle_data.SpecificValueOrSettings(min_tracking_frames, settings, "Processing", "min_tracking_frames")
+        min_tracking_frames = settings["Link"]["Min_tracking_frames"]
+        
 
     traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
 
@@ -292,22 +368,27 @@ def filter_stubs(traj_all, settings, FixedParticles = False, BeforeDriftCorrecti
     
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
         print('Number of stationary objects (might detected multiple times after beeing dark):', amount_valid_particles)
+    
     elif (FixedParticles == False) and (BeforeDriftCorrection == True):
         print("To short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
-        min_tracking_frames, settings = nd.handle_data.SpecificValueOrSettings(min_tracking_frames, settings, "Processing", "Min tracking frames before drift")
+            
     else:
-        min_tracking_frames, settings = nd.handle_data.SpecificValueOrSettings(min_tracking_frames, settings, "Processing", "min_tracking_frames")
         print("To short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
 
-    return traj_min_length, settings
-
-
-
-def RemoveSpotsInNoGoAreas(obj, t2_long_fix, settings, min_distance = None):
+    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
-    if settings["Processing"]["Analyze fixed spots"] == 1:
+
+    return traj_min_length
+
+
+
+def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = None):
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    if settings["StationaryObjects"]["Analyze fixed spots"] == 1:
         #required minimum distance in pixels between moving and stationary particles
-        min_distance, settings = nd.handle_data.SpecificValueOrSettings(min_distance, settings, "Processing", "Min distance to stationary object [px]")
+        min_distance = settings["StationaryObjects"]["Min distance to stationary object"]
         
     
         # loop through all stationary objects (cotains position (x,y) and time of existent (frame))
@@ -337,7 +418,10 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, settings, min_distance = None):
     else:
         print("!!! PARTICLES CAN ENTER NO GO AREA WITHOUT GETTING CUT !!!")
         
-    return obj, settings
+    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+    
+        
+    return obj
 
 
 
@@ -389,14 +473,19 @@ def close_gaps(t1):
                 
             # cat not data frame together
             t1_gapless = pd.concat([t1_gapless, t1_loop])
-                           
-    
+            
+            
     return t1_gapless
 
 
 
-def calc_intensity_fluctuations(t1_gapless, settings, dark_time = None, PlotIntMedianFit = False, PlotIntFlucPerBead = False):
-    dark_time, settings = nd.handle_data.SpecificValueOrSettings(dark_time, settings, "Processing", "Dark time [frames]") 
+
+def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None, PlotIntMedianFit = False, PlotIntFlucPerBead = False):
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    dark_time = settings["Link"]["Dark time"]
+    
     # MEDIAN FILTER OF MASS
     # CALCULATE RELATIVE STEP HEIGHTS OVER TIME
     
@@ -442,21 +531,94 @@ def calc_intensity_fluctuations(t1_gapless, settings, dark_time = None, PlotIntM
     if PlotIntFlucPerBead == True:
         nd.visualize.MaxIntFluctuationPerBead(t1_gapless)
 
+    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
-    return t1_gapless, settings
+    return t1_gapless
 
 
+
+
+def split_traj(t2_long, t3_gapless, ParameterJsonFile):
+
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    
+    t4_cutted, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
+    
+    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+
+    return t4_cutted
+
+
+
+def split_traj_at_long_trajectorie(t4_cutted, settings, Max_traj_length = None):
+   
+    keep_tail = settings["Split"]["Max_traj_length_keep_tail"]
+    
+    if Max_traj_length is None:
+        Max_traj_length = int(settings["Split"]["Max_traj_length"])
+        
+    free_particle_id = np.max(t4_cutted["particle"]) + 1
+    
+#    Max_traj_length = 1000
+
+    t4_cutted["true_particle"] = t4_cutted["particle"]
+    
+    traj_length = t4_cutted.groupby(["particle"]).frame.max() - t4_cutted.groupby(["particle"]).frame.min()
+    
+    # split when two times longer required
+    split_particles = traj_length > Max_traj_length
+    
+    
+    particle_list = split_particles.index[split_particles]
+    
+    particle_list = np.asarray(particle_list.values,dtype = 'int')
+    
+    num_particle_list = len(particle_list)
+
+
+    for count, test_particle in enumerate(particle_list):
+        nd.visualize.update_progress("Split to long trajectories", (count+1) / num_particle_list)
+
+
+#        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
+#        end_frame   = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[-1]
+       
+        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
+#        end_frame   = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[-1]
+        
+        
+        traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
+        
+        
+        
+        while traj_length > Max_traj_length:
+            if (traj_length > 2*Max_traj_length) or (keep_tail == 0):
+                start_frame = t4_cutted[t4_cutted["particle"] == test_particle].iloc[Max_traj_length]["frame"]
+                t4_cutted.loc[(t4_cutted["particle"] == test_particle) & (t4_cutted["frame"] >= start_frame), "particle"] = free_particle_id
+    
+                test_particle = free_particle_id
+                free_particle_id = free_particle_id + 1
+                
+                traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
+            else:
+                break
+            
+     
+    if keep_tail == 0:
+        t4_cutted = tp.filter_stubs(t4_cutted, Max_traj_length)
+
+    
+    return t4_cutted
 
 
 def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_intensity_step = None,
                              min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = False, NumParticles2Plot = 3,
                              PlotAnimationFiltering = False, rawframes_ROI = -1):
     
-    max_rel_median_intensity_step, settings = nd.handle_data.SpecificValueOrSettings(max_rel_median_intensity_step, settings, 
-                                                                           "Processing", "Max rel median intensity step") 
+    max_rel_median_intensity_step = settings["Split"]["Max rel median intensity step"]
     
-    min_tracking_frames_before_drift, settings = nd.handle_data.SpecificValueOrSettings(min_tracking_frames_before_drift, settings, 
-                                                                           "Processing", "Min tracking frames before drift") 
+    min_tracking_frames_before_drift = settings["Link"]["Min tracking frames before drift"]
     
     
     # check if threshold is exceeded
@@ -547,7 +709,7 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
 
 
 
-def DriftCorrection(t_drift, settings, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None,
+def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None,
                     min_particle_per_block = None, min_tracking_frames = None, PlotGlobalDrift = False, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, 
                     PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False,
                     PlotDriftCorrectedTraj = False):
@@ -558,272 +720,274 @@ def DriftCorrection(t_drift, settings, Do_transversal_drift_correction = None, d
     Attention: Only makes sense if more than 1 particle is regarded
     Otherwise the average drift is exactly the particles movement and thus the trajectory vanishes!
     """
-
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    Do_transversal_drift_correction, settings = nd.handle_data.SpecificValueOrSettings(Do_transversal_drift_correction, settings, 
-                                                                           "Processing", "Do transversal drift correction")     
     
-    drift_smoothing_frames, settings = nd.handle_data.SpecificValueOrSettings(drift_smoothing_frames, settings, 
-                                                                           "Processing", "Drift smoothing frames") 
+    ApplyDriftCorrection = settings["Drift"]["Apply"]    
     
-    rolling_window_size, settings = nd.handle_data.SpecificValueOrSettings(rolling_window_size, settings, 
-                                                                           "Processing", "Drift rolling window size") 
-    
-    min_particle_per_block, settings = nd.handle_data.SpecificValueOrSettings(min_particle_per_block, settings, 
-                                                                           "Processing", "Min particle per block") 
-    
-    min_tracking_frames, settings = nd.handle_data.SpecificValueOrSettings(min_tracking_frames, settings, 
-                                                                           "Processing", "min_tracking_frames") 
-    
-       
-
-    if Do_transversal_drift_correction == False:
-        print('Mode: global drift correction')
-        # That's not to be used if y-depending correction (next block) is performed!
+    if ApplyDriftCorrection == 0:
+        t_no_drift = t_drift
         
-        # Attention: Strictly this might be wrong:
-        # Drift might be different along y-positions of channel.
-        # It might be more appropriate to divide into subareas and correct for drift individually there
-        # That's done if Do_transversal_drift_correction==1
-        d = tp.compute_drift(t_drift, drift_smoothing_frames) # calculate the overall drift (e.g. drift of setup or flow of particles)
-        t_no_drift = tp.subtract_drift(t_drift.copy(), d) # subtract overall drift from trajectories (creates new dataset)
-        
-        if PlotGlobalDrift == True:
-            nd.visualize.PlotGlobalDrift() # plot the calculated drift
-    
-    
     else:
-        print('Mode: transversal correction')
-        # Y-Depending drift-correction
-        # RF: Creation of y-sub-zones and calculation of drift
-        # SW 180717: Subtraction of drift from trajectories
+        
+        Do_transversal_drift_correction = settings["Drift"]["Do transversal drift correction"]    
+        drift_smoothing_frames          = settings["Drift"]["Drift smoothing frames"]    
+        rolling_window_size             = settings["Drift"]["Drift rolling window size"]    
+        min_particle_per_block          = settings["Drift"]["Min particle per block"]    
+        min_tracking_frames             = settings["Link"]["Min_tracking_frames"]
+        
+           
     
+        if Do_transversal_drift_correction == False:
+            print('Mode: global drift correction')
+            # That's not to be used if y-depending correction (next block) is performed!
+            
+            # Attention: Strictly this might be wrong:
+            # Drift might be different along y-positions of channel.
+            # It might be more appropriate to divide into subareas and correct for drift individually there
+            # That's done if Do_transversal_drift_correction==1
+            d = tp.compute_drift(t_drift, drift_smoothing_frames) # calculate the overall drift (e.g. drift of setup or flow of particles)
+            t_no_drift = tp.subtract_drift(t_drift.copy(), d) # subtract overall drift from trajectories (creates new dataset)
+            
+            if PlotGlobalDrift == True:
+                nd.visualize.PlotGlobalDrift() # plot the calculated drift
         
-        # how many particles are needed to perform a drift correction
-        #min_particle_per_block = 40
         
-    #    # use blocks above and below for averaging (more particles make drift correction better)
-    #    # e.g. 2 means y subarea itself and the two above AND below
-    #    rolling_window_size = 5
+        else:
+            print('Mode: transversal correction')
+            # Y-Depending drift-correction
+            # RF: Creation of y-sub-zones and calculation of drift
+            # SW 180717: Subtraction of drift from trajectories
+        
+            
+            # how many particles are needed to perform a drift correction
+            #min_particle_per_block = 40
+            
+        #    # use blocks above and below for averaging (more particles make drift correction better)
+        #    # e.g. 2 means y subarea itself and the two above AND below
+        #    rolling_window_size = 5
+        
+            average_over_total_block = 2 * rolling_window_size + 1
+              
+            # sort y values to have in each sub area the same amount of particles
+            all_y_sorted = t_drift.y.values.copy()
+            all_y_sorted.sort()
+            
+            y_min = all_y_sorted[0];   # min y of tracked particle
+            y_max = all_y_sorted[-1];   # max y of tracked particle
+            num_data_points = len(all_y_sorted)
+            
+            # total number of captured frames
+            num_frames = t_drift.index.max() - t_drift.index.min() + 1
+            
+            # this is difficult to explain
+            # we have >num_data_points< data points and want to split them such, that each sub y has >min_particle_per_block< in it
+            # in each frame >num_frames<
+            # Because of the averaging with neighbouring areas the effective number is lifted >average_over_total_block<
+            #start: distribute num_data_points over all number of frames and blocks
+            number_blocks = int(num_data_points / min_particle_per_block / num_frames * average_over_total_block)
+            
+            
+            #sub_y = np.linspace(y_min,y_max,number_blocks+1)
+            sub_y = np.zeros(number_blocks+1)
+            
+            for x in range(0,number_blocks):
+                use_index = int(num_data_points * (x / number_blocks))
+                sub_y[x] = all_y_sorted[use_index]
+            sub_y[-1] = y_max
+            
+            #average y-range for later
+            y_range = (sub_y[:-1] + sub_y[1:]) / 2
+            
+            # delete variable to start again
+            if 'calc_drift' in locals():
+                del calc_drift 
+                del total_drift
+                total_drift = pd.DataFrame(columns = ['y','x','frame'])
+                calc_drift_diff = pd.DataFrame()
     
-        average_over_total_block = 2 * rolling_window_size + 1
-          
-        # sort y values to have in each sub area the same amount of particles
-        all_y_sorted = t_drift.y.values.copy()
-        all_y_sorted.sort()
-        
-        y_min = all_y_sorted[0];   # min y of tracked particle
-        y_max = all_y_sorted[-1];   # max y of tracked particle
-        num_data_points = len(all_y_sorted)
-        
-        # total number of captured frames
-        num_frames = t_drift.index.max() - t_drift.index.min() + 1
-        
-        # this is difficult to explain
-        # we have >num_data_points< data points and want to split them such, that each sub y has >min_particle_per_block< in it
-        # in each frame >num_frames<
-        # Because of the averaging with neighbouring areas the effective number is lifted >average_over_total_block<
-        #start: distribute num_data_points over all number of frames and blocks
-        number_blocks = int(num_data_points / min_particle_per_block / num_frames * average_over_total_block)
-        
-        
-        #sub_y = np.linspace(y_min,y_max,number_blocks+1)
-        sub_y = np.zeros(number_blocks+1)
-        
-        for x in range(0,number_blocks):
-            use_index = int(num_data_points * (x / number_blocks))
-            sub_y[x] = all_y_sorted[use_index]
-        sub_y[-1] = y_max
-        
-        #average y-range for later
-        y_range = (sub_y[:-1] + sub_y[1:]) / 2
-        
-        # delete variable to start again
-        if 'calc_drift' in locals():
-            del calc_drift 
-            del total_drift
-            total_drift = pd.DataFrame(columns = ['y','x','frame'])
-            calc_drift_diff = pd.DataFrame()
-
-        # Creating a copy of t1 which will contain a new column with each values ysub-position
-        t_drift_ysub = t_drift.copy()
-        t_drift_ysub['ysub']=np.nan # Defining values to nan
-            
-        for x in range(0,number_blocks):
-            print(x)
-               
-            # calc which subareas of y are in the rolling window.
-            sub_y_min = x - rolling_window_size
-            if sub_y_min  < 0:
-                sub_y_min = 0
-            
-            sub_y_max = x + 1 + rolling_window_size
-            if sub_y_max  > number_blocks:
-                sub_y_max = number_blocks;
+            # Creating a copy of t1 which will contain a new column with each values ysub-position
+            t_drift_ysub = t_drift.copy()
+            t_drift_ysub['ysub']=np.nan # Defining values to nan
                 
-            # select which particles are in the current subarea
-            use_part = (t_drift['y'] >= sub_y[sub_y_min]) & (t_drift['y'] < sub_y[sub_y_max])
-            use_part_subtract = (t_drift['y'] >= sub_y[x]) & (t_drift['y'] < sub_y[x+1]) 
-            
-            # get their indices
-            use_part_index = np.where(np.array(use_part)==True)   # find index of elements true
-            
-            # WHAT IS THIS VARIABLE ACTUALLY GOOD FOR?
-            use_part_subtract_index = np.where(np.array(use_part_subtract)==True)
-            
-            # Writing x as ysub into copy of t1. That's needed to treat data differently depending on y-sub-position
-            # Python 3.5 t1_ysub['ysub'].iloc[use_part_subtract_index]=x # I believe that's not an elegant way of doing it. Maybe find a better approach       
-            t_drift_ysub.loc[use_part,'ysub'] = x # RF 180906
-            
-    
-            
-            # how many particles are in each frames
-            use_part_index = list(use_part_index)[0]
-            use_part_subtract_index = list(use_part_subtract_index)[0]
-            num_particles_block = len(use_part_index)
+            for x in range(0,number_blocks):
+                print(x)
+                   
+                # calc which subareas of y are in the rolling window.
+                sub_y_min = x - rolling_window_size
+                if sub_y_min  < 0:
+                    sub_y_min = 0
                 
-            # check if drift_smoothing_frames is not longer than the video is long
-            num_frames = settings["ROI"]["frame_max"] - settings["ROI"]["frame_min"] + 1
-            if num_frames < drift_smoothing_frames:
-                sys.exit("Number of frames is smaller than drift_smoothing_frames")
-
-#            raise NameError('HiThere')
-            # make the drift correction with the subframe
-            calc_drift_y = tp.compute_drift(t_drift.iloc[use_part_index], drift_smoothing_frames) # calculate the drift of this y block
-            calc_drift_y_diff=calc_drift_y.diff(periods=1).fillna(value=0)
-            calc_drift_y_diff['ysub']=x
+                sub_y_max = x + 1 + rolling_window_size
+                if sub_y_max  > number_blocks:
+                    sub_y_max = number_blocks;
+                    
+                # select which particles are in the current subarea
+                use_part = (t_drift['y'] >= sub_y[sub_y_min]) & (t_drift['y'] < sub_y[sub_y_max])
+                use_part_subtract = (t_drift['y'] >= sub_y[x]) & (t_drift['y'] < sub_y[x+1]) 
                 
-            calc_drift_y['frame'] = calc_drift_y.index.values
-            calc_drift_y['y_range'] = y_range[x]
-        
-            # calculate entire drift with starting and end position
-            start_pos = calc_drift_y.set_index('y_range')[['y', 'x', 'frame']].iloc[[0],:]
-            end_pos = calc_drift_y.set_index('y_range')[['y', 'x', 'frame']].iloc[[-1],:]
-            my_total = end_pos - start_pos
-            my_total ['num_particles'] = num_particles_block
-            
-            if x == 0:
-                calc_drift = calc_drift_y
-                total_drift = my_total
-                calc_drift_diff = calc_drift_y_diff # that's going to be the look-up for the drift, depending on y-sub
+                # get their indices
+                use_part_index = np.where(np.array(use_part)==True)   # find index of elements true
                 
-            else:
-                calc_drift = pd.concat([calc_drift, calc_drift_y])  #prepare additional index
-                total_drift = pd.concat([total_drift, my_total])
-                calc_drift_diff = pd.concat([calc_drift_diff,calc_drift_y_diff])
+                # WHAT IS THIS VARIABLE ACTUALLY GOOD FOR?
+                use_part_subtract_index = np.where(np.array(use_part_subtract)==True)
+                
+                # Writing x as ysub into copy of t1. That's needed to treat data differently depending on y-sub-position
+                # Python 3.5 t1_ysub['ysub'].iloc[use_part_subtract_index]=x # I believe that's not an elegant way of doing it. Maybe find a better approach       
+                t_drift_ysub.loc[use_part,'ysub'] = x # RF 180906
+                
         
-        # to distinguish that we're not looking at positions but the difference of positions
-        calc_drift_diff=calc_drift_diff.rename(columns={'x':'x_diff1', 'y':'y_diff1'}) 
-        
-        # Adding frame as a column
-        calc_drift_diff['frame']=calc_drift_diff.index 
-        
-        # Indexing by y-sub-area and frame
-        calc_drift_diff=calc_drift_diff.set_index(['ysub','frame']) 
-        
-        # Adding frame as a calumn to particle data
-        t_drift_ysub['frame']=t_drift_ysub.index 
-        
-        # Indexing particle-data analogously to drift-lookup
-        t_drift_ysub=t_drift_ysub.set_index(['ysub','frame']) 
-        
-        # Adding drift-lookup into particle data, using frame and ysub
-        t_drift_ysub_diff=pd.merge(t_drift_ysub,calc_drift_diff, left_index=True, right_index=True, how='inner') 
-        
-        # Releasing frame from index -> allows to sort easier by frame
-        t_drift_ysub_diff=t_drift_ysub_diff.reset_index('frame') 
-        
-        cumsums_x=t_drift_ysub_diff.sort_values(['particle','frame']).groupby(by='particle')['x_diff1'].cumsum() 
-        
-        # Calculating particle history in x direction:
-        # sorting by particle first, then frame, grouping then by particle and calculating the cumulative sum of displacements
-        cumsums_y=t_drift_ysub_diff.sort_values(['particle','frame']).groupby(by='particle')['y_diff1'].cumsum()
-        # same in y-direction
-        
-         # Sorting particle data in the same way
-        t_no_drift_ysub_diff_sort=t_drift_ysub_diff.sort_values(['particle','frame'])
-        
-         # UNSICHER: + oder - ?????
-        t_no_drift_ysub_diff_sort['x_corr']=t_drift_ysub_diff.sort_values(['particle','frame'])['x']-cumsums_x
-        
-        # subtracting drift-history for each particle
-         # UNSICHER: + oder - ?????
-        t_no_drift_ysub_diff_sort['y_corr']=t_drift_ysub_diff.sort_values(['particle','frame'])['y']-cumsums_y
-        # same in y-direction
-        
-        #tm_sub=t1_ysub_diff_sort.copy()
-        # just giving a more descriptive name to particle data
-        t_no_drift_sub = t_no_drift_ysub_diff_sort 
-        
-        # dropping axes that wouldn't be needed any longer
-        t_no_drift_sub = t_no_drift_sub.drop(['x', 'y', 'x_diff1', 'y_diff1'], axis=1) 
-        
-        #tm_sub=tm_sub.rename(columns={'x':'x', 'y':'y'}) 
-        # renaming the corrected position into original names to keep the remaining code working with it
-        t_no_drift_sub = t_no_drift_sub.rename(columns={'x_corr':'x', 'y_corr':'y'}) 
-        
-        # Bringing tm_sub back into a format that later parts of the code need to work with it
-        t_no_drift_sub_store=t_no_drift_sub.copy()
-        
-        # Forgetting about ysub - which isn't needed anymore - and making frame the only index again
-        t_no_drift_sub.set_index('frame', drop=True, inplace=True) 
-        
-        # Sorting by frame
-        t_no_drift_sub=t_no_drift_sub.sort_index() 
-        
-        # Adding frame as a column
-        t_no_drift_sub['frame'] = t_no_drift_sub.index 
-        t_no_drift_sub = t_no_drift_sub[['x','y','mass','size','ecc','signal','raw_mass','ep','frame','abstime','particle']] # Ordering as needed later
-        
-        # Set this, if y-depending-drift-correction is to be used
-        t_no_drift = t_no_drift_sub 
-        
-#        t_no_drift = tp.filter_stubs(t_no_drift, min_tracking_frames) 
-        t_no_drift = t_no_drift.sort_values('frame')
-        
-        # insert y_range
-        # total_drift.index = y_range RF180906 is that needed?
+                
+                # how many particles are in each frames
+                use_part_index = list(use_part_index)[0]
+                use_part_subtract_index = list(use_part_subtract_index)[0]
+                num_particles_block = len(use_part_index)
+                    
+                # check if drift_smoothing_frames is not longer than the video is long
+                num_frames = settings["ROI"]["frame_max"] - settings["ROI"]["frame_min"] + 1
+                if num_frames < drift_smoothing_frames:
+                    sys.exit("Number of frames is smaller than drift_smoothing_frames")
+    
+    #            raise NameError('HiThere')
+                # make the drift correction with the subframe
+                calc_drift_y = tp.compute_drift(t_drift.iloc[use_part_index], drift_smoothing_frames) # calculate the drift of this y block
+                calc_drift_y_diff=calc_drift_y.diff(periods=1).fillna(value=0)
+                calc_drift_y_diff['ysub']=x
+                    
+                calc_drift_y['frame'] = calc_drift_y.index.values
+                calc_drift_y['y_range'] = y_range[x]
             
-        # set two new indices - first frame than y_range        
-        calc_drift = calc_drift.set_index(['frame'])
-        
-        # calc velocity as deviation of drift
-        # average speed for display
-        avg_frames = 30
-        calc_drift[['velocity_y', 'velocity_x','new_y_range']] = calc_drift[['y','x','y_range']].diff(avg_frames)/avg_frames
-        
-        
-        # Delete lines where new y range begins
-        # ronny does not like python yet
-        calc_drift_copy = calc_drift[abs(calc_drift['new_y_range']) == 0].copy()
-        
-        # still not...
-        del calc_drift
-        calc_drift = calc_drift_copy.copy()
-        del calc_drift_copy
-        
-        # Do some plotting of the drift stuff
-        
-        
-    if PlotDriftAvgSpeed == True:
-        nd.visualize.DriftAvgSpeed()
-       
-    if PlotDriftTimeDevelopment == True:
-        nd.visualize.DriftTimeDevelopment()  
-
-    if PlotDriftFalseColorMapFlow == True:
-        nd.visualize.DriftFalseColorMapFlow()
+                # calculate entire drift with starting and end position
+                start_pos = calc_drift_y.set_index('y_range')[['y', 'x', 'frame']].iloc[[0],:]
+                end_pos = calc_drift_y.set_index('y_range')[['y', 'x', 'frame']].iloc[[-1],:]
+                my_total = end_pos - start_pos
+                my_total ['num_particles'] = num_particles_block
+                
+                if x == 0:
+                    calc_drift = calc_drift_y
+                    total_drift = my_total
+                    calc_drift_diff = calc_drift_y_diff # that's going to be the look-up for the drift, depending on y-sub
+                    
+                else:
+                    calc_drift = pd.concat([calc_drift, calc_drift_y])  #prepare additional index
+                    total_drift = pd.concat([total_drift, my_total])
+                    calc_drift_diff = pd.concat([calc_drift_diff,calc_drift_y_diff])
+            
+            # to distinguish that we're not looking at positions but the difference of positions
+            calc_drift_diff=calc_drift_diff.rename(columns={'x':'x_diff1', 'y':'y_diff1'}) 
+            
+            # Adding frame as a column
+            calc_drift_diff['frame']=calc_drift_diff.index 
+            
+            # Indexing by y-sub-area and frame
+            calc_drift_diff=calc_drift_diff.set_index(['ysub','frame']) 
+            
+            # Adding frame as a calumn to particle data
+            t_drift_ysub['frame']=t_drift_ysub.index 
+            
+            # Indexing particle-data analogously to drift-lookup
+            t_drift_ysub=t_drift_ysub.set_index(['ysub','frame']) 
+            
+            # Adding drift-lookup into particle data, using frame and ysub
+            t_drift_ysub_diff=pd.merge(t_drift_ysub,calc_drift_diff, left_index=True, right_index=True, how='inner') 
+            
+            # Releasing frame from index -> allows to sort easier by frame
+            t_drift_ysub_diff=t_drift_ysub_diff.reset_index('frame') 
+            
+            cumsums_x=t_drift_ysub_diff.sort_values(['particle','frame']).groupby(by='particle')['x_diff1'].cumsum() 
+            
+            # Calculating particle history in x direction:
+            # sorting by particle first, then frame, grouping then by particle and calculating the cumulative sum of displacements
+            cumsums_y=t_drift_ysub_diff.sort_values(['particle','frame']).groupby(by='particle')['y_diff1'].cumsum()
+            # same in y-direction
+            
+             # Sorting particle data in the same way
+            t_no_drift_ysub_diff_sort=t_drift_ysub_diff.sort_values(['particle','frame'])
+            
+             # UNSICHER: + oder - ?????
+            t_no_drift_ysub_diff_sort['x_corr']=t_drift_ysub_diff.sort_values(['particle','frame'])['x']-cumsums_x
+            
+            # subtracting drift-history for each particle
+             # UNSICHER: + oder - ?????
+            t_no_drift_ysub_diff_sort['y_corr']=t_drift_ysub_diff.sort_values(['particle','frame'])['y']-cumsums_y
+            # same in y-direction
+            
+            #tm_sub=t1_ysub_diff_sort.copy()
+            # just giving a more descriptive name to particle data
+            t_no_drift_sub = t_no_drift_ysub_diff_sort 
+            
+            # dropping axes that wouldn't be needed any longer
+            t_no_drift_sub = t_no_drift_sub.drop(['x', 'y', 'x_diff1', 'y_diff1'], axis=1) 
+            
+            #tm_sub=tm_sub.rename(columns={'x':'x', 'y':'y'}) 
+            # renaming the corrected position into original names to keep the remaining code working with it
+            t_no_drift_sub = t_no_drift_sub.rename(columns={'x_corr':'x', 'y_corr':'y'}) 
+            
+            # Bringing tm_sub back into a format that later parts of the code need to work with it
+            t_no_drift_sub_store=t_no_drift_sub.copy()
+            
+            # Forgetting about ysub - which isn't needed anymore - and making frame the only index again
+            t_no_drift_sub.set_index('frame', drop=True, inplace=True) 
+            
+            # Sorting by frame
+            t_no_drift_sub=t_no_drift_sub.sort_index() 
+            
+            # Adding frame as a column
+            t_no_drift_sub['frame'] = t_no_drift_sub.index 
+            t_no_drift_sub = t_no_drift_sub[['x','y','mass','size','ecc','signal','raw_mass','ep','frame','abstime','particle']] # Ordering as needed later
+            
+            # Set this, if y-depending-drift-correction is to be used
+            t_no_drift = t_no_drift_sub 
+            
+    #        t_no_drift = tp.filter_stubs(t_no_drift, min_tracking_frames) 
+            t_no_drift = t_no_drift.sort_values('frame')
+            
+            # insert y_range
+            # total_drift.index = y_range RF180906 is that needed?
+                
+            # set two new indices - first frame than y_range        
+            calc_drift = calc_drift.set_index(['frame'])
+            
+            # calc velocity as deviation of drift
+            # average speed for display
+            avg_frames = 30
+            calc_drift[['velocity_y', 'velocity_x','new_y_range']] = calc_drift[['y','x','y_range']].diff(avg_frames)/avg_frames
+            
+            
+            # Delete lines where new y range begins
+            # ronny does not like python yet
+            calc_drift_copy = calc_drift[abs(calc_drift['new_y_range']) == 0].copy()
+            
+            # still not...
+            del calc_drift
+            calc_drift = calc_drift_copy.copy()
+            del calc_drift_copy
+            
+            # Do some plotting of the drift stuff
+            
+            
+        if PlotDriftAvgSpeed == True:
+            nd.visualize.DriftAvgSpeed()
+           
+        if PlotDriftTimeDevelopment == True:
+            nd.visualize.DriftTimeDevelopment()  
     
-    if PlotDriftVectors == True:
-        nd.visualize.DriftVectors()
-
-    if PlotDriftFalseColorMapSpeed == True:
-        nd.visualize.DriftFalseColorMapSpeed()
-
-    if PlotDriftCorrectedTraj == True:
-        nd.visualize.DriftCorrectedTraj()
+        if PlotDriftFalseColorMapFlow == True:
+            nd.visualize.DriftFalseColorMapFlow()
+        
+        if PlotDriftVectors == True:
+            nd.visualize.DriftVectors()
     
-    print('drift correction --> finished')
+        if PlotDriftFalseColorMapSpeed == True:
+            nd.visualize.DriftFalseColorMapSpeed()
     
-    return t_no_drift, settings
+        if PlotDriftCorrectedTraj == True:
+            nd.visualize.DriftCorrectedTraj()
+        
+        print('drift correction --> finished')
+        
+        nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+
+    
+    return t_no_drift
     

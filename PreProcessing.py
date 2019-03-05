@@ -9,42 +9,53 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pdb import set_trace as bp #debugger
 
-def Main(rawframes_np, settings):
-    # check if constant background shall be removed
-    if settings["PreProcessing"]["Remove_CameraOffset"] == 1:
-        print('Constant camera background: removed')
-        rawframes_np = nd.PreProcessing.SubtractCameraOffset(rawframes_np, settings)
-    else:
-        print('Constant camera background: not removed')
+def Main(rawframes_np, ParameterJsonFile):
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    if settings["PreProcessing"]["Remove_Laserfluctuation"] == 1:
-        print('Laser fluctuations: removed')
-        rawframes_np = nd.PreProcessing.RemoveLaserfluctuation(rawframes_np, settings)    
-        # WARNING - this needs a roughly constant amount of particles in the object!
-    else:
-        print('Laser fluctuations: not removed')
+    DoSimulation = settings["Simulation"]["SimulateData"]
     
-    if settings["PreProcessing"]["Remove_StaticBackground"] == 1:
-        print('Static background: removed')
-        rawframes_np, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings)
+    if DoSimulation == 1:
+        print("No data. Do a simulation later on")
+        rawframes_np = 0
+                
     else:
-        print('Static background: not removed')
+        # check if constant background shall be removed
+        if settings["PreProcessing"]["Remove_CameraOffset"] == 1:
+            print('Constant camera background: removed')
+            rawframes_np = nd.PreProcessing.SubtractCameraOffset(rawframes_np, settings)
+        else:
+            print('Constant camera background: not removed')
         
-    if settings["PreProcessing"]["RollingPercentilFilter"] == 1:
-        print('Rolling percentil filter: applied')
-        rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings, settings)
-    else:
-        print('Rolling percentil filter: not applied')
-    
-    if settings["PreProcessing"]["ClipNegativeValue"] == 1:
-        print('Negative values: removed')
-        print("Ronny does not love clipping.")
-        rawframes_np[rawframes_np < 0] = 0
-    else:
-        print('Negative values: kept')
+        if settings["PreProcessing"]["Remove_Laserfluctuation"] == 1:
+            print('Laser fluctuations: removed')
+            rawframes_np = nd.PreProcessing.RemoveLaserfluctuation(rawframes_np, settings)    
+            # WARNING - this needs a roughly constant amount of particles in the object!
+        else:
+            print('Laser fluctuations: not removed')
         
+        if settings["PreProcessing"]["Remove_StaticBackground"] == 1:
+            print('Static background: removed')
+            rawframes_np, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings)
+        else:
+            print('Static background: not removed')
+            
+        if settings["PreProcessing"]["RollingPercentilFilter"] == 1:
+            print('Rolling percentil filter: applied')
+            rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings, settings)
+        else:
+            print('Rolling percentil filter: not applied')
         
-    return rawframes_np, settings
+        if settings["PreProcessing"]["ClipNegativeValue"] == 1:
+            print('Negative values: removed')
+            print("Ronny does not love clipping.")
+            rawframes_np[rawframes_np < 0] = 0
+        else:
+            print('Negative values: kept')
+            
+         
+        nd.handle_data.WriteJson(ParameterJsonFile, settings)
+        
+    return rawframes_np
 
 
 
@@ -65,8 +76,8 @@ def SubtractCameraOffset(rawframes_np, settings):
 
 
 def RemoveLaserfluctuation(rawframes_np, settings):
-    Laserfluctuation_Show, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Laserfluctuation_Show')
-    Laserfluctuation_Save, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Laserfluctuation_Save')
+    Laserfluctuation_Show = settings["Plot"]['Laserfluctuation_Show']
+    Laserfluctuation_Save = settings["Plot"]['Laserfluctuation_Save']
     
     if Laserfluctuation_Save == True:
         Laserfluctuation_Show = True
@@ -77,7 +88,7 @@ def RemoveLaserfluctuation(rawframes_np, settings):
     
     rawframes_np = rawframes_np / rel_intensity[:, None, None]
 
-    
+
     if Laserfluctuation_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Intensity Fluctuations", \
                                        settings, data = rel_intensity, data_header = "Intensity Fluctuations")
@@ -86,8 +97,8 @@ def RemoveLaserfluctuation(rawframes_np, settings):
 
 
 def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False):
-    Background_Show, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Background_Show')
-    Background_Save, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Background_Save')
+    Background_Show = settings["Plot"]['Background_Show']
+    Background_Save = settings["Plot"]['Background_Save']
     
     if Background_Save == True:
         Background_Show = True

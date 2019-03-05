@@ -13,6 +13,8 @@ from . import handle_data
 from . import mpl_style
 from . import PlotProperties
 from . import PreProcessing
+from . import Simulation
 from . import visualize
 
 
+# you can run the Example code

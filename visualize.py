@@ -39,7 +39,6 @@ from matplotlib import animation # Allows to create animated plots and videos fr
 import json
 import sys
 import datetime
-import os
 from PIL import Image
 from pdb import set_trace as bp #debugger
 
@@ -52,6 +51,13 @@ pd.set_option('display.max_columns',20) # I'm just using this to tell my Spyder-
 
 
 # In[]
+def SetXYLim(x_min_max = None, y_min_max = None):
+    if (x_min_max is None) == False:
+        plt.xlim([x_min_max[0], x_min_max[1]])
+
+    if (y_min_max is None) == False:
+        plt.ylim([y_min_max[0], y_min_max[1]])
+
 def Plot1DPlot(plot_np,title, xlabel, ylabel):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
@@ -62,33 +68,172 @@ def Plot1DPlot(plot_np,title, xlabel, ylabel):
     plt.ylabel(ylabel, **axis_font)
 
 
-def Plot2DPlot(plot_np,title, xlabel, ylabel):
+def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
     plt.figure()
-    plt.plot(plot_np)
+    plt.plot(x_np,y_np, ':x', alpha = myalpha)
     plt.title(title, **title_font)
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
+
+
+def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1,
+                  x_min_max = None, y_min_max = None):
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
+
+    plt.figure()
+    plt.scatter(x_np,y_np, alpha = myalpha, linewidths  = 0)
+    plt.title(title, **title_font)
+    plt.xlabel(xlabel, **axis_font)
+    plt.ylabel(ylabel, **axis_font)
+
+    SetXYLim(x_min_max, y_min_max)
+
 
 
 def Plot2DImage(array_np,title, xlabel, ylabel):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
     plt.figure()
-    plt.imshow(array_np)
+    plt.imshow(array_np, cmap='gray')
+    plt.colorbar()
     plt.title(title, **title_font)
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
     
     
-def DiameterHistogramm(sizes_df_lin, binning, cutoff_size, title, xlabel, ylabel):
+
+
+
+def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
+    import NanoObjectDetection as nd
+    
+    if any_successful_check == False:
+        print("NO PARTICLE WAS MEASURED LONG ENOUGH FOR A GOOD STATISTIC !")
+    else:
+        settings = nd.handle_data.ReadJson(ParameterJsonFile)
+        
+        show_hist, save_hist = settings["Plot"]["Histogramm_Show"], settings["Plot"]["Histogramm_Save"]
+        if show_hist or save_hist:
+            DiameterHistogramm(ParameterJsonFile, sizes_df_lin)
+
+        
+        show_diam_traj, save_diam_traj = settings["Plot"]["DiamOverTraj_Show"], settings["Plot"]["DiamOverTraj_Save"]
+        if show_diam_traj or save_diam_traj:
+            DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_diam_traj, save_diam_traj)
+
+
+
+
+def DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
+    import NanoObjectDetection as nd
     from NanoObjectDetection.PlotProperties import axis_font, title_font
-    plt.figure()
+
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    Histogramm_min_max_auto = settings["Plot"]["Histogramm_min_max_auto"]
+    
+    if Histogramm_min_max_auto == 1:
+            histogramm_min = np.round(np.min(sizes_df_lin.diameter) - 5, -1)
+            histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)
+            
+    histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
+    histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
+    
+    my_title = "Particles diameter over its tracking time"
+    my_ylabel = "Diameter [nm]"
+    my_xlabel = "Trajectory length [frames]"
+    
+    plot_diameter = sizes_df_lin["diameter"]
+    plot_traj_length = sizes_df_lin["traj_length"]
+    
+    x_min_max = nd.handle_data.Get_min_max_round(plot_traj_length, 2)
+    x_min_max[0] = 0
+    
+    y_min_max = nd.handle_data.Get_min_max_round(plot_diameter,1)
+    
+    Plot2DScatter(plot_traj_length, plot_diameter, title = my_title, xlabel = my_xlabel, ylabel = my_ylabel,
+                  myalpha = 0.6, x_min_max = x_min_max, y_min_max = y_min_max)
+ 
+    if save_plot == True:
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "DiameterOverTrajLength",
+                                       settings, data = sizes_df_lin)
+
+
+
+def NumberOfBinsAuto(mydata, average_heigt = 4):
+    number_of_points = len(mydata)
+    
+    bins = int(np.ceil(number_of_points / average_heigt))
+    
+    return bins
+
+
+
+def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
+    import NanoObjectDetection as nd
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+        
+    Histogramm_Show = settings["Plot"]['Histogramm_Show']
+    Histogramm_Save = settings["Plot"]['Histogramm_Save']
+    
+    if settings["Plot"]["Histogramm_Bins_Auto"] == 1:
+        settings["Plot"]["Histogramm_Bins"] = NumberOfBinsAuto(sizes_df_lin)
+ 
+    binning = settings["Plot"]["Histogramm_Bins"]
+    
+    
+    Histogramm_min_max_auto = settings["Plot"]["Histogramm_min_max_auto"]
+    if Histogramm_min_max_auto == 1:
+
+        histogramm_min = np.round(np.min(sizes_df_lin.diameter) - 5, -1)
+        histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)
+        
+    histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
+    histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
+
+    
+    
+    if Histogramm_Save == True:
+        Histogramm_Show = True
+    
+    if Histogramm_Show == True:
+#            print(sizes_df_lin)#
+        xlabel = 'Diameter [nm]'
+        ylabel = 'Absolute occurance'
+        title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
+
+        nd.visualize.PlotDiameterHistogramm(sizes_df_lin, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
+  
+        if Histogramm_Save == True:
+            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings,
+                                           data = sizes_df_lin)
+        
+        
+    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+
+
+def GetMeanStdMedian(data):
+    my_mean   = np.mean(data)
+    my_std    = np.std(data)
+    my_median = np.median(data)
+
+    return my_mean, my_std, my_median    
+    
+
+def PlotDiameterHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10000, title = '', xlabel = '', ylabel = ''):
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
+#    plt.figure()
     fig, ax = plt.subplots()
-    ax.set_xlim(0, cutoff_size)
-    sns.distplot(sizes_df_lin.diameter[sizes_df_lin.diameter <= cutoff_size], 
-                 bins=binning, rug=True, kde=False) # histogram of sizes, only taking into account 
+        
+    
+    ax.set_xlim(min_size, cutoff_size)
+    diameters = sizes_df_lin.diameter
+    show_diameters = diameters[(diameters >= min_size) & (diameters <= cutoff_size)]
+    # histogram of sizes, only taking into account 
+    sns.distplot(show_diameters, bins=binning, rug=True, kde=False) 
     #those that are below threshold size as defined in the initial parameters
     plt.rc('text', usetex=True)
     plt.title(title, **title_font)
@@ -96,10 +241,27 @@ def DiameterHistogramm(sizes_df_lin, binning, cutoff_size, title, xlabel, ylabel
     plt.ylabel(ylabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
     plt.xlabel(xlabel, **axis_font)
+ 
+    # infobox
+    my_mean, my_std, my_median = GetMeanStdMedian(sizes_df_lin.diameter)
+    
+    textstr = '\n'.join((
+    r'$\mu=%.1f$ nm' % (my_mean, ),
+    r'$\sigma=%.1f$ nm' % (my_std, ),
+    r'$\mathrm{median}=%.1f$ nm' % (my_median, )))
+    
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    
+#    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
+#        , bbox=props)
+    
+    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, **axis_font, verticalalignment='top', bbox=props)
+    
     
 #    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 #    ax.text(0.05, 0.95, title, transform=ax.transAxes, fontsize=14,
 #            verticalalignment='top', bbox=props) 
+
 
 
 
@@ -114,7 +276,7 @@ def update_progress(job_title, progress):
 
 def GetPlotParameters(settings):
     
-    with open(settings["Gui"]['SaveProperties']) as json_file:
+    with open(settings["Plot"]['SaveProperties']) as json_file:
         catch_all = json.load(json_file)
         
     params = catch_all["params"]
@@ -126,15 +288,20 @@ def GetPlotParameters(settings):
 
 
 
-def export(save_folder_name, save_image_name, settings, use_dpi = None, data = None, data_header = None):    
+def export(save_folder_name, save_image_name, settings = None, use_dpi = None, data = None, data_header = None):    
     import os.path
     import NanoObjectDetection as nd
-    use_dpi, settings = nd.handle_data.SpecificValueOrSettings(use_dpi,settings, "Plot", "dpi")
+    if settings is None:
+        if use_dpi is None:
+            sys.exit("need settings or dpi!")
+    else:
+        use_dpi, settings = nd.handle_data.SpecificValueOrSettings(use_dpi,settings, "Plot", "dpi")
+        
     use_dpi = int(use_dpi)
     
     
     my_dir_name = '%s\\{date:%y%m%d}\\'.format( date=datetime.datetime.now()) %save_folder_name
-    
+
     try:
         os.stat(my_dir_name)
     except:
@@ -153,12 +320,15 @@ def export(save_folder_name, save_image_name, settings, use_dpi = None, data = N
     file_name_json = '%s_%s.json'.format( date=datetime.datetime.now()) %(time_string, save_image_name)
     entire_path_json = my_dir_name +  file_name_json
     
-    settings["Exp"]["path_setting"] = entire_path_json
+    if settings is None:
+        settings = 0
+    else:
+        settings["Plot"]["SaveProperties"] = entire_path_json
     
-    with open(entire_path_json, 'w') as outfile:
-        json.dump(settings, outfile, sort_keys=True, indent=4)
- 
-    #Image.open(entire_path_image).show()
+        with open(entire_path_json, 'w') as outfile:
+            json.dump(settings, outfile, sort_keys=True, indent=4)
+     
+    Image.open(entire_path_image).show()
     if (data is None) == False:
             #here comes the data file 
             data_name_csv = '%s_%s.csv'.format( date=datetime.datetime.now()) %(time_string, save_image_name)

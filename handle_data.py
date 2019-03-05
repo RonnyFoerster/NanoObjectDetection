@@ -26,7 +26,6 @@ Amongst others: Python v3.5 implementation deleted. Now working with 3.6 and abo
 Importing neccessary libraries
 """
 import numpy as np # Library for array-manipulation
-import pims # pims allows image and video handling
 import matplotlib.pyplot as plt # Libraries for plotting
 import sys
 import json
@@ -46,13 +45,66 @@ def ReadJson(mypath):
             
     # check if json path is written in file. otherwise put it there
     if "path_setting" in list(settings["Exp"].keys()):
-        if settings["Exp"]["path_setting"] != mypath:
+        if settings["File"]["json"] != mypath:
+            bp()
             sys.exit("Given Json path does not match defined path in json file! ,\
                      You might wanna delete the 'settings' row entirely from the json file.")
     else:
-        settings["Exp"]["path_setting"] = mypath
+        settings["File"]["json"] = mypath
     
     return settings
+
+
+def WriteJson(mypath, settings):
+    with open(mypath, 'w') as outfile:
+        json.dump(settings, outfile, indent = 5)
+
+
+
+def ARHCF_HexToDiameter(side_length):
+    # to understand paint hex and look at the 6 subtriangles of equal side length
+    # gleichseitiges dreieck
+    side_length = np.asarray(side_length)
+    radius_outer = np.mean(side_length)
+    radius_inner = np.sqrt(3)/2 * radius_outer
+    
+    diameter_outer = 2*radius_outer
+    diameter_inner = 2*radius_inner
+    
+    return diameter_inner, diameter_outer
+
+
+def GetTrajLengthAndParticleNumber(t):
+    
+ 
+    particle_list = list(t.particle.drop_duplicates())
+    
+    longest_particle = 0
+    longest_traj = 0
+    for test_particle in particle_list:
+        test_t = t[t["particle"] == test_particle]
+        traj_length = np.max(test_t["frame"]) - np.min(test_t["frame"]) 
+        
+        if traj_length > longest_traj:
+            longest_traj = int(traj_length)
+            longest_particle = int(test_particle)
+            print(longest_particle, longest_traj)
+    
+    return longest_particle, longest_traj
+
+
+
+def Get_min_max_round(array_in, decade):
+    if decade < 0:
+        sys.exit("decade must be non negative")
+    else:
+        my_min = np.round(np.min(array_in) - 5*np.power(10,decade-1),- decade)
+        my_max = np.round(np.max(array_in) + 5*np.power(10,decade-1),- decade)
+        
+        min_max = [my_min, my_max]
+                  
+    return min_max
+
 
 
 def GetVarOfSettings(settings, key, entry):
@@ -132,42 +184,52 @@ Reading in data and cropping image to ROI needed
 """
 
 
-def ReadImages_pims(data_folder_name, data_file_extension):
-    print('start reading in raw images')
-    rawframes = pims.ImageSequence(data_folder_name + '\\' + '*.' + data_file_extension)
+#def ReadImages_pims(data_folder_name, data_file_extension):
+#    print('start reading in raw images')
+#    rawframes = pims.ImageSequence(data_folder_name + '\\' + '*.' + data_file_extension)
+#    
+#    return rawframes 
+
+
+
+
+
+def ReadData2Numpy(ParameterJsonFile):
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    return rawframes 
-
-
-
-
-
-def ReadData2Numpy(settings):
-    data_type        = nd.handle_data.GetVarOfSettings(settings,"Exp","data_type")
-    data_folder_name = nd.handle_data.GetVarOfSettings(settings,"Exp","data_folder_name")
-    data_file_name   = nd.handle_data.GetVarOfSettings(settings,"Exp","data_file_name")
+    DoSimulation = settings["Simulation"]["SimulateData"]
     
-    if data_type == 'tif_series':
-        if data_folder_name == 0:
-            sys.exit('!!! data_folder_name required !!!')
-            
-        else:
-            rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name)
-    
-    elif data_type == 'tif_stack':
-        if data_file_name == 0:
-            sys.exit('!!! data_file_name required !!!')
-        else:
-            rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
-    
-    elif data_type == 'fits':
-        if data_file_name == 0:
-            sys.exit('!!! data_file_name required !!!')
-        else:
-            rawframes_np = nd.handle_data.ReadFits2Numpy(data_file_name)   
+    if DoSimulation == 1:
+        print("No data. Do a simulation later on")
+        rawframes_np = 0
+        
         
     else:
-        sys.exit('Data type %s' %data_type)
+        data_type        = nd.handle_data.GetVarOfSettings(settings,"File","data_type")
+        data_folder_name = nd.handle_data.GetVarOfSettings(settings,"File","data_folder_name")
+        data_file_name   = nd.handle_data.GetVarOfSettings(settings,"File","data_file_name")
+    
+        if data_type == 'tif_series':
+            if data_folder_name == 0:
+                sys.exit('!!! data_folder_name required !!!')
+                
+            else:
+                rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name)
+        
+        elif data_type == 'tif_stack':
+            if data_file_name == 0:
+                sys.exit('!!! data_file_name required !!!')
+            else:
+                rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
+        
+        elif data_type == 'fits':
+            if data_file_name == 0:
+                sys.exit('!!! data_file_name required !!!')
+            else:
+                rawframes_np = nd.handle_data.ReadFits2Numpy(data_file_name)   
+            
+        else:
+            sys.exit('Data type %s' %data_type)
         
     return rawframes_np
 
@@ -246,28 +308,76 @@ def ChangeROI(settings,x_min = False, x_max = False, y_min = False, y_max = Fals
     return settings
 
 
-def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = None,
+def UseROI(image, ParameterJsonFile, x_min = None, x_max = None, y_min = None, y_max = None,
            frame_min = None, frame_max = None):
-    x_min, settings = nd.handle_data.SpecificValueOrSettings(x_min,settings,"ROI",'x_min')
-    x_max, settings = nd.handle_data.SpecificValueOrSettings(x_max,settings,"ROI",'x_max')
-    y_min, settings = nd.handle_data.SpecificValueOrSettings(y_min,settings,"ROI",'y_min')
-    y_max, settings = nd.handle_data.SpecificValueOrSettings(y_max,settings,"ROI",'y_max')
-    frame_min, settings = nd.handle_data.SpecificValueOrSettings(frame_min,settings,"ROI",'frame_min')
-    frame_max, settings = nd.handle_data.SpecificValueOrSettings(frame_max,settings,"ROI",'frame_max')
+     
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+
+    if settings["ROI"]["Apply"] == 0:
+        print("ROI NOT applied")
+        image_ROI = image
         
-    image_ROI = image[frame_min : frame_max, x_min : x_max, y_min : y_max]
-    return image_ROI, settings
+    else:
+        print("ROI IS applied")
+        x_min = settings["ROI"]['x_min']
+        x_max = settings["ROI"]['x_max']
+        y_min = settings["ROI"]['y_min']
+        y_max = settings["ROI"]['y_max']
+        frame_min = settings["ROI"]['frame_min']
+        frame_max = settings["ROI"]['frame_max']
+            
+        image_ROI = image[frame_min : frame_max, x_min : x_max, y_min : y_max]
+
+    
+    WriteJson(ParameterJsonFile, settings)
+    
+    return image_ROI
 
 
 
+def UseSuperSampling(image_in, ParameterJsonFile, fac_xy = None, fac_frame = None):
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    DoSimulation = settings["Simulation"]["SimulateData"]
+    
+    if DoSimulation == 1:
+        print("No data. Do a simulation later on")
+        image_super = 0
+                
+    else:
+        # supersampling  
+        if settings["Subsampling"]["Apply"] == 0:
+            print("Supersampling NOT applied")
+            fac_xy = 1
+            fac_frame = 1
+            
+        else:
+            print("Supersampling IS applied")
+            fac_xy = settings["Subsampling"]['fac_xy']
+            fac_frame = settings["Subsampling"]['fac_frame']
+            
+            
+        image_super = image_in[::fac_frame, ::fac_xy, ::fac_xy]
+            
+            
+        settings["MSD"]["effective_fps"] = round(settings["Exp"]["fps"] / fac_frame,2)
+        settings["MSD"]["effective_Microns_per_pixel"] = round(settings["Exp"]["Microns_per_pixel"] / fac_xy,5)
+        
+        WriteJson(ParameterJsonFile, settings)
+    
+    return image_super
 
-def RotImages(rawframes_np, settings, Do_rotation = None, rot_angle = None):
+
+def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = None):
     import scipy
     
-    Do_rotation = nd.handle_data.SpecificValueOrSettings(Do_rotation,settings, "Processing", "Do_or_apply_data_rotation")
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    Do_rotation = settings["PreProcessing"]["Do_or_apply_data_rotation"]
     
     if Do_rotation == True:
-        rot_angle, settings = nd.handle_data.SpecificValueOrSettings(rot_angle,settings, "Processing", "rot_angle")
+        rot_angle = settings["PreProcessing"]["rot_angle"]
 
     
         if rawframes_np.ndim == 2:
@@ -281,7 +391,9 @@ def RotImages(rawframes_np, settings, Do_rotation = None, rot_angle = None):
         im_out = rawframes_np
         print("Rotation of rawdata: Not Applied")
 
-    return im_out, settings
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)
+
+    return im_out
 
 
 

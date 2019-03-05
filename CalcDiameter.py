@@ -31,10 +31,27 @@ def mean_func(d):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         return np.nanmean(d, axis=1)
+
+
+def hindrance_fac(diam_fibre,diam_particle):
+    l = diam_particle / diam_fibre
+    # Eq 16 from "Hindrance Factors for Diffusion and Convection in Pores"  Dechadilok and Deen
+    h = 1 + 9/8*l*np.log(l) - 1.56034 * l \
+    + 0.528155 * np.power(l,2) \
+    + 1.915210 * np.power(l,3) \
+    - 2.819030 * np.power(l,4) \
+    + 0.270788 * np.power(l,5) \
+    + 1.101150 * np.power(l,6) \
+    - 0.435933 * np.power(l,7)
+    return h
+ 
+
+
     
-   
-def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None,
-         amount_lagtimes_auto = None, cutoff_size = None, binning = None, Histogramm_Show = True, MSD_fit_Show = False):
+
+
+def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None,
+         amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, EvalOnlyLongestTraj = 0, Max_traj_length = None):
     '''
     Calculating msd of individual particles:
     
@@ -50,24 +67,66 @@ def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_se
     # amount_lagtimes ... If the particle has less than this amount of valid lag-times that were fitted, 
     the particle wouldn't be taken into account. From 181120, SW: Not more than this datapoints are taken into account either
     # cutoff_size [nm] ... particles with size exceeding this will not be plotted
+    #
     # binning = 25 # Amount of bins used in histogram
     '''
     
-    microns_per_pixel, settings    = nd.handle_data.SpecificValueOrSettings(microns_per_pixel, settings, "Exp", "Microns_per_pixel")
-    frames_per_second, settings    = nd.handle_data.SpecificValueOrSettings(frames_per_second, settings, "Exp", "fps")
-    binning, settings              = nd.handle_data.SpecificValueOrSettings(binning, settings, "Plot", "Bins")
-    cutoff_size, settings          = nd.handle_data.SpecificValueOrSettings(cutoff_size, settings, "Plot", "Cutoff Size [nm]")
-    amount_summands, settings      = nd.handle_data.SpecificValueOrSettings(amount_summands, settings, "Processing", "Amount summands")
-    amount_lagtimes, settings      = nd.handle_data.SpecificValueOrSettings(amount_lagtimes, settings, "Processing", "Amount lagtimes")
-    amount_lagtimes_auto, settings = nd.handle_data.SpecificValueOrSettings(amount_lagtimes_auto, settings, "Processing", "Amount lagtimes auto")
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+        
+    microns_per_pixel = settings["MSD"]["effective_Microns_per_pixel"]
+    frames_per_second = settings["MSD"]["effective_fps"]
+    
+    visc_water = settings["Exp"]["Viscocity"]
+    
+    # check if only the longest trajectory shall be evaluated
+    EvalOnlyLongestTraj = settings["MSD"]["EvalOnlyLongestTraj"]
+    
+
+    if EvalOnlyLongestTraj == 1:
+        longest_particle, longest_traj = nd.handle_data.GetTrajLengthAndParticleNumber(t6_final)
+    
+        settings["Split"]["ParticleWithLongestTrajBeforeSplit"] = longest_particle
+    
+        t6_final_use = t6_final[t6_final["particle"] == longest_particle]
+    else:
+        t6_final_use = t6_final
+    
+    if Max_traj_length is None:
+        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings)
+    else:
+        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings, Max_traj_length)
+    
+    
+    amount_summands = settings["MSD"]["Amount summands"]
+    amount_lagtimes = settings["MSD"]["Amount lagtimes"]
+    amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
  
-    MSD_fit_Show, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'MSD_fit_Show')
-    MSD_fit_Save, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'MSD_fit_Save')
+    UseHindranceFac =  settings["MSD"]["EstimateHindranceFactor"]
+    
+    if UseHindranceFac == True:
+        # fiber diameter is needed
+        if settings["Fiber"]["Shape"] == "round":
+            fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
+            
+        if settings["Fiber"]["Shape"] == "hex":
+            #calc out of hex diameters if wanted
+            if settings["Fiber"]["CalcTubeDiameterOutOfSidelength"] == 0:
+                fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
+            else:
+                side_length_um = settings["Fiber"]["ARHCF_hex_sidelength_um"]
+                diameter_inner_um, diameter_outer_um = nd.handle_data.ARHCF_HexToDiameter(side_length_um)
+                diameter_inner_nm = np.round(1000 * diameter_inner_um,0)
+                fibre_diameter_nm, settings = nd.handle_data.SpecificValueOrSettings(diameter_inner_nm, settings, "Fiber", "TubeDiameter_nm")
+    else:
+        fibre_diameter_nm = None
+    
+    MSD_fit_Show = settings["Plot"]['MSD_fit_Show']
+    MSD_fit_Save = settings["Plot"]['MSD_fit_Save']
         
     if MSD_fit_Save == True:
         MSD_fit_Show = True
     
-    particle_list_value=list(t5_no_drift.particle.drop_duplicates())
+    particle_list_value=list(t6_final_use.particle.drop_duplicates())
     
     sizes_df_lin=pd.DataFrame(columns={'diameter','particle'})       
     
@@ -79,7 +138,7 @@ def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_se
         nd.visualize.update_progress("Analyze Particles", (i+1)/num_loop_elements)
 
         # select track to analyze
-        eval_tm = t5_no_drift[t5_no_drift.particle==particleid]
+        eval_tm = t6_final_use[t6_final_use.particle==particleid]
         
         
         stable_num_lagtimes = False
@@ -92,12 +151,12 @@ def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_se
             max_counter = 1
             current_amount_lagtimes = amount_lagtimes
          
-            
+
         while ((stable_num_lagtimes == False) and (counter < max_counter)):
             counter = counter + 1 
             # Calc MSD
-            nan_tm_sq, amount_frames_lagt1, enough_values = CalcMSD(eval_tm, microns_per_pixel, amount_summands, 
-                                                                current_amount_lagtimes, cutoff_size, binning)
+            nan_tm_sq, amount_frames_lagt1, enough_values, traj_length = CalcMSD(eval_tm, microns_per_pixel, amount_summands, 
+                                                                current_amount_lagtimes)
 
             if enough_values == True:  
                 if any_successful_check == False:
@@ -108,65 +167,38 @@ def Main(t5_no_drift, settings, obj_all, microns_per_pixel = None, frames_per_se
                 #iterative to find optimal number of lagtimes in the fit    
                 # Average MSD (several (independent) values for each lagtime)
                 lagt_direct, mean_displ_direct, mean_displ_sigma_direct = AvgMsd(nan_tm_sq, frames_per_second)
-                
                 # Fit MSD (slope is proportional to diffusion coefficent)
-                sizes_df_lin, diffusivity = FitMSD(settings, obj_all, lagt_direct, amount_frames_lagt1, \
-                                                   mean_displ_direct, mean_displ_sigma_direct, sizes_df_lin, \
-                                                   particleid, binning, cutoff_size, PlotMsdOverLagtime = MSD_fit_Show)
+                sizes_df_lin, diffusivity = FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, \
+                                                   mean_displ_sigma_direct, sizes_df_lin, particleid, traj_length, \
+                                                   visc_water = visc_water, UseHindranceFac = UseHindranceFac, \
+                                                   fibre_diameter_nm = fibre_diameter_nm, PlotMsdOverLagtime = MSD_fit_Show)
                 
                 # calculate theoretical best number of considered lagtimes
                 p_min = OptimalMSDPoints(settings, obj_all, diffusivity, amount_frames_lagt1)
 
+                if amount_lagtimes_auto == 1:
+                    if p_min == current_amount_lagtimes:
+                        stable_num_lagtimes = True 
+                    else:
+                        current_amount_lagtimes = p_min
+                        print("p_min_before = ",p_min)
+                        print("p_min_after  = ", current_amount_lagtimes)
+                        
+                        # drop last line, because it is done again
+                        sizes_df_lin = sizes_df_lin[:-1]                   
+                    
                 
-                if p_min == current_amount_lagtimes:
-                    stable_num_lagtimes = True 
-                else:
-                    current_amount_lagtimes = p_min
-                    print("p_min_before = ",p_min)
-                    print("p_min_after  = ", current_amount_lagtimes)
-                    
-                    # drop last line, because it is done again
-                    sizes_df_lin = sizes_df_lin[:-1]                   
-                    
-#                
-#            else:
-#                any_successful_check = True
         
-        
-    if any_successful_check == True:  
+    
+    if MSD_fit_Save == True:
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings)
+    
+    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+    
+    return sizes_df_lin, any_successful_check
 
-        if MSD_fit_Save == True:
-            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings)
-        
-        import time
-        print("do")
-        time.sleep(2)
-        print("done")
-        
-        Histogramm_Show, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Histogramm_Show')
-        Histogramm_Save, settings = nd.handle_data.SpecificValueOrSettings(None,settings,"Plot",'Histogramm_Save')
-        
-        if Histogramm_Save == True:
-            Histogramm_Show = True
-        
-        if Histogramm_Show == True:
-#            print(sizes_df_lin)#
-            xlabel = 'diameter [nm]'
-            ylabel = 'absolute occurance'
-            title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
-            nd.visualize.DiameterHistogramm(sizes_df_lin, binning, cutoff_size, title, xlabel, ylabel)
-      
-            if Histogramm_Save == True:
-                settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings,
-                                               data = sizes_df_lin)
-            
-    else:
-        print("NO PARTICLE WAS MEASURED LONG ENOUGH FOR A GOOD STATISTIC !")
     
-    
-    return sizes_df_lin, settings
-    
-def CalcMSD(eval_tm, microns_per_pixel, amount_summands = 5, amount_lagtimes = 5, cutoff_size = 100, binning = 25):
+def CalcMSD(eval_tm, microns_per_pixel, amount_summands = 5, amount_lagtimes = 5):
 
     nan_tm_sq = 0
     amount_frames_lagt1 = 0
@@ -187,6 +219,8 @@ def CalcMSD(eval_tm, microns_per_pixel, amount_summands = 5, amount_lagtimes = 5
     
     # Checking already here, if particle-track is long enough:
     length_indexer = max_frame - min_frame + 1
+    traj_length = length_indexer
+
     if length_indexer < (amount_lagtimes + amount_summands * amount_lagtimes):
         enough_values = False
     
@@ -212,7 +246,7 @@ def CalcMSD(eval_tm, microns_per_pixel, amount_summands = 5, amount_lagtimes = 5
             enough_values = True    
             nan_tm_sq=nan_tm**2 # Squaring displacement    
      
-    return nan_tm_sq, amount_frames_lagt1, enough_values
+    return nan_tm_sq, amount_frames_lagt1, enough_values, traj_length
     
 
 
@@ -248,8 +282,37 @@ def AvgMsd(nan_tm_sq, frames_per_second):
 
 
 
-def FitMSD(settings, obj_all, lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, sizes_df_lin, particleid,
-           binning, cutoff_size, temp_water = 295, visc_water = 9.5e-16, PlotMsdOverLagtime = False):
+def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm):
+    diam_direct_lin_corr_old = 0;
+    diam_direct_lin_corr = diam_direct_lin;
+    
+    my_iter = 0
+    while np.abs(diam_direct_lin_corr - diam_direct_lin_corr_old) > 0.1:
+        my_iter = my_iter + 1
+        diam_direct_lin_corr_old = diam_direct_lin_corr
+#        corr_visc = 1 + 2.105 * (diam_direct_lin_corr / fibre_diameter_nm)
+#        hindrance = hindrance_fac(fibre_diameter_nm,diam_direct_lin_corr)
+        hindrance = hindrance_fac(fibre_diameter_nm,diam_direct_lin_corr)
+        corr_visc = 1 / hindrance
+        diam_direct_lin_corr = diam_direct_lin / corr_visc # diameter of each particle
+        
+        # this steps helps converging. Otherwise it might jump from 1/10 to 10 to 1/10 ...
+        diam_direct_lin_corr = np.sqrt(diam_direct_lin_corr * diam_direct_lin_corr_old)
+#        print(my_iter, 'diamter:',diam_direct_lin,'corr_visc:',corr_visc,'corr diameter:',diam_direct_lin_corr)
+        print("Iter: %d: Starting Diameter: %.1f; corr. viscocity: %.3f; corr. diameter: %.2f" % (my_iter, round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
+
+        if my_iter > 100:
+            print("Iteration does not converge. Abort !!!")
+            bp()
+            input("PRESS ENTER TO CONTINUE.")
+            diam_direct_lin_corr = diam_direct_lin_corr_old
+
+    return diam_direct_lin_corr
+
+
+
+def FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, sizes_df_lin, particleid, traj_length,
+           UseHindranceFac = 0, fibre_diameter_nm = None, temp_water = 295, visc_water = 9.5e-16, PlotMsdOverLagtime = False):
     
     const_Boltz = 1.38e-23 # Boltzmann-constant
     
@@ -264,6 +327,14 @@ def FitMSD(settings, obj_all, lagt_direct, amount_frames_lagt1, mean_displ_direc
 #    diff_direct_var = fit_cov[0,0] / 4 #always scare the scalars in var propagation
     
     diam_direct_lin = (2*const_Boltz*temp_water/(6*math.pi *visc_water)*1e9) /diff_direct_lin # diameter of each particle
+
+    if UseHindranceFac == True:
+        
+        diam_direct_lin = EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm)
+    else:
+        print("WARNING: hindrance factor ignored. You just need to have the fiber diameter!")    
+
+
     
     #https://en.wikipedia.org/wiki/Propagation_of_uncertainty
 #    diam_direct_var = (diam_direct_lin/diff_direct_lin)**2 * diff_direct_var # diameter of each particle
@@ -283,7 +354,10 @@ def FitMSD(settings, obj_all, lagt_direct, amount_frames_lagt1, mean_displ_direc
                                                         'slope': [diff_direct_lin],
                                                         'rel_error_slope': [rel_error_slope],
                                                         'diameter_std': [diam_direct_std],
-                                                        'frames':[amount_frames_lagt1]}),sort=False)
+                                                        # very old this is only frames when there are no gaps
+#                                                        'frames':[amount_frames_lagt1]}),sort=False)
+                                                        'traj_length': [traj_length],
+                                                        'valid_frames':[amount_frames_lagt1]}),sort=False)
     
     
     if PlotMsdOverLagtime == True:
@@ -321,10 +395,10 @@ def ReducedLocalPrecision(settings, obj_all, diffusivity):
     local_precision_px = np.mean(obj_all["ep"])
     local_precision_um = local_precision_px * settings["Exp"]["Microns_per_pixel"]
     lagtime_s = 1/settings["Exp"]["fps"]
-    exposure_time_s = settings["Exp"]["ExposureTime_s"]
+    exposure_time_s = settings["Exp"]["ExposureTime"]
     
     NA = settings["Exp"]["NA"]
-    lambda_nm = settings["Exp"]["lambda_nm"]
+    lambda_nm = settings["Exp"]["lambda"]
     
     rayleigh_nm = 2 * 0.61 * lambda_nm / NA
     rayleigh_um = rayleigh_nm / 1000
@@ -343,3 +417,41 @@ def ReducedLocalPrecision(settings, obj_all, diffusivity):
     return red_x
     
     
+
+
+def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None,
+         amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, EvalOnlyLongestTraj = 0):
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    Max_traj_length = settings["Simulation"]["Max_traj_length"]
+    NumberOfFrames  = settings["Simulation"]["NumberOfFrames"]
+    
+    max_ind_particles = int(NumberOfFrames / Max_traj_length)
+    cur_ind_particles = 1
+    
+    sizes_df_lin = []
+    any_successful_check = False
+    
+    while cur_ind_particles <= max_ind_particles:   
+        print(cur_ind_particles)
+        current_max_traj_length = int(np.floor(NumberOfFrames / cur_ind_particles))   
+    
+        # calculate the msd and process to diffusion and diameter
+        sizes_df_lin_new, any_successful_check = nd.CalcDiameter.Main(t6_final, ParameterJsonFile, obj_all, 
+                                                                  Max_traj_length = current_max_traj_length, MSD_fit_Show = True)
+
+
+        if cur_ind_particles == 1:
+            sizes_df_lin = sizes_df_lin_new
+        else:
+            
+            sizes_df_lin = sizes_df_lin.append(sizes_df_lin_new)
+            
+        cur_ind_particles = cur_ind_particles * 2
+
+
+    return sizes_df_lin, any_successful_check
+
+
+

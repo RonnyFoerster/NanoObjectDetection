@@ -24,7 +24,7 @@ import NanoObjectDetection as nd
 import matplotlib.pyplot as plt # Libraries for plotting
 import matplotlib as mpl # I import this entirely here, as it's needed to change colormaps
 
-
+from pdb import set_trace as bp #debugger
 
 # In[]
 def GetIntegerInput(MessageOnScreen):
@@ -101,12 +101,16 @@ def AskIfUserSatisfied(QuestionForUser):
     return UserSatisfied
 
 
-def FindSpot(rawframes_ROI, settings):
+def FindSpot(rawframes_ROI, ParameterJsonFile):
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
     UserSatisfied = False
     FirstRun = True
     
     while UserSatisfied == False:
-        obj_first, settings = nd.get_trajectorie.OptimizeParamFindSpots(rawframes_ROI, settings, SaveFig = True, gamma = 0.4)
+        obj_first, settings = nd.get_trajectorie.OptimizeParamFindSpots(rawframes_ROI, ParameterJsonFile, SaveFig = True, gamma = 0.7)
+        
+        plt.pause(3)
     
         if FirstRun == True:
             FirstRun = False
@@ -116,48 +120,50 @@ def FindSpot(rawframes_ROI, settings):
             
         if DoItAgain == False:
             # user happy?
-            UserSatisfied = AskIfUserSatisfied('Are you satisfied?')
+            my_question = "New image in: {}. Open it! Are you satisfied?".format(settings["Plot"]["SaveFolder"])
+            UserSatisfied = AskIfUserSatisfied(my_question)
                
             if UserSatisfied == True:
                 print("Happy user =)")
-                return obj_first, settings
             else:
                 # Find out what is wrong
                 method = AskMethodToImprove()
-                      
-        print("method:", method)
-        if method == 1:
-            settings["Processing"]["Minimal bead brightness"] = \
-            GetIntegerInput("Reduce >Minimal bead brightness< from %d to (must be integer): "\
-                              %settings["Processing"]["Minimal bead brightness"])
-
-        elif method == 2:
-            settings["Processing"]["Minimal bead brightness"] = \
-            GetIntegerInput("Enhance >Minimal bead brightness< from %d to (must be integer): "\
-                              %settings["Processing"]["Minimal bead brightness"])
-
-        elif method == 3:
-            settings["Processing"]["Separation data"] = \
-            GetNumericalInput("Reduce >Separation data< from %d to (must be integer): "\
-                              %settings["Processing"]["Separation data"])
-            
-        else:
-            settings["Processing"]["Separation data"] = \
-            GetNumericalInput("Enhance >Separation data< from %d to (must be integer): "\
-                              %settings["Processing"]["Separation data"])
-            
         
+        if UserSatisfied == False:              
+            print("method:", method)
+            if method == 1:
+                settings["Find"]["Minimal bead brightness"] = \
+                GetIntegerInput("Reduce >Minimal bead brightness< from %d to (must be integer): "\
+                                  %settings["Find"]["Minimal bead brightness"])
     
-    return settings
+            elif method == 2:
+                settings["Find"]["Minimal bead brightness"] = \
+                GetIntegerInput("Enhance >Minimal bead brightness< from %d to (must be integer): "\
+                                  %settings["Find"]["Minimal bead brightness"])
+    
+            elif method == 3:
+                settings["Find"]["Separation data"] = \
+                GetNumericalInput("Reduce >Separation data< from %d to (must be integer): "\
+                                  %settings["Find"]["Separation data"])
+                
+            else:
+                settings["Find"]["Separation data"] = \
+                GetNumericalInput("Enhance >Separation data< from %d to (must be integer): "\
+                                  %settings["Find"]["Separation data"])
+            
+        nd.handle_data.WriteJson(ParameterJsonFile, settings)  
+    
+    return obj_first
+    
 
 
-def SpotSize(rawframes_rot, settings):
+def SpotSize(rawframes_rot, ParameterJsonFile):
     UserSatisfied = False
     try_diameter = (3,3)
     while UserSatisfied == False:
         print('UserSatisfied? : ', UserSatisfied)
         print('Try diameter:' , np.asarray(try_diameter))
-        obj_all, settings = nd.get_trajectorie.batch_np(rawframes_rot, settings, UseLog = False, diameter = try_diameter)
+        obj_all = nd.get_trajectorie.batch_np(rawframes_rot, ParameterJsonFile, UseLog = False, diameter = try_diameter)
         tp.subpx_bias(obj_all)
         plt.draw()
         plt.show()
@@ -168,6 +174,13 @@ def SpotSize(rawframes_rot, settings):
             try_diameter = list(np.asarray(try_diameter) + 2)
             
     
-    return settings
+    print('Your diameter should be (update JSON manually):', np.asarray(try_diameter))
     
+    return
     
+
+def FindROI(rawframes_np):
+    my_max = nd.handle_data.max_rawframes(rawframes_np)
+    plt.imshow(my_max)
+    print('Chose the ROI of x and y for min and max value accoring your interest. Insert the values in your json file.')
+
