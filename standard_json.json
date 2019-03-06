@@ -1,0 +1,150 @@
+"""
+Test
+"""
+
+
+{
+     "Exp": {
+          "NA": 0.13,
+          "lambda": 532,
+          "fps": 922,
+          "ExposureTime": 0.001,
+          "Microns_per_pixel": 0.477,
+          "Temperature": 295.0,
+          "Viscocity": 9.5e-16,
+          "const_Boltz": 1.38e-23
+     },
+     "Fiber": {
+          "Shape": "hex",
+          "ARHCF_hex_sidelength_um": [
+               315,
+               315,
+               318,
+               335,
+               300,
+               338
+          ],
+          "CalcTubeDiameterOutOfSidelength": 1,
+          "TubeDiameter_nm": 554545.0
+     },
+     "File": {
+          "data_file_name": "Z:\\Data\\Mona_Nissen\\Au50_922fps_mainChanOnly_16s_0-5msET.tif",
+          "data_folder_name": "Z:\\Data\\Mona_Nissen",
+          "data_type": "tif_stack",
+          "DefaultParameterJsonFile": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190227_Au50_922fps_mainChanOnly.json",
+          "json": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190227_Au50_922fps_mainChanOnly.json"
+     },
+     "Simulation": {
+          "SimulateData": 0,
+          "DiameterOfParticles": 0,
+          "NumberOfParticles": 0,
+          "NumberOfFrames": 0,
+          "mass": 0,
+          "EstimationPrecision": 0,
+          "Max_traj_length": 0
+     },
+     "ROI": {
+          "Apply": 0,
+          "x_min": 0,
+          "x_max": 55,
+          "y_min": 0,
+          "y_max": 1300,
+          "frame_min": 0,
+          "frame_max": 2000
+     },
+     "Subsampling": {
+          "Apply": 0,
+          "fac_xy": 1,
+          "fac_frame": 1
+     },
+     "PreProcessing": {
+          "Remove_CameraOffset": 1,
+          "Remove_Laserfluctuation": 0,
+          "Remove_StaticBackground": 0,
+          "RollingPercentilFilter": 0,
+          "RollingPercentilFilter_rolling_step": 10,
+          "RollingPercentilFilter_rolling_length": 200,
+          "RollingPercentilFilter_percentile_filter": 80,
+          "ClipNegativeValue": 0,
+          "Do_or_apply_data_rotation": 0,
+          "rot_angle": 0.3
+     },
+     "Help": {
+          "ROI": 0,
+          "Bead brightness": 0,
+          "Bead size": 0
+     },
+     "Find": {
+          "Analyze in log": 0,
+          "Estimated particle size": [
+               9.0,
+               9.0
+          ],
+          "Estimated particle size (log-scale)": [
+               7.0,
+               7.0
+          ],
+          "Minimal bead brightness": 200.0,
+          "Separation data": 1.5
+     },
+     "Link": {
+          "Dark time": 5,
+          "Dwell time stationary objects": 100,
+          "Max displacement": 3,
+          "Max displacement fix": 0.3,
+          "Min tracking frames before drift": 15.0,
+          "Min_tracking_frames": 500.0
+     },
+     "StationaryObjects": {
+          "Analyze fixed spots": 1,
+          "Min distance to stationary object": 20
+     },
+     "Split": {
+          "Max_traj_length": 500.0,
+          "Max_traj_length_keep_tail": 0,
+          "Max rel median intensity step": 0.5,
+          "ParticleWithLongestTrajBeforeSplit": 976
+     },
+     "Drift": {
+          "Apply": 1,
+          "Do transversal drift correction": 0,
+          "Drift smoothing frames": 20,
+          "Drift rolling window size": 5,
+          "Min particle per block": 40.0
+     },
+     "MSD": {
+          "Amount summands": 30,
+          "Amount lagtimes auto": 1,
+          "Amount lagtimes": 5,
+          "effective_fps": 922.0,
+          "effective_Microns_per_pixel": 0.477,
+          "EstimateHindranceFactor": 1,
+          "EvalOnlyLongestTraj": 0
+     },
+     "Plot": {
+          "Background_Show": 0,
+          "Background_Save": 1,
+          "Laserfluctuation_Show": 0,
+          "Laserfluctuation_Save": 1,
+          "MSD_fit_Show": 1,
+          "MSD_fit_Save": 0,
+          "Histogramm_Show": 1,
+          "Histogramm_Save": 1,
+          "Histogramm_Bins_Auto": 1,
+          "Histogramm_Bins": 58,
+          "Histogramm_min_max_auto": 1,
+          "Histogramm_min": 30.0,
+          "Histogramm_max": 80.0,
+          "DiamOverTraj_Show": 1,
+          "DiamOverTraj_Save": 1,
+          "fontsize": 14,
+          "SaveFolder": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly",
+          "SaveProperties": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190305\\16_16_05_Diameter Histogramm.json",
+          "dpi": 300
+     },
+     "Old": {
+          "Min displacement": 5,
+          "Rolling window size": 5,
+          "data_file_extension": "tif"
+     }
+}

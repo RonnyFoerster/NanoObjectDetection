@@ -84,6 +84,14 @@ NanoObjectDetection.mpl\_style module
     :undoc-members:
     :show-inheritance:
 
+NanoObjectDetection.standard\_json module
+-----------------------------------------
+
+.. automodule:: NanoObjectDetection.standard_json
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 NanoObjectDetection.visualize module
 ------------------------------------
 

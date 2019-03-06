@@ -35,7 +35,7 @@ def CheckPython():
 # In[] check trackpy version    
 def CheckTrackpy():
     """
-    Checks if the trackpy version is right
+    Checks if the trackpy version is 
     """
     
     tp_allowed_versions = ('0.4.1', '0.4',)

@@ -3,6 +3,7 @@
 Created on Fri Feb  8 09:52:27 2019
 
 @author: Ronny Förster und Stefan Weidlich
+
 """
 
 import numpy as np # Library for array-manipulation

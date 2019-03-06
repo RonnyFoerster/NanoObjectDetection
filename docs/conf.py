@@ -71,7 +71,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
 #
-add_module_names = False
 
 
 # The name of the Pygments (syntax highlighting) style to use.
@@ -85,13 +84,19 @@ show_authors = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'classic'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'sticky_navigation': True,
+    'navigation_depth': -1,
+    'titles_only': False
+}
+
+add_module_names = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
