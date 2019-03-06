@@ -128,7 +128,7 @@
 
 
 
-<div class="viewcode-block" id="FindSpots"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.FindSpots">[docs]</a><span class="k">def</span> <span class="nf">FindSpots</span><span class="p">(</span><span class="n">frames_np</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">UseLog</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">diameter</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">minmass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">separation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="FindSpots"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.FindSpots">[docs]</a><span class="k">def</span> <span class="nf">FindSpots</span><span class="p">(</span><span class="n">frames_np</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">UseLog</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">diameter</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">minmass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">separation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">max_iterations</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">SaveFig</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Defines the paramter for the trackpy routine tp.batch, which spots particles, out of the json file</span>
@@ -191,7 +191,7 @@
 
 
 
-<div class="viewcode-block" id="link_df"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.link_df">[docs]</a><span class="k">def</span> <span class="nf">link_df</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">SearchFixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">max_displacement</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dark_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="link_df"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.link_df">[docs]</a><span class="k">def</span> <span class="nf">link_df</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">SearchFixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">max_displacement</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dark_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Defines the paramter for the trackpy routine tp.link, which forms trajectories</span>
 <span class="sd">    out of particle positions, out of the json file.</span>
@@ -221,7 +221,7 @@
 
 
 
-<div class="viewcode-block" id="filter_stubs"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.filter_stubs">[docs]</a><span class="k">def</span> <span class="nf">filter_stubs</span><span class="p">(</span><span class="n">traj_all</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">FixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">BeforeDriftCorrection</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">min_tracking_frames</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="filter_stubs"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.filter_stubs">[docs]</a><span class="k">def</span> <span class="nf">filter_stubs</span><span class="p">(</span><span class="n">traj_all</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">FixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">BeforeDriftCorrection</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">min_tracking_frames</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Defines the paramter for the trackpy routine tp.filter_stubs, which cuts to short trajectories,</span>
 <span class="sd">    out of the json file.</span>
@@ -274,7 +274,7 @@
 
 
 
-<div class="viewcode-block" id="RemoveSpotsInNoGoAreas"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas">[docs]</a><span class="k">def</span> <span class="nf">RemoveSpotsInNoGoAreas</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">t2_long_fix</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">min_distance</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoveSpotsInNoGoAreas"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas">[docs]</a><span class="k">def</span> <span class="nf">RemoveSpotsInNoGoAreas</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">t2_long_fix</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">min_distance</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    In case of stationary/ fixed objects a moving particle should not come to close.</span>
 <span class="sd">    This is because stationary objects might be very bright clusters which overshine the image of the dim</span>
@@ -323,7 +323,7 @@
 
 
 
-<div class="viewcode-block" id="close_gaps"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.close_gaps">[docs]</a><span class="k">def</span> <span class="nf">close_gaps</span><span class="p">(</span><span class="n">t1</span><span class="p">):</span>
+<div class="viewcode-block" id="close_gaps"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.close_gaps">[docs]</a><span class="k">def</span> <span class="nf">close_gaps</span><span class="p">(</span><span class="n">t1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    # FILL GAPS IN THE TRAJECTORY BY NEAREST NEIGHBOUR</span>
 <span class="sd">    # NECESSARY FOR FOLLOWING FILTERING WHERE AGAIN A NEAREST NEIGHBOUR IS APPLIED</span>
@@ -380,7 +380,7 @@
 
 
 
-<div class="viewcode-block" id="calc_intensity_fluctuations"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.calc_intensity_fluctuations">[docs]</a><span class="k">def</span> <span class="nf">calc_intensity_fluctuations</span><span class="p">(</span><span class="n">t1_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">dark_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">PlotIntMedianFit</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotIntFlucPerBead</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="calc_intensity_fluctuations"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.calc_intensity_fluctuations">[docs]</a><span class="k">def</span> <span class="nf">calc_intensity_fluctuations</span><span class="p">(</span><span class="n">t1_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">dark_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">PlotIntMedianFit</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotIntFlucPerBead</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the intensity fluctuation of a particle along its trajectory</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -441,7 +441,7 @@
 
 
 
-<div class="viewcode-block" id="split_traj"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj">[docs]</a><span class="k">def</span> <span class="nf">split_traj</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">):</span>
+<div class="viewcode-block" id="split_traj"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj">[docs]</a><span class="k">def</span> <span class="nf">split_traj</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Define settings for split trajectory at high intensity jumps</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -455,7 +455,7 @@
 
 
 
-<div class="viewcode-block" id="split_traj_at_long_trajectorie"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj_at_long_trajectorie">[docs]</a><span class="k">def</span> <span class="nf">split_traj_at_long_trajectorie</span><span class="p">(</span><span class="n">t4_cutted</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">Max_traj_length</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="split_traj_at_long_trajectorie"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj_at_long_trajectorie">[docs]</a><span class="k">def</span> <span class="nf">split_traj_at_long_trajectorie</span><span class="p">(</span><span class="n">t4_cutted</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">Max_traj_length</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Splits trajectory if they are too long</span>
 <span class="sd">    This might be usefull, to have sufficently long trajectorys all at the same length.</span>
@@ -528,7 +528,7 @@
     <span class="k">return</span> <span class="n">t4_cutted</span></div>
 
 
-<div class="viewcode-block" id="split_traj_at_high_steps"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj_at_high_steps">[docs]</a><span class="k">def</span> <span class="nf">split_traj_at_high_steps</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">max_rel_median_intensity_step</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="split_traj_at_high_steps"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj_at_high_steps">[docs]</a><span class="k">def</span> <span class="nf">split_traj_at_high_steps</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">max_rel_median_intensity_step</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                              <span class="n">min_tracking_frames_before_drift</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">PlotTrajWhichNeedACut</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">NumParticles2Plot</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
                              <span class="n">PlotAnimationFiltering</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">rawframes_ROI</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -632,7 +632,7 @@
 
 
 
-<div class="viewcode-block" id="DriftCorrection"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.DriftCorrection">[docs]</a><span class="k">def</span> <span class="nf">DriftCorrection</span><span class="p">(</span><span class="n">t_drift</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">Do_transversal_drift_correction</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">drift_smoothing_frames</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rolling_window_size</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="DriftCorrection"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.DriftCorrection">[docs]</a><span class="k">def</span> <span class="nf">DriftCorrection</span><span class="p">(</span><span class="n">t_drift</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">Do_transversal_drift_correction</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">drift_smoothing_frames</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rolling_window_size</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="n">min_particle_per_block</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">min_tracking_frames</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">PlotGlobalDrift</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotDriftAvgSpeed</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotDriftTimeDevelopment</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> 
                     <span class="n">PlotDriftFalseColorMapFlow</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotDriftVectors</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotDriftFalseColorMapSpeed</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                     <span class="n">PlotDriftCorrectedTraj</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>

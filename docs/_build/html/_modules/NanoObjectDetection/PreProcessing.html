@@ -50,7 +50,7 @@
 <span class="kn">from</span> <span class="nn">pdb</span> <span class="k">import</span> <span class="n">set_trace</span> <span class="k">as</span> <span class="n">bp</span> <span class="c1">#debugger</span>
 
 <span class="c1"># In[]</span>
-<div class="viewcode-block" id="Main"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.PreProcessing.Main">[docs]</a><span class="k">def</span> <span class="nf">Main</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">):</span>
+<div class="viewcode-block" id="Main"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.PreProcessing.Main">[docs]</a><span class="k">def</span> <span class="nf">Main</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">):</span>
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
     
     <span class="n">DoSimulation</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Simulation&quot;</span><span class="p">][</span><span class="s2">&quot;SimulateData&quot;</span><span class="p">]</span>
@@ -100,7 +100,7 @@
 
 
 
-<div class="viewcode-block" id="SubtractCameraOffset"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.PreProcessing.SubtractCameraOffset">[docs]</a><span class="k">def</span> <span class="nf">SubtractCameraOffset</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="SubtractCameraOffset"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.PreProcessing.SubtractCameraOffset">[docs]</a><span class="k">def</span> <span class="nf">SubtractCameraOffset</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="c1">#That generates one image that holds the minimum-vaues for each pixel of all times</span>
     <span class="n">rawframes_pixelCountOffsetArray</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">min_rawframes</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">)</span>
         
@@ -116,7 +116,7 @@
     <span class="k">return</span> <span class="n">rawframes_np</span></div>
 
 
-<div class="viewcode-block" id="RemoveLaserfluctuation"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.PreProcessing.RemoveLaserfluctuation">[docs]</a><span class="k">def</span> <span class="nf">RemoveLaserfluctuation</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoveLaserfluctuation"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.PreProcessing.RemoveLaserfluctuation">[docs]</a><span class="k">def</span> <span class="nf">RemoveLaserfluctuation</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="n">Laserfluctuation_Show</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Plot&quot;</span><span class="p">][</span><span class="s1">&#39;Laserfluctuation_Show&#39;</span><span class="p">]</span>
     <span class="n">Laserfluctuation_Save</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Plot&quot;</span><span class="p">][</span><span class="s1">&#39;Laserfluctuation_Save&#39;</span><span class="p">]</span>
     
@@ -137,7 +137,7 @@
     <span class="k">return</span> <span class="n">rawframes_np</span></div>
 
 
-<div class="viewcode-block" id="Remove_StaticBackground"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.PreProcessing.Remove_StaticBackground">[docs]</a><span class="k">def</span> <span class="nf">Remove_StaticBackground</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">Background_Show</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">Background_Save</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Remove_StaticBackground"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.PreProcessing.Remove_StaticBackground">[docs]</a><span class="k">def</span> <span class="nf">Remove_StaticBackground</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">Background_Show</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">Background_Save</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     <span class="n">Background_Show</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Plot&quot;</span><span class="p">][</span><span class="s1">&#39;Background_Show&#39;</span><span class="p">]</span>
     <span class="n">Background_Save</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Plot&quot;</span><span class="p">][</span><span class="s1">&#39;Background_Save&#39;</span><span class="p">]</span>
     
@@ -158,7 +158,7 @@
     <span class="k">return</span> <span class="n">rawframes_np</span><span class="p">,</span> <span class="n">static_background</span></div>
     
 
-<div class="viewcode-block" id="RollingPercentilFilter"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.PreProcessing.RollingPercentilFilter">[docs]</a><span class="k">def</span> <span class="nf">RollingPercentilFilter</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="RollingPercentilFilter"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.PreProcessing.RollingPercentilFilter">[docs]</a><span class="k">def</span> <span class="nf">RollingPercentilFilter</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
     <span class="n">rolling_length</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PreProcessing&quot;</span><span class="p">][</span><span class="s2">&quot;RollingPercentilFilter_rolling_length&quot;</span><span class="p">]</span>
     <span class="n">rolling_step</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PreProcessing&quot;</span><span class="p">][</span><span class="s2">&quot;RollingPercentilFilter_rolling_step&quot;</span><span class="p">]</span>
     <span class="n">percentile_filter</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PreProcessing&quot;</span><span class="p">][</span><span class="s2">&quot;RollingPercentilFilter_percentile_filter&quot;</span><span class="p">]</span>   

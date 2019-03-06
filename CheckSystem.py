@@ -11,10 +11,16 @@ import platform
 # In[] check python version
 
 def CheckAll():
+    """
+    Main Function
+    """
     CheckPython()
     CheckTrackpy()
     
 def CheckPython():
+    """
+    Checks if the python version is right
+    """
     python_allowed_versions = ('3.6.5')
     python_version = platform.python_version()
     
@@ -28,6 +34,10 @@ def CheckPython():
 
 # In[] check trackpy version    
 def CheckTrackpy():
+    """
+    Checks if the trackpy version is right
+    """
+    
     tp_allowed_versions = ('0.4.1', '0.4',)
     tp_version = tp.__version__
     

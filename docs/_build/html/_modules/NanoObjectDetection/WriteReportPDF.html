@@ -45,32 +45,32 @@
 
 <span class="kn">from</span> <span class="nn">reportlab.pdfgen</span> <span class="k">import</span> <span class="n">canvas</span>
 
-<div class="viewcode-block" id="SaveAt"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.WriteReportPDF.SaveAt">[docs]</a><span class="k">def</span> <span class="nf">SaveAt</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="SaveAt"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.WriteReportPDF.SaveAt">[docs]</a><span class="k">def</span> <span class="nf">SaveAt</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
     <span class="n">save_path</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Results&quot;</span><span class="p">][</span><span class="s2">&quot;PDFPathAndFilename&quot;</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">save_path</span> </div>
     
 
-<div class="viewcode-block" id="WriteHello"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.WriteReportPDF.WriteHello">[docs]</a><span class="k">def</span> <span class="nf">WriteHello</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="WriteHello"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.WriteReportPDF.WriteHello">[docs]</a><span class="k">def</span> <span class="nf">WriteHello</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
     <span class="c1"># create pdf</span>
     <span class="n">c</span> <span class="o">=</span> <span class="n">canvas</span><span class="o">.</span><span class="n">Canvas</span><span class="p">(</span><span class="n">SaveAt</span><span class="p">(</span><span class="n">settings</span><span class="p">))</span>
     <span class="n">c</span><span class="o">.</span><span class="n">drawString</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">750</span><span class="p">,</span><span class="n">settings</span><span class="p">)</span>
     <span class="n">c</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="WriteOnNewLine"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.WriteReportPDF.WriteOnNewLine">[docs]</a><span class="k">def</span> <span class="nf">WriteOnNewLine</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">line_pos_old</span><span class="p">,</span> <span class="n">indent</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">):</span>
+<div class="viewcode-block" id="WriteOnNewLine"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.WriteReportPDF.WriteOnNewLine">[docs]</a><span class="k">def</span> <span class="nf">WriteOnNewLine</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">line_pos_old</span><span class="p">,</span> <span class="n">indent</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">):</span>
     <span class="n">line_pos_new</span> <span class="o">=</span> <span class="n">line_pos_old</span> <span class="o">-</span> <span class="n">linewidth</span>
     <span class="n">c</span><span class="o">.</span><span class="n">drawString</span><span class="p">(</span><span class="n">indent</span><span class="p">,</span><span class="n">line_pos_new</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">line_pos_new</span></div>
 
 
-<div class="viewcode-block" id="WriteLine"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.WriteReportPDF.WriteLine">[docs]</a><span class="k">def</span> <span class="nf">WriteLine</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">line_pos_old</span><span class="p">,</span> <span class="n">indent</span><span class="p">):</span>
+<div class="viewcode-block" id="WriteLine"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.WriteReportPDF.WriteLine">[docs]</a><span class="k">def</span> <span class="nf">WriteLine</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">line_pos_old</span><span class="p">,</span> <span class="n">indent</span><span class="p">):</span>
     <span class="n">c</span><span class="o">.</span><span class="n">drawString</span><span class="p">(</span><span class="n">indent</span><span class="p">,</span><span class="n">line_pos_old</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span></div>
 
 
 
     
-<div class="viewcode-block" id="WriteSettings"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.WriteReportPDF.WriteSettings">[docs]</a><span class="k">def</span> <span class="nf">WriteSettings</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="WriteSettings"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.WriteReportPDF.WriteSettings">[docs]</a><span class="k">def</span> <span class="nf">WriteSettings</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
     
     <span class="n">line_pos</span> <span class="o">=</span> <span class="mi">750</span>
     <span class="n">linewidth</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Results&quot;</span><span class="p">][</span><span class="s2">&quot;LineWidth&quot;</span><span class="p">]</span>
