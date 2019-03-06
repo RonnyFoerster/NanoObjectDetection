@@ -1,0 +1,822 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>NanoObjectDetection package &#8212; NanoObjectDetection  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to NanoObjectDetection’s documentation!" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to NanoObjectDetection’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NanoObjectDetection  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="nanoobjectdetection-package">
+<h1>NanoObjectDetection package<a class="headerlink" href="#nanoobjectdetection-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-NanoObjectDetection.AdjustSettings">
+<span id="nanoobjectdetection-adjustsettings-module"></span><h2>NanoObjectDetection.AdjustSettings module<a class="headerlink" href="#module-NanoObjectDetection.AdjustSettings" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Feb 15 16:41:17 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<p>This module tries to hell the user finding the correct parameters for the analysis</p>
+<dl class="function">
+<dt id="NanoObjectDetection.AdjustSettings.AskDoItAgain">
+<code class="descname">AskDoItAgain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/AdjustSettings.html#AskDoItAgain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.AskDoItAgain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask if a step shall be repeated</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.AdjustSettings.AskIfUserSatisfied">
+<code class="descname">AskIfUserSatisfied</code><span class="sig-paren">(</span><em>QuestionForUser</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/AdjustSettings.html#AskIfUserSatisfied"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.AskIfUserSatisfied" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask if user is satisfied</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.AdjustSettings.AskMethodToImprove">
+<code class="descname">AskMethodToImprove</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/AdjustSettings.html#AskMethodToImprove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.AskMethodToImprove" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>Ask which method shall be applied to improve the particle IDENTIFICATION
+‘1 - Bright (isolated) spots not recognized</div></blockquote>
+<dl class="docutils">
+<dt>‘</dt>
+<dd>‘2 - Spots where nothing is to be seen</dd>
+</dl>
+<dl class="docutils">
+<dt>‘</dt>
+<dd>‘3 - Bright (non-isolated) spots not recognized but you would like to have them both</dd>
+</dl>
+<dl class="docutils">
+<dt>‘</dt>
+<dd>‘4 - Much more recognized spots than I think I have particles</dd>
+</dl>
+<p>‘)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.AdjustSettings.FindROI">
+<code class="descname">FindROI</code><span class="sig-paren">(</span><em>rawframes_np</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/AdjustSettings.html#FindROI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.FindROI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show the max of all images to show where the ROI is.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.AdjustSettings.FindSpot">
+<code class="descname">FindSpot</code><span class="sig-paren">(</span><em>rawframes_ROI</em>, <em>ParameterJsonFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/AdjustSettings.html#FindSpot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.FindSpot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main function to optimize the parameters for particle identification
+It runs the bead finding routine and ask the user what problem he has
+According to the problem it tries to improve</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.AdjustSettings.GetIntegerInput">
+<code class="descname">GetIntegerInput</code><span class="sig-paren">(</span><em>MessageOnScreen</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/AdjustSettings.html#GetIntegerInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.GetIntegerInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask for an INTERGER input on the console.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.AdjustSettings.GetNumericalInput">
+<code class="descname">GetNumericalInput</code><span class="sig-paren">(</span><em>MessageOnScreen</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/AdjustSettings.html#GetNumericalInput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.GetNumericalInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask for a FLOAT input on the console</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.AdjustSettings.SpotSize">
+<code class="descname">SpotSize</code><span class="sig-paren">(</span><em>rawframes_rot</em>, <em>ParameterJsonFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/AdjustSettings.html#SpotSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.SpotSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimize the diameter of the Particles</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NanoObjectDetection.CalcDiameter">
+<span id="nanoobjectdetection-calcdiameter-module"></span><h2>NanoObjectDetection.CalcDiameter module<a class="headerlink" href="#module-NanoObjectDetection.CalcDiameter" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Feb  8 09:52:27 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.AvgMsd">
+<code class="descname">AvgMsd</code><span class="sig-paren">(</span><em>nan_tm_sq</em>, <em>frames_per_second</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#AvgMsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.AvgMsd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.CalcMSD">
+<code class="descname">CalcMSD</code><span class="sig-paren">(</span><em>eval_tm</em>, <em>microns_per_pixel</em>, <em>amount_summands=5</em>, <em>amount_lagtimes=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#CalcMSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.CalcMSD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.EstimateHindranceFactor">
+<code class="descname">EstimateHindranceFactor</code><span class="sig-paren">(</span><em>diam_direct_lin</em>, <em>fibre_diameter_nm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#EstimateHindranceFactor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.EstimateHindranceFactor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.FitMSD">
+<code class="descname">FitMSD</code><span class="sig-paren">(</span><em>lagt_direct</em>, <em>amount_frames_lagt1</em>, <em>mean_displ_direct</em>, <em>mean_displ_sigma_direct</em>, <em>sizes_df_lin</em>, <em>particleid</em>, <em>traj_length</em>, <em>UseHindranceFac=0</em>, <em>fibre_diameter_nm=None</em>, <em>temp_water=295</em>, <em>visc_water=9.5e-16</em>, <em>PlotMsdOverLagtime=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#FitMSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.FitMSD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.Main">
+<code class="descname">Main</code><span class="sig-paren">(</span><em>t6_final</em>, <em>ParameterJsonFile</em>, <em>obj_all</em>, <em>microns_per_pixel=None</em>, <em>frames_per_second=None</em>, <em>amount_summands=None</em>, <em>amount_lagtimes=None</em>, <em>amount_lagtimes_auto=None</em>, <em>Histogramm_Show=True</em>, <em>MSD_fit_Show=False</em>, <em>EvalOnlyLongestTraj=0</em>, <em>Max_traj_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#Main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.Main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculating msd of individual particles:</p>
+<p>1.) filtering out too short tracks
+2.) constructing matrix with defined lag-times for each particle. Amount of lag-times is set.
+3.) calculating mean and variance of lag-times for each particle
+4.) regressing each particle individually linearly: msd per lag-time 
+5.) slope of regression used to calculate size of particle
+6.) standard error of lag-time=1 used as error on slope</p>
+<p>Parameters to be adjusted:
+# amount_summands … If msd for a given lag-time is calculated by less than this amount of summands, the corresponding lag-time is disregarded in the fit
+# amount_lagtimes … If the particle has less than this amount of valid lag-times that were fitted, 
+the particle wouldn’t be taken into account. From 181120, SW: Not more than this datapoints are taken into account either
+# cutoff_size [nm] … particles with size exceeding this will not be plotted
+#
+# binning = 25 # Amount of bins used in histogram</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.OptimalMSDPoints">
+<code class="descname">OptimalMSDPoints</code><span class="sig-paren">(</span><em>settings</em>, <em>obj_all</em>, <em>diffusivity</em>, <em>amount_frames_lagt1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#OptimalMSDPoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.OptimalMSDPoints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.OptimizeTrajLenght">
+<code class="descname">OptimizeTrajLenght</code><span class="sig-paren">(</span><em>t6_final</em>, <em>ParameterJsonFile</em>, <em>obj_all</em>, <em>microns_per_pixel=None</em>, <em>frames_per_second=None</em>, <em>amount_summands=None</em>, <em>amount_lagtimes=None</em>, <em>amount_lagtimes_auto=None</em>, <em>Histogramm_Show=True</em>, <em>MSD_fit_Show=False</em>, <em>EvalOnlyLongestTraj=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#OptimizeTrajLenght"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.OptimizeTrajLenght" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.ReducedLocalPrecision">
+<code class="descname">ReducedLocalPrecision</code><span class="sig-paren">(</span><em>settings</em>, <em>obj_all</em>, <em>diffusivity</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#ReducedLocalPrecision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.ReducedLocalPrecision" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.hindrance_fac">
+<code class="descname">hindrance_fac</code><span class="sig-paren">(</span><em>diam_fibre</em>, <em>diam_particle</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#hindrance_fac"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.hindrance_fac" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.mean_func">
+<code class="descname">mean_func</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#mean_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.mean_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.rolling_with_step">
+<code class="descname">rolling_with_step</code><span class="sig-paren">(</span><em>s</em>, <em>window</em>, <em>step</em>, <em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#rolling_with_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.rolling_with_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-NanoObjectDetection.CheckSystem">
+<span id="nanoobjectdetection-checksystem-module"></span><h2>NanoObjectDetection.CheckSystem module<a class="headerlink" href="#module-NanoObjectDetection.CheckSystem" title="Permalink to this headline">¶</a></h2>
+<p>Created on Mon Feb 25 14:02:50 2019</p>
+<p>&#64;author: foersterronny</p>
+<dl class="function">
+<dt id="NanoObjectDetection.CheckSystem.CheckAll">
+<code class="descname">CheckAll</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CheckSystem.html#CheckAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CheckSystem.CheckAll" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CheckSystem.CheckPython">
+<code class="descname">CheckPython</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CheckSystem.html#CheckPython"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CheckSystem.CheckPython" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CheckSystem.CheckTrackpy">
+<code class="descname">CheckTrackpy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CheckSystem.html#CheckTrackpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CheckSystem.CheckTrackpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-NanoObjectDetection.PlotProperties">
+<span id="nanoobjectdetection-plotproperties-module"></span><h2>NanoObjectDetection.PlotProperties module<a class="headerlink" href="#module-NanoObjectDetection.PlotProperties" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Feb 15 14:25:08 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+</div>
+<div class="section" id="module-NanoObjectDetection.PreProcessing">
+<span id="nanoobjectdetection-preprocessing-module"></span><h2>NanoObjectDetection.PreProcessing module<a class="headerlink" href="#module-NanoObjectDetection.PreProcessing" title="Permalink to this headline">¶</a></h2>
+<p>Created on Mon Feb 18 11:09:16 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<dl class="function">
+<dt id="NanoObjectDetection.PreProcessing.Main">
+<code class="descname">Main</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>ParameterJsonFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/PreProcessing.html#Main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.PreProcessing.Main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.PreProcessing.RemoveLaserfluctuation">
+<code class="descname">RemoveLaserfluctuation</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/PreProcessing.html#RemoveLaserfluctuation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.PreProcessing.RemoveLaserfluctuation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.PreProcessing.Remove_StaticBackground">
+<code class="descname">Remove_StaticBackground</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>settings</em>, <em>Background_Show=False</em>, <em>Background_Save=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/PreProcessing.html#Remove_StaticBackground"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.PreProcessing.Remove_StaticBackground" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.PreProcessing.RollingPercentilFilter">
+<code class="descname">RollingPercentilFilter</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/PreProcessing.html#RollingPercentilFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.PreProcessing.RollingPercentilFilter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.PreProcessing.SubtractCameraOffset">
+<code class="descname">SubtractCameraOffset</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/PreProcessing.html#SubtractCameraOffset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.PreProcessing.SubtractCameraOffset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-NanoObjectDetection.Simulation">
+<span id="nanoobjectdetection-simulation-module"></span><h2>NanoObjectDetection.Simulation module<a class="headerlink" href="#module-NanoObjectDetection.Simulation" title="Permalink to this headline">¶</a></h2>
+<p>Created on Mon Mar  4 15:17:36 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<dl class="function">
+<dt id="NanoObjectDetection.Simulation.GenerateRandomWalk">
+<code class="descname">GenerateRandomWalk</code><span class="sig-paren">(</span><em>diameter</em>, <em>num_particles</em>, <em>frames</em>, <em>frames_per_second</em>, <em>ep=0</em>, <em>mass=1</em>, <em>microns_per_pixel=0.477</em>, <em>temp_water=295</em>, <em>visc_water=9.5e-16</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/Simulation.html#GenerateRandomWalk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.Simulation.GenerateRandomWalk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate a random walk of brownian diffusion and return it in a panda like it came from real data</p>
+<p>diameter
+num_particles: number of particles to simular
+frames: frames simulated
+frames_per_second
+ep = 0 :estimation precision
+mass = 1: mass of the particle
+microns_per_pixel = 0.477
+temp_water = 295
+visc_water = 9.5e-16:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.Simulation.PrepareRandomWalk">
+<code class="descname">PrepareRandomWalk</code><span class="sig-paren">(</span><em>ParameterJsonFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/Simulation.html#PrepareRandomWalk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.Simulation.PrepareRandomWalk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure the parameters for a randowm walk out of a JSON file</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NanoObjectDetection.WriteReportPDF">
+<span id="nanoobjectdetection-writereportpdf-module"></span><h2>NanoObjectDetection.WriteReportPDF module<a class="headerlink" href="#module-NanoObjectDetection.WriteReportPDF" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Feb 15 11:38:50 2019</p>
+<p>&#64;author: foersterronny</p>
+<dl class="function">
+<dt id="NanoObjectDetection.WriteReportPDF.SaveAt">
+<code class="descname">SaveAt</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/WriteReportPDF.html#SaveAt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.WriteReportPDF.SaveAt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.WriteReportPDF.WriteHello">
+<code class="descname">WriteHello</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/WriteReportPDF.html#WriteHello"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.WriteReportPDF.WriteHello" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.WriteReportPDF.WriteLine">
+<code class="descname">WriteLine</code><span class="sig-paren">(</span><em>c</em>, <em>string</em>, <em>line_pos_old</em>, <em>indent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/WriteReportPDF.html#WriteLine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.WriteReportPDF.WriteLine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.WriteReportPDF.WriteOnNewLine">
+<code class="descname">WriteOnNewLine</code><span class="sig-paren">(</span><em>c</em>, <em>string</em>, <em>line_pos_old</em>, <em>indent</em>, <em>linewidth</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/WriteReportPDF.html#WriteOnNewLine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.WriteReportPDF.WriteOnNewLine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.WriteReportPDF.WriteSettings">
+<code class="descname">WriteSettings</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/WriteReportPDF.html#WriteSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.WriteReportPDF.WriteSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-NanoObjectDetection.get_trajectorie">
+<span id="nanoobjectdetection-get-trajectorie-module"></span><h2>NanoObjectDetection.get_trajectorie module<a class="headerlink" href="#module-NanoObjectDetection.get_trajectorie" title="Permalink to this headline">¶</a></h2>
+<p>Created on Tue Feb  5 12:23:39 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.DriftCorrection">
+<code class="descname">DriftCorrection</code><span class="sig-paren">(</span><em>t_drift</em>, <em>ParameterJsonFile</em>, <em>Do_transversal_drift_correction=None</em>, <em>drift_smoothing_frames=None</em>, <em>rolling_window_size=None</em>, <em>min_particle_per_block=None</em>, <em>min_tracking_frames=None</em>, <em>PlotGlobalDrift=False</em>, <em>PlotDriftAvgSpeed=False</em>, <em>PlotDriftTimeDevelopment=False</em>, <em>PlotDriftFalseColorMapFlow=False</em>, <em>PlotDriftVectors=False</em>, <em>PlotDriftFalseColorMapSpeed=False</em>, <em>PlotDriftCorrectedTraj=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#DriftCorrection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.DriftCorrection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate and remove overall drift from trajectories</p>
+<p>The drift needs to be removed, because the entire movement consists of brownian motion and drift
+In order to measure the brownian motion, the drift needs to be calculated and subtracted</p>
+<p>There are currently three options to choose from
+1) No drift correction - this is dangerous. However, if just a few particles are tracked the 
+average drift is most the particles movement and thus the trajectory vanishes!</p>
+<p>2) Global Drift
+Calculated the drift of all particles between neighbouring frames</p>
+<p>3) Transversal drift corretion
+Splits the fiber in several “subfibers”. Each of them is treated independent. This is motivated by the idea of laminar
+flow, where particles on the side have a lower current than the ones in the middle
+However this method requires a lot of particles and makes sense for small fiber diameters where laminar flow is
+significant.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.FindSpots">
+<code class="descname">FindSpots</code><span class="sig-paren">(</span><em>frames_np</em>, <em>ParameterJsonFile</em>, <em>UseLog=False</em>, <em>diameter=None</em>, <em>minmass=None</em>, <em>maxsize=None</em>, <em>separation=None</em>, <em>max_iterations=10</em>, <em>SaveFig=False</em>, <em>gamma=0.8</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#FindSpots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.FindSpots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the paramter for the trackpy routine tp.batch, which spots particles, out of the json file</p>
+<p>important parameters:
+separation = settings[“Find”][“Separation data”] … minimum distance of spotes objects
+minmass    = settings[“Find”][“Minimal bead brightness”]   … minimum brightness of an object in order to be saved</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas">
+<code class="descname">RemoveSpotsInNoGoAreas</code><span class="sig-paren">(</span><em>obj</em>, <em>t2_long_fix</em>, <em>ParameterJsonFile</em>, <em>min_distance=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#RemoveSpotsInNoGoAreas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas" title="Permalink to this definition">¶</a></dt>
+<dd><p>In case of stationary/ fixed objects a moving particle should not come to close.
+This is because stationary objects might be very bright clusters which overshine the image of the dim
+moving particle. Thus a ‘not-go-area’ is defined</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.calc_intensity_fluctuations">
+<code class="descname">calc_intensity_fluctuations</code><span class="sig-paren">(</span><em>t1_gapless</em>, <em>ParameterJsonFile</em>, <em>dark_time=None</em>, <em>PlotIntMedianFit=False</em>, <em>PlotIntFlucPerBead=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#calc_intensity_fluctuations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.calc_intensity_fluctuations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the intensity fluctuation of a particle along its trajectory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.close_gaps">
+<code class="descname">close_gaps</code><span class="sig-paren">(</span><em>t1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#close_gaps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.close_gaps" title="Permalink to this definition">¶</a></dt>
+<dd><p># FILL GAPS IN THE TRAJECTORY BY NEAREST NEIGHBOUR
+# NECESSARY FOR FOLLOWING FILTERING WHERE AGAIN A NEAREST NEIGHBOUR IS APPLIED
+# OTHERWISE THE MEDIAN FILL WILL JUST IGNORE MISSING TIME POINTS</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.filter_stubs">
+<code class="descname">filter_stubs</code><span class="sig-paren">(</span><em>traj_all</em>, <em>ParameterJsonFile</em>, <em>FixedParticles=False</em>, <em>BeforeDriftCorrection=False</em>, <em>min_tracking_frames=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#filter_stubs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.filter_stubs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the paramter for the trackpy routine tp.filter_stubs, which cuts to short trajectories,
+out of the json file.</p>
+<p>important parameters:
+FixedParticles        = Defines weather fixed or moving particles are under current investigation
+Fixed Particles must have long trajectories to ensure that they are really stationary</p>
+<p>BeforeDriftCorrection = Defines if the particles have been already drift corrected
+Before drift correction short trajectories are ok</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.link_df">
+<code class="descname">link_df</code><span class="sig-paren">(</span><em>obj</em>, <em>ParameterJsonFile</em>, <em>SearchFixedParticles=False</em>, <em>max_displacement=None</em>, <em>dark_time=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#link_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.link_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the paramter for the trackpy routine tp.link, which forms trajectories
+out of particle positions, out of the json file.</p>
+<p>important parameters:
+SearchFixedParticles = Defines weather fixed or moving particles are under current investigation
+dark_time            = settings[“Link”][“Dark time”] … maximum number of frames a particle can disappear
+max_displacement     = [“Link”][“Max displacement”]   …maximum displacement between two frames</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.split_traj">
+<code class="descname">split_traj</code><span class="sig-paren">(</span><em>t2_long</em>, <em>t3_gapless</em>, <em>ParameterJsonFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#split_traj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.split_traj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define settings for split trajectory at high intensity jumps</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.split_traj_at_high_steps">
+<code class="descname">split_traj_at_high_steps</code><span class="sig-paren">(</span><em>t2_long</em>, <em>t3_gapless</em>, <em>settings</em>, <em>max_rel_median_intensity_step=None</em>, <em>min_tracking_frames_before_drift=None</em>, <em>PlotTrajWhichNeedACut=False</em>, <em>NumParticles2Plot=3</em>, <em>PlotAnimationFiltering=False</em>, <em>rawframes_ROI=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#split_traj_at_high_steps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.split_traj_at_high_steps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the trajectory at high intensity jumps.
+This is motivated by the idea, that an intensity jump is more likely to happen because of a wrong assignment in
+the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6) or heavy
+substructures/intensity holes in the laser moder</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.split_traj_at_long_trajectorie">
+<code class="descname">split_traj_at_long_trajectorie</code><span class="sig-paren">(</span><em>t4_cutted</em>, <em>settings</em>, <em>Max_traj_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#split_traj_at_long_trajectorie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.split_traj_at_long_trajectorie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits trajectory if they are too long
+This might be usefull, to have sufficently long trajectorys all at the same length.
+Otherwise they have very diffent conficence intervalls
+E.g: 2 particles: 1: 500 frames, 2: 2000 frames
+particle 2 is splitted into 4 500frames</p>
+<p>Splitting of a particle is fine, because a particle can go out of focus and return later
+and is assigned as new particle too.</p>
+<p>Important is too look at the temporal component, thus particle 2 never exists twice</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NanoObjectDetection.handle_data">
+<span id="nanoobjectdetection-handle-data-module"></span><h2>NanoObjectDetection.handle_data module<a class="headerlink" href="#module-NanoObjectDetection.handle_data" title="Permalink to this headline">¶</a></h2>
+<p>Created on Tue Feb  5 12:23:39 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<p>This module take care about reading, writing, changing and simple analysis of the rawdata</p>
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.ARHCF_HexToDiameter">
+<code class="descname">ARHCF_HexToDiameter</code><span class="sig-paren">(</span><em>side_length</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#ARHCF_HexToDiameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.ARHCF_HexToDiameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the inner and the other radius of hexagon
+side_length: list or array with the six side length</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.DispWithGamma">
+<code class="descname">DispWithGamma</code><span class="sig-paren">(</span><em>image</em>, <em>gamma=0.5</em>, <em>display=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#DispWithGamma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.DispWithGamma" title="Permalink to this definition">¶</a></dt>
+<dd><p>gamma correction of an image</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.GetTrajLengthAndParticleNumber">
+<code class="descname">GetTrajLengthAndParticleNumber</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#GetTrajLengthAndParticleNumber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.GetTrajLengthAndParticleNumber" title="Permalink to this definition">¶</a></dt>
+<dd><p>Searches for the particle with the longest trajectory
+Save particle ID and trajectory length
+t: trajectory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.GetVarOfSettings">
+<code class="descname">GetVarOfSettings</code><span class="sig-paren">(</span><em>settings</em>, <em>key</em>, <em>entry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#GetVarOfSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.GetVarOfSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the variable inside a dictonary
+settings: dict
+key: type of setting
+entry: variable name
+old function - should no be in use anymore</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.Get_min_max_round">
+<code class="descname">Get_min_max_round</code><span class="sig-paren">(</span><em>array_in</em>, <em>decade</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#Get_min_max_round"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.Get_min_max_round" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the minimum and maximum of an array rounded to the next decade
+This can be useful to get limits of a plot nicely (does not end at 37.9 but at 40)
+decade: precision of np.round
+eg.: decace = -2 –&gt; round to 100, 200, 300, …
+eg.: decace = +3 –&gt; round to 3.141</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.LogData">
+<code class="descname">LogData</code><span class="sig-paren">(</span><em>rawframes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#LogData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.LogData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log of input</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.NormImage">
+<code class="descname">NormImage</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#NormImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.NormImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>normalize an image to [0;1]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.ReadData2Numpy">
+<code class="descname">ReadData2Numpy</code><span class="sig-paren">(</span><em>ParameterJsonFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#ReadData2Numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.ReadData2Numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the images in
+distinguishes between:</p>
+<blockquote>
+<div>tif_series
+tif_stack
+fits</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.ReadFits2Numpy">
+<code class="descname">ReadFits2Numpy</code><span class="sig-paren">(</span><em>data_file_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#ReadFits2Numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.ReadFits2Numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a fits image in</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.ReadJson">
+<code class="descname">ReadJson</code><span class="sig-paren">(</span><em>mypath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#ReadJson"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.ReadJson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the json parameter file into a dict
+mypath: path to the json file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.ReadTiffSeries2Numpy">
+<code class="descname">ReadTiffSeries2Numpy</code><span class="sig-paren">(</span><em>data_folder_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#ReadTiffSeries2Numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.ReadTiffSeries2Numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a tiff series in</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.ReadTiffStack2Numpy">
+<code class="descname">ReadTiffStack2Numpy</code><span class="sig-paren">(</span><em>data_file_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#ReadTiffStack2Numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.ReadTiffStack2Numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a tiff stack in</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.RotImages">
+<code class="descname">RotImages</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>ParameterJsonFile</em>, <em>Do_rotation=None</em>, <em>rot_angle=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#RotImages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.RotImages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate the rawimage by rot_angle</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.SpecificValueOrSettings">
+<code class="descname">SpecificValueOrSettings</code><span class="sig-paren">(</span><em>try_value</em>, <em>settings</em>, <em>key</em>, <em>entry</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#SpecificValueOrSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.SpecificValueOrSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a specific value is given. Otherwise the one out of the settings is used</p>
+<dl class="docutils">
+<dt>Arg:</dt>
+<dd>try_value: if existing, that one is used an written in the settings</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.UseROI">
+<code class="descname">UseROI</code><span class="sig-paren">(</span><em>image</em>, <em>ParameterJsonFile</em>, <em>x_min=None</em>, <em>x_max=None</em>, <em>y_min=None</em>, <em>y_max=None</em>, <em>frame_min=None</em>, <em>frame_max=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#UseROI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.UseROI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies a ROI to a given image</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.UseSuperSampling">
+<code class="descname">UseSuperSampling</code><span class="sig-paren">(</span><em>image_in</em>, <em>ParameterJsonFile</em>, <em>fac_xy=None</em>, <em>fac_frame=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#UseSuperSampling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.UseSuperSampling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Supersamples the data in x, y and frames by integer numbers
+e.g.: fac_frame = 5 means that only every fifth frame is kept</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.WriteJson">
+<code class="descname">WriteJson</code><span class="sig-paren">(</span><em>mypath</em>, <em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#WriteJson"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.WriteJson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the current settings to a json file
+mypath: path to the json file
+settings</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.are_rawframes_saturated">
+<code class="descname">are_rawframes_saturated</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>ignore_saturation=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#are_rawframes_saturated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.are_rawframes_saturated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if rawimages are saturated.
+This is done by looking if the maximum value is 2^x with x an integer which sounds saturated
+e.g. if the max value is 1024, this is suspicious</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.max_rawframes">
+<code class="descname">max_rawframes</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>display=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#max_rawframes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.max_rawframes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum projection along the frames
+display if wanted</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.mean_rawframes">
+<code class="descname">mean_rawframes</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>display=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#mean_rawframes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.mean_rawframes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculated the mean along the frames
+display if wanted</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.min_rawframes">
+<code class="descname">min_rawframes</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>display=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#min_rawframes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.min_rawframes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimum projection along the frames
+display if wanted</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.percentile_rawframes">
+<code class="descname">percentile_rawframes</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>percentile</em>, <em>display=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#percentile_rawframes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.percentile_rawframes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculated the percentile along the frames
+display if wanted</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.handle_data.total_intensity">
+<code class="descname">total_intensity</code><span class="sig-paren">(</span><em>rawframes_np</em>, <em>display=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/handle_data.html#total_intensity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.total_intensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>tot_intensity: total intensity in each frame
+rel_intensity: relative intensity with respect to the mean
+can be used to remove laser fluctuations</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-NanoObjectDetection.mpl_style">
+<span id="nanoobjectdetection-mpl-style-module"></span><h2>NanoObjectDetection.mpl_style module<a class="headerlink" href="#module-NanoObjectDetection.mpl_style" title="Permalink to this headline">¶</a></h2>
+<p>Created on Fri Feb  1 15:10:52 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<dl class="function">
+<dt id="NanoObjectDetection.mpl_style.export">
+<code class="descname">export</code><span class="sig-paren">(</span><em>save_folder_name</em>, <em>save_image_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/mpl_style.html#export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.mpl_style.export" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-NanoObjectDetection.visualize">
+<span id="nanoobjectdetection-visualize-module"></span><h2>NanoObjectDetection.visualize module<a class="headerlink" href="#module-NanoObjectDetection.visualize" title="Permalink to this headline">¶</a></h2>
+<p>Created on Tue Feb  5 12:23:39 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.AnimateProcessedRawDate">
+<code class="descname">AnimateProcessedRawDate</code><span class="sig-paren">(</span><em>rawframes_ROI</em>, <em>t_long</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#AnimateProcessedRawDate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.AnimateProcessedRawDate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.AnimateStationaryParticles">
+<code class="descname">AnimateStationaryParticles</code><span class="sig-paren">(</span><em>rawframes_np</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#AnimateStationaryParticles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.AnimateStationaryParticles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.CutTrajectorieAtStep">
+<code class="descname">CutTrajectorieAtStep</code><span class="sig-paren">(</span><em>t1_gapless</em>, <em>particle_to_split</em>, <em>max_rel_median_intensity_step</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#CutTrajectorieAtStep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.CutTrajectorieAtStep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.DiamerterOverTrajLenght">
+<code class="descname">DiamerterOverTrajLenght</code><span class="sig-paren">(</span><em>ParameterJsonFile</em>, <em>sizes_df_lin</em>, <em>show_plot=None</em>, <em>save_plot=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#DiamerterOverTrajLenght"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.DiamerterOverTrajLenght" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.DiameterHistogramm">
+<code class="descname">DiameterHistogramm</code><span class="sig-paren">(</span><em>ParameterJsonFile</em>, <em>sizes_df_lin</em>, <em>histogramm_min=None</em>, <em>histogramm_max=None</em>, <em>Histogramm_min_max_auto=None</em>, <em>binning=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#DiameterHistogramm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.DiameterHistogramm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.DriftAvgSpeed">
+<code class="descname">DriftAvgSpeed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#DriftAvgSpeed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.DriftAvgSpeed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.DriftCorrectedTraj">
+<code class="descname">DriftCorrectedTraj</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#DriftCorrectedTraj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.DriftCorrectedTraj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.DriftFalseColorMapFlow">
+<code class="descname">DriftFalseColorMapFlow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#DriftFalseColorMapFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.DriftFalseColorMapFlow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.DriftFalseColorMapSpeed">
+<code class="descname">DriftFalseColorMapSpeed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#DriftFalseColorMapSpeed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.DriftFalseColorMapSpeed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.DriftTimeDevelopment">
+<code class="descname">DriftTimeDevelopment</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#DriftTimeDevelopment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.DriftTimeDevelopment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.DriftVectors">
+<code class="descname">DriftVectors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#DriftVectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.DriftVectors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.GetMeanStdMedian">
+<code class="descname">GetMeanStdMedian</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#GetMeanStdMedian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.GetMeanStdMedian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.GetPlotParameters">
+<code class="descname">GetPlotParameters</code><span class="sig-paren">(</span><em>settings</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#GetPlotParameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.GetPlotParameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.IntMedianFit">
+<code class="descname">IntMedianFit</code><span class="sig-paren">(</span><em>t1_gapless</em>, <em>my_particle=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#IntMedianFit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.IntMedianFit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.MaxIntFluctuationPerBead">
+<code class="descname">MaxIntFluctuationPerBead</code><span class="sig-paren">(</span><em>t1_gapless</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#MaxIntFluctuationPerBead"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.MaxIntFluctuationPerBead" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.MsdOverLagtime">
+<code class="descname">MsdOverLagtime</code><span class="sig-paren">(</span><em>lagt_direct</em>, <em>mean_displ_direct</em>, <em>mean_displ_fit_direct_lin</em>, <em>collect_data=None</em>, <em>alpha_values=0.1</em>, <em>alpha_fit=0.3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#MsdOverLagtime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.MsdOverLagtime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.NumberOfBinsAuto">
+<code class="descname">NumberOfBinsAuto</code><span class="sig-paren">(</span><em>mydata</em>, <em>average_heigt=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#NumberOfBinsAuto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.NumberOfBinsAuto" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.Plot1DPlot">
+<code class="descname">Plot1DPlot</code><span class="sig-paren">(</span><em>plot_np</em>, <em>title</em>, <em>xlabel</em>, <em>ylabel</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#Plot1DPlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.Plot1DPlot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.Plot2DImage">
+<code class="descname">Plot2DImage</code><span class="sig-paren">(</span><em>array_np</em>, <em>title</em>, <em>xlabel</em>, <em>ylabel</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#Plot2DImage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.Plot2DImage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.Plot2DPlot">
+<code class="descname">Plot2DPlot</code><span class="sig-paren">(</span><em>x_np</em>, <em>y_np</em>, <em>title=None</em>, <em>xlabel=None</em>, <em>ylabel=None</em>, <em>myalpha=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#Plot2DPlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.Plot2DPlot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.Plot2DScatter">
+<code class="descname">Plot2DScatter</code><span class="sig-paren">(</span><em>x_np</em>, <em>y_np</em>, <em>title=None</em>, <em>xlabel=None</em>, <em>ylabel=None</em>, <em>myalpha=1</em>, <em>x_min_max=None</em>, <em>y_min_max=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#Plot2DScatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.Plot2DScatter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.PlotDiameterHistogramm">
+<code class="descname">PlotDiameterHistogramm</code><span class="sig-paren">(</span><em>sizes_df_lin</em>, <em>binning</em>, <em>min_size=0</em>, <em>cutoff_size=10000</em>, <em>title=''</em>, <em>xlabel=''</em>, <em>ylabel=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#PlotDiameterHistogramm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.PlotDiameterHistogramm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.PlotDiameters">
+<code class="descname">PlotDiameters</code><span class="sig-paren">(</span><em>ParameterJsonFile</em>, <em>sizes_df_lin</em>, <em>any_successful_check</em>, <em>histogramm_min=None</em>, <em>histogramm_max=None</em>, <em>Histogramm_min_max_auto=None</em>, <em>binning=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#PlotDiameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.PlotDiameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.PlotGlobalDrift">
+<code class="descname">PlotGlobalDrift</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#PlotGlobalDrift"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.PlotGlobalDrift" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.SetXYLim">
+<code class="descname">SetXYLim</code><span class="sig-paren">(</span><em>x_min_max=None</em>, <em>y_min_max=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#SetXYLim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.SetXYLim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.VarDiameterOverMinTracklength">
+<code class="descname">VarDiameterOverMinTracklength</code><span class="sig-paren">(</span><em>settings</em>, <em>sizes_df_lin</em>, <em>obj_all</em>, <em>num_bins_traj_length=100</em>, <em>min_traj_length=0</em>, <em>max_traj_length=1000</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#VarDiameterOverMinTracklength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.VarDiameterOverMinTracklength" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.VarDiameterOverTracklength">
+<code class="descname">VarDiameterOverTracklength</code><span class="sig-paren">(</span><em>sizes_df_lin</em>, <em>save_folder_name='Z:\\Datenauswertung\\19_ARHCF'</em>, <em>save_image_name='errorpropagation_diameter_vs_trajectorie_length'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#VarDiameterOverTracklength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.VarDiameterOverTracklength" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.export">
+<code class="descname">export</code><span class="sig-paren">(</span><em>save_folder_name</em>, <em>save_image_name</em>, <em>settings=None</em>, <em>use_dpi=None</em>, <em>data=None</em>, <em>data_header=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.export" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.visualize.update_progress">
+<code class="descname">update_progress</code><span class="sig-paren">(</span><em>job_title</em>, <em>progress</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/visualize.html#update_progress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.update_progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-NanoObjectDetection">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-NanoObjectDetection" title="Permalink to this headline">¶</a></h2>
+<p>Created on Wed Feb  6 09:34:54 2019</p>
+<p>&#64;author: foersterronny</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">NanoObjectDetection package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.AdjustSettings">NanoObjectDetection.AdjustSettings module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.CalcDiameter">NanoObjectDetection.CalcDiameter module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.CheckSystem">NanoObjectDetection.CheckSystem module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.PlotProperties">NanoObjectDetection.PlotProperties module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.PreProcessing">NanoObjectDetection.PreProcessing module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.Simulation">NanoObjectDetection.Simulation module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.WriteReportPDF">NanoObjectDetection.WriteReportPDF module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.get_trajectorie">NanoObjectDetection.get_trajectorie module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.handle_data">NanoObjectDetection.handle_data module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.mpl_style">NanoObjectDetection.mpl_style module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection.visualize">NanoObjectDetection.visualize module</a></li>
+<li><a class="reference internal" href="#module-NanoObjectDetection">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to NanoObjectDetection’s documentation!</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/NanoObjectDetection.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to NanoObjectDetection’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NanoObjectDetection  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

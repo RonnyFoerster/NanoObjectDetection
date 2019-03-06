@@ -1,0 +1,127 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>NanoObjectDetection.mpl_style &#8212; NanoObjectDetection  documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for NanoObjectDetection.mpl_style</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Fri Feb  1 15:10:52 2019</span>
+
+<span class="sd">@author: Ronny Förster und Stefan Weidlich</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span> <span class="c1"># I import this entirely here, as it&#39;s needed to change colormaps</span>
+
+<span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="s1">&#39;figure.figsize&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
+   <span class="s1">&#39;legend.fontsize&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+   <span class="s1">&#39;text.usetex&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+
+   <span class="s1">&#39;ytick.labelsize&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+   <span class="s1">&#39;ytick.direction&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;xtick.labelsize&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+   <span class="s1">&#39;xtick.direction&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
+   <span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+   <span class="p">}</span>
+<span class="n">mpl</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+<span class="n">title_font</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fontname&#39;</span><span class="p">:</span><span class="s1">&#39;Arial&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">:</span><span class="s1">&#39;16&#39;</span><span class="p">,</span> <span class="s1">&#39;color&#39;</span><span class="p">:</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="s1">&#39;weight&#39;</span><span class="p">:</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;verticalalignment&#39;</span><span class="p">:</span><span class="s1">&#39;bottom&#39;</span><span class="p">}</span> <span class="c1"># Bottom vertical alignment for more space</span>
+<span class="n">axis_font</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fontname&#39;</span><span class="p">:</span><span class="s1">&#39;Arial&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">:</span><span class="s1">&#39;12&#39;</span><span class="p">}</span>
+
+
+
+<div class="viewcode-block" id="export"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.mpl_style.export">[docs]</a><span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="n">save_folder_name</span><span class="p">,</span> <span class="n">save_image_name</span><span class="p">):</span>
+    
+    <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span> <span class="c1"># Libraries for plotting</span>
+    <span class="kn">import</span> <span class="nn">datetime</span>
+    <span class="kn">import</span> <span class="nn">os</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    
+    <span class="n">my_dir_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="se">\\</span><span class="s1">{date:%y%m</span><span class="si">%d</span><span class="s1">}</span><span class="se">\\</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="n">date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span> <span class="o">%</span><span class="n">save_folder_name</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">my_dir_name</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">my_dir_name</span><span class="p">)</span> 
+    
+    <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;{date:%H%M%S}_</span><span class="si">%s</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="n">date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span> <span class="o">%</span><span class="n">save_image_name</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">my_dir_name</span> <span class="o">+</span>  <span class="n">file_name</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Figure saved&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>
