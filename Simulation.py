@@ -2,7 +2,7 @@
 """
 Created on Mon Mar  4 15:17:36 2019
 
-@author: foersterronny
+@author: Ronny Förster und Stefan Weidlich
 """
 import math
 import numpy as np
@@ -10,10 +10,25 @@ import pandas as pd
 import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 matplotlib.rcParams['text.latex.unicode'] = True
-import matplotlib.pyplot as plt # Libraries for plotting
+#import matplotlib.pyplot as plt # Libraries for plotting
+import NanoObjectDetection as nd
 
 # In[]
 def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, ep = 0, mass = 1, microns_per_pixel = 0.477, temp_water = 295, visc_water = 9.5e-16):
+    """
+    Simulate a random walk of brownian diffusion and return it in a panda like it came from real data
+    
+    diameter
+    num_particles: number of particles to simular
+    frames: frames simulated
+    frames_per_second
+    ep = 0 :estimation precision
+    mass = 1: mass of the particle
+    microns_per_pixel = 0.477
+    temp_water = 295
+    visc_water = 9.5e-16:
+    """
+    
     # Generating particle tracks as comparison
     
     # diameter of particle in nm
@@ -64,3 +79,29 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, ep = 
 #    plt.plot(my_var)
     
     return sim_part_tm
+
+
+
+def PrepareRandomWalk(ParameterJsonFile):
+    """
+    Configure the parameters for a randowm walk out of a JSON file
+    """
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)    
+    
+    diameter = settings["Simulation"]["DiameterOfParticles"]
+    num_particles = settings["Simulation"]["NumberOfParticles"]
+    frames = settings["Simulation"]["NumberOfFrames"]
+    frames_per_second = settings["Exp"]["fps"]
+    EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
+    mass = settings["Simulation"]["mass"]
+    microns_per_pixel = settings["Exp"]["Microns_per_pixel"]
+    temp_water = settings["Exp"]["Temperature"]
+    visc_water = settings["Exp"]["Viscocity"]
+    
+    output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, \
+                                              ep = EstimationPrecision, mass = mass, \
+                                              microns_per_pixel = microns_per_pixel, temp_water = temp_water, \
+                                              visc_water = visc_water)
+
+    return output

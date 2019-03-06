@@ -2,29 +2,13 @@
 """
 Created on Tue Feb  5 12:23:39 2019
 
-@author: foersterronny
+@author: Ronny Förster und Stefan Weidlich
+
+This module take care about reading, writing, changing and simple analysis of the rawdata
 """
 
-# In[0]:
-# coding: utf-8
-"""
-Analyzis of Gold-Particle data for ARHCF paper
+# In[0]: Importing neccessary libraries
 
-Created on 20181001 by Stefan Weidlich (SW)
-Based on previous skript of Ronny Förster (RF) and SW
-
-Target here: Implement only routines as they'll be used in paper
-
-Modifications:
-181020, SW: Cleaning up of code
-Amongst others: Python v3.5 implementation deleted. Now working with 3.6 and above only
-181025, SW: Adjustment of tracking-parameters and structuring of header
---> Realized that 32-bit parameters for tracking lead to unsufficient pixel-precision for 64 bit-version
-181026, SW: Taking out of log-tracking. --> Not needed
-
-******************************************************************************
-Importing neccessary libraries
-"""
 import numpy as np # Library for array-manipulation
 import matplotlib.pyplot as plt # Libraries for plotting
 import sys
@@ -40,6 +24,10 @@ import NanoObjectDetection as nd
 # In[2]:
 
 def ReadJson(mypath):
+    """
+    Reads the json parameter file into a dict
+    mypath: path to the json file
+    """
     with open(mypath) as json_file:
         settings = json.load(json_file)
             
@@ -56,12 +44,21 @@ def ReadJson(mypath):
 
 
 def WriteJson(mypath, settings):
+    """
+    Writes the current settings to a json file
+    mypath: path to the json file
+    settings
+    """
     with open(mypath, 'w') as outfile:
         json.dump(settings, outfile, indent = 5)
 
 
 
 def ARHCF_HexToDiameter(side_length):
+    """
+    Calculates the inner and the other radius of hexagon
+    side_length: list or array with the six side length
+    """
     # to understand paint hex and look at the 6 subtriangles of equal side length
     # gleichseitiges dreieck
     side_length = np.asarray(side_length)
@@ -75,7 +72,11 @@ def ARHCF_HexToDiameter(side_length):
 
 
 def GetTrajLengthAndParticleNumber(t):
-    
+    """
+    Searches for the particle with the longest trajectory
+    Save particle ID and trajectory length
+    t: trajectory
+    """
  
     particle_list = list(t.particle.drop_duplicates())
     
@@ -95,6 +96,14 @@ def GetTrajLengthAndParticleNumber(t):
 
 
 def Get_min_max_round(array_in, decade):
+    """
+    Get the minimum and maximum of an array rounded to the next decade
+    This can be useful to get limits of a plot nicely (does not end at 37.9 but at 40)
+    decade: precision of np.round
+    eg.: decace = -2 --> round to 100, 200, 300, ...
+    eg.: decace = +3 --> round to 3.141
+    """
+ 
     if decade < 0:
         sys.exit("decade must be non negative")
     else:
@@ -108,7 +117,13 @@ def Get_min_max_round(array_in, decade):
 
 
 def GetVarOfSettings(settings, key, entry):
-#    bp()
+    """
+    Reads the variable inside a dictonary
+    settings: dict
+    key: type of setting
+    entry: variable name
+    old function - should no be in use anymore
+    """
     if entry in list(settings[key].keys()):
         # get value
         value = settings[key][entry]
@@ -141,13 +156,19 @@ def GetVarOfSettings(settings, key, entry):
                     value = input("Ok. Set the value of settings['%s']['%s']: " %(key, entry))
                 else:
                     sys.exit("Well... you had your chances!")
-                        
-                
-        
+                                               
     return value
 
 
 def SpecificValueOrSettings(try_value,settings, key, entry):
+    """
+    Check if a specific value is given. Otherwise the one out of the settings is used
+    
+    Arg:
+        try_value: if existing, that one is used an written in the settings
+    """
+    
+    
 #    print("key: ", key)
 #    print("entry: ", entry)
 #    bp()
@@ -178,23 +199,16 @@ def SpecificValueOrSettings(try_value,settings, key, entry):
     return use_value, settings
 
 
-"""
-******************************************************************************
-Reading in data and cropping image to ROI needed
-"""
-
-
-#def ReadImages_pims(data_folder_name, data_file_extension):
-#    print('start reading in raw images')
-#    rawframes = pims.ImageSequence(data_folder_name + '\\' + '*.' + data_file_extension)
-#    
-#    return rawframes 
-
-
-
 
 
 def ReadData2Numpy(ParameterJsonFile):
+    """
+    Reads the images in
+    distinguishes between:
+        tif_series
+        tif_stack
+        fits
+    """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     DoSimulation = settings["Simulation"]["SimulateData"]
@@ -236,7 +250,7 @@ def ReadData2Numpy(ParameterJsonFile):
 
 
 def ReadTiffStack2Numpy(data_file_name):
-    
+    "Reads a tiff stack in"
     print('start reading in raw images')
     rawframes_np = io.imread(data_file_name)
     
@@ -246,7 +260,7 @@ def ReadTiffStack2Numpy(data_file_name):
 
 
 def ReadTiffSeries2Numpy(data_folder_name):
-
+    "Reads a tiff series in"
     
     print('start reading in raw images')
     rawframes_np = []
@@ -268,6 +282,7 @@ def ReadTiffSeries2Numpy(data_folder_name):
 
 
 def ReadFits2Numpy(data_file_name):
+    "Reads a fits image in"
     print('start reading in raw images')
     
     open_fits = pyfits.open(data_file_name)
@@ -280,37 +295,14 @@ def ReadFits2Numpy(data_file_name):
 
 
 
-def MaxROI(image):
-    ROI = {'min_x' : 0,
-           'max_x' : image.shape[1]-1,
-           'min_y' : 0,
-           'max_y' : image.shape[2]-1,
-           'min_frame' : 0,
-           'max_frame' : image.shape[0]-1}
-    return ROI
-
-
-def ChangeROI(settings,x_min = False, x_max = False, y_min = False, y_max = False,
-              frame_min = False, frame_max = False):
-    if x_min != False:
-        settings["ROI"]['x_min'] = x_min
-    if x_max != False:
-        settings["ROI"]['x_max'] = x_max
-    if y_min != False:
-        settings["ROI"]['y_min'] = y_min
-    if y_max != False:
-        settings["ROI"]['y_max'] = y_max
-    if frame_min != False:
-        settings["ROI"]['min_frame'] = frame_min
-    if frame_max != False:
-        settings["ROI"]['max_frame'] = frame_max
-        
-    return settings
-
 
 def UseROI(image, ParameterJsonFile, x_min = None, x_max = None, y_min = None, y_max = None,
            frame_min = None, frame_max = None):
-     
+    """
+    Applies a ROI to a given image
+    """ 
+    
+    
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
     if settings["ROI"]["Apply"] == 0:
@@ -336,6 +328,10 @@ def UseROI(image, ParameterJsonFile, x_min = None, x_max = None, y_min = None, y
 
 
 def UseSuperSampling(image_in, ParameterJsonFile, fac_xy = None, fac_frame = None):
+    """
+    Supersamples the data in x, y and frames by integer numbers
+    e.g.: fac_frame = 5 means that only every fifth frame is kept
+    """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -370,6 +366,9 @@ def UseSuperSampling(image_in, ParameterJsonFile, fac_xy = None, fac_frame = Non
 
 
 def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = None):
+    """
+    Rotate the rawimage by rot_angle
+    """
     import scipy
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -396,10 +395,12 @@ def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = N
     return im_out
 
 
-
-
-
 def min_rawframes(rawframes_np, display = False):
+    """
+    Minimum projection along the frames
+    display if wanted
+    """
+    
     import NanoObjectDetection as nd
     rawframes_min = np.min(rawframes_np,axis=0)
     
@@ -414,6 +415,10 @@ def min_rawframes(rawframes_np, display = False):
     
     
 def max_rawframes(rawframes_np, display = False):
+    """
+    Maximum projection along the frames
+    display if wanted
+    """
     rawframes_max = np.max(rawframes_np,axis=0)
     if display == True:
         plt.imshow(rawframes_max)
@@ -422,13 +427,22 @@ def max_rawframes(rawframes_np, display = False):
         
 
 def mean_rawframes(rawframes_np, display = False):
+    """
+    Calculated the mean along the frames
+    display if wanted
+    """
     rawframes_mean = np.mean(rawframes_np,axis=0)
     if display == True:
         plt.imshow(rawframes_mean)
         
     return rawframes_mean
-        
+      
+  
 def percentile_rawframes(rawframes_np, percentile, display = False):
+    """
+    Calculated the percentile along the frames
+    display if wanted
+    """
     rawframes_percentile = np.percentile(rawframes_np, percentile, axis=0)
     if display == True:
         plt.imshow(rawframes_percentile)
@@ -437,6 +451,11 @@ def percentile_rawframes(rawframes_np, percentile, display = False):
     
     
 def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
+    """
+    Check if rawimages are saturated.
+    This is done by looking if the maximum value is 2^x with x an integer which sounds saturated
+    e.g. if the max value is 1024, this is suspicious
+    """
     brightes_pixel = np.max(rawframes_np)
     
     # is it a multiple of 2^x ... if so it sounds saturated
@@ -449,6 +468,11 @@ def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
  
     
 def total_intensity(rawframes_np, display = False):
+    """
+    tot_intensity: total intensity in each frame
+    rel_intensity: relative intensity with respect to the mean
+    can be used to remove laser fluctuations
+    """
     import NanoObjectDetection as nd
     # intensity in each frame
     tot_intensity = np.sum(rawframes_np,axis=(1,2))
@@ -464,6 +488,7 @@ def total_intensity(rawframes_np, display = False):
 
 
 def NormImage(image):
+    "normalize an image to [0;1]"
     image = image - np.min(image)
     image = image / np.max(image)
     
@@ -471,6 +496,7 @@ def NormImage(image):
 
 
 def DispWithGamma(image, gamma = 0.5, display = False):
+    "gamma correction of an image"
     image = NormImage(image)
     print(gamma)
     image = image ** gamma
@@ -478,6 +504,9 @@ def DispWithGamma(image, gamma = 0.5, display = False):
        
 
 def LogData(rawframes):
+    """
+    Log of input
+    """
     # Stefan loves the log
     rawframes_log=np.log(rawframes)
     rawframes_log_median=np.median(rawframes_log)
@@ -486,7 +515,39 @@ def LogData(rawframes):
             
             
     return rawframes_log
-            
+   
+
+#def MaxROI(image):
+#    "Return the maximum ROI of a given array"
+#    ROI = {'min_x' : 0,
+#           'max_x' : image.shape[1]-1,
+#           'min_y' : 0,
+#           'max_y' : image.shape[2]-1,
+#           'min_frame' : 0,
+#           'max_frame' : image.shape[0]-1}
+#    return ROI
+#
+#
+#def ChangeROI(settings,x_min = False, x_max = False, y_min = False, y_max = False,
+#              frame_min = False, frame_max = False):
+#    "Change the ROI settings"
+#    if x_min != False:
+#        settings["ROI"]['x_min'] = x_min
+#    if x_max != False:
+#        settings["ROI"]['x_max'] = x_max
+#    if y_min != False:
+#        settings["ROI"]['y_min'] = y_min
+#    if y_max != False:
+#        settings["ROI"]['y_max'] = y_max
+#    if frame_min != False:
+#        settings["ROI"]['min_frame'] = frame_min
+#    if frame_max != False:
+#        settings["ROI"]['max_frame'] = frame_max
+#        
+#    return settings
+#
+#
+#        
 ## Crop image to the region of interest only (if needed re-define cropping parameters above):
 #def crop(img): 
 #    x_min = x_min_global

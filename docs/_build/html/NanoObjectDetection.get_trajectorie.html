@@ -1,0 +1,189 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>NanoObjectDetection.get_trajectorie module &#8212; NanoObjectDetection  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NanoObjectDetection  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.get_trajectorie">
+<span id="nanoobjectdetection-get-trajectorie-module"></span><h1>NanoObjectDetection.get_trajectorie module<a class="headerlink" href="#module-NanoObjectDetection.get_trajectorie" title="Permalink to this headline">¶</a></h1>
+<p>Created on Tue Feb  5 12:23:39 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.DriftCorrection">
+<code class="descname">DriftCorrection</code><span class="sig-paren">(</span><em>t_drift</em>, <em>ParameterJsonFile</em>, <em>Do_transversal_drift_correction=None</em>, <em>drift_smoothing_frames=None</em>, <em>rolling_window_size=None</em>, <em>min_particle_per_block=None</em>, <em>min_tracking_frames=None</em>, <em>PlotGlobalDrift=False</em>, <em>PlotDriftAvgSpeed=False</em>, <em>PlotDriftTimeDevelopment=False</em>, <em>PlotDriftFalseColorMapFlow=False</em>, <em>PlotDriftVectors=False</em>, <em>PlotDriftFalseColorMapSpeed=False</em>, <em>PlotDriftCorrectedTraj=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#DriftCorrection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.DriftCorrection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate and remove overall drift from trajectories</p>
+<p>The drift needs to be removed, because the entire movement consists of brownian motion and drift
+In order to measure the brownian motion, the drift needs to be calculated and subtracted</p>
+<p>There are currently three options to choose from
+1) No drift correction - this is dangerous. However, if just a few particles are tracked the 
+average drift is most the particles movement and thus the trajectory vanishes!</p>
+<p>2) Global Drift
+Calculated the drift of all particles between neighbouring frames</p>
+<p>3) Transversal drift corretion
+Splits the fiber in several “subfibers”. Each of them is treated independent. This is motivated by the idea of laminar
+flow, where particles on the side have a lower current than the ones in the middle
+However this method requires a lot of particles and makes sense for small fiber diameters where laminar flow is
+significant.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.FindSpots">
+<code class="descname">FindSpots</code><span class="sig-paren">(</span><em>frames_np</em>, <em>ParameterJsonFile</em>, <em>UseLog=False</em>, <em>diameter=None</em>, <em>minmass=None</em>, <em>maxsize=None</em>, <em>separation=None</em>, <em>max_iterations=10</em>, <em>SaveFig=False</em>, <em>gamma=0.8</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#FindSpots"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.FindSpots" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the paramter for the trackpy routine tp.batch, which spots particles, out of the json file</p>
+<p>important parameters:
+separation = settings[“Find”][“Separation data”] … minimum distance of spotes objects
+minmass    = settings[“Find”][“Minimal bead brightness”]   … minimum brightness of an object in order to be saved</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas">
+<code class="descname">RemoveSpotsInNoGoAreas</code><span class="sig-paren">(</span><em>obj</em>, <em>t2_long_fix</em>, <em>ParameterJsonFile</em>, <em>min_distance=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#RemoveSpotsInNoGoAreas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas" title="Permalink to this definition">¶</a></dt>
+<dd><p>In case of stationary/ fixed objects a moving particle should not come to close.
+This is because stationary objects might be very bright clusters which overshine the image of the dim
+moving particle. Thus a ‘not-go-area’ is defined</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.calc_intensity_fluctuations">
+<code class="descname">calc_intensity_fluctuations</code><span class="sig-paren">(</span><em>t1_gapless</em>, <em>ParameterJsonFile</em>, <em>dark_time=None</em>, <em>PlotIntMedianFit=False</em>, <em>PlotIntFlucPerBead=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#calc_intensity_fluctuations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.calc_intensity_fluctuations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the intensity fluctuation of a particle along its trajectory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.close_gaps">
+<code class="descname">close_gaps</code><span class="sig-paren">(</span><em>t1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#close_gaps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.close_gaps" title="Permalink to this definition">¶</a></dt>
+<dd><p># FILL GAPS IN THE TRAJECTORY BY NEAREST NEIGHBOUR
+# NECESSARY FOR FOLLOWING FILTERING WHERE AGAIN A NEAREST NEIGHBOUR IS APPLIED
+# OTHERWISE THE MEDIAN FILL WILL JUST IGNORE MISSING TIME POINTS</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.filter_stubs">
+<code class="descname">filter_stubs</code><span class="sig-paren">(</span><em>traj_all</em>, <em>ParameterJsonFile</em>, <em>FixedParticles=False</em>, <em>BeforeDriftCorrection=False</em>, <em>min_tracking_frames=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#filter_stubs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.filter_stubs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the paramter for the trackpy routine tp.filter_stubs, which cuts to short trajectories,
+out of the json file.</p>
+<p>important parameters:
+FixedParticles        = Defines weather fixed or moving particles are under current investigation
+Fixed Particles must have long trajectories to ensure that they are really stationary</p>
+<p>BeforeDriftCorrection = Defines if the particles have been already drift corrected
+Before drift correction short trajectories are ok</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.link_df">
+<code class="descname">link_df</code><span class="sig-paren">(</span><em>obj</em>, <em>ParameterJsonFile</em>, <em>SearchFixedParticles=False</em>, <em>max_displacement=None</em>, <em>dark_time=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#link_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.link_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the paramter for the trackpy routine tp.link, which forms trajectories
+out of particle positions, out of the json file.</p>
+<p>important parameters:
+SearchFixedParticles = Defines weather fixed or moving particles are under current investigation
+dark_time            = settings[“Link”][“Dark time”] … maximum number of frames a particle can disappear
+max_displacement     = [“Link”][“Max displacement”]   …maximum displacement between two frames</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.split_traj">
+<code class="descname">split_traj</code><span class="sig-paren">(</span><em>t2_long</em>, <em>t3_gapless</em>, <em>ParameterJsonFile</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#split_traj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.split_traj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define settings for split trajectory at high intensity jumps</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.split_traj_at_high_steps">
+<code class="descname">split_traj_at_high_steps</code><span class="sig-paren">(</span><em>t2_long</em>, <em>t3_gapless</em>, <em>settings</em>, <em>max_rel_median_intensity_step=None</em>, <em>min_tracking_frames_before_drift=None</em>, <em>PlotTrajWhichNeedACut=False</em>, <em>NumParticles2Plot=3</em>, <em>PlotAnimationFiltering=False</em>, <em>rawframes_ROI=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#split_traj_at_high_steps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.split_traj_at_high_steps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the trajectory at high intensity jumps.
+This is motivated by the idea, that an intensity jump is more likely to happen because of a wrong assignment in
+the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6) or heavy
+substructures/intensity holes in the laser moder</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.get_trajectorie.split_traj_at_long_trajectorie">
+<code class="descname">split_traj_at_long_trajectorie</code><span class="sig-paren">(</span><em>t4_cutted</em>, <em>settings</em>, <em>Max_traj_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/get_trajectorie.html#split_traj_at_long_trajectorie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.split_traj_at_long_trajectorie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits trajectory if they are too long
+This might be usefull, to have sufficently long trajectorys all at the same length.
+Otherwise they have very diffent conficence intervalls
+E.g: 2 particles: 1: 500 frames, 2: 2000 frames
+particle 2 is splitted into 4 500frames</p>
+<p>Splitting of a particle is fine, because a particle can go out of focus and return later
+and is assigned as new particle too.</p>
+<p>Important is too look at the temporal component, thus particle 2 never exists twice</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/NanoObjectDetection.get_trajectorie.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NanoObjectDetection  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

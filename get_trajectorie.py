@@ -2,8 +2,10 @@
 """
 Created on Tue Feb  5 12:23:39 2019
 
-@author: foersterronny
+@author: Ronny Förster und Stefan Weidlich
+
 """
+
 
 # In[0]:
 # coding: utf-8
@@ -40,80 +42,70 @@ from tqdm import tqdm# progress bar
 from pdb import set_trace as bp #debugger
 
 # In[]
-def OptimizeParamFindSpots(rawframes_ROI, ParameterJsonFile, SaveFig, gamma = 0.8, diameter=None , minmass=None, separation=None):
-    
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-    
-    diameter = settings["Find"]["Estimated particle size"]
-    minmass = settings["Find"]["Minimal bead brightness"]
-    separation = settings["Find"]["Separation data"]
-    
-    obj = nd.get_trajectorie.batch_np(rawframes_ROI[0:1,:,:], ParameterJsonFile, diameter = diameter,
-                                      minmass = minmass, separation = separation)
-
-    params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
-    
-#    mpl.rcParams.update(params)
-    
-
-
-    fig = plt.figure()
-
-    plt.imshow(nd.handle_data.DispWithGamma(rawframes_ROI[0,:,:] ,gamma = gamma))
-
-    
-    plt.scatter(obj["x"],obj["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
-
-#    my_s = rawframes_ROI.shape[2] / 10
-#    my_linewidths = rawframes_ROI.shape[2] / 1000
-#    plt.scatter(obj["x"],obj["y"], s = my_s, facecolors='none', edgecolors='r', linewidths = my_linewidths)
-  
-
-    plt.title("Identified Particles in first frame", **title_font)
-    plt.xlabel("long. Position [Px]")
-    plt.ylabel("trans. Position [Px]", **axis_font)
-    
-       
-    if SaveFig == True:
-        save_folder_name = settings["Plot"]["SaveFolder"]
-        save_image_name = 'Optimize_First_Frame'
-
-        settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
-        
-        # close it because its reopened anyway
-#        plt.close(fig)
-    
-
-    return obj, settings
+#def OptimizeParamFindSpots(rawframes_ROI, ParameterJsonFile, SaveFig, gamma = 0.8, diameter=None , minmass=None, separation=None):
+#    
+#    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+#    
+#    diameter = settings["Find"]["Estimated particle size"]
+#    minmass = settings["Find"]["Minimal bead brightness"]
+#    separation = settings["Find"]["Separation data"]
+#    
+#    obj = nd.get_trajectorie.batch_np(rawframes_ROI[0:1,:,:], ParameterJsonFile, diameter = diameter,
+#                                      minmass = minmass, separation = separation)
+#
+#    params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
+#    
+##    mpl.rcParams.update(params)
+#    
+#
+#
+#    fig = plt.figure()
+#
+#    plt.imshow(nd.handle_data.DispWithGamma(rawframes_ROI[0,:,:] ,gamma = gamma))
+#
+#    
+#    plt.scatter(obj["x"],obj["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
+#
+##    my_s = rawframes_ROI.shape[2] / 10
+##    my_linewidths = rawframes_ROI.shape[2] / 1000
+##    plt.scatter(obj["x"],obj["y"], s = my_s, facecolors='none', edgecolors='r', linewidths = my_linewidths)
+#  
+#
+#    plt.title("Identified Particles in first frame", **title_font)
+#    plt.xlabel("long. Position [Px]")
+#    plt.ylabel("trans. Position [Px]", **axis_font)
+#    
+#       
+#    if SaveFig == True:
+#        save_folder_name = settings["Plot"]["SaveFolder"]
+#        save_image_name = 'Optimize_First_Frame'
+#
+#        settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
+#        
+#        # close it because its reopened anyway
+##        plt.close(fig)
+#    
+#
+#    return obj, settings
 
 
 
 def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None,
-          noise_size=1, smoothing_size=None, threshold=None, invert=False,
-          percentile=64, topn=None, preprocess=True, max_iterations=10,
-          filter_before=None, filter_after=None, characterize=True,
-          engine='auto', output=None, meta=None):
+                    max_iterations=10, SaveFig = False, gamma = 0.8):
+    """
+    Defines the paramter for the trackpy routine tp.batch, which spots particles, out of the json file
     
+    important parameters:
+    separation = settings["Find"]["Separation data"] ... minimum distance of spotes objects
+    minmass    = settings["Find"]["Minimal bead brightness"]   ... minimum brightness of an object in order to be saved
+    """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     DoSimulation = settings["Simulation"]["SimulateData"]
     if DoSimulation == 1:
-        print("No data. A simulation is done instead")
-        diameter = settings["Simulation"]["DiameterOfParticles"]
-        num_particles = settings["Simulation"]["NumberOfParticles"]
-        frames = settings["Simulation"]["NumberOfFrames"]
-        frames_per_second = settings["Exp"]["fps"]
-        EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
-        mass = settings["Simulation"]["mass"]
-        microns_per_pixel = settings["Exp"]["Microns_per_pixel"]
-        temp_water = settings["Exp"]["Temperature"]
-        visc_water = settings["Exp"]["Viscocity"]
-        output = nd.Simulation.GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, \
-                                                  ep = EstimationPrecision, mass = mass, \
-                                                  microns_per_pixel = microns_per_pixel, temp_water = temp_water, \
-                                                  visc_water = visc_water)
-        
+        print("No data. A simulation is done instead")        
+        output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile)       
         
     else:
         UseLog = settings["Find"]["Analyze in log"]
@@ -131,196 +123,47 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             diameter = settings["Find"]["Estimated particle size (log-scale)"]
     
     
-        output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations=10)
+        output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations)
        
         output['abstime'] = output['frame'] / settings["MSD"]["effective_fps"]
      
     
         nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
+    
+        if SaveFig == True:
+            params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
+            fig = plt.figure()
+
+            plt.imshow(nd.handle_data.DispWithGamma(rawframes_ROI[0,:,:] ,gamma = gamma))
+            plt.scatter(output["x"],output["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
+ 
+        
+            plt.title("Identified Particles in first frame", **title_font)
+            plt.xlabel("long. Position [Px]")
+            plt.ylabel("trans. Position [Px]", **axis_font)
+            save_folder_name = settings["Plot"]["SaveFolder"]
+            save_image_name = 'Optimize_First_Frame'
+    
+            settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
+        
+    
     return output
 
 
-def batch_np(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None,
-          noise_size=1, smoothing_size=None, threshold=None, invert=False,
-          percentile=64, topn=None, preprocess=True, max_iterations=10,
-          filter_before=None, filter_after=None, characterize=True,
-          engine='auto', output=None, meta=None):
-    """Locate Gaussian-like blobs of some approximate size in a set of images.
-
-    Preprocess the image by performing a band pass and a threshold.
-    Locate all peaks of brightness, characterize the neighborhoods of the peaks
-    and take only those with given total brightness ("mass"). Finally,
-    refine the positions of each peak.
-
-    Parameters
-    ----------
-    frames_np : HERE COMES THE DIFFERENCE
-            NP ARRAY OF IMAGESTACK
-            THAT SHOULD BE MUCH FASTER THE PIMS
-    diameter : odd integer or tuple of odd integers
-        This may be a single number or a tuple giving the feature's
-        extent in each dimension, useful when the dimensions do not have
-        equal resolution (e.g. confocal microscopy). The tuple order is the
-        same as the image shape, conventionally (z, y, x) or (y, x). The
-        number(s) must be odd integers. When in doubt, round up.
-    minmass : float
-        The minimum integrated brightness.
-        Default is 100 for integer images and 1 for float images, but a good
-        value is often much higher. This is a crucial parameter for eliminating
-        spurious features.
-        .. warning:: The mass value was changed since v0.3.3
-    maxsize : float
-        maximum radius-of-gyration of brightness, default None
-    separation : float or tuple
-        Minimum separtion between features.
-        Default is diameter + 1. May be a tuple, see diameter for details.
-    noise_size : float or tuple
-        Width of Gaussian blurring kernel, in pixels
-        Default is 1. May be a tuple, see diameter for details.
-    smoothing_size : float or tuple
-        The size of the sides of the square kernel used in boxcar (rolling
-        average) smoothing, in pixels
-        Default is diameter. May be a tuple, making the kernel rectangular.
-    threshold : float
-        Clip bandpass result below this value.
-        Default, None, defers to default settings of the bandpass function.
-    invert : boolean
-        Set to True if features are darker than background. False by default.
-    percentile : float
-        Features must have a peak brighter than pixels in this
-        percentile. This helps eliminate spurious peaks.
-    topn : integer
-        Return only the N brightest features above minmass.
-        If None (default), return all features above minmass.
-    preprocess : boolean
-        Set to False to turn off bandpass preprocessing.
-    max_iterations : integer
-        max number of loops to refine the center of mass, default 10
-    filter_before : boolean
-        filter_before is no longer supported as it does not improve performance.
-    filter_after : boolean
-        This parameter has been deprecated: use minmass and maxsize.
-    characterize : boolean
-        Compute "extras": eccentricity, signal, ep. True by default.
-    engine : {'auto', 'python', 'numba'}
-    output : {None, trackpy.PandasHDFStore, SomeCustomClass}
-        If None, return all results as one big DataFrame. Otherwise, pass
-        results from each frame, one at a time, to the put() method
-        of whatever class is specified here.
-    meta : filepath or file object, optional
-        If specified, information relevant to reproducing this batch is saved
-        as a YAML file, a plain-text machine- and human-readable format.
-        By default, this is None, and no file is saved.
-
-    Returns
-    -------
-    DataFrame([x, y, mass, size, ecc, signal])
-        where mass means total integrated brightness of the blob,
-        size means the radius of gyration of its Gaussian-like profile,
-        and ecc is its eccentricity (0 is circular).
-
-    See Also
-    --------
-    locate : performs location on a single image
-    minmass_v03_change : to convert minmass from v0.2.4 to v0.3.0
-    minmass_v04_change : to convert minmass from v0.3.3 to v0.4.0
-
-    Notes
-    -----
-    This is an implementation of the Crocker-Grier centroid-finding algorithm.
-    [1]_
-
-    Locate works with a coordinate system that has its origin at the center of
-    pixel (0, 0). In almost all cases this will be the topleft pixel: the
-    y-axis is pointing downwards.
-
-    References
-    ----------
-    .. [1] Crocker, J.C., Grier, D.G. http://dx.doi.org/10.1006/jcis.1996.0217
-
-    """
-    
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-    
-    UseLog = settings["Find"]["Analyze in log"]
-    
-    if UseLog == True:
-        frames_np = nd.handle_data.LogData(frames_np)
-    
-    
-    separation = settings["Find"]["Separation data"]
-    minmass    = settings["Find"]["Minimal bead brightness"]
-    
-    if UseLog == False:
-        diameter = settings["Find"]["Estimated particle size"]
-    else:
-        diameter = settings["Find"]["Estimated particle size (log-scale)"]
-
-#    settings = None, diameter = None, minmass=100, maxsize=None, separation=None,
-#          noise_size=1, smoothing_size=None, threshold=None, invert=False,
-#          percentile=64, topn=None, preprocess=True, max_iterations=10,
-#          filter_before=None, filter_after=None, characterize=True,
-#          engine='auto', output=None, meta=None
-
-    all_features = []
-    
-    num_enumerate_elements = frames_np.shape[0]
-
-    for i, image in enumerate(frames_np):
-        nd.visualize.update_progress("Find Particles", (i+1)/num_enumerate_elements)
-        features = tp.locate(image, diameter, minmass, maxsize, separation,
-                          noise_size, smoothing_size, threshold, invert,
-                          percentile, topn, preprocess, max_iterations,
-                          filter_before, filter_after, characterize,
-                          engine)
-        if hasattr(image, 'frame_no') and image.frame_no is not None:
-            frame_no = image.frame_no
-            # If this works, locate created a 'frame' column.
-        else:
-            frame_no = i
-            features['frame'] = i  # just counting iterations
-            
-       
-
-        if len(features) == 0:
-            continue
-
-        if output is None:
-            all_features.append(features)
-        else:
-            output.put(features)
-
-
-    if output is None:
-        if len(all_features) > 0:
-            
-            output = pd.concat(all_features).reset_index(drop=True)
-        else:  # return empty DataFrame
-            warnings.warn("No maxima found in any frame.")
-            output = pd.DataFrame(columns=list(features.columns) + ['frame'])
-    
-#    tp.subpx_bias(output)
-    
-    output['abstime'] = output['frame'] / settings["Exp"]["fps"]
- 
-    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
-    
-    return output
- 
-
-
-
-# Test
-#for i,j in enumerate(mylist):
-#    print(i)
-#    time.sleep(0.1)
-#    update_progress("Some job", i/100.0)
-#update_progress("Some job", 1)
 
 
 def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displacement = None, dark_time = None):
+    """
+    Defines the paramter for the trackpy routine tp.link, which forms trajectories
+    out of particle positions, out of the json file.
     
+    important parameters:
+    SearchFixedParticles = Defines weather fixed or moving particles are under current investigation
+    dark_time            = settings["Link"]["Dark time"] ... maximum number of frames a particle can disappear
+    max_displacement     = ["Link"]["Max displacement"]   ...maximum displacement between two frames
+
+    """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     dark_time = settings["Link"]["Dark time"]
@@ -341,6 +184,17 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
 
 
 def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
+    """
+    Defines the paramter for the trackpy routine tp.filter_stubs, which cuts to short trajectories,
+    out of the json file.
+    
+    important parameters:
+    FixedParticles        = Defines weather fixed or moving particles are under current investigation
+    Fixed Particles must have long trajectories to ensure that they are really stationary
+    
+    BeforeDriftCorrection = Defines if the particles have been already drift corrected
+    Before drift correction short trajectories are ok
+    """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
@@ -383,6 +237,12 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
 
 
 def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = None):
+    """
+    In case of stationary/ fixed objects a moving particle should not come to close.
+    This is because stationary objects might be very bright clusters which overshine the image of the dim
+    moving particle. Thus a 'not-go-area' is defined
+    """
+    
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -426,9 +286,11 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
 
 
 def close_gaps(t1):
+    """
     # FILL GAPS IN THE TRAJECTORY BY NEAREST NEIGHBOUR
     # NECESSARY FOR FOLLOWING FILTERING WHERE AGAIN A NEAREST NEIGHBOUR IS APPLIED
     # OTHERWISE THE MEDIAN FILL WILL JUST IGNORE MISSING TIME POINTS
+    """
 
     valid_particle_number = t1['particle'].unique(); #particlue numbers that fulfill all previous requirements
     amount_valid_particles = len(valid_particle_number);
@@ -481,6 +343,9 @@ def close_gaps(t1):
 
 
 def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None, PlotIntMedianFit = False, PlotIntFlucPerBead = False):
+    """
+    Calculates the intensity fluctuation of a particle along its trajectory
+    """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -539,9 +404,10 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
 
 
 def split_traj(t2_long, t3_gapless, ParameterJsonFile):
-
+    """
+    Define settings for split trajectory at high intensity jumps
+    """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-    
     
     t4_cutted, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
     
@@ -552,6 +418,18 @@ def split_traj(t2_long, t3_gapless, ParameterJsonFile):
 
 
 def split_traj_at_long_trajectorie(t4_cutted, settings, Max_traj_length = None):
+    """
+    Splits trajectory if they are too long
+    This might be usefull, to have sufficently long trajectorys all at the same length.
+    Otherwise they have very diffent conficence intervalls
+    E.g: 2 particles: 1: 500 frames, 2: 2000 frames
+    particle 2 is splitted into 4 500frames
+    
+    Splitting of a particle is fine, because a particle can go out of focus and return later
+    and is assigned as new particle too.
+    
+    Important is too look at the temporal component, thus particle 2 never exists twice
+    """
    
     keep_tail = settings["Split"]["Max_traj_length_keep_tail"]
     
@@ -615,6 +493,13 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Max_traj_length = None):
 def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_intensity_step = None,
                              min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = False, NumParticles2Plot = 3,
                              PlotAnimationFiltering = False, rawframes_ROI = -1):
+    """
+    Splits the trajectory at high intensity jumps.
+    This is motivated by the idea, that an intensity jump is more likely to happen because of a wrong assignment in
+    the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6) or heavy
+    substructures/intensity holes in the laser moder
+    """
+    
     
     max_rel_median_intensity_step = settings["Split"]["Max rel median intensity step"]
     
@@ -715,10 +600,24 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
                     PlotDriftCorrectedTraj = False):
     
     """
-    ******************************************************************************
     Calculate and remove overall drift from trajectories
-    Attention: Only makes sense if more than 1 particle is regarded
-    Otherwise the average drift is exactly the particles movement and thus the trajectory vanishes!
+    
+    The drift needs to be removed, because the entire movement consists of brownian motion and drift
+    In order to measure the brownian motion, the drift needs to be calculated and subtracted
+    
+    There are currently three options to choose from
+    1) No drift correction - this is dangerous. However, if just a few particles are tracked the 
+    average drift is most the particles movement and thus the trajectory vanishes!
+    
+    2) Global Drift
+    Calculated the drift of all particles between neighbouring frames
+    
+    3) Transversal drift corretion
+    Splits the fiber in several "subfibers". Each of them is treated independent. This is motivated by the idea of laminar
+    flow, where particles on the side have a lower current than the ones in the middle
+    However this method requires a lot of particles and makes sense for small fiber diameters where laminar flow is
+    significant.
+    
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -991,3 +890,184 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
     
     return t_no_drift
     
+
+
+
+
+
+#def batch_np(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None,
+#          noise_size=1, smoothing_size=None, threshold=None, invert=False,
+#          percentile=64, topn=None, preprocess=True, max_iterations=10,
+#          filter_before=None, filter_after=None, characterize=True,
+#          engine='auto', output=None, meta=None):
+#    """Locate Gaussian-like blobs of some approximate size in a set of images.
+#
+#    Preprocess the image by performing a band pass and a threshold.
+#    Locate all peaks of brightness, characterize the neighborhoods of the peaks
+#    and take only those with given total brightness ("mass"). Finally,
+#    refine the positions of each peak.
+#
+#    Parameters
+#    ----------
+#    frames_np : HERE COMES THE DIFFERENCE
+#            NP ARRAY OF IMAGESTACK
+#            THAT SHOULD BE MUCH FASTER THE PIMS
+#    diameter : odd integer or tuple of odd integers
+#        This may be a single number or a tuple giving the feature's
+#        extent in each dimension, useful when the dimensions do not have
+#        equal resolution (e.g. confocal microscopy). The tuple order is the
+#        same as the image shape, conventionally (z, y, x) or (y, x). The
+#        number(s) must be odd integers. When in doubt, round up.
+#    minmass : float
+#        The minimum integrated brightness.
+#        Default is 100 for integer images and 1 for float images, but a good
+#        value is often much higher. This is a crucial parameter for eliminating
+#        spurious features.
+#        .. warning:: The mass value was changed since v0.3.3
+#    maxsize : float
+#        maximum radius-of-gyration of brightness, default None
+#    separation : float or tuple
+#        Minimum separtion between features.
+#        Default is diameter + 1. May be a tuple, see diameter for details.
+#    noise_size : float or tuple
+#        Width of Gaussian blurring kernel, in pixels
+#        Default is 1. May be a tuple, see diameter for details.
+#    smoothing_size : float or tuple
+#        The size of the sides of the square kernel used in boxcar (rolling
+#        average) smoothing, in pixels
+#        Default is diameter. May be a tuple, making the kernel rectangular.
+#    threshold : float
+#        Clip bandpass result below this value.
+#        Default, None, defers to default settings of the bandpass function.
+#    invert : boolean
+#        Set to True if features are darker than background. False by default.
+#    percentile : float
+#        Features must have a peak brighter than pixels in this
+#        percentile. This helps eliminate spurious peaks.
+#    topn : integer
+#        Return only the N brightest features above minmass.
+#        If None (default), return all features above minmass.
+#    preprocess : boolean
+#        Set to False to turn off bandpass preprocessing.
+#    max_iterations : integer
+#        max number of loops to refine the center of mass, default 10
+#    filter_before : boolean
+#        filter_before is no longer supported as it does not improve performance.
+#    filter_after : boolean
+#        This parameter has been deprecated: use minmass and maxsize.
+#    characterize : boolean
+#        Compute "extras": eccentricity, signal, ep. True by default.
+#    engine : {'auto', 'python', 'numba'}
+#    output : {None, trackpy.PandasHDFStore, SomeCustomClass}
+#        If None, return all results as one big DataFrame. Otherwise, pass
+#        results from each frame, one at a time, to the put() method
+#        of whatever class is specified here.
+#    meta : filepath or file object, optional
+#        If specified, information relevant to reproducing this batch is saved
+#        as a YAML file, a plain-text machine- and human-readable format.
+#        By default, this is None, and no file is saved.
+#
+#    Returns
+#    -------
+#    DataFrame([x, y, mass, size, ecc, signal])
+#        where mass means total integrated brightness of the blob,
+#        size means the radius of gyration of its Gaussian-like profile,
+#        and ecc is its eccentricity (0 is circular).
+#
+#    See Also
+#    --------
+#    locate : performs location on a single image
+#    minmass_v03_change : to convert minmass from v0.2.4 to v0.3.0
+#    minmass_v04_change : to convert minmass from v0.3.3 to v0.4.0
+#
+#    Notes
+#    -----
+#    This is an implementation of the Crocker-Grier centroid-finding algorithm.
+#    [1]_
+#
+#    Locate works with a coordinate system that has its origin at the center of
+#    pixel (0, 0). In almost all cases this will be the topleft pixel: the
+#    y-axis is pointing downwards.
+#
+#    References
+#    ----------
+#    .. [1] Crocker, J.C., Grier, D.G. http://dx.doi.org/10.1006/jcis.1996.0217
+#
+#    """
+#    
+#    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+#    
+#    UseLog = settings["Find"]["Analyze in log"]
+#    
+#    if UseLog == True:
+#        frames_np = nd.handle_data.LogData(frames_np)
+#    
+#    
+#    separation = settings["Find"]["Separation data"]
+#    minmass    = settings["Find"]["Minimal bead brightness"]
+#    
+#    if UseLog == False:
+#        diameter = settings["Find"]["Estimated particle size"]
+#    else:
+#        diameter = settings["Find"]["Estimated particle size (log-scale)"]
+#
+##    settings = None, diameter = None, minmass=100, maxsize=None, separation=None,
+##          noise_size=1, smoothing_size=None, threshold=None, invert=False,
+##          percentile=64, topn=None, preprocess=True, max_iterations=10,
+##          filter_before=None, filter_after=None, characterize=True,
+##          engine='auto', output=None, meta=None
+#
+#    all_features = []
+#    
+#    num_enumerate_elements = frames_np.shape[0]
+#
+#    for i, image in enumerate(frames_np):
+#        nd.visualize.update_progress("Find Particles", (i+1)/num_enumerate_elements)
+#        features = tp.locate(image, diameter, minmass, maxsize, separation,
+#                          noise_size, smoothing_size, threshold, invert,
+#                          percentile, topn, preprocess, max_iterations,
+#                          filter_before, filter_after, characterize,
+#                          engine)
+#        if hasattr(image, 'frame_no') and image.frame_no is not None:
+#            frame_no = image.frame_no
+#            # If this works, locate created a 'frame' column.
+#        else:
+#            frame_no = i
+#            features['frame'] = i  # just counting iterations
+#            
+#       
+#
+#        if len(features) == 0:
+#            continue
+#
+#        if output is None:
+#            all_features.append(features)
+#        else:
+#            output.put(features)
+#
+#
+#    if output is None:
+#        if len(all_features) > 0:
+#            
+#            output = pd.concat(all_features).reset_index(drop=True)
+#        else:  # return empty DataFrame
+#            warnings.warn("No maxima found in any frame.")
+#            output = pd.DataFrame(columns=list(features.columns) + ['frame'])
+#    
+##    tp.subpx_bias(output)
+#    
+#    output['abstime'] = output['frame'] / settings["Exp"]["fps"]
+# 
+#    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+#    
+#    return output
+# 
+#
+#
+#
+# Test
+#for i,j in enumerate(mylist):
+#    print(i)
+#    time.sleep(0.1)
+#    update_progress("Some job", i/100.0)
+#update_progress("Some job", 1)

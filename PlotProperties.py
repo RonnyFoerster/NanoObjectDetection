@@ -2,7 +2,7 @@
 """
 Created on Fri Feb 15 14:25:08 2019
 
-@author: foersterronny
+@author: Ronny Förster und Stefan Weidlich
 """
 
 import matplotlib as mpl # I import this entirely here, as it's needed to change colormaps

@@ -2,32 +2,26 @@
 """
 Created on Fri Feb 15 16:41:17 2019
 
-@author: foersterronny
+@author: Ronny Förster und Stefan Weidlich
+
+This module tries to hell the user finding the correct parameters for the analysis
 """
 
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Feb  5 12:23:39 2019
-
-@author: foersterronny
-"""
-#Importing neccessary libraries
-
-#from __future__ import division, unicode_literals, print_function # For compatibility with Python 2 and 3
-import numpy as np # Library for array-manipulation
-import pandas as pd # Library for DataFrame Handling
-import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
-import warnings
-import sys
+# In[] Importing neccessary libraries
 
 import NanoObjectDetection as nd
+
+import numpy as np # Library for array-manipulation
+import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
 import matplotlib.pyplot as plt # Libraries for plotting
-import matplotlib as mpl # I import this entirely here, as it's needed to change colormaps
 
 from pdb import set_trace as bp #debugger
 
 # In[]
 def GetIntegerInput(MessageOnScreen):
+    """
+    Ask for an INTERGER input on the console.
+    """
     bad_input = True
     while bad_input == True:
         myinput = GetNumericalInput(MessageOnScreen)
@@ -40,6 +34,9 @@ def GetIntegerInput(MessageOnScreen):
 
 
 def GetNumericalInput(MessageOnScreen):
+    """
+    Ask for a FLOAT input on the console
+    """
     bad_input = True
     while bad_input == True:
         myinput = input(MessageOnScreen)
@@ -52,6 +49,9 @@ def GetNumericalInput(MessageOnScreen):
 
 
 def AskDoItAgain():
+    """
+    Ask if a step shall be repeated
+    """
     valid_answer = False
     while valid_answer == False:
         answer = input("Same problem and optimize value even more? (y/n)")
@@ -69,6 +69,13 @@ def AskDoItAgain():
 
 
 def AskMethodToImprove():
+    """
+    Ask which method shall be applied to improve the particle IDENTIFICATION
+    '1 - Bright (isolated) spots not recognized \n'
+    '2 - Spots where nothing is to be seen \n'
+    '3 - Bright (non-isolated) spots not recognized but you would like to have them both \n'
+    '4 - Much more recognized spots than I think I have particles \n')
+    """
     valid_answer = False
     while valid_answer == False:
         answer = input('What is the problem? \n'
@@ -87,6 +94,9 @@ def AskMethodToImprove():
 
 
 def AskIfUserSatisfied(QuestionForUser):
+    """
+    Ask if user is satisfied
+    """
     valid_answer = False
     while valid_answer == False:
         answer = input(QuestionForUser + ' (y/n) :')
@@ -102,13 +112,18 @@ def AskIfUserSatisfied(QuestionForUser):
 
 
 def FindSpot(rawframes_ROI, ParameterJsonFile):
+    """
+    Main function to optimize the parameters for particle identification
+    It runs the bead finding routine and ask the user what problem he has
+    According to the problem it tries to improve
+    """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     UserSatisfied = False
     FirstRun = True
     
     while UserSatisfied == False:
-        obj_first, settings = nd.get_trajectorie.OptimizeParamFindSpots(rawframes_ROI, ParameterJsonFile, SaveFig = True, gamma = 0.7)
+        obj_first, settings = nd.get_trajectorie.FindSpots(rawframes_ROI[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.7)
         
         plt.pause(3)
     
@@ -158,6 +173,9 @@ def FindSpot(rawframes_ROI, ParameterJsonFile):
 
 
 def SpotSize(rawframes_rot, ParameterJsonFile):
+    """
+    Optimize the diameter of the Particles
+    """
     UserSatisfied = False
     try_diameter = (3,3)
     while UserSatisfied == False:
@@ -180,6 +198,9 @@ def SpotSize(rawframes_rot, ParameterJsonFile):
     
 
 def FindROI(rawframes_np):
+    """
+    Show the max of all images to show where the ROI is.
+    """
     my_max = nd.handle_data.max_rawframes(rawframes_np)
     plt.imshow(my_max)
     print('Chose the ROI of x and y for min and max value accoring your interest. Insert the values in your json file.')

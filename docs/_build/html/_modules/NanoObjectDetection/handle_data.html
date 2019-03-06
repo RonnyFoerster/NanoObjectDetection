@@ -7,22 +7,28 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>NanoObjectDetection.handle_data &#8212; NanoObjectDetection  documentation</title>
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
-   
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
+    <link rel="search" title="Search" href="../../search.html" /> 
   </head><body>
-  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -34,29 +40,13 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Created on Tue Feb  5 12:23:39 2019</span>
 
-<span class="sd">@author: foersterronny</span>
+<span class="sd">@author: Ronny Förster und Stefan Weidlich</span>
+
+<span class="sd">This module take care about reading, writing, changing and simple analysis of the rawdata</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="c1"># In[0]:</span>
-<span class="c1"># coding: utf-8</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Analyzis of Gold-Particle data for ARHCF paper</span>
+<span class="c1"># In[0]: Importing neccessary libraries</span>
 
-<span class="sd">Created on 20181001 by Stefan Weidlich (SW)</span>
-<span class="sd">Based on previous skript of Ronny Förster (RF) and SW</span>
-
-<span class="sd">Target here: Implement only routines as they&#39;ll be used in paper</span>
-
-<span class="sd">Modifications:</span>
-<span class="sd">181020, SW: Cleaning up of code</span>
-<span class="sd">Amongst others: Python v3.5 implementation deleted. Now working with 3.6 and above only</span>
-<span class="sd">181025, SW: Adjustment of tracking-parameters and structuring of header</span>
-<span class="sd">--&gt; Realized that 32-bit parameters for tracking lead to unsufficient pixel-precision for 64 bit-version</span>
-<span class="sd">181026, SW: Taking out of log-tracking. --&gt; Not needed</span>
-
-<span class="sd">******************************************************************************</span>
-<span class="sd">Importing neccessary libraries</span>
-<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> <span class="c1"># Library for array-manipulation</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span> <span class="c1"># Libraries for plotting</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -71,7 +61,11 @@
 
 <span class="c1"># In[2]:</span>
 
-<div class="viewcode-block" id="ReadJson"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.ReadJson">[docs]</a><span class="k">def</span> <span class="nf">ReadJson</span><span class="p">(</span><span class="n">mypath</span><span class="p">):</span>
+<div class="viewcode-block" id="ReadJson"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.ReadJson">[docs]</a><span class="k">def</span> <span class="nf">ReadJson</span><span class="p">(</span><span class="n">mypath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads the json parameter file into a dict</span>
+<span class="sd">    mypath: path to the json file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">mypath</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
         <span class="n">settings</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_file</span><span class="p">)</span>
             
@@ -87,13 +81,22 @@
     <span class="k">return</span> <span class="n">settings</span></div>
 
 
-<div class="viewcode-block" id="WriteJson"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.WriteJson">[docs]</a><span class="k">def</span> <span class="nf">WriteJson</span><span class="p">(</span><span class="n">mypath</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="WriteJson"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.WriteJson">[docs]</a><span class="k">def</span> <span class="nf">WriteJson</span><span class="p">(</span><span class="n">mypath</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Writes the current settings to a json file</span>
+<span class="sd">    mypath: path to the json file</span>
+<span class="sd">    settings</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">mypath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">indent</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span></div>
 
 
 
-<div class="viewcode-block" id="ARHCF_HexToDiameter"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.ARHCF_HexToDiameter">[docs]</a><span class="k">def</span> <span class="nf">ARHCF_HexToDiameter</span><span class="p">(</span><span class="n">side_length</span><span class="p">):</span>
+<div class="viewcode-block" id="ARHCF_HexToDiameter"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.ARHCF_HexToDiameter">[docs]</a><span class="k">def</span> <span class="nf">ARHCF_HexToDiameter</span><span class="p">(</span><span class="n">side_length</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the inner and the other radius of hexagon</span>
+<span class="sd">    side_length: list or array with the six side length</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># to understand paint hex and look at the 6 subtriangles of equal side length</span>
     <span class="c1"># gleichseitiges dreieck</span>
     <span class="n">side_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">side_length</span><span class="p">)</span>
@@ -106,8 +109,12 @@
     <span class="k">return</span> <span class="n">diameter_inner</span><span class="p">,</span> <span class="n">diameter_outer</span></div>
 
 
-<div class="viewcode-block" id="GetTrajLengthAndParticleNumber"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.GetTrajLengthAndParticleNumber">[docs]</a><span class="k">def</span> <span class="nf">GetTrajLengthAndParticleNumber</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
-    
+<div class="viewcode-block" id="GetTrajLengthAndParticleNumber"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.GetTrajLengthAndParticleNumber">[docs]</a><span class="k">def</span> <span class="nf">GetTrajLengthAndParticleNumber</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Searches for the particle with the longest trajectory</span>
+<span class="sd">    Save particle ID and trajectory length</span>
+<span class="sd">    t: trajectory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
  
     <span class="n">particle_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">particle</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">())</span>
     
@@ -126,7 +133,15 @@
 
 
 
-<div class="viewcode-block" id="Get_min_max_round"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.Get_min_max_round">[docs]</a><span class="k">def</span> <span class="nf">Get_min_max_round</span><span class="p">(</span><span class="n">array_in</span><span class="p">,</span> <span class="n">decade</span><span class="p">):</span>
+<div class="viewcode-block" id="Get_min_max_round"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.Get_min_max_round">[docs]</a><span class="k">def</span> <span class="nf">Get_min_max_round</span><span class="p">(</span><span class="n">array_in</span><span class="p">,</span> <span class="n">decade</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the minimum and maximum of an array rounded to the next decade</span>
+<span class="sd">    This can be useful to get limits of a plot nicely (does not end at 37.9 but at 40)</span>
+<span class="sd">    decade: precision of np.round</span>
+<span class="sd">    eg.: decace = -2 --&gt; round to 100, 200, 300, ...</span>
+<span class="sd">    eg.: decace = +3 --&gt; round to 3.141</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+ 
     <span class="k">if</span> <span class="n">decade</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;decade must be non negative&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -139,8 +154,14 @@
 
 
 
-<div class="viewcode-block" id="GetVarOfSettings"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.GetVarOfSettings">[docs]</a><span class="k">def</span> <span class="nf">GetVarOfSettings</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">entry</span><span class="p">):</span>
-<span class="c1">#    bp()</span>
+<div class="viewcode-block" id="GetVarOfSettings"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.GetVarOfSettings">[docs]</a><span class="k">def</span> <span class="nf">GetVarOfSettings</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">entry</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads the variable inside a dictonary</span>
+<span class="sd">    settings: dict</span>
+<span class="sd">    key: type of setting</span>
+<span class="sd">    entry: variable name</span>
+<span class="sd">    old function - should no be in use anymore</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
         <span class="c1"># get value</span>
         <span class="n">value</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">entry</span><span class="p">]</span>
@@ -173,13 +194,19 @@
                     <span class="n">value</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Ok. Set the value of settings[&#39;</span><span class="si">%s</span><span class="s2">&#39;][&#39;</span><span class="si">%s</span><span class="s2">&#39;]: &quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">entry</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Well... you had your chances!&quot;</span><span class="p">)</span>
-                        
-                
-        
+                                               
     <span class="k">return</span> <span class="n">value</span></div>
 
 
-<div class="viewcode-block" id="SpecificValueOrSettings"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.SpecificValueOrSettings">[docs]</a><span class="k">def</span> <span class="nf">SpecificValueOrSettings</span><span class="p">(</span><span class="n">try_value</span><span class="p">,</span><span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">entry</span><span class="p">):</span>
+<div class="viewcode-block" id="SpecificValueOrSettings"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.SpecificValueOrSettings">[docs]</a><span class="k">def</span> <span class="nf">SpecificValueOrSettings</span><span class="p">(</span><span class="n">try_value</span><span class="p">,</span><span class="n">settings</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">entry</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if a specific value is given. Otherwise the one out of the settings is used</span>
+<span class="sd">    </span>
+<span class="sd">    Arg:</span>
+<span class="sd">        try_value: if existing, that one is used an written in the settings</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    
 <span class="c1">#    print(&quot;key: &quot;, key)</span>
 <span class="c1">#    print(&quot;entry: &quot;, entry)</span>
 <span class="c1">#    bp()</span>
@@ -210,23 +237,16 @@
     <span class="k">return</span> <span class="n">use_value</span><span class="p">,</span> <span class="n">settings</span></div>
 
 
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">******************************************************************************</span>
-<span class="sd">Reading in data and cropping image to ROI needed</span>
-<span class="sd">&quot;&quot;&quot;</span>
 
 
-<span class="c1">#def ReadImages_pims(data_folder_name, data_file_extension):</span>
-<span class="c1">#    print(&#39;start reading in raw images&#39;)</span>
-<span class="c1">#    rawframes = pims.ImageSequence(data_folder_name + &#39;\\&#39; + &#39;*.&#39; + data_file_extension)</span>
-<span class="c1">#    </span>
-<span class="c1">#    return rawframes </span>
-
-
-
-
-
-<div class="viewcode-block" id="ReadData2Numpy"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.ReadData2Numpy">[docs]</a><span class="k">def</span> <span class="nf">ReadData2Numpy</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">):</span>
+<div class="viewcode-block" id="ReadData2Numpy"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.ReadData2Numpy">[docs]</a><span class="k">def</span> <span class="nf">ReadData2Numpy</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads the images in</span>
+<span class="sd">    distinguishes between:</span>
+<span class="sd">        tif_series</span>
+<span class="sd">        tif_stack</span>
+<span class="sd">        fits</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
     
     <span class="n">DoSimulation</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Simulation&quot;</span><span class="p">][</span><span class="s2">&quot;SimulateData&quot;</span><span class="p">]</span>
@@ -267,8 +287,8 @@
 
 
 
-<div class="viewcode-block" id="ReadTiffStack2Numpy"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.ReadTiffStack2Numpy">[docs]</a><span class="k">def</span> <span class="nf">ReadTiffStack2Numpy</span><span class="p">(</span><span class="n">data_file_name</span><span class="p">):</span>
-    
+<div class="viewcode-block" id="ReadTiffStack2Numpy"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.ReadTiffStack2Numpy">[docs]</a><span class="k">def</span> <span class="nf">ReadTiffStack2Numpy</span><span class="p">(</span><span class="n">data_file_name</span><span class="p">):</span>
+    <span class="s2">&quot;Reads a tiff stack in&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;start reading in raw images&#39;</span><span class="p">)</span>
     <span class="n">rawframes_np</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">data_file_name</span><span class="p">)</span>
     
@@ -277,8 +297,8 @@
     <span class="k">return</span> <span class="n">rawframes_np</span> </div>
 
 
-<div class="viewcode-block" id="ReadTiffSeries2Numpy"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.ReadTiffSeries2Numpy">[docs]</a><span class="k">def</span> <span class="nf">ReadTiffSeries2Numpy</span><span class="p">(</span><span class="n">data_folder_name</span><span class="p">):</span>
-
+<div class="viewcode-block" id="ReadTiffSeries2Numpy"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.ReadTiffSeries2Numpy">[docs]</a><span class="k">def</span> <span class="nf">ReadTiffSeries2Numpy</span><span class="p">(</span><span class="n">data_folder_name</span><span class="p">):</span>
+    <span class="s2">&quot;Reads a tiff series in&quot;</span>
     
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;start reading in raw images&#39;</span><span class="p">)</span>
     <span class="n">rawframes_np</span> <span class="o">=</span> <span class="p">[]</span>
@@ -299,7 +319,8 @@
     <span class="k">return</span> <span class="n">rawframes_np</span></div>
 
 
-<div class="viewcode-block" id="ReadFits2Numpy"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.ReadFits2Numpy">[docs]</a><span class="k">def</span> <span class="nf">ReadFits2Numpy</span><span class="p">(</span><span class="n">data_file_name</span><span class="p">):</span>
+<div class="viewcode-block" id="ReadFits2Numpy"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.ReadFits2Numpy">[docs]</a><span class="k">def</span> <span class="nf">ReadFits2Numpy</span><span class="p">(</span><span class="n">data_file_name</span><span class="p">):</span>
+    <span class="s2">&quot;Reads a fits image in&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;start reading in raw images&#39;</span><span class="p">)</span>
     
     <span class="n">open_fits</span> <span class="o">=</span> <span class="n">pyfits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">data_file_name</span><span class="p">)</span>
@@ -312,37 +333,14 @@
 
 
 
-<div class="viewcode-block" id="MaxROI"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.MaxROI">[docs]</a><span class="k">def</span> <span class="nf">MaxROI</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
-    <span class="n">ROI</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;min_x&#39;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-           <span class="s1">&#39;max_x&#39;</span> <span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>
-           <span class="s1">&#39;min_y&#39;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-           <span class="s1">&#39;max_y&#39;</span> <span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span>
-           <span class="s1">&#39;min_frame&#39;</span> <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-           <span class="s1">&#39;max_frame&#39;</span> <span class="p">:</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">}</span>
-    <span class="k">return</span> <span class="n">ROI</span></div>
 
-
-<div class="viewcode-block" id="ChangeROI"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.ChangeROI">[docs]</a><span class="k">def</span> <span class="nf">ChangeROI</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span><span class="n">x_min</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">x_max</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">y_min</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">y_max</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-              <span class="n">frame_min</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">frame_max</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">x_min</span> <span class="o">!=</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ROI&quot;</span><span class="p">][</span><span class="s1">&#39;x_min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_min</span>
-    <span class="k">if</span> <span class="n">x_max</span> <span class="o">!=</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ROI&quot;</span><span class="p">][</span><span class="s1">&#39;x_max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_max</span>
-    <span class="k">if</span> <span class="n">y_min</span> <span class="o">!=</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ROI&quot;</span><span class="p">][</span><span class="s1">&#39;y_min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_min</span>
-    <span class="k">if</span> <span class="n">y_max</span> <span class="o">!=</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ROI&quot;</span><span class="p">][</span><span class="s1">&#39;y_max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_max</span>
-    <span class="k">if</span> <span class="n">frame_min</span> <span class="o">!=</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ROI&quot;</span><span class="p">][</span><span class="s1">&#39;min_frame&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame_min</span>
-    <span class="k">if</span> <span class="n">frame_max</span> <span class="o">!=</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ROI&quot;</span><span class="p">][</span><span class="s1">&#39;max_frame&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame_max</span>
-        
-    <span class="k">return</span> <span class="n">settings</span></div>
-
-
-<div class="viewcode-block" id="UseROI"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.UseROI">[docs]</a><span class="k">def</span> <span class="nf">UseROI</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">x_min</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">x_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y_min</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="UseROI"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.UseROI">[docs]</a><span class="k">def</span> <span class="nf">UseROI</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">x_min</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">x_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y_min</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
            <span class="n">frame_min</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">frame_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-     
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applies a ROI to a given image</span>
+<span class="sd">    &quot;&quot;&quot;</span> 
+    
+    
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;ROI&quot;</span><span class="p">][</span><span class="s2">&quot;Apply&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -367,7 +365,11 @@
 
 
 
-<div class="viewcode-block" id="UseSuperSampling"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.UseSuperSampling">[docs]</a><span class="k">def</span> <span class="nf">UseSuperSampling</span><span class="p">(</span><span class="n">image_in</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">fac_xy</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">fac_frame</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="UseSuperSampling"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.UseSuperSampling">[docs]</a><span class="k">def</span> <span class="nf">UseSuperSampling</span><span class="p">(</span><span class="n">image_in</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">fac_xy</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">fac_frame</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Supersamples the data in x, y and frames by integer numbers</span>
+<span class="sd">    e.g.: fac_frame = 5 means that only every fifth frame is kept</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
     
@@ -401,7 +403,10 @@
     <span class="k">return</span> <span class="n">image_super</span></div>
 
 
-<div class="viewcode-block" id="RotImages"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.RotImages">[docs]</a><span class="k">def</span> <span class="nf">RotImages</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">Do_rotation</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rot_angle</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="RotImages"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.RotImages">[docs]</a><span class="k">def</span> <span class="nf">RotImages</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">Do_rotation</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rot_angle</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Rotate the rawimage by rot_angle</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">scipy</span>
     
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
@@ -428,10 +433,12 @@
     <span class="k">return</span> <span class="n">im_out</span></div>
 
 
-
-
-
-<div class="viewcode-block" id="min_rawframes"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.min_rawframes">[docs]</a><span class="k">def</span> <span class="nf">min_rawframes</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="min_rawframes"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.min_rawframes">[docs]</a><span class="k">def</span> <span class="nf">min_rawframes</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Minimum projection along the frames</span>
+<span class="sd">    display if wanted</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
     <span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
     <span class="n">rawframes_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     
@@ -445,7 +452,11 @@
     <span class="k">return</span> <span class="n">rawframes_min</span></div>
     
     
-<div class="viewcode-block" id="max_rawframes"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.max_rawframes">[docs]</a><span class="k">def</span> <span class="nf">max_rawframes</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="max_rawframes"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.max_rawframes">[docs]</a><span class="k">def</span> <span class="nf">max_rawframes</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Maximum projection along the frames</span>
+<span class="sd">    display if wanted</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rawframes_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">display</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">rawframes_max</span><span class="p">)</span>
@@ -453,14 +464,23 @@
     <span class="k">return</span> <span class="n">rawframes_max</span></div>
         
 
-<div class="viewcode-block" id="mean_rawframes"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.mean_rawframes">[docs]</a><span class="k">def</span> <span class="nf">mean_rawframes</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="mean_rawframes"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.mean_rawframes">[docs]</a><span class="k">def</span> <span class="nf">mean_rawframes</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculated the mean along the frames</span>
+<span class="sd">    display if wanted</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rawframes_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">display</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">rawframes_mean</span><span class="p">)</span>
         
     <span class="k">return</span> <span class="n">rawframes_mean</span></div>
-        
-<div class="viewcode-block" id="percentile_rawframes"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.percentile_rawframes">[docs]</a><span class="k">def</span> <span class="nf">percentile_rawframes</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">percentile</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+      
+  
+<div class="viewcode-block" id="percentile_rawframes"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.percentile_rawframes">[docs]</a><span class="k">def</span> <span class="nf">percentile_rawframes</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">percentile</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculated the percentile along the frames</span>
+<span class="sd">    display if wanted</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rawframes_percentile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">percentile</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">display</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">rawframes_percentile</span><span class="p">)</span>
@@ -468,7 +488,12 @@
     <span class="k">return</span> <span class="n">rawframes_percentile</span></div>
     
     
-<div class="viewcode-block" id="are_rawframes_saturated"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.are_rawframes_saturated">[docs]</a><span class="k">def</span> <span class="nf">are_rawframes_saturated</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">ignore_saturation</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="are_rawframes_saturated"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.are_rawframes_saturated">[docs]</a><span class="k">def</span> <span class="nf">are_rawframes_saturated</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">ignore_saturation</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if rawimages are saturated.</span>
+<span class="sd">    This is done by looking if the maximum value is 2^x with x an integer which sounds saturated</span>
+<span class="sd">    e.g. if the max value is 1024, this is suspicious</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">brightes_pixel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">)</span>
     
     <span class="c1"># is it a multiple of 2^x ... if so it sounds saturated</span>
@@ -480,7 +505,12 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Your Data seems saturated - but you dont care...&quot;</span><span class="p">)</span></div>
  
     
-<div class="viewcode-block" id="total_intensity"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.total_intensity">[docs]</a><span class="k">def</span> <span class="nf">total_intensity</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="total_intensity"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.total_intensity">[docs]</a><span class="k">def</span> <span class="nf">total_intensity</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    tot_intensity: total intensity in each frame</span>
+<span class="sd">    rel_intensity: relative intensity with respect to the mean</span>
+<span class="sd">    can be used to remove laser fluctuations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
     <span class="c1"># intensity in each frame</span>
     <span class="n">tot_intensity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
@@ -495,21 +525,26 @@
     <span class="k">return</span> <span class="n">tot_intensity</span><span class="p">,</span> <span class="n">rel_intensity</span></div>
 
 
-<div class="viewcode-block" id="NormImage"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.NormImage">[docs]</a><span class="k">def</span> <span class="nf">NormImage</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+<div class="viewcode-block" id="NormImage"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.NormImage">[docs]</a><span class="k">def</span> <span class="nf">NormImage</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+    <span class="s2">&quot;normalize an image to [0;1]&quot;</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">image</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">image</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
     
     <span class="k">return</span> <span class="n">image</span></div>
 
 
-<div class="viewcode-block" id="DispWithGamma"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.DispWithGamma">[docs]</a><span class="k">def</span> <span class="nf">DispWithGamma</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="DispWithGamma"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.DispWithGamma">[docs]</a><span class="k">def</span> <span class="nf">DispWithGamma</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">display</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="s2">&quot;gamma correction of an image&quot;</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">NormImage</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">image</span> <span class="o">**</span> <span class="n">gamma</span>
     <span class="k">return</span> <span class="n">image</span></div>
        
 
-<div class="viewcode-block" id="LogData"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.handle_data.LogData">[docs]</a><span class="k">def</span> <span class="nf">LogData</span><span class="p">(</span><span class="n">rawframes</span><span class="p">):</span>
+<div class="viewcode-block" id="LogData"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.handle_data.LogData">[docs]</a><span class="k">def</span> <span class="nf">LogData</span><span class="p">(</span><span class="n">rawframes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Log of input</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Stefan loves the log</span>
     <span class="n">rawframes_log</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rawframes</span><span class="p">)</span>
     <span class="n">rawframes_log_median</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">rawframes_log</span><span class="p">)</span>
@@ -518,7 +553,39 @@
             
             
     <span class="k">return</span> <span class="n">rawframes_log</span></div>
-            
+   
+
+<span class="c1">#def MaxROI(image):</span>
+<span class="c1">#    &quot;Return the maximum ROI of a given array&quot;</span>
+<span class="c1">#    ROI = {&#39;min_x&#39; : 0,</span>
+<span class="c1">#           &#39;max_x&#39; : image.shape[1]-1,</span>
+<span class="c1">#           &#39;min_y&#39; : 0,</span>
+<span class="c1">#           &#39;max_y&#39; : image.shape[2]-1,</span>
+<span class="c1">#           &#39;min_frame&#39; : 0,</span>
+<span class="c1">#           &#39;max_frame&#39; : image.shape[0]-1}</span>
+<span class="c1">#    return ROI</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#def ChangeROI(settings,x_min = False, x_max = False, y_min = False, y_max = False,</span>
+<span class="c1">#              frame_min = False, frame_max = False):</span>
+<span class="c1">#    &quot;Change the ROI settings&quot;</span>
+<span class="c1">#    if x_min != False:</span>
+<span class="c1">#        settings[&quot;ROI&quot;][&#39;x_min&#39;] = x_min</span>
+<span class="c1">#    if x_max != False:</span>
+<span class="c1">#        settings[&quot;ROI&quot;][&#39;x_max&#39;] = x_max</span>
+<span class="c1">#    if y_min != False:</span>
+<span class="c1">#        settings[&quot;ROI&quot;][&#39;y_min&#39;] = y_min</span>
+<span class="c1">#    if y_max != False:</span>
+<span class="c1">#        settings[&quot;ROI&quot;][&#39;y_max&#39;] = y_max</span>
+<span class="c1">#    if frame_min != False:</span>
+<span class="c1">#        settings[&quot;ROI&quot;][&#39;min_frame&#39;] = frame_min</span>
+<span class="c1">#    if frame_max != False:</span>
+<span class="c1">#        settings[&quot;ROI&quot;][&#39;max_frame&#39;] = frame_max</span>
+<span class="c1">#        </span>
+<span class="c1">#    return settings</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#        </span>
 <span class="c1">## Crop image to the region of interest only (if needed re-define cropping parameters above):</span>
 <span class="c1">#def crop(img): </span>
 <span class="c1">#    x_min = x_min_global</span>
@@ -543,15 +610,7 @@
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../index.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
+        <div class="sphinxsidebarwrapper">
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <div class="searchformwrapper">
@@ -568,17 +627,22 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="footer">
-      &copy;2019, Author.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
     </div>
-
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
   </body>
 </html>

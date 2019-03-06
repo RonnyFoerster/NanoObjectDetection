@@ -7,22 +7,28 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>NanoObjectDetection.visualize &#8212; NanoObjectDetection  documentation</title>
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
-   
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
+    <link rel="search" title="Search" href="../../search.html" /> 
   </head><body>
-  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -34,7 +40,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Created on Tue Feb  5 12:23:39 2019</span>
 
-<span class="sd">@author: foersterronny</span>
+<span class="sd">@author: Ronny Förster und Stefan Weidlich</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="c1"># In[0]:</span>
@@ -83,14 +89,14 @@
 
 
 <span class="c1"># In[]</span>
-<div class="viewcode-block" id="SetXYLim"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.SetXYLim">[docs]</a><span class="k">def</span> <span class="nf">SetXYLim</span><span class="p">(</span><span class="n">x_min_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y_min_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SetXYLim"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.SetXYLim">[docs]</a><span class="k">def</span> <span class="nf">SetXYLim</span><span class="p">(</span><span class="n">x_min_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y_min_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">x_min_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="n">x_min_max</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x_min_max</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="n">y_min_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="n">y_min_max</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y_min_max</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span></div>
 
-<div class="viewcode-block" id="Plot1DPlot"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.Plot1DPlot">[docs]</a><span class="k">def</span> <span class="nf">Plot1DPlot</span><span class="p">(</span><span class="n">plot_np</span><span class="p">,</span><span class="n">title</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">):</span>
+<div class="viewcode-block" id="Plot1DPlot"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.Plot1DPlot">[docs]</a><span class="k">def</span> <span class="nf">Plot1DPlot</span><span class="p">(</span><span class="n">plot_np</span><span class="p">,</span><span class="n">title</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">NanoObjectDetection.PlotProperties</span> <span class="k">import</span> <span class="n">axis_font</span><span class="p">,</span> <span class="n">title_font</span>
     
     <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
@@ -100,7 +106,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">,</span> <span class="o">**</span><span class="n">axis_font</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Plot2DPlot"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.Plot2DPlot">[docs]</a><span class="k">def</span> <span class="nf">Plot2DPlot</span><span class="p">(</span><span class="n">x_np</span><span class="p">,</span><span class="n">y_np</span><span class="p">,</span><span class="n">title</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">xlabel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">myalpha</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="Plot2DPlot"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.Plot2DPlot">[docs]</a><span class="k">def</span> <span class="nf">Plot2DPlot</span><span class="p">(</span><span class="n">x_np</span><span class="p">,</span><span class="n">y_np</span><span class="p">,</span><span class="n">title</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">xlabel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">myalpha</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">NanoObjectDetection.PlotProperties</span> <span class="k">import</span> <span class="n">axis_font</span><span class="p">,</span> <span class="n">title_font</span>
     
     <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
@@ -110,7 +116,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">,</span> <span class="o">**</span><span class="n">axis_font</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Plot2DScatter"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.Plot2DScatter">[docs]</a><span class="k">def</span> <span class="nf">Plot2DScatter</span><span class="p">(</span><span class="n">x_np</span><span class="p">,</span><span class="n">y_np</span><span class="p">,</span><span class="n">title</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">xlabel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">myalpha</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<div class="viewcode-block" id="Plot2DScatter"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.Plot2DScatter">[docs]</a><span class="k">def</span> <span class="nf">Plot2DScatter</span><span class="p">(</span><span class="n">x_np</span><span class="p">,</span><span class="n">y_np</span><span class="p">,</span><span class="n">title</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">xlabel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">myalpha</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
                   <span class="n">x_min_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">y_min_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">NanoObjectDetection.PlotProperties</span> <span class="k">import</span> <span class="n">axis_font</span><span class="p">,</span> <span class="n">title_font</span>
 
@@ -124,7 +130,7 @@
 
 
 
-<div class="viewcode-block" id="Plot2DImage"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.Plot2DImage">[docs]</a><span class="k">def</span> <span class="nf">Plot2DImage</span><span class="p">(</span><span class="n">array_np</span><span class="p">,</span><span class="n">title</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">):</span>
+<div class="viewcode-block" id="Plot2DImage"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.Plot2DImage">[docs]</a><span class="k">def</span> <span class="nf">Plot2DImage</span><span class="p">(</span><span class="n">array_np</span><span class="p">,</span><span class="n">title</span><span class="p">,</span> <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">NanoObjectDetection.PlotProperties</span> <span class="k">import</span> <span class="n">axis_font</span><span class="p">,</span> <span class="n">title_font</span>
     
     <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
@@ -138,7 +144,7 @@
 
 
 
-<div class="viewcode-block" id="PlotDiameters"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.PlotDiameters">[docs]</a><span class="k">def</span> <span class="nf">PlotDiameters</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">any_successful_check</span><span class="p">,</span> <span class="n">histogramm_min</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">histogramm_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Histogramm_min_max_auto</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">binning</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="PlotDiameters"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.PlotDiameters">[docs]</a><span class="k">def</span> <span class="nf">PlotDiameters</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">any_successful_check</span><span class="p">,</span> <span class="n">histogramm_min</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">histogramm_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Histogramm_min_max_auto</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">binning</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
     
     <span class="k">if</span> <span class="n">any_successful_check</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
@@ -158,7 +164,7 @@
 
 
 
-<div class="viewcode-block" id="DiamerterOverTrajLenght"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.DiamerterOverTrajLenght">[docs]</a><span class="k">def</span> <span class="nf">DiamerterOverTrajLenght</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">show_plot</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">save_plot</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DiamerterOverTrajLenght"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.DiamerterOverTrajLenght">[docs]</a><span class="k">def</span> <span class="nf">DiamerterOverTrajLenght</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">show_plot</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">save_plot</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
     <span class="kn">from</span> <span class="nn">NanoObjectDetection.PlotProperties</span> <span class="k">import</span> <span class="n">axis_font</span><span class="p">,</span> <span class="n">title_font</span>
 
@@ -194,7 +200,7 @@
 
 
 
-<div class="viewcode-block" id="NumberOfBinsAuto"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.NumberOfBinsAuto">[docs]</a><span class="k">def</span> <span class="nf">NumberOfBinsAuto</span><span class="p">(</span><span class="n">mydata</span><span class="p">,</span> <span class="n">average_heigt</span> <span class="o">=</span> <span class="mi">4</span><span class="p">):</span>
+<div class="viewcode-block" id="NumberOfBinsAuto"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.NumberOfBinsAuto">[docs]</a><span class="k">def</span> <span class="nf">NumberOfBinsAuto</span><span class="p">(</span><span class="n">mydata</span><span class="p">,</span> <span class="n">average_heigt</span> <span class="o">=</span> <span class="mi">4</span><span class="p">):</span>
     <span class="n">number_of_points</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mydata</span><span class="p">)</span>
     
     <span class="n">bins</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">number_of_points</span> <span class="o">/</span> <span class="n">average_heigt</span><span class="p">))</span>
@@ -203,7 +209,7 @@
 
 
 
-<div class="viewcode-block" id="DiameterHistogramm"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.DiameterHistogramm">[docs]</a><span class="k">def</span> <span class="nf">DiameterHistogramm</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">histogramm_min</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">histogramm_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Histogramm_min_max_auto</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">binning</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DiameterHistogramm"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.DiameterHistogramm">[docs]</a><span class="k">def</span> <span class="nf">DiameterHistogramm</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">histogramm_min</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">histogramm_max</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Histogramm_min_max_auto</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">binning</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
     
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
@@ -247,7 +253,7 @@
     <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">WriteJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span> </div>
 
 
-<div class="viewcode-block" id="GetMeanStdMedian"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.GetMeanStdMedian">[docs]</a><span class="k">def</span> <span class="nf">GetMeanStdMedian</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<div class="viewcode-block" id="GetMeanStdMedian"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.GetMeanStdMedian">[docs]</a><span class="k">def</span> <span class="nf">GetMeanStdMedian</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="n">my_mean</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">my_std</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">my_median</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -255,7 +261,7 @@
     <span class="k">return</span> <span class="n">my_mean</span><span class="p">,</span> <span class="n">my_std</span><span class="p">,</span> <span class="n">my_median</span>    </div>
     
 
-<div class="viewcode-block" id="PlotDiameterHistogramm"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.PlotDiameterHistogramm">[docs]</a><span class="k">def</span> <span class="nf">PlotDiameterHistogramm</span><span class="p">(</span><span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">binning</span><span class="p">,</span> <span class="n">min_size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cutoff_size</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">xlabel</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="PlotDiameterHistogramm"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.PlotDiameterHistogramm">[docs]</a><span class="k">def</span> <span class="nf">PlotDiameterHistogramm</span><span class="p">(</span><span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">binning</span><span class="p">,</span> <span class="n">min_size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cutoff_size</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">xlabel</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">NanoObjectDetection.PlotProperties</span> <span class="k">import</span> <span class="n">axis_font</span><span class="p">,</span> <span class="n">title_font</span>
 <span class="c1">#    plt.figure()</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
@@ -297,7 +303,7 @@
 
 
 
-<div class="viewcode-block" id="update_progress"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.update_progress">[docs]</a><span class="k">def</span> <span class="nf">update_progress</span><span class="p">(</span><span class="n">job_title</span><span class="p">,</span> <span class="n">progress</span><span class="p">):</span>
+<div class="viewcode-block" id="update_progress"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.update_progress">[docs]</a><span class="k">def</span> <span class="nf">update_progress</span><span class="p">(</span><span class="n">job_title</span><span class="p">,</span> <span class="n">progress</span><span class="p">):</span>
     <span class="n">length</span> <span class="o">=</span> <span class="mi">50</span> <span class="c1"># modify this to change the length</span>
     <span class="n">block</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">length</span><span class="o">*</span><span class="n">progress</span><span class="p">))</span>
     <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\r</span><span class="si">{0}</span><span class="s2">: [</span><span class="si">{1}</span><span class="s2">] </span><span class="si">{2}</span><span class="s2">%&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">job_title</span><span class="p">,</span> <span class="s2">&quot;#&quot;</span><span class="o">*</span><span class="n">block</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span><span class="o">*</span><span class="p">(</span><span class="n">length</span><span class="o">-</span><span class="n">block</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">progress</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span>
@@ -306,7 +312,7 @@
     <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="GetPlotParameters"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.GetPlotParameters">[docs]</a><span class="k">def</span> <span class="nf">GetPlotParameters</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
+<div class="viewcode-block" id="GetPlotParameters"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.GetPlotParameters">[docs]</a><span class="k">def</span> <span class="nf">GetPlotParameters</span><span class="p">(</span><span class="n">settings</span><span class="p">):</span>
     
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Plot&quot;</span><span class="p">][</span><span class="s1">&#39;SaveProperties&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
         <span class="n">catch_all</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">json_file</span><span class="p">)</span>
@@ -320,7 +326,7 @@
 
 
 
-<div class="viewcode-block" id="export"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.export">[docs]</a><span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="n">save_folder_name</span><span class="p">,</span> <span class="n">save_image_name</span><span class="p">,</span> <span class="n">settings</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_dpi</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">data_header</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>    
+<div class="viewcode-block" id="export"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.export">[docs]</a><span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="n">save_folder_name</span><span class="p">,</span> <span class="n">save_image_name</span><span class="p">,</span> <span class="n">settings</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">use_dpi</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">data_header</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>    
     <span class="kn">import</span> <span class="nn">os.path</span>
     <span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
     <span class="k">if</span> <span class="n">settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -374,7 +380,7 @@
 
 
 
-<div class="viewcode-block" id="IntMedianFit"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.IntMedianFit">[docs]</a><span class="k">def</span> <span class="nf">IntMedianFit</span><span class="p">(</span><span class="n">t1_gapless</span><span class="p">,</span> <span class="n">my_particle</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="IntMedianFit"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.IntMedianFit">[docs]</a><span class="k">def</span> <span class="nf">IntMedianFit</span><span class="p">(</span><span class="n">t1_gapless</span><span class="p">,</span> <span class="n">my_particle</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">my_particle</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
         <span class="c1">#get the first occuring particle</span>
         <span class="c1"># can be different from 0 or 1 because they might have been thrown away due to beeing stumps</span>
@@ -393,7 +399,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
     
     
-<div class="viewcode-block" id="MaxIntFluctuationPerBead"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.MaxIntFluctuationPerBead">[docs]</a><span class="k">def</span> <span class="nf">MaxIntFluctuationPerBead</span><span class="p">(</span><span class="n">t1_gapless</span><span class="p">):</span> 
+<div class="viewcode-block" id="MaxIntFluctuationPerBead"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.MaxIntFluctuationPerBead">[docs]</a><span class="k">def</span> <span class="nf">MaxIntFluctuationPerBead</span><span class="p">(</span><span class="n">t1_gapless</span><span class="p">):</span> 
     <span class="n">beads_property</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;max_step&#39;</span><span class="p">]);</span>
     
     <span class="n">beads_property</span><span class="p">[</span><span class="s1">&#39;max_step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">t1_gapless</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;particle&#39;</span><span class="p">)[</span><span class="s1">&#39;rel_step&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
@@ -406,7 +412,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Maximum relative step&quot;</span><span class="p">)</span></div>
 
     
-<div class="viewcode-block" id="CutTrajectorieAtStep"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.CutTrajectorieAtStep">[docs]</a><span class="k">def</span> <span class="nf">CutTrajectorieAtStep</span><span class="p">(</span><span class="n">t1_gapless</span><span class="p">,</span> <span class="n">particle_to_split</span><span class="p">,</span> <span class="n">max_rel_median_intensity_step</span><span class="p">):</span>  
+<div class="viewcode-block" id="CutTrajectorieAtStep"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.CutTrajectorieAtStep">[docs]</a><span class="k">def</span> <span class="nf">CutTrajectorieAtStep</span><span class="p">(</span><span class="n">t1_gapless</span><span class="p">,</span> <span class="n">particle_to_split</span><span class="p">,</span> <span class="n">max_rel_median_intensity_step</span><span class="p">):</span>  
     
     <span class="c1">#Display the intensity curvature of particles that need to split</span>
 
@@ -454,7 +460,7 @@
     
    
     
-<div class="viewcode-block" id="AnimateProcessedRawDate"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.AnimateProcessedRawDate">[docs]</a><span class="k">def</span> <span class="nf">AnimateProcessedRawDate</span><span class="p">(</span><span class="n">rawframes_ROI</span><span class="p">,</span> <span class="n">t_long</span><span class="p">):</span>
+<div class="viewcode-block" id="AnimateProcessedRawDate"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.AnimateProcessedRawDate">[docs]</a><span class="k">def</span> <span class="nf">AnimateProcessedRawDate</span><span class="p">(</span><span class="n">rawframes_ROI</span><span class="p">,</span> <span class="n">t_long</span><span class="p">):</span>
     <span class="n">rawframes_before_filtering</span><span class="o">=</span><span class="n">rawframes_ROI</span>
     
     <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax0</span><span class="p">,</span> <span class="n">ax5</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -495,7 +501,7 @@
     
     
     
-<div class="viewcode-block" id="DriftAvgSpeed"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.DriftAvgSpeed">[docs]</a><span class="k">def</span> <span class="nf">DriftAvgSpeed</span><span class="p">():</span>
+<div class="viewcode-block" id="DriftAvgSpeed"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.DriftAvgSpeed">[docs]</a><span class="k">def</span> <span class="nf">DriftAvgSpeed</span><span class="p">():</span>
     <span class="c1"># show average speed</span>
     <span class="c1">#ax = plt.figure()</span>
     <span class="n">total_drift</span><span class="p">[[</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;x&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
@@ -505,7 +511,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x (flow-direction)&#39;</span><span class="p">])</span></div>
         
         
-<div class="viewcode-block" id="DriftTimeDevelopment"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.DriftTimeDevelopment">[docs]</a><span class="k">def</span> <span class="nf">DriftTimeDevelopment</span><span class="p">():</span>
+<div class="viewcode-block" id="DriftTimeDevelopment"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.DriftTimeDevelopment">[docs]</a><span class="k">def</span> <span class="nf">DriftTimeDevelopment</span><span class="p">():</span>
     <span class="c1"># SW 180701: There is some issue with the plot in the block beneath!</span>
     <span class="c1"># show time developement</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
@@ -516,7 +522,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Time frame&#39;</span><span class="p">)</span></div>
     
     
-<div class="viewcode-block" id="DriftFalseColorMapFlow"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.DriftFalseColorMapFlow">[docs]</a><span class="k">def</span> <span class="nf">DriftFalseColorMapFlow</span><span class="p">():</span>
+<div class="viewcode-block" id="DriftFalseColorMapFlow"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.DriftFalseColorMapFlow">[docs]</a><span class="k">def</span> <span class="nf">DriftFalseColorMapFlow</span><span class="p">():</span>
     
     <span class="c1"># show false colour map from flow</span>
     <span class="c1"># https://matplotlib.org/gallery/images_contours_and_fields/pcolormesh_levels.html</span>
@@ -533,7 +539,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">heatmap</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Drift along fiber direction&#39;</span><span class="p">)</span></div>
       
     
-<div class="viewcode-block" id="DriftVectors"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.DriftVectors">[docs]</a><span class="k">def</span> <span class="nf">DriftVectors</span><span class="p">():</span>
+<div class="viewcode-block" id="DriftVectors"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.DriftVectors">[docs]</a><span class="k">def</span> <span class="nf">DriftVectors</span><span class="p">():</span>
         
     <span class="c1"># DRIFT VECTORS</span>
     <span class="c1"># https://matplotlib.org/gallery/images_contours_and_fields/pcolormesh_levels.html</span>
@@ -579,7 +585,7 @@
     <span class="c1">#    </span>
         
 
-<div class="viewcode-block" id="DriftFalseColorMapSpeed"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.DriftFalseColorMapSpeed">[docs]</a><span class="k">def</span> <span class="nf">DriftFalseColorMapSpeed</span><span class="p">():</span>
+<div class="viewcode-block" id="DriftFalseColorMapSpeed"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.DriftFalseColorMapSpeed">[docs]</a><span class="k">def</span> <span class="nf">DriftFalseColorMapSpeed</span><span class="p">():</span>
     <span class="c1"># show false colour map from SPEED</span>
     <span class="c1"># https://matplotlib.org/gallery/images_contours_and_fields/pcolormesh_levels.html</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
@@ -595,7 +601,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="o">=</span><span class="n">heatmap</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Speed&#39;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="DriftCorrectedTraj"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.DriftCorrectedTraj">[docs]</a><span class="k">def</span> <span class="nf">DriftCorrectedTraj</span><span class="p">():</span>
+<div class="viewcode-block" id="DriftCorrectedTraj"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.DriftCorrectedTraj">[docs]</a><span class="k">def</span> <span class="nf">DriftCorrectedTraj</span><span class="p">():</span>
     <span class="c1"># Show drift-corrected trajectories</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
     <span class="n">tp</span><span class="o">.</span><span class="n">plot_traj</span><span class="p">(</span><span class="n">tm_sub</span><span class="p">)</span>
@@ -604,12 +610,12 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Lateral position in fibre (y) [px]&#39;</span><span class="p">)</span></div>
     
     
-<div class="viewcode-block" id="PlotGlobalDrift"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.PlotGlobalDrift">[docs]</a><span class="k">def</span> <span class="nf">PlotGlobalDrift</span><span class="p">():</span>
+<div class="viewcode-block" id="PlotGlobalDrift"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.PlotGlobalDrift">[docs]</a><span class="k">def</span> <span class="nf">PlotGlobalDrift</span><span class="p">():</span>
     <span class="n">d</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span> <span class="c1"># plot the calculated drift</span></div>
     
    
     
-<div class="viewcode-block" id="MsdOverLagtime"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.MsdOverLagtime">[docs]</a><span class="k">def</span> <span class="nf">MsdOverLagtime</span><span class="p">(</span><span class="n">lagt_direct</span><span class="p">,</span> <span class="n">mean_displ_direct</span><span class="p">,</span> <span class="n">mean_displ_fit_direct_lin</span><span class="p">,</span> <span class="n">collect_data</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">alpha_values</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">alpha_fit</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">):</span>
+<div class="viewcode-block" id="MsdOverLagtime"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.MsdOverLagtime">[docs]</a><span class="k">def</span> <span class="nf">MsdOverLagtime</span><span class="p">(</span><span class="n">lagt_direct</span><span class="p">,</span> <span class="n">mean_displ_direct</span><span class="p">,</span> <span class="n">mean_displ_fit_direct_lin</span><span class="p">,</span> <span class="n">collect_data</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">alpha_values</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">alpha_fit</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">NanoObjectDetection.PlotProperties</span> <span class="k">import</span> <span class="n">axis_font</span><span class="p">,</span> <span class="n">title_font</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lagt_direct</span><span class="p">,</span> <span class="n">mean_displ_direct</span><span class="p">,</span><span class="s1">&#39;k-&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha_values</span><span class="p">)</span> <span class="c1"># plotting msd-lag-time-tracks for all particles</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lagt_direct</span><span class="p">,</span> <span class="n">mean_displ_fit_direct_lin</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha_fit</span><span class="p">)</span> <span class="c1"># plotting the lin fits</span>
@@ -623,7 +629,7 @@
     
     
     
-<div class="viewcode-block" id="VarDiameterOverTracklength"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.VarDiameterOverTracklength">[docs]</a><span class="k">def</span> <span class="nf">VarDiameterOverTracklength</span><span class="p">(</span><span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">save_folder_name</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;Z:\Datenauswertung\19_ARHCF&#39;</span><span class="p">,</span> <span class="n">save_image_name</span> <span class="o">=</span> <span class="s1">&#39;errorpropagation_diameter_vs_trajectorie_length&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="VarDiameterOverTracklength"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.VarDiameterOverTracklength">[docs]</a><span class="k">def</span> <span class="nf">VarDiameterOverTracklength</span><span class="p">(</span><span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">save_folder_name</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;Z:\Datenauswertung\19_ARHCF&#39;</span><span class="p">,</span> <span class="n">save_image_name</span> <span class="o">=</span> <span class="s1">&#39;errorpropagation_diameter_vs_trajectorie_length&#39;</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
     <span class="kn">from</span> <span class="nn">nd.PlotProperties</span> <span class="k">import</span> <span class="n">axis_font</span><span class="p">,</span> <span class="n">title_font</span>
     <span class="c1"># NO WORKING AT THE MOMENT BECAUSE ERROR IS NOT RIGHT YET</span>
@@ -659,7 +665,7 @@
     <span class="c1">#rt.mpl_style.export(save_folder_name, save_image_name)</span>
     
     
-<div class="viewcode-block" id="VarDiameterOverMinTracklength"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.VarDiameterOverMinTracklength">[docs]</a><span class="k">def</span> <span class="nf">VarDiameterOverMinTracklength</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">num_bins_traj_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">min_traj_length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_traj_length</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
+<div class="viewcode-block" id="VarDiameterOverMinTracklength"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.VarDiameterOverMinTracklength">[docs]</a><span class="k">def</span> <span class="nf">VarDiameterOverMinTracklength</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">num_bins_traj_length</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span> <span class="n">min_traj_length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_traj_length</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
     <span class="kn">from</span> <span class="nn">nd.PlotProperties</span> <span class="k">import</span> <span class="n">axis_font</span><span class="p">,</span> <span class="n">title_font</span>
           
@@ -763,7 +769,7 @@
 
 
 
-<div class="viewcode-block" id="AnimateStationaryParticles"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.visualize.AnimateStationaryParticles">[docs]</a><span class="k">def</span> <span class="nf">AnimateStationaryParticles</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">):</span>
+<div class="viewcode-block" id="AnimateStationaryParticles"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.visualize.AnimateStationaryParticles">[docs]</a><span class="k">def</span> <span class="nf">AnimateStationaryParticles</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">):</span>
     <span class="c1"># Display as video</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -807,15 +813,7 @@
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../index.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
+        <div class="sphinxsidebarwrapper">
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <div class="searchformwrapper">
@@ -832,17 +830,22 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="footer">
-      &copy;2019, Author.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
     </div>
-
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
   </body>
 </html>

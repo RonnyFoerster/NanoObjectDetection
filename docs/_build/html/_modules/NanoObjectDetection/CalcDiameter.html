@@ -7,22 +7,28 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>NanoObjectDetection.CalcDiameter &#8212; NanoObjectDetection  documentation</title>
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
-   
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
+    <link rel="search" title="Search" href="../../search.html" /> 
   </head><body>
-  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -34,7 +40,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Created on Fri Feb  8 09:52:27 2019</span>
 
-<span class="sd">@author: foersterronny</span>
+<span class="sd">@author: Ronny Förster und Stefan Weidlich</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> <span class="c1"># Library for array-manipulation</span>
@@ -45,7 +51,7 @@
 <span class="kn">from</span> <span class="nn">pdb</span> <span class="k">import</span> <span class="n">set_trace</span> <span class="k">as</span> <span class="n">bp</span> <span class="c1">#debugger</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span> <span class="c1"># Libraries for plotting</span>
 
-<div class="viewcode-block" id="rolling_with_step"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.rolling_with_step">[docs]</a><span class="k">def</span> <span class="nf">rolling_with_step</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span> 
+<div class="viewcode-block" id="rolling_with_step"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.rolling_with_step">[docs]</a><span class="k">def</span> <span class="nf">rolling_with_step</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">window</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span> 
     <span class="c1"># Defining a function that allows to calculate another function over a window of a series,</span>
     <span class="c1"># while the window moves with steps </span>
     <span class="c1"># See https://ga7g08.github.io/2015/01/30/Applying-python-functions-in-moving-windows/</span>
@@ -58,14 +64,14 @@
     <span class="n">d</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">x_array</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="mean_func"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.mean_func">[docs]</a><span class="k">def</span> <span class="nf">mean_func</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="mean_func"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.mean_func">[docs]</a><span class="k">def</span> <span class="nf">mean_func</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
     <span class="c1"># Function that calculates the mean of a series, while ignoring NaN and not yielding a warning when all are NaN</span>
     <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">RuntimeWarning</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="hindrance_fac"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.hindrance_fac">[docs]</a><span class="k">def</span> <span class="nf">hindrance_fac</span><span class="p">(</span><span class="n">diam_fibre</span><span class="p">,</span><span class="n">diam_particle</span><span class="p">):</span>
+<div class="viewcode-block" id="hindrance_fac"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.hindrance_fac">[docs]</a><span class="k">def</span> <span class="nf">hindrance_fac</span><span class="p">(</span><span class="n">diam_fibre</span><span class="p">,</span><span class="n">diam_particle</span><span class="p">):</span>
     <span class="n">l</span> <span class="o">=</span> <span class="n">diam_particle</span> <span class="o">/</span> <span class="n">diam_fibre</span>
     <span class="c1"># Eq 16 from &quot;Hindrance Factors for Diffusion and Convection in Pores&quot;  Dechadilok and Deen</span>
     <span class="n">h</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">9</span><span class="o">/</span><span class="mi">8</span><span class="o">*</span><span class="n">l</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.56034</span> <span class="o">*</span> <span class="n">l</span> \
@@ -82,7 +88,7 @@
     
 
 
-<div class="viewcode-block" id="Main"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.Main">[docs]</a><span class="k">def</span> <span class="nf">Main</span><span class="p">(</span><span class="n">t6_final</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">microns_per_pixel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">frames_per_second</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">amount_summands</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">amount_lagtimes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="Main"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.Main">[docs]</a><span class="k">def</span> <span class="nf">Main</span><span class="p">(</span><span class="n">t6_final</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">microns_per_pixel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">frames_per_second</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">amount_summands</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">amount_lagtimes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
          <span class="n">amount_lagtimes_auto</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Histogramm_Show</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">MSD_fit_Show</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">EvalOnlyLongestTraj</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Max_traj_length</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Calculating msd of individual particles:</span>
@@ -230,7 +236,7 @@
     <span class="k">return</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">any_successful_check</span></div>
 
     
-<div class="viewcode-block" id="CalcMSD"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.CalcMSD">[docs]</a><span class="k">def</span> <span class="nf">CalcMSD</span><span class="p">(</span><span class="n">eval_tm</span><span class="p">,</span> <span class="n">microns_per_pixel</span><span class="p">,</span> <span class="n">amount_summands</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">amount_lagtimes</span> <span class="o">=</span> <span class="mi">5</span><span class="p">):</span>
+<div class="viewcode-block" id="CalcMSD"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.CalcMSD">[docs]</a><span class="k">def</span> <span class="nf">CalcMSD</span><span class="p">(</span><span class="n">eval_tm</span><span class="p">,</span> <span class="n">microns_per_pixel</span><span class="p">,</span> <span class="n">amount_summands</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">amount_lagtimes</span> <span class="o">=</span> <span class="mi">5</span><span class="p">):</span>
 
     <span class="n">nan_tm_sq</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">amount_frames_lagt1</span> <span class="o">=</span> <span class="mi">0</span>
@@ -282,7 +288,7 @@
     
 
 
-<div class="viewcode-block" id="AvgMsd"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.AvgMsd">[docs]</a><span class="k">def</span> <span class="nf">AvgMsd</span><span class="p">(</span><span class="n">nan_tm_sq</span><span class="p">,</span> <span class="n">frames_per_second</span><span class="p">):</span>
+<div class="viewcode-block" id="AvgMsd"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.AvgMsd">[docs]</a><span class="k">def</span> <span class="nf">AvgMsd</span><span class="p">(</span><span class="n">nan_tm_sq</span><span class="p">,</span> <span class="n">frames_per_second</span><span class="p">):</span>
     <span class="n">mean_displ_direct</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">()</span> <span class="c1"># To hold the mean sq displacement of a particle</span>
     <span class="n">mean_displ_variance_direct</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">()</span> <span class="c1"># To hold the variance of the msd of a particle</span>
 
@@ -314,7 +320,7 @@
 
 
 
-<div class="viewcode-block" id="EstimateHindranceFactor"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.EstimateHindranceFactor">[docs]</a><span class="k">def</span> <span class="nf">EstimateHindranceFactor</span><span class="p">(</span><span class="n">diam_direct_lin</span><span class="p">,</span> <span class="n">fibre_diameter_nm</span><span class="p">):</span>
+<div class="viewcode-block" id="EstimateHindranceFactor"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.EstimateHindranceFactor">[docs]</a><span class="k">def</span> <span class="nf">EstimateHindranceFactor</span><span class="p">(</span><span class="n">diam_direct_lin</span><span class="p">,</span> <span class="n">fibre_diameter_nm</span><span class="p">):</span>
     <span class="n">diam_direct_lin_corr_old</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="n">diam_direct_lin_corr</span> <span class="o">=</span> <span class="n">diam_direct_lin</span><span class="p">;</span>
     
@@ -343,7 +349,7 @@
 
 
 
-<div class="viewcode-block" id="FitMSD"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.FitMSD">[docs]</a><span class="k">def</span> <span class="nf">FitMSD</span><span class="p">(</span><span class="n">lagt_direct</span><span class="p">,</span> <span class="n">amount_frames_lagt1</span><span class="p">,</span> <span class="n">mean_displ_direct</span><span class="p">,</span> <span class="n">mean_displ_sigma_direct</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">particleid</span><span class="p">,</span> <span class="n">traj_length</span><span class="p">,</span>
+<div class="viewcode-block" id="FitMSD"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.FitMSD">[docs]</a><span class="k">def</span> <span class="nf">FitMSD</span><span class="p">(</span><span class="n">lagt_direct</span><span class="p">,</span> <span class="n">amount_frames_lagt1</span><span class="p">,</span> <span class="n">mean_displ_direct</span><span class="p">,</span> <span class="n">mean_displ_sigma_direct</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">particleid</span><span class="p">,</span> <span class="n">traj_length</span><span class="p">,</span>
            <span class="n">UseHindranceFac</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">fibre_diameter_nm</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">temp_water</span> <span class="o">=</span> <span class="mi">295</span><span class="p">,</span> <span class="n">visc_water</span> <span class="o">=</span> <span class="mf">9.5e-16</span><span class="p">,</span> <span class="n">PlotMsdOverLagtime</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     
     <span class="n">const_Boltz</span> <span class="o">=</span> <span class="mf">1.38e-23</span> <span class="c1"># Boltzmann-constant</span>
@@ -401,7 +407,7 @@
     <span class="k">return</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">diff_direct_lin</span></div>
     
 
-<div class="viewcode-block" id="OptimalMSDPoints"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.OptimalMSDPoints">[docs]</a><span class="k">def</span> <span class="nf">OptimalMSDPoints</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">diffusivity</span><span class="p">,</span> <span class="n">amount_frames_lagt1</span><span class="p">):</span>
+<div class="viewcode-block" id="OptimalMSDPoints"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.OptimalMSDPoints">[docs]</a><span class="k">def</span> <span class="nf">OptimalMSDPoints</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">diffusivity</span><span class="p">,</span> <span class="n">amount_frames_lagt1</span><span class="p">):</span>
     <span class="c1"># XAVIER MICHALET AND ANDREW J. BERGLUND PHYSICAL REVIEW E 85, 2012</span>
     <span class="n">red_x</span> <span class="o">=</span> <span class="n">ReducedLocalPrecision</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">diffusivity</span><span class="p">)</span>
     
@@ -423,7 +429,7 @@
     
     
     
-<div class="viewcode-block" id="ReducedLocalPrecision"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.ReducedLocalPrecision">[docs]</a><span class="k">def</span> <span class="nf">ReducedLocalPrecision</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">diffusivity</span><span class="p">):</span>
+<div class="viewcode-block" id="ReducedLocalPrecision"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.ReducedLocalPrecision">[docs]</a><span class="k">def</span> <span class="nf">ReducedLocalPrecision</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">diffusivity</span><span class="p">):</span>
     <span class="n">local_precision_px</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">obj_all</span><span class="p">[</span><span class="s2">&quot;ep&quot;</span><span class="p">])</span>
     <span class="n">local_precision_um</span> <span class="o">=</span> <span class="n">local_precision_px</span> <span class="o">*</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Exp&quot;</span><span class="p">][</span><span class="s2">&quot;Microns_per_pixel&quot;</span><span class="p">]</span>
     <span class="n">lagtime_s</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Exp&quot;</span><span class="p">][</span><span class="s2">&quot;fps&quot;</span><span class="p">]</span>
@@ -451,7 +457,7 @@
     
 
 
-<div class="viewcode-block" id="OptimizeTrajLenght"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.OptimizeTrajLenght">[docs]</a><span class="k">def</span> <span class="nf">OptimizeTrajLenght</span><span class="p">(</span><span class="n">t6_final</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">microns_per_pixel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">frames_per_second</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">amount_summands</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">amount_lagtimes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="OptimizeTrajLenght"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.CalcDiameter.OptimizeTrajLenght">[docs]</a><span class="k">def</span> <span class="nf">OptimizeTrajLenght</span><span class="p">(</span><span class="n">t6_final</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">microns_per_pixel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">frames_per_second</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">amount_summands</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">amount_lagtimes</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
          <span class="n">amount_lagtimes_auto</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Histogramm_Show</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">MSD_fit_Show</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">EvalOnlyLongestTraj</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
     
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
@@ -493,15 +499,7 @@
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../index.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
+        <div class="sphinxsidebarwrapper">
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <div class="searchformwrapper">
@@ -518,17 +516,22 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="footer">
-      &copy;2019, Author.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
     </div>
-
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
   </body>
 </html>

@@ -7,22 +7,28 @@
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>NanoObjectDetection.get_trajectorie &#8212; NanoObjectDetection  documentation</title>
-    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
-   
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
-
+    <link rel="search" title="Search" href="../../search.html" /> 
   </head><body>
-  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -34,8 +40,10 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Created on Tue Feb  5 12:23:39 2019</span>
 
-<span class="sd">@author: foersterronny</span>
+<span class="sd">@author: Ronny Förster und Stefan Weidlich</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
+
 
 <span class="c1"># In[0]:</span>
 <span class="c1"># coding: utf-8</span>
@@ -72,80 +80,70 @@
 <span class="kn">from</span> <span class="nn">pdb</span> <span class="k">import</span> <span class="n">set_trace</span> <span class="k">as</span> <span class="n">bp</span> <span class="c1">#debugger</span>
 
 <span class="c1"># In[]</span>
-<div class="viewcode-block" id="OptimizeParamFindSpots"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.OptimizeParamFindSpots">[docs]</a><span class="k">def</span> <span class="nf">OptimizeParamFindSpots</span><span class="p">(</span><span class="n">rawframes_ROI</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">SaveFig</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">diameter</span><span class="o">=</span><span class="kc">None</span> <span class="p">,</span> <span class="n">minmass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">separation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    
-    <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
-    
-    <span class="n">diameter</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Estimated particle size&quot;</span><span class="p">]</span>
-    <span class="n">minmass</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Minimal bead brightness&quot;</span><span class="p">]</span>
-    <span class="n">separation</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Separation data&quot;</span><span class="p">]</span>
-    
-    <span class="n">obj</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">batch_np</span><span class="p">(</span><span class="n">rawframes_ROI</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,:,:],</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">diameter</span> <span class="o">=</span> <span class="n">diameter</span><span class="p">,</span>
-                                      <span class="n">minmass</span> <span class="o">=</span> <span class="n">minmass</span><span class="p">,</span> <span class="n">separation</span> <span class="o">=</span> <span class="n">separation</span><span class="p">)</span>
+<span class="c1">#def OptimizeParamFindSpots(rawframes_ROI, ParameterJsonFile, SaveFig, gamma = 0.8, diameter=None , minmass=None, separation=None):</span>
+<span class="c1">#    </span>
+<span class="c1">#    settings = nd.handle_data.ReadJson(ParameterJsonFile)</span>
+<span class="c1">#    </span>
+<span class="c1">#    diameter = settings[&quot;Find&quot;][&quot;Estimated particle size&quot;]</span>
+<span class="c1">#    minmass = settings[&quot;Find&quot;][&quot;Minimal bead brightness&quot;]</span>
+<span class="c1">#    separation = settings[&quot;Find&quot;][&quot;Separation data&quot;]</span>
+<span class="c1">#    </span>
+<span class="c1">#    obj = nd.get_trajectorie.batch_np(rawframes_ROI[0:1,:,:], ParameterJsonFile, diameter = diameter,</span>
+<span class="c1">#                                      minmass = minmass, separation = separation)</span>
+<span class="c1">#</span>
+<span class="c1">#    params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)</span>
+<span class="c1">#    </span>
+<span class="c1">##    mpl.rcParams.update(params)</span>
+<span class="c1">#    </span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#    fig = plt.figure()</span>
+<span class="c1">#</span>
+<span class="c1">#    plt.imshow(nd.handle_data.DispWithGamma(rawframes_ROI[0,:,:] ,gamma = gamma))</span>
+<span class="c1">#</span>
+<span class="c1">#    </span>
+<span class="c1">#    plt.scatter(obj[&quot;x&quot;],obj[&quot;y&quot;], s = 20, facecolors=&#39;none&#39;, edgecolors=&#39;r&#39;, linewidths=0.3)</span>
+<span class="c1">#</span>
+<span class="c1">##    my_s = rawframes_ROI.shape[2] / 10</span>
+<span class="c1">##    my_linewidths = rawframes_ROI.shape[2] / 1000</span>
+<span class="c1">##    plt.scatter(obj[&quot;x&quot;],obj[&quot;y&quot;], s = my_s, facecolors=&#39;none&#39;, edgecolors=&#39;r&#39;, linewidths = my_linewidths)</span>
+<span class="c1">#  </span>
+<span class="c1">#</span>
+<span class="c1">#    plt.title(&quot;Identified Particles in first frame&quot;, **title_font)</span>
+<span class="c1">#    plt.xlabel(&quot;long. Position [Px]&quot;)</span>
+<span class="c1">#    plt.ylabel(&quot;trans. Position [Px]&quot;, **axis_font)</span>
+<span class="c1">#    </span>
+<span class="c1">#       </span>
+<span class="c1">#    if SaveFig == True:</span>
+<span class="c1">#        save_folder_name = settings[&quot;Plot&quot;][&quot;SaveFolder&quot;]</span>
+<span class="c1">#        save_image_name = &#39;Optimize_First_Frame&#39;</span>
+<span class="c1">#</span>
+<span class="c1">#        settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)</span>
+<span class="c1">#        </span>
+<span class="c1">#        # close it because its reopened anyway</span>
+<span class="c1">##        plt.close(fig)</span>
+<span class="c1">#    </span>
+<span class="c1">#</span>
+<span class="c1">#    return obj, settings</span>
 
-    <span class="n">params</span><span class="p">,</span> <span class="n">title_font</span><span class="p">,</span> <span class="n">axis_font</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">visualize</span><span class="o">.</span><span class="n">GetPlotParameters</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
-    
-<span class="c1">#    mpl.rcParams.update(params)</span>
-    
 
 
-    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-
-    <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">DispWithGamma</span><span class="p">(</span><span class="n">rawframes_ROI</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,:]</span> <span class="p">,</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span><span class="p">))</span>
-
-    
-    <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">facecolors</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
-
-<span class="c1">#    my_s = rawframes_ROI.shape[2] / 10</span>
-<span class="c1">#    my_linewidths = rawframes_ROI.shape[2] / 1000</span>
-<span class="c1">#    plt.scatter(obj[&quot;x&quot;],obj[&quot;y&quot;], s = my_s, facecolors=&#39;none&#39;, edgecolors=&#39;r&#39;, linewidths = my_linewidths)</span>
-  
-
-    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Identified Particles in first frame&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">title_font</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;long. Position [Px]&quot;</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;trans. Position [Px]&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">axis_font</span><span class="p">)</span>
-    
-       
-    <span class="k">if</span> <span class="n">SaveFig</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">save_folder_name</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Plot&quot;</span><span class="p">][</span><span class="s2">&quot;SaveFolder&quot;</span><span class="p">]</span>
-        <span class="n">save_image_name</span> <span class="o">=</span> <span class="s1">&#39;Optimize_First_Frame&#39;</span>
-
-        <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">visualize</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">save_folder_name</span><span class="p">,</span> <span class="n">save_image_name</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">use_dpi</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span>
-        
-        <span class="c1"># close it because its reopened anyway</span>
-<span class="c1">#        plt.close(fig)</span>
-    
-
-    <span class="k">return</span> <span class="n">obj</span><span class="p">,</span> <span class="n">settings</span></div>
-
-
-
-<div class="viewcode-block" id="FindSpots"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.FindSpots">[docs]</a><span class="k">def</span> <span class="nf">FindSpots</span><span class="p">(</span><span class="n">frames_np</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">UseLog</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">diameter</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">minmass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">separation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-          <span class="n">noise_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">smoothing_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-          <span class="n">percentile</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">topn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-          <span class="n">filter_before</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_after</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">characterize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-          <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    
+<div class="viewcode-block" id="FindSpots"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.FindSpots">[docs]</a><span class="k">def</span> <span class="nf">FindSpots</span><span class="p">(</span><span class="n">frames_np</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">UseLog</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">diameter</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">minmass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">separation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">max_iterations</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">SaveFig</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines the paramter for the trackpy routine tp.batch, which spots particles, out of the json file</span>
+<span class="sd">    </span>
+<span class="sd">    important parameters:</span>
+<span class="sd">    separation = settings[&quot;Find&quot;][&quot;Separation data&quot;] ... minimum distance of spotes objects</span>
+<span class="sd">    minmass    = settings[&quot;Find&quot;][&quot;Minimal bead brightness&quot;]   ... minimum brightness of an object in order to be saved</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
     
     <span class="n">DoSimulation</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Simulation&quot;</span><span class="p">][</span><span class="s2">&quot;SimulateData&quot;</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">DoSimulation</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No data. A simulation is done instead&quot;</span><span class="p">)</span>
-        <span class="n">diameter</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Simulation&quot;</span><span class="p">][</span><span class="s2">&quot;DiameterOfParticles&quot;</span><span class="p">]</span>
-        <span class="n">num_particles</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Simulation&quot;</span><span class="p">][</span><span class="s2">&quot;NumberOfParticles&quot;</span><span class="p">]</span>
-        <span class="n">frames</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Simulation&quot;</span><span class="p">][</span><span class="s2">&quot;NumberOfFrames&quot;</span><span class="p">]</span>
-        <span class="n">frames_per_second</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Exp&quot;</span><span class="p">][</span><span class="s2">&quot;fps&quot;</span><span class="p">]</span>
-        <span class="n">EstimationPrecision</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Simulation&quot;</span><span class="p">][</span><span class="s2">&quot;EstimationPrecision&quot;</span><span class="p">]</span>
-        <span class="n">mass</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Simulation&quot;</span><span class="p">][</span><span class="s2">&quot;mass&quot;</span><span class="p">]</span>
-        <span class="n">microns_per_pixel</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Exp&quot;</span><span class="p">][</span><span class="s2">&quot;Microns_per_pixel&quot;</span><span class="p">]</span>
-        <span class="n">temp_water</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Exp&quot;</span><span class="p">][</span><span class="s2">&quot;Temperature&quot;</span><span class="p">]</span>
-        <span class="n">visc_water</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Exp&quot;</span><span class="p">][</span><span class="s2">&quot;Viscocity&quot;</span><span class="p">]</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">Simulation</span><span class="o">.</span><span class="n">GenerateRandomWalk</span><span class="p">(</span><span class="n">diameter</span><span class="p">,</span> <span class="n">num_particles</span><span class="p">,</span> <span class="n">frames</span><span class="p">,</span> <span class="n">frames_per_second</span><span class="p">,</span> \
-                                                  <span class="n">ep</span> <span class="o">=</span> <span class="n">EstimationPrecision</span><span class="p">,</span> <span class="n">mass</span> <span class="o">=</span> <span class="n">mass</span><span class="p">,</span> \
-                                                  <span class="n">microns_per_pixel</span> <span class="o">=</span> <span class="n">microns_per_pixel</span><span class="p">,</span> <span class="n">temp_water</span> <span class="o">=</span> <span class="n">temp_water</span><span class="p">,</span> \
-                                                  <span class="n">visc_water</span> <span class="o">=</span> <span class="n">visc_water</span><span class="p">)</span>
-        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No data. A simulation is done instead&quot;</span><span class="p">)</span>        
+        <span class="n">output</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">Simulation</span><span class="o">.</span><span class="n">PrepareRandomWalk</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>       
         
     <span class="k">else</span><span class="p">:</span>
         <span class="n">UseLog</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Analyze in log&quot;</span><span class="p">]</span>
@@ -163,196 +161,47 @@
             <span class="n">diameter</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Estimated particle size (log-scale)&quot;</span><span class="p">]</span>
     
     
-        <span class="n">output</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="n">frames_np</span><span class="p">,</span> <span class="n">diameter</span><span class="p">,</span> <span class="n">minmass</span> <span class="o">=</span> <span class="n">minmass</span><span class="p">,</span> <span class="n">separation</span> <span class="o">=</span> <span class="n">separation</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="n">frames_np</span><span class="p">,</span> <span class="n">diameter</span><span class="p">,</span> <span class="n">minmass</span> <span class="o">=</span> <span class="n">minmass</span><span class="p">,</span> <span class="n">separation</span> <span class="o">=</span> <span class="n">separation</span><span class="p">,</span> <span class="n">max_iterations</span> <span class="o">=</span> <span class="n">max_iterations</span><span class="p">)</span>
        
         <span class="n">output</span><span class="p">[</span><span class="s1">&#39;abstime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;MSD&quot;</span><span class="p">][</span><span class="s2">&quot;effective_fps&quot;</span><span class="p">]</span>
      
     
         <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">WriteJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span> 
     
+    
+        <span class="k">if</span> <span class="n">SaveFig</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">params</span><span class="p">,</span> <span class="n">title_font</span><span class="p">,</span> <span class="n">axis_font</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">visualize</span><span class="o">.</span><span class="n">GetPlotParameters</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+
+            <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">DispWithGamma</span><span class="p">(</span><span class="n">rawframes_ROI</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,:]</span> <span class="p">,</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span><span class="p">))</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span><span class="n">output</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">facecolors</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">edgecolors</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+ 
+        
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Identified Particles in first frame&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">title_font</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;long. Position [Px]&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;trans. Position [Px]&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">axis_font</span><span class="p">)</span>
+            <span class="n">save_folder_name</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Plot&quot;</span><span class="p">][</span><span class="s2">&quot;SaveFolder&quot;</span><span class="p">]</span>
+            <span class="n">save_image_name</span> <span class="o">=</span> <span class="s1">&#39;Optimize_First_Frame&#39;</span>
+    
+            <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">visualize</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">save_folder_name</span><span class="p">,</span> <span class="n">save_image_name</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">use_dpi</span> <span class="o">=</span> <span class="mi">300</span><span class="p">)</span>
+        
+    
     <span class="k">return</span> <span class="n">output</span></div>
 
 
-<div class="viewcode-block" id="batch_np"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.batch_np">[docs]</a><span class="k">def</span> <span class="nf">batch_np</span><span class="p">(</span><span class="n">frames_np</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">UseLog</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">diameter</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">minmass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">separation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-          <span class="n">noise_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">smoothing_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-          <span class="n">percentile</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">topn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">preprocess</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-          <span class="n">filter_before</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_after</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">characterize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-          <span class="n">engine</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Locate Gaussian-like blobs of some approximate size in a set of images.</span>
 
-<span class="sd">    Preprocess the image by performing a band pass and a threshold.</span>
-<span class="sd">    Locate all peaks of brightness, characterize the neighborhoods of the peaks</span>
-<span class="sd">    and take only those with given total brightness (&quot;mass&quot;). Finally,</span>
-<span class="sd">    refine the positions of each peak.</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    frames_np : HERE COMES THE DIFFERENCE</span>
-<span class="sd">            NP ARRAY OF IMAGESTACK</span>
-<span class="sd">            THAT SHOULD BE MUCH FASTER THE PIMS</span>
-<span class="sd">    diameter : odd integer or tuple of odd integers</span>
-<span class="sd">        This may be a single number or a tuple giving the feature&#39;s</span>
-<span class="sd">        extent in each dimension, useful when the dimensions do not have</span>
-<span class="sd">        equal resolution (e.g. confocal microscopy). The tuple order is the</span>
-<span class="sd">        same as the image shape, conventionally (z, y, x) or (y, x). The</span>
-<span class="sd">        number(s) must be odd integers. When in doubt, round up.</span>
-<span class="sd">    minmass : float</span>
-<span class="sd">        The minimum integrated brightness.</span>
-<span class="sd">        Default is 100 for integer images and 1 for float images, but a good</span>
-<span class="sd">        value is often much higher. This is a crucial parameter for eliminating</span>
-<span class="sd">        spurious features.</span>
-<span class="sd">        .. warning:: The mass value was changed since v0.3.3</span>
-<span class="sd">    maxsize : float</span>
-<span class="sd">        maximum radius-of-gyration of brightness, default None</span>
-<span class="sd">    separation : float or tuple</span>
-<span class="sd">        Minimum separtion between features.</span>
-<span class="sd">        Default is diameter + 1. May be a tuple, see diameter for details.</span>
-<span class="sd">    noise_size : float or tuple</span>
-<span class="sd">        Width of Gaussian blurring kernel, in pixels</span>
-<span class="sd">        Default is 1. May be a tuple, see diameter for details.</span>
-<span class="sd">    smoothing_size : float or tuple</span>
-<span class="sd">        The size of the sides of the square kernel used in boxcar (rolling</span>
-<span class="sd">        average) smoothing, in pixels</span>
-<span class="sd">        Default is diameter. May be a tuple, making the kernel rectangular.</span>
-<span class="sd">    threshold : float</span>
-<span class="sd">        Clip bandpass result below this value.</span>
-<span class="sd">        Default, None, defers to default settings of the bandpass function.</span>
-<span class="sd">    invert : boolean</span>
-<span class="sd">        Set to True if features are darker than background. False by default.</span>
-<span class="sd">    percentile : float</span>
-<span class="sd">        Features must have a peak brighter than pixels in this</span>
-<span class="sd">        percentile. This helps eliminate spurious peaks.</span>
-<span class="sd">    topn : integer</span>
-<span class="sd">        Return only the N brightest features above minmass.</span>
-<span class="sd">        If None (default), return all features above minmass.</span>
-<span class="sd">    preprocess : boolean</span>
-<span class="sd">        Set to False to turn off bandpass preprocessing.</span>
-<span class="sd">    max_iterations : integer</span>
-<span class="sd">        max number of loops to refine the center of mass, default 10</span>
-<span class="sd">    filter_before : boolean</span>
-<span class="sd">        filter_before is no longer supported as it does not improve performance.</span>
-<span class="sd">    filter_after : boolean</span>
-<span class="sd">        This parameter has been deprecated: use minmass and maxsize.</span>
-<span class="sd">    characterize : boolean</span>
-<span class="sd">        Compute &quot;extras&quot;: eccentricity, signal, ep. True by default.</span>
-<span class="sd">    engine : {&#39;auto&#39;, &#39;python&#39;, &#39;numba&#39;}</span>
-<span class="sd">    output : {None, trackpy.PandasHDFStore, SomeCustomClass}</span>
-<span class="sd">        If None, return all results as one big DataFrame. Otherwise, pass</span>
-<span class="sd">        results from each frame, one at a time, to the put() method</span>
-<span class="sd">        of whatever class is specified here.</span>
-<span class="sd">    meta : filepath or file object, optional</span>
-<span class="sd">        If specified, information relevant to reproducing this batch is saved</span>
-<span class="sd">        as a YAML file, a plain-text machine- and human-readable format.</span>
-<span class="sd">        By default, this is None, and no file is saved.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    DataFrame([x, y, mass, size, ecc, signal])</span>
-<span class="sd">        where mass means total integrated brightness of the blob,</span>
-<span class="sd">        size means the radius of gyration of its Gaussian-like profile,</span>
-<span class="sd">        and ecc is its eccentricity (0 is circular).</span>
-
-<span class="sd">    See Also</span>
-<span class="sd">    --------</span>
-<span class="sd">    locate : performs location on a single image</span>
-<span class="sd">    minmass_v03_change : to convert minmass from v0.2.4 to v0.3.0</span>
-<span class="sd">    minmass_v04_change : to convert minmass from v0.3.3 to v0.4.0</span>
-
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    This is an implementation of the Crocker-Grier centroid-finding algorithm.</span>
-<span class="sd">    [1]_</span>
-
-<span class="sd">    Locate works with a coordinate system that has its origin at the center of</span>
-<span class="sd">    pixel (0, 0). In almost all cases this will be the topleft pixel: the</span>
-<span class="sd">    y-axis is pointing downwards.</span>
-
-<span class="sd">    References</span>
-<span class="sd">    ----------</span>
-<span class="sd">    .. [1] Crocker, J.C., Grier, D.G. http://dx.doi.org/10.1006/jcis.1996.0217</span>
+<div class="viewcode-block" id="link_df"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.link_df">[docs]</a><span class="k">def</span> <span class="nf">link_df</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">SearchFixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">max_displacement</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dark_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines the paramter for the trackpy routine tp.link, which forms trajectories</span>
+<span class="sd">    out of particle positions, out of the json file.</span>
+<span class="sd">    </span>
+<span class="sd">    important parameters:</span>
+<span class="sd">    SearchFixedParticles = Defines weather fixed or moving particles are under current investigation</span>
+<span class="sd">    dark_time            = settings[&quot;Link&quot;][&quot;Dark time&quot;] ... maximum number of frames a particle can disappear</span>
+<span class="sd">    max_displacement     = [&quot;Link&quot;][&quot;Max displacement&quot;]   ...maximum displacement between two frames</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
-    
-    <span class="n">UseLog</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Analyze in log&quot;</span><span class="p">]</span>
-    
-    <span class="k">if</span> <span class="n">UseLog</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">frames_np</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">LogData</span><span class="p">(</span><span class="n">frames_np</span><span class="p">)</span>
-    
-    
-    <span class="n">separation</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Separation data&quot;</span><span class="p">]</span>
-    <span class="n">minmass</span>    <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Minimal bead brightness&quot;</span><span class="p">]</span>
-    
-    <span class="k">if</span> <span class="n">UseLog</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
-        <span class="n">diameter</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Estimated particle size&quot;</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">diameter</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Estimated particle size (log-scale)&quot;</span><span class="p">]</span>
-
-<span class="c1">#    settings = None, diameter = None, minmass=100, maxsize=None, separation=None,</span>
-<span class="c1">#          noise_size=1, smoothing_size=None, threshold=None, invert=False,</span>
-<span class="c1">#          percentile=64, topn=None, preprocess=True, max_iterations=10,</span>
-<span class="c1">#          filter_before=None, filter_after=None, characterize=True,</span>
-<span class="c1">#          engine=&#39;auto&#39;, output=None, meta=None</span>
-
-    <span class="n">all_features</span> <span class="o">=</span> <span class="p">[]</span>
-    
-    <span class="n">num_enumerate_elements</span> <span class="o">=</span> <span class="n">frames_np</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frames_np</span><span class="p">):</span>
-        <span class="n">nd</span><span class="o">.</span><span class="n">visualize</span><span class="o">.</span><span class="n">update_progress</span><span class="p">(</span><span class="s2">&quot;Find Particles&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">num_enumerate_elements</span><span class="p">)</span>
-        <span class="n">features</span> <span class="o">=</span> <span class="n">tp</span><span class="o">.</span><span class="n">locate</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">diameter</span><span class="p">,</span> <span class="n">minmass</span><span class="p">,</span> <span class="n">maxsize</span><span class="p">,</span> <span class="n">separation</span><span class="p">,</span>
-                          <span class="n">noise_size</span><span class="p">,</span> <span class="n">smoothing_size</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">invert</span><span class="p">,</span>
-                          <span class="n">percentile</span><span class="p">,</span> <span class="n">topn</span><span class="p">,</span> <span class="n">preprocess</span><span class="p">,</span> <span class="n">max_iterations</span><span class="p">,</span>
-                          <span class="n">filter_before</span><span class="p">,</span> <span class="n">filter_after</span><span class="p">,</span> <span class="n">characterize</span><span class="p">,</span>
-                          <span class="n">engine</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s1">&#39;frame_no&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">image</span><span class="o">.</span><span class="n">frame_no</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">frame_no</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">frame_no</span>
-            <span class="c1"># If this works, locate created a &#39;frame&#39; column.</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">frame_no</span> <span class="o">=</span> <span class="n">i</span>
-            <span class="n">features</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>  <span class="c1"># just counting iterations</span>
-            
-       
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">continue</span>
-
-        <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">all_features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">output</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
-
-
-    <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_features</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            
-            <span class="n">output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">all_features</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># return empty DataFrame</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No maxima found in any frame.&quot;</span><span class="p">)</span>
-            <span class="n">output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">features</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">])</span>
-    
-<span class="c1">#    tp.subpx_bias(output)</span>
-    
-    <span class="n">output</span><span class="p">[</span><span class="s1">&#39;abstime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Exp&quot;</span><span class="p">][</span><span class="s2">&quot;fps&quot;</span><span class="p">]</span>
- 
-    <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">WriteJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span> 
-    
-    <span class="k">return</span> <span class="n">output</span></div>
- 
-
-
-
-<span class="c1"># Test</span>
-<span class="c1">#for i,j in enumerate(mylist):</span>
-<span class="c1">#    print(i)</span>
-<span class="c1">#    time.sleep(0.1)</span>
-<span class="c1">#    update_progress(&quot;Some job&quot;, i/100.0)</span>
-<span class="c1">#update_progress(&quot;Some job&quot;, 1)</span>
-
-
-<div class="viewcode-block" id="link_df"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.link_df">[docs]</a><span class="k">def</span> <span class="nf">link_df</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">SearchFixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">max_displacement</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">dark_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-    
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
     
     <span class="n">dark_time</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Link&quot;</span><span class="p">][</span><span class="s2">&quot;Dark time&quot;</span><span class="p">]</span>
@@ -372,7 +221,18 @@
 
 
 
-<div class="viewcode-block" id="filter_stubs"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.filter_stubs">[docs]</a><span class="k">def</span> <span class="nf">filter_stubs</span><span class="p">(</span><span class="n">traj_all</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">FixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">BeforeDriftCorrection</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">min_tracking_frames</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="filter_stubs"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.filter_stubs">[docs]</a><span class="k">def</span> <span class="nf">filter_stubs</span><span class="p">(</span><span class="n">traj_all</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">FixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">BeforeDriftCorrection</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">min_tracking_frames</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines the paramter for the trackpy routine tp.filter_stubs, which cuts to short trajectories,</span>
+<span class="sd">    out of the json file.</span>
+<span class="sd">    </span>
+<span class="sd">    important parameters:</span>
+<span class="sd">    FixedParticles        = Defines weather fixed or moving particles are under current investigation</span>
+<span class="sd">    Fixed Particles must have long trajectories to ensure that they are really stationary</span>
+<span class="sd">    </span>
+<span class="sd">    BeforeDriftCorrection = Defines if the particles have been already drift corrected</span>
+<span class="sd">    Before drift correction short trajectories are ok</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
 
@@ -414,7 +274,13 @@
 
 
 
-<div class="viewcode-block" id="RemoveSpotsInNoGoAreas"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas">[docs]</a><span class="k">def</span> <span class="nf">RemoveSpotsInNoGoAreas</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">t2_long_fix</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">min_distance</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoveSpotsInNoGoAreas"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas">[docs]</a><span class="k">def</span> <span class="nf">RemoveSpotsInNoGoAreas</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">t2_long_fix</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">min_distance</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    In case of stationary/ fixed objects a moving particle should not come to close.</span>
+<span class="sd">    This is because stationary objects might be very bright clusters which overshine the image of the dim</span>
+<span class="sd">    moving particle. Thus a &#39;not-go-area&#39; is defined</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
     
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
     
@@ -457,10 +323,12 @@
 
 
 
-<div class="viewcode-block" id="close_gaps"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.close_gaps">[docs]</a><span class="k">def</span> <span class="nf">close_gaps</span><span class="p">(</span><span class="n">t1</span><span class="p">):</span>
-    <span class="c1"># FILL GAPS IN THE TRAJECTORY BY NEAREST NEIGHBOUR</span>
-    <span class="c1"># NECESSARY FOR FOLLOWING FILTERING WHERE AGAIN A NEAREST NEIGHBOUR IS APPLIED</span>
-    <span class="c1"># OTHERWISE THE MEDIAN FILL WILL JUST IGNORE MISSING TIME POINTS</span>
+<div class="viewcode-block" id="close_gaps"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.close_gaps">[docs]</a><span class="k">def</span> <span class="nf">close_gaps</span><span class="p">(</span><span class="n">t1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # FILL GAPS IN THE TRAJECTORY BY NEAREST NEIGHBOUR</span>
+<span class="sd">    # NECESSARY FOR FOLLOWING FILTERING WHERE AGAIN A NEAREST NEIGHBOUR IS APPLIED</span>
+<span class="sd">    # OTHERWISE THE MEDIAN FILL WILL JUST IGNORE MISSING TIME POINTS</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">valid_particle_number</span> <span class="o">=</span> <span class="n">t1</span><span class="p">[</span><span class="s1">&#39;particle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">();</span> <span class="c1">#particlue numbers that fulfill all previous requirements</span>
     <span class="n">amount_valid_particles</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_particle_number</span><span class="p">);</span>
@@ -512,7 +380,10 @@
 
 
 
-<div class="viewcode-block" id="calc_intensity_fluctuations"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.calc_intensity_fluctuations">[docs]</a><span class="k">def</span> <span class="nf">calc_intensity_fluctuations</span><span class="p">(</span><span class="n">t1_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">dark_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">PlotIntMedianFit</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotIntFlucPerBead</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="calc_intensity_fluctuations"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.calc_intensity_fluctuations">[docs]</a><span class="k">def</span> <span class="nf">calc_intensity_fluctuations</span><span class="p">(</span><span class="n">t1_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">dark_time</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">PlotIntMedianFit</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotIntFlucPerBead</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the intensity fluctuation of a particle along its trajectory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
     
@@ -570,10 +441,11 @@
 
 
 
-<div class="viewcode-block" id="split_traj"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj">[docs]</a><span class="k">def</span> <span class="nf">split_traj</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">):</span>
-
+<div class="viewcode-block" id="split_traj"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj">[docs]</a><span class="k">def</span> <span class="nf">split_traj</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Define settings for split trajectory at high intensity jumps</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
-    
     
     <span class="n">t4_cutted</span><span class="p">,</span> <span class="n">settings</span> <span class="o">=</span> <span class="n">split_traj_at_high_steps</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>
     
@@ -583,7 +455,19 @@
 
 
 
-<div class="viewcode-block" id="split_traj_at_long_trajectorie"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj_at_long_trajectorie">[docs]</a><span class="k">def</span> <span class="nf">split_traj_at_long_trajectorie</span><span class="p">(</span><span class="n">t4_cutted</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">Max_traj_length</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="split_traj_at_long_trajectorie"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj_at_long_trajectorie">[docs]</a><span class="k">def</span> <span class="nf">split_traj_at_long_trajectorie</span><span class="p">(</span><span class="n">t4_cutted</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">Max_traj_length</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Splits trajectory if they are too long</span>
+<span class="sd">    This might be usefull, to have sufficently long trajectorys all at the same length.</span>
+<span class="sd">    Otherwise they have very diffent conficence intervalls</span>
+<span class="sd">    E.g: 2 particles: 1: 500 frames, 2: 2000 frames</span>
+<span class="sd">    particle 2 is splitted into 4 500frames</span>
+<span class="sd">    </span>
+<span class="sd">    Splitting of a particle is fine, because a particle can go out of focus and return later</span>
+<span class="sd">    and is assigned as new particle too.</span>
+<span class="sd">    </span>
+<span class="sd">    Important is too look at the temporal component, thus particle 2 never exists twice</span>
+<span class="sd">    &quot;&quot;&quot;</span>
    
     <span class="n">keep_tail</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Split&quot;</span><span class="p">][</span><span class="s2">&quot;Max_traj_length_keep_tail&quot;</span><span class="p">]</span>
     
@@ -644,9 +528,16 @@
     <span class="k">return</span> <span class="n">t4_cutted</span></div>
 
 
-<div class="viewcode-block" id="split_traj_at_high_steps"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj_at_high_steps">[docs]</a><span class="k">def</span> <span class="nf">split_traj_at_high_steps</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">max_rel_median_intensity_step</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="split_traj_at_high_steps"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.split_traj_at_high_steps">[docs]</a><span class="k">def</span> <span class="nf">split_traj_at_high_steps</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">max_rel_median_intensity_step</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                              <span class="n">min_tracking_frames_before_drift</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">PlotTrajWhichNeedACut</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">NumParticles2Plot</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
                              <span class="n">PlotAnimationFiltering</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">rawframes_ROI</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Splits the trajectory at high intensity jumps.</span>
+<span class="sd">    This is motivated by the idea, that an intensity jump is more likely to happen because of a wrong assignment in</span>
+<span class="sd">    the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6) or heavy</span>
+<span class="sd">    substructures/intensity holes in the laser moder</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
     
     <span class="n">max_rel_median_intensity_step</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Split&quot;</span><span class="p">][</span><span class="s2">&quot;Max rel median intensity step&quot;</span><span class="p">]</span>
     
@@ -741,16 +632,30 @@
 
 
 
-<div class="viewcode-block" id="DriftCorrection"><a class="viewcode-back" href="../../NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.DriftCorrection">[docs]</a><span class="k">def</span> <span class="nf">DriftCorrection</span><span class="p">(</span><span class="n">t_drift</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">Do_transversal_drift_correction</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">drift_smoothing_frames</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rolling_window_size</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="DriftCorrection"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.get_trajectorie.DriftCorrection">[docs]</a><span class="k">def</span> <span class="nf">DriftCorrection</span><span class="p">(</span><span class="n">t_drift</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">Do_transversal_drift_correction</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">drift_smoothing_frames</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rolling_window_size</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="n">min_particle_per_block</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">min_tracking_frames</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">PlotGlobalDrift</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotDriftAvgSpeed</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotDriftTimeDevelopment</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> 
                     <span class="n">PlotDriftFalseColorMapFlow</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotDriftVectors</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">PlotDriftFalseColorMapSpeed</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                     <span class="n">PlotDriftCorrectedTraj</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
     
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    ******************************************************************************</span>
 <span class="sd">    Calculate and remove overall drift from trajectories</span>
-<span class="sd">    Attention: Only makes sense if more than 1 particle is regarded</span>
-<span class="sd">    Otherwise the average drift is exactly the particles movement and thus the trajectory vanishes!</span>
+<span class="sd">    </span>
+<span class="sd">    The drift needs to be removed, because the entire movement consists of brownian motion and drift</span>
+<span class="sd">    In order to measure the brownian motion, the drift needs to be calculated and subtracted</span>
+<span class="sd">    </span>
+<span class="sd">    There are currently three options to choose from</span>
+<span class="sd">    1) No drift correction - this is dangerous. However, if just a few particles are tracked the </span>
+<span class="sd">    average drift is most the particles movement and thus the trajectory vanishes!</span>
+<span class="sd">    </span>
+<span class="sd">    2) Global Drift</span>
+<span class="sd">    Calculated the drift of all particles between neighbouring frames</span>
+<span class="sd">    </span>
+<span class="sd">    3) Transversal drift corretion</span>
+<span class="sd">    Splits the fiber in several &quot;subfibers&quot;. Each of them is treated independent. This is motivated by the idea of laminar</span>
+<span class="sd">    flow, where particles on the side have a lower current than the ones in the middle</span>
+<span class="sd">    However this method requires a lot of particles and makes sense for small fiber diameters where laminar flow is</span>
+<span class="sd">    significant.</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
     
@@ -1023,21 +928,194 @@
     
     <span class="k">return</span> <span class="n">t_no_drift</span></div>
     
+
+
+
+
+
+<span class="c1">#def batch_np(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None,</span>
+<span class="c1">#          noise_size=1, smoothing_size=None, threshold=None, invert=False,</span>
+<span class="c1">#          percentile=64, topn=None, preprocess=True, max_iterations=10,</span>
+<span class="c1">#          filter_before=None, filter_after=None, characterize=True,</span>
+<span class="c1">#          engine=&#39;auto&#39;, output=None, meta=None):</span>
+<span class="c1">#    &quot;&quot;&quot;Locate Gaussian-like blobs of some approximate size in a set of images.</span>
+<span class="c1">#</span>
+<span class="c1">#    Preprocess the image by performing a band pass and a threshold.</span>
+<span class="c1">#    Locate all peaks of brightness, characterize the neighborhoods of the peaks</span>
+<span class="c1">#    and take only those with given total brightness (&quot;mass&quot;). Finally,</span>
+<span class="c1">#    refine the positions of each peak.</span>
+<span class="c1">#</span>
+<span class="c1">#    Parameters</span>
+<span class="c1">#    ----------</span>
+<span class="c1">#    frames_np : HERE COMES THE DIFFERENCE</span>
+<span class="c1">#            NP ARRAY OF IMAGESTACK</span>
+<span class="c1">#            THAT SHOULD BE MUCH FASTER THE PIMS</span>
+<span class="c1">#    diameter : odd integer or tuple of odd integers</span>
+<span class="c1">#        This may be a single number or a tuple giving the feature&#39;s</span>
+<span class="c1">#        extent in each dimension, useful when the dimensions do not have</span>
+<span class="c1">#        equal resolution (e.g. confocal microscopy). The tuple order is the</span>
+<span class="c1">#        same as the image shape, conventionally (z, y, x) or (y, x). The</span>
+<span class="c1">#        number(s) must be odd integers. When in doubt, round up.</span>
+<span class="c1">#    minmass : float</span>
+<span class="c1">#        The minimum integrated brightness.</span>
+<span class="c1">#        Default is 100 for integer images and 1 for float images, but a good</span>
+<span class="c1">#        value is often much higher. This is a crucial parameter for eliminating</span>
+<span class="c1">#        spurious features.</span>
+<span class="c1">#        .. warning:: The mass value was changed since v0.3.3</span>
+<span class="c1">#    maxsize : float</span>
+<span class="c1">#        maximum radius-of-gyration of brightness, default None</span>
+<span class="c1">#    separation : float or tuple</span>
+<span class="c1">#        Minimum separtion between features.</span>
+<span class="c1">#        Default is diameter + 1. May be a tuple, see diameter for details.</span>
+<span class="c1">#    noise_size : float or tuple</span>
+<span class="c1">#        Width of Gaussian blurring kernel, in pixels</span>
+<span class="c1">#        Default is 1. May be a tuple, see diameter for details.</span>
+<span class="c1">#    smoothing_size : float or tuple</span>
+<span class="c1">#        The size of the sides of the square kernel used in boxcar (rolling</span>
+<span class="c1">#        average) smoothing, in pixels</span>
+<span class="c1">#        Default is diameter. May be a tuple, making the kernel rectangular.</span>
+<span class="c1">#    threshold : float</span>
+<span class="c1">#        Clip bandpass result below this value.</span>
+<span class="c1">#        Default, None, defers to default settings of the bandpass function.</span>
+<span class="c1">#    invert : boolean</span>
+<span class="c1">#        Set to True if features are darker than background. False by default.</span>
+<span class="c1">#    percentile : float</span>
+<span class="c1">#        Features must have a peak brighter than pixels in this</span>
+<span class="c1">#        percentile. This helps eliminate spurious peaks.</span>
+<span class="c1">#    topn : integer</span>
+<span class="c1">#        Return only the N brightest features above minmass.</span>
+<span class="c1">#        If None (default), return all features above minmass.</span>
+<span class="c1">#    preprocess : boolean</span>
+<span class="c1">#        Set to False to turn off bandpass preprocessing.</span>
+<span class="c1">#    max_iterations : integer</span>
+<span class="c1">#        max number of loops to refine the center of mass, default 10</span>
+<span class="c1">#    filter_before : boolean</span>
+<span class="c1">#        filter_before is no longer supported as it does not improve performance.</span>
+<span class="c1">#    filter_after : boolean</span>
+<span class="c1">#        This parameter has been deprecated: use minmass and maxsize.</span>
+<span class="c1">#    characterize : boolean</span>
+<span class="c1">#        Compute &quot;extras&quot;: eccentricity, signal, ep. True by default.</span>
+<span class="c1">#    engine : {&#39;auto&#39;, &#39;python&#39;, &#39;numba&#39;}</span>
+<span class="c1">#    output : {None, trackpy.PandasHDFStore, SomeCustomClass}</span>
+<span class="c1">#        If None, return all results as one big DataFrame. Otherwise, pass</span>
+<span class="c1">#        results from each frame, one at a time, to the put() method</span>
+<span class="c1">#        of whatever class is specified here.</span>
+<span class="c1">#    meta : filepath or file object, optional</span>
+<span class="c1">#        If specified, information relevant to reproducing this batch is saved</span>
+<span class="c1">#        as a YAML file, a plain-text machine- and human-readable format.</span>
+<span class="c1">#        By default, this is None, and no file is saved.</span>
+<span class="c1">#</span>
+<span class="c1">#    Returns</span>
+<span class="c1">#    -------</span>
+<span class="c1">#    DataFrame([x, y, mass, size, ecc, signal])</span>
+<span class="c1">#        where mass means total integrated brightness of the blob,</span>
+<span class="c1">#        size means the radius of gyration of its Gaussian-like profile,</span>
+<span class="c1">#        and ecc is its eccentricity (0 is circular).</span>
+<span class="c1">#</span>
+<span class="c1">#    See Also</span>
+<span class="c1">#    --------</span>
+<span class="c1">#    locate : performs location on a single image</span>
+<span class="c1">#    minmass_v03_change : to convert minmass from v0.2.4 to v0.3.0</span>
+<span class="c1">#    minmass_v04_change : to convert minmass from v0.3.3 to v0.4.0</span>
+<span class="c1">#</span>
+<span class="c1">#    Notes</span>
+<span class="c1">#    -----</span>
+<span class="c1">#    This is an implementation of the Crocker-Grier centroid-finding algorithm.</span>
+<span class="c1">#    [1]_</span>
+<span class="c1">#</span>
+<span class="c1">#    Locate works with a coordinate system that has its origin at the center of</span>
+<span class="c1">#    pixel (0, 0). In almost all cases this will be the topleft pixel: the</span>
+<span class="c1">#    y-axis is pointing downwards.</span>
+<span class="c1">#</span>
+<span class="c1">#    References</span>
+<span class="c1">#    ----------</span>
+<span class="c1">#    .. [1] Crocker, J.C., Grier, D.G. http://dx.doi.org/10.1006/jcis.1996.0217</span>
+<span class="c1">#</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    </span>
+<span class="c1">#    settings = nd.handle_data.ReadJson(ParameterJsonFile)</span>
+<span class="c1">#    </span>
+<span class="c1">#    UseLog = settings[&quot;Find&quot;][&quot;Analyze in log&quot;]</span>
+<span class="c1">#    </span>
+<span class="c1">#    if UseLog == True:</span>
+<span class="c1">#        frames_np = nd.handle_data.LogData(frames_np)</span>
+<span class="c1">#    </span>
+<span class="c1">#    </span>
+<span class="c1">#    separation = settings[&quot;Find&quot;][&quot;Separation data&quot;]</span>
+<span class="c1">#    minmass    = settings[&quot;Find&quot;][&quot;Minimal bead brightness&quot;]</span>
+<span class="c1">#    </span>
+<span class="c1">#    if UseLog == False:</span>
+<span class="c1">#        diameter = settings[&quot;Find&quot;][&quot;Estimated particle size&quot;]</span>
+<span class="c1">#    else:</span>
+<span class="c1">#        diameter = settings[&quot;Find&quot;][&quot;Estimated particle size (log-scale)&quot;]</span>
+<span class="c1">#</span>
+<span class="c1">##    settings = None, diameter = None, minmass=100, maxsize=None, separation=None,</span>
+<span class="c1">##          noise_size=1, smoothing_size=None, threshold=None, invert=False,</span>
+<span class="c1">##          percentile=64, topn=None, preprocess=True, max_iterations=10,</span>
+<span class="c1">##          filter_before=None, filter_after=None, characterize=True,</span>
+<span class="c1">##          engine=&#39;auto&#39;, output=None, meta=None</span>
+<span class="c1">#</span>
+<span class="c1">#    all_features = []</span>
+<span class="c1">#    </span>
+<span class="c1">#    num_enumerate_elements = frames_np.shape[0]</span>
+<span class="c1">#</span>
+<span class="c1">#    for i, image in enumerate(frames_np):</span>
+<span class="c1">#        nd.visualize.update_progress(&quot;Find Particles&quot;, (i+1)/num_enumerate_elements)</span>
+<span class="c1">#        features = tp.locate(image, diameter, minmass, maxsize, separation,</span>
+<span class="c1">#                          noise_size, smoothing_size, threshold, invert,</span>
+<span class="c1">#                          percentile, topn, preprocess, max_iterations,</span>
+<span class="c1">#                          filter_before, filter_after, characterize,</span>
+<span class="c1">#                          engine)</span>
+<span class="c1">#        if hasattr(image, &#39;frame_no&#39;) and image.frame_no is not None:</span>
+<span class="c1">#            frame_no = image.frame_no</span>
+<span class="c1">#            # If this works, locate created a &#39;frame&#39; column.</span>
+<span class="c1">#        else:</span>
+<span class="c1">#            frame_no = i</span>
+<span class="c1">#            features[&#39;frame&#39;] = i  # just counting iterations</span>
+<span class="c1">#            </span>
+<span class="c1">#       </span>
+<span class="c1">#</span>
+<span class="c1">#        if len(features) == 0:</span>
+<span class="c1">#            continue</span>
+<span class="c1">#</span>
+<span class="c1">#        if output is None:</span>
+<span class="c1">#            all_features.append(features)</span>
+<span class="c1">#        else:</span>
+<span class="c1">#            output.put(features)</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#    if output is None:</span>
+<span class="c1">#        if len(all_features) &gt; 0:</span>
+<span class="c1">#            </span>
+<span class="c1">#            output = pd.concat(all_features).reset_index(drop=True)</span>
+<span class="c1">#        else:  # return empty DataFrame</span>
+<span class="c1">#            warnings.warn(&quot;No maxima found in any frame.&quot;)</span>
+<span class="c1">#            output = pd.DataFrame(columns=list(features.columns) + [&#39;frame&#39;])</span>
+<span class="c1">#    </span>
+<span class="c1">##    tp.subpx_bias(output)</span>
+<span class="c1">#    </span>
+<span class="c1">#    output[&#39;abstime&#39;] = output[&#39;frame&#39;] / settings[&quot;Exp&quot;][&quot;fps&quot;]</span>
+<span class="c1"># </span>
+<span class="c1">#    nd.handle_data.WriteJson(ParameterJsonFile, settings) </span>
+<span class="c1">#    </span>
+<span class="c1">#    return output</span>
+<span class="c1"># </span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1"># Test</span>
+<span class="c1">#for i,j in enumerate(mylist):</span>
+<span class="c1">#    print(i)</span>
+<span class="c1">#    time.sleep(0.1)</span>
+<span class="c1">#    update_progress(&quot;Some job&quot;, i/100.0)</span>
+<span class="c1">#update_progress(&quot;Some job&quot;, 1)</span>
 </pre></div>
 
           </div>
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper"><div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../index.html">Documentation overview</a><ul>
-  <li><a href="../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
+        <div class="sphinxsidebarwrapper">
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <div class="searchformwrapper">
@@ -1054,17 +1132,22 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="footer">
-      &copy;2019, Author.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.4</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
     </div>
-
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
   </body>
 </html>

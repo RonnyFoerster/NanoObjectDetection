@@ -2,7 +2,7 @@
 """
 Created on Tue Feb  5 12:23:39 2019
 
-@author: foersterronny
+@author: Ronny Förster und Stefan Weidlich
 """
 
 # In[0]:

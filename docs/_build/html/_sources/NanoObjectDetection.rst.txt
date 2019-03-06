@@ -60,14 +60,6 @@ NanoObjectDetection.WriteReportPDF module
     :undoc-members:
     :show-inheritance:
 
-NanoObjectDetection.default\_values module
-------------------------------------------
-
-.. automodule:: NanoObjectDetection.default_values
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 NanoObjectDetection.get\_trajectorie module
 -------------------------------------------
 

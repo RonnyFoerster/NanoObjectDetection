@@ -2,13 +2,16 @@
 """
 Created on Mon Feb 18 11:09:16 2019
 
-@author: foersterronny
+@author: Ronny Förster und Stefan Weidlich
 """
+
+# In[]
 import NanoObjectDetection as nd
 import numpy as np
 import matplotlib.pyplot as plt
 from pdb import set_trace as bp #debugger
 
+# In[]
 def Main(rawframes_np, ParameterJsonFile):
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     

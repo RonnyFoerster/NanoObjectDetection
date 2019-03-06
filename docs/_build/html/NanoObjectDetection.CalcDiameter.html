@@ -1,0 +1,158 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>NanoObjectDetection.CalcDiameter module &#8212; NanoObjectDetection  documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NanoObjectDetection  documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.CalcDiameter">
+<span id="nanoobjectdetection-calcdiameter-module"></span><h1>NanoObjectDetection.CalcDiameter module<a class="headerlink" href="#module-NanoObjectDetection.CalcDiameter" title="Permalink to this headline">¶</a></h1>
+<p>Created on Fri Feb  8 09:52:27 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.AvgMsd">
+<code class="descname">AvgMsd</code><span class="sig-paren">(</span><em>nan_tm_sq</em>, <em>frames_per_second</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#AvgMsd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.AvgMsd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.CalcMSD">
+<code class="descname">CalcMSD</code><span class="sig-paren">(</span><em>eval_tm</em>, <em>microns_per_pixel</em>, <em>amount_summands=5</em>, <em>amount_lagtimes=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#CalcMSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.CalcMSD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.EstimateHindranceFactor">
+<code class="descname">EstimateHindranceFactor</code><span class="sig-paren">(</span><em>diam_direct_lin</em>, <em>fibre_diameter_nm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#EstimateHindranceFactor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.EstimateHindranceFactor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.FitMSD">
+<code class="descname">FitMSD</code><span class="sig-paren">(</span><em>lagt_direct</em>, <em>amount_frames_lagt1</em>, <em>mean_displ_direct</em>, <em>mean_displ_sigma_direct</em>, <em>sizes_df_lin</em>, <em>particleid</em>, <em>traj_length</em>, <em>UseHindranceFac=0</em>, <em>fibre_diameter_nm=None</em>, <em>temp_water=295</em>, <em>visc_water=9.5e-16</em>, <em>PlotMsdOverLagtime=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#FitMSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.FitMSD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.Main">
+<code class="descname">Main</code><span class="sig-paren">(</span><em>t6_final</em>, <em>ParameterJsonFile</em>, <em>obj_all</em>, <em>microns_per_pixel=None</em>, <em>frames_per_second=None</em>, <em>amount_summands=None</em>, <em>amount_lagtimes=None</em>, <em>amount_lagtimes_auto=None</em>, <em>Histogramm_Show=True</em>, <em>MSD_fit_Show=False</em>, <em>EvalOnlyLongestTraj=0</em>, <em>Max_traj_length=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#Main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.Main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculating msd of individual particles:</p>
+<p>1.) filtering out too short tracks
+2.) constructing matrix with defined lag-times for each particle. Amount of lag-times is set.
+3.) calculating mean and variance of lag-times for each particle
+4.) regressing each particle individually linearly: msd per lag-time 
+5.) slope of regression used to calculate size of particle
+6.) standard error of lag-time=1 used as error on slope</p>
+<p>Parameters to be adjusted:
+# amount_summands … If msd for a given lag-time is calculated by less than this amount of summands, the corresponding lag-time is disregarded in the fit
+# amount_lagtimes … If the particle has less than this amount of valid lag-times that were fitted, 
+the particle wouldn’t be taken into account. From 181120, SW: Not more than this datapoints are taken into account either
+# cutoff_size [nm] … particles with size exceeding this will not be plotted
+#
+# binning = 25 # Amount of bins used in histogram</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.OptimalMSDPoints">
+<code class="descname">OptimalMSDPoints</code><span class="sig-paren">(</span><em>settings</em>, <em>obj_all</em>, <em>diffusivity</em>, <em>amount_frames_lagt1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#OptimalMSDPoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.OptimalMSDPoints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.OptimizeTrajLenght">
+<code class="descname">OptimizeTrajLenght</code><span class="sig-paren">(</span><em>t6_final</em>, <em>ParameterJsonFile</em>, <em>obj_all</em>, <em>microns_per_pixel=None</em>, <em>frames_per_second=None</em>, <em>amount_summands=None</em>, <em>amount_lagtimes=None</em>, <em>amount_lagtimes_auto=None</em>, <em>Histogramm_Show=True</em>, <em>MSD_fit_Show=False</em>, <em>EvalOnlyLongestTraj=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#OptimizeTrajLenght"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.OptimizeTrajLenght" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.ReducedLocalPrecision">
+<code class="descname">ReducedLocalPrecision</code><span class="sig-paren">(</span><em>settings</em>, <em>obj_all</em>, <em>diffusivity</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#ReducedLocalPrecision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.ReducedLocalPrecision" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.hindrance_fac">
+<code class="descname">hindrance_fac</code><span class="sig-paren">(</span><em>diam_fibre</em>, <em>diam_particle</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#hindrance_fac"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.hindrance_fac" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.mean_func">
+<code class="descname">mean_func</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#mean_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.mean_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="NanoObjectDetection.CalcDiameter.rolling_with_step">
+<code class="descname">rolling_with_step</code><span class="sig-paren">(</span><em>s</em>, <em>window</em>, <em>step</em>, <em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NanoObjectDetection/CalcDiameter.html#rolling_with_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.CalcDiameter.rolling_with_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/NanoObjectDetection.CalcDiameter.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NanoObjectDetection  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>
