@@ -6,8 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = NanoObjectDetection
 SOURCEDIR     = source
-# BUILDDIR      = build
-BUILDDIR      = .
+BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".
 help:
