@@ -92,11 +92,16 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     else:
         t6_final_use = t6_final
     
+
+    Max_traj_length = int(settings["Split"]["Max_traj_length"])
+    
+    Min_traj_length = int(settings["Link"]["Min_tracking_frames"])
+    
     if Max_traj_length is None:
         t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings)
     else:
-        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings, Max_traj_length)
-    
+        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings, Min_traj_length, Max_traj_length)
+
     
     amount_summands = settings["MSD"]["Amount summands"]
     amount_lagtimes = settings["MSD"]["Amount lagtimes"]
@@ -199,7 +204,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     return sizes_df_lin, any_successful_check
 
     
-def CalcMSD(eval_tm, microns_per_pixel, amount_summands = 5, amount_lagtimes = 5):
+def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, amount_lagtimes = 5):
 
     nan_tm_sq = 0
     amount_frames_lagt1 = 0

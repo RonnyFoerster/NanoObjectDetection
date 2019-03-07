@@ -223,6 +223,7 @@ def ReadData2Numpy(ParameterJsonFile):
         data_folder_name = nd.handle_data.GetVarOfSettings(settings,"File","data_folder_name")
         data_file_name   = nd.handle_data.GetVarOfSettings(settings,"File","data_file_name")
     
+        print('start reading in raw images. (That may take a while...)')
         if data_type == 'tif_series':
             if data_folder_name == 0:
                 sys.exit('!!! data_folder_name required !!!')
@@ -245,16 +246,18 @@ def ReadData2Numpy(ParameterJsonFile):
         else:
             sys.exit('Data type %s' %data_type)
         
+        print('finishied reading in raw images =)')
+        
     return rawframes_np
 
 
 
 def ReadTiffStack2Numpy(data_file_name):
     "Reads a tiff stack in"
-    print('start reading in raw images')
+
     rawframes_np = io.imread(data_file_name)
     
-    print('finishied reading in raw images')
+
     
     return rawframes_np 
 
@@ -262,7 +265,6 @@ def ReadTiffStack2Numpy(data_file_name):
 def ReadTiffSeries2Numpy(data_folder_name):
     "Reads a tiff series in"
     
-    print('start reading in raw images')
     rawframes_np = []
     for fname in os.listdir(data_folder_name):
         if fnmatch.fnmatch(fname, '*.tif'):
@@ -276,19 +278,16 @@ def ReadTiffSeries2Numpy(data_folder_name):
     
     print('Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
     
-    print('finishied reading in raw images')
     
     return rawframes_np
 
 
 def ReadFits2Numpy(data_file_name):
     "Reads a fits image in"
-    print('start reading in raw images')
     
     open_fits = pyfits.open(data_file_name)
     rawframes_np = open_fits[0].data
     
-    print('finishied reading in raw images')
     
     return rawframes_np
 

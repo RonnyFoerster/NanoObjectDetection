@@ -227,9 +227,7 @@ def PlotDiameterHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10
     from NanoObjectDetection.PlotProperties import axis_font, title_font
 #    plt.figure()
     fig, ax = plt.subplots()
-        
-    
-    ax.set_xlim(min_size, cutoff_size)
+ 
     diameters = sizes_df_lin.diameter
     show_diameters = diameters[(diameters >= min_size) & (diameters <= cutoff_size)]
     # histogram of sizes, only taking into account 
@@ -241,7 +239,10 @@ def PlotDiameterHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10
     plt.ylabel(ylabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
     plt.xlabel(xlabel, **axis_font)
+    plt.grid(True)
  
+    ax.set_xlim(min_size, cutoff_size)
+
     # infobox
     my_mean, my_std, my_median = GetMeanStdMedian(sizes_df_lin.diameter)
     
@@ -288,7 +289,8 @@ def GetPlotParameters(settings):
 
 
 
-def export(save_folder_name, save_image_name, settings = None, use_dpi = None, data = None, data_header = None):    
+def export(save_folder_name, save_image_name, settings = None, use_dpi = None, data = None, data_header = None,
+           save_json = 1, save_data2cs = 1):    
     import os.path
     import NanoObjectDetection as nd
     if settings is None:
@@ -296,6 +298,8 @@ def export(save_folder_name, save_image_name, settings = None, use_dpi = None, d
             sys.exit("need settings or dpi!")
     else:
         use_dpi, settings = nd.handle_data.SpecificValueOrSettings(use_dpi,settings, "Plot", "dpi")
+        save_json, settings = nd.handle_data.SpecificValueOrSettings(save_json,settings, "Plot", "save_json")
+        save_data2cs, settings = nd.handle_data.SpecificValueOrSettings(save_data2cs,settings, "Plot", "save_data2cs")
         
     use_dpi = int(use_dpi)
     
@@ -572,7 +576,7 @@ def DriftCorrectedTraj():
     plt.ylabel('Lateral position in fibre (y) [px]')
     
     
-def PlotGlobalDrift():
+def PlotGlobalDrift(d):
     d.plot() # plot the calculated drift
     
    
