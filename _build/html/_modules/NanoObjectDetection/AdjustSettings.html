@@ -1,0 +1,290 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>NanoObjectDetection.AdjustSettings &#8212; NanoObjectDetection  documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for NanoObjectDetection.AdjustSettings</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Fri Feb 15 16:41:17 2019</span>
+
+<span class="sd">@author: Ronny Förster und Stefan Weidlich</span>
+
+<span class="sd">This module tries to hell the user finding the correct parameters for the analysis</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># In[] Importing neccessary libraries</span>
+
+<span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span> <span class="c1"># Library for array-manipulation</span>
+<span class="kn">import</span> <span class="nn">trackpy</span> <span class="k">as</span> <span class="nn">tp</span> <span class="c1"># trackpy offers all tools needed for the analysis of diffusing particles</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span> <span class="c1"># Libraries for plotting</span>
+
+<span class="kn">from</span> <span class="nn">pdb</span> <span class="k">import</span> <span class="n">set_trace</span> <span class="k">as</span> <span class="n">bp</span> <span class="c1">#debugger</span>
+
+<span class="c1"># In[]</span>
+<div class="viewcode-block" id="GetIntegerInput"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.AdjustSettings.GetIntegerInput">[docs]</a><span class="k">def</span> <span class="nf">GetIntegerInput</span><span class="p">(</span><span class="n">MessageOnScreen</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ask for an INTERGER input on the console.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bad_input</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">while</span> <span class="n">bad_input</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">myinput</span> <span class="o">=</span> <span class="n">GetNumericalInput</span><span class="p">(</span><span class="n">MessageOnScreen</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">myinput</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">myinput</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">myinput</span><span class="p">):</span>
+            <span class="n">bad_input</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This is not an integer&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">myinput</span></div>
+
+
+<div class="viewcode-block" id="GetNumericalInput"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.AdjustSettings.GetNumericalInput">[docs]</a><span class="k">def</span> <span class="nf">GetNumericalInput</span><span class="p">(</span><span class="n">MessageOnScreen</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ask for a FLOAT input on the console</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bad_input</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">while</span> <span class="n">bad_input</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">myinput</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">MessageOnScreen</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">myinput</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">myinput</span><span class="p">)</span>
+            <span class="n">bad_input</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This is not a number&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">myinput</span></div>
+
+
+<div class="viewcode-block" id="AskDoItAgain"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.AdjustSettings.AskDoItAgain">[docs]</a><span class="k">def</span> <span class="nf">AskDoItAgain</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ask if a step shall be repeated</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">valid_answer</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">while</span> <span class="n">valid_answer</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Same problem and optimize value even more? (y/n)&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">answer</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;n&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: press y or n&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">valid_answer</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">answer</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span>
+                <span class="n">DoItAgain</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">DoItAgain</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">DoItAgain</span></div>
+
+
+
+<div class="viewcode-block" id="AskMethodToImprove"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.AdjustSettings.AskMethodToImprove">[docs]</a><span class="k">def</span> <span class="nf">AskMethodToImprove</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ask which method shall be applied to improve the particle IDENTIFICATION</span>
+<span class="sd">    &#39;1 - Bright (isolated) spots not recognized \n&#39;</span>
+<span class="sd">    &#39;2 - Spots where nothing is to be seen \n&#39;</span>
+<span class="sd">    &#39;3 - Bright (non-isolated) spots not recognized but you would like to have them both \n&#39;</span>
+<span class="sd">    &#39;4 - Much more recognized spots than I think I have particles \n&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">valid_answer</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">while</span> <span class="n">valid_answer</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s1">&#39;What is the problem? </span><span class="se">\n</span><span class="s1">&#39;</span>
+                       <span class="s1">&#39;1 - Bright (isolated) spots not recognized </span><span class="se">\n</span><span class="s1">&#39;</span>
+                       <span class="s1">&#39;2 - Spots where nothing is to be seen </span><span class="se">\n</span><span class="s1">&#39;</span>
+                       <span class="s1">&#39;3 - Bright (non-isolated) spots not recognized but you would like to have them both </span><span class="se">\n</span><span class="s1">&#39;</span>
+                       <span class="s1">&#39;4 - Much more recognized spots than I think I have particles </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: press y or n&quot;</span><span class="p">)</span>
+            
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">valid_answer</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="n">method</span></div>
+
+
+<div class="viewcode-block" id="AskIfUserSatisfied"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.AdjustSettings.AskIfUserSatisfied">[docs]</a><span class="k">def</span> <span class="nf">AskIfUserSatisfied</span><span class="p">(</span><span class="n">QuestionForUser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Ask if user is satisfied</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">valid_answer</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">while</span> <span class="n">valid_answer</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">QuestionForUser</span> <span class="o">+</span> <span class="s1">&#39; (y/n) :&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">answer</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;n&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: press y or n&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">valid_answer</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">answer</span> <span class="o">==</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span>
+                <span class="n">UserSatisfied</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">UserSatisfied</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">UserSatisfied</span></div>
+
+
+<div class="viewcode-block" id="FindSpot"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.AdjustSettings.FindSpot">[docs]</a><span class="k">def</span> <span class="nf">FindSpot</span><span class="p">(</span><span class="n">rawframes_ROI</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main function to optimize the parameters for particle identification</span>
+<span class="sd">    It runs the bead finding routine and ask the user what problem he has</span>
+<span class="sd">    According to the problem it tries to improve</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    <span class="n">UserSatisfied</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">FirstRun</span> <span class="o">=</span> <span class="kc">True</span>
+    
+    <span class="k">while</span> <span class="n">UserSatisfied</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">obj_first</span><span class="p">,</span> <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">FindSpots</span><span class="p">(</span><span class="n">rawframes_ROI</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,:,:],</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">SaveFig</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">)</span>
+        
+        <span class="n">plt</span><span class="o">.</span><span class="n">pause</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    
+        <span class="k">if</span> <span class="n">FirstRun</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">FirstRun</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">DoItAgain</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">DoItAgain</span> <span class="o">=</span> <span class="n">AskDoItAgain</span><span class="p">()</span>
+            
+        <span class="k">if</span> <span class="n">DoItAgain</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="c1"># user happy?</span>
+            <span class="n">my_question</span> <span class="o">=</span> <span class="s2">&quot;New image in: </span><span class="si">{}</span><span class="s2">. Open it! Are you satisfied?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Plot&quot;</span><span class="p">][</span><span class="s2">&quot;SaveFolder&quot;</span><span class="p">])</span>
+            <span class="n">UserSatisfied</span> <span class="o">=</span> <span class="n">AskIfUserSatisfied</span><span class="p">(</span><span class="n">my_question</span><span class="p">)</span>
+               
+            <span class="k">if</span> <span class="n">UserSatisfied</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Happy user =)&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Find out what is wrong</span>
+                <span class="n">method</span> <span class="o">=</span> <span class="n">AskMethodToImprove</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">UserSatisfied</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>              
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;method:&quot;</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Minimal bead brightness&quot;</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">GetIntegerInput</span><span class="p">(</span><span class="s2">&quot;Reduce &gt;Minimal bead brightness&lt; from </span><span class="si">%d</span><span class="s2"> to (must be integer): &quot;</span>\
+                                  <span class="o">%</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Minimal bead brightness&quot;</span><span class="p">])</span>
+    
+            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Minimal bead brightness&quot;</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">GetIntegerInput</span><span class="p">(</span><span class="s2">&quot;Enhance &gt;Minimal bead brightness&lt; from </span><span class="si">%d</span><span class="s2"> to (must be integer): &quot;</span>\
+                                  <span class="o">%</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Minimal bead brightness&quot;</span><span class="p">])</span>
+    
+            <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Separation data&quot;</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">GetNumericalInput</span><span class="p">(</span><span class="s2">&quot;Reduce &gt;Separation data&lt; from </span><span class="si">%d</span><span class="s2"> to (must be integer): &quot;</span>\
+                                  <span class="o">%</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Separation data&quot;</span><span class="p">])</span>
+                
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Separation data&quot;</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="n">GetNumericalInput</span><span class="p">(</span><span class="s2">&quot;Enhance &gt;Separation data&lt; from </span><span class="si">%d</span><span class="s2"> to (must be integer): &quot;</span>\
+                                  <span class="o">%</span><span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Find&quot;</span><span class="p">][</span><span class="s2">&quot;Separation data&quot;</span><span class="p">])</span>
+            
+        <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">WriteJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">settings</span><span class="p">)</span>  
+    
+    <span class="k">return</span> <span class="n">obj_first</span></div>
+    
+
+
+<div class="viewcode-block" id="SpotSize"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.AdjustSettings.SpotSize">[docs]</a><span class="k">def</span> <span class="nf">SpotSize</span><span class="p">(</span><span class="n">rawframes_rot</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimize the diameter of the Particles</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">UserSatisfied</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">try_diameter</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">UserSatisfied</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;UserSatisfied? : &#39;</span><span class="p">,</span> <span class="n">UserSatisfied</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Try diameter:&#39;</span> <span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">try_diameter</span><span class="p">))</span>
+        <span class="n">obj_all</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">batch_np</span><span class="p">(</span><span class="n">rawframes_rot</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">UseLog</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">diameter</span> <span class="o">=</span> <span class="n">try_diameter</span><span class="p">)</span>
+        <span class="n">tp</span><span class="o">.</span><span class="n">subpx_bias</span><span class="p">(</span><span class="n">obj_all</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">pause</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">UserSatisfied</span> <span class="o">=</span> <span class="n">AskIfUserSatisfied</span><span class="p">(</span><span class="s1">&#39;The histogramm should be flat. They should not have a dip in the middle!. Are you satisfied?&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">UserSatisfied</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">try_diameter</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">try_diameter</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+            
+    
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Your diameter should be (update JSON manually):&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">try_diameter</span><span class="p">))</span>
+    
+    <span class="k">return</span></div>
+    
+
+<div class="viewcode-block" id="FindROI"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.AdjustSettings.FindROI">[docs]</a><span class="k">def</span> <span class="nf">FindROI</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Show the max of all images to show where the ROI is.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">my_max</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">max_rawframes</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">my_max</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Chose the ROI of x and y for min and max value accoring your interest. Insert the values in your json file.&#39;</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Stefan Weidlich und Ronny Förster.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>
