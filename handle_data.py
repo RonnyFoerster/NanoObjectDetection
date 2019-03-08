@@ -214,7 +214,9 @@ def ReadData2Numpy(ParameterJsonFile):
     DoSimulation = settings["Simulation"]["SimulateData"]
     
     if DoSimulation == 1:
-        print("No data. Do a simulation later on")
+        print("No data. The simulation is not done NOW, because it does not provide an image\
+              it provides already the particle positions. Thus it is done in \
+              nd.get_trajectorie.FindSpots.")
         rawframes_np = 0
         
         

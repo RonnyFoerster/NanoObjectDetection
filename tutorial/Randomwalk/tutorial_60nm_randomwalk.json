@@ -27,15 +27,15 @@
           "data_folder_name": "",
           "data_type": "",
           "DefaultParameterJsonFile": "",
-          "json": "Z:\\Datenauswertung\\Simulation\\\\Randomwalk\\tutorial_60nm_randomwalk.json"
+          "json": "C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\NanoObjectDetection\\tutorial\\Randomwalk\\tutorial_60nm_randomwalk.json"
      },
      "Simulation": {
           "SimulateData": 1,
-          "DiameterOfParticles": 1,
+          "DiameterOfParticles": 60,
           "NumberOfParticles": 1,
-          "NumberOfFrames": 2000,
+          "NumberOfFrames": 5000,
           "mass": 1000,
-          "EstimationPrecision": 0,
+          "EstimationPrecision": 0.2,
           "Max_traj_length": 500
      },
      "ROI": {
@@ -126,16 +126,18 @@
           "Histogramm_Show": 1,
           "Histogramm_Save": 1,
           "Histogramm_Bins_Auto": 1,
-          "Histogramm_Bins": 16,
+          "Histogramm_Bins": 3,
           "Histogramm_min_max_auto": 1,
           "Histogramm_min": 40.0,
-          "Histogramm_max": 70.0,
-          "DiamOverTraj_Show": 1,
-          "DiamOverTraj_Save": 1,
+          "Histogramm_max": 90.0,
+          "DiamOverTraj_Show": 0,
+          "DiamOverTraj_Save": 0,
           "fontsize": 14,
-          "SaveFolder": "C:\\Users\\foersterronny\\Desktop\\TryNanoObjectDetection",
-          "SaveProperties": "C:\\Users\\foersterronny\\Desktop\\TryNanoObjectDetection",
-          "dpi": 300
+          "SaveFolder": "C:\\Users\\work\\Desktop\\TryTutorial\\RandomWalk",
+          "save_json": 1,
+          "SaveProperties": "C:\\Users\\work\\Desktop\\TryTutorial\\RandomWalk\\190308\\12_01_19_Diameter Histogramm.json",
+          "dpi": 300,
+          "save_data2csv": 1
      },
      "Old": {
           "Min displacement": 5,

@@ -289,8 +289,7 @@ def GetPlotParameters(settings):
 
 
 
-def export(save_folder_name, save_image_name, settings = None, use_dpi = None, data = None, data_header = None,
-           save_json = 1, save_data2cs = 1):    
+def export(save_folder_name, save_image_name, settings = None, use_dpi = None, data = None, data_header = None):    
     import os.path
     import NanoObjectDetection as nd
     if settings is None:
@@ -298,8 +297,8 @@ def export(save_folder_name, save_image_name, settings = None, use_dpi = None, d
             sys.exit("need settings or dpi!")
     else:
         use_dpi, settings = nd.handle_data.SpecificValueOrSettings(use_dpi,settings, "Plot", "dpi")
-        save_json, settings = nd.handle_data.SpecificValueOrSettings(save_json,settings, "Plot", "save_json")
-        save_data2cs, settings = nd.handle_data.SpecificValueOrSettings(save_data2cs,settings, "Plot", "save_data2cs")
+        save_json         = settings["Plot"]["save_json"]
+        save_data2csv     = settings["Plot"]["save_data2csv"]
         
     use_dpi = int(use_dpi)
     
@@ -320,27 +319,33 @@ def export(save_folder_name, save_image_name, settings = None, use_dpi = None, d
     plt.savefig(entire_path_image, dpi= use_dpi, bbox_inches='tight')
     print('Figure saved')    
 
+#    Image.open(entire_path_image).show()
+    
+
     #here comes the json parameter file 
-    file_name_json = '%s_%s.json'.format( date=datetime.datetime.now()) %(time_string, save_image_name)
-    entire_path_json = my_dir_name +  file_name_json
-    
-    if settings is None:
-        settings = 0
-    else:
-        settings["Plot"]["SaveProperties"] = entire_path_json
-    
-        with open(entire_path_json, 'w') as outfile:
-            json.dump(settings, outfile, sort_keys=True, indent=4)
-     
-    Image.open(entire_path_image).show()
-    if (data is None) == False:
-            #here comes the data file 
-            data_name_csv = '%s_%s.csv'.format( date=datetime.datetime.now()) %(time_string, save_image_name)
-            entire_path_csv = my_dir_name +  data_name_csv
-            if type(data) == np.ndarray:
-                np.savetxt(entire_path_csv, data, delimiter="," , fmt='%.10e', header = data_header)
-            else:
-                data.to_csv(entire_path_csv, index = False)
+    if save_json == 1:
+        file_name_json = '%s_%s.json'.format( date=datetime.datetime.now()) %(time_string, save_image_name)
+        entire_path_json = my_dir_name +  file_name_json
+        
+        if settings is None:
+            settings = 0
+        else:
+            settings["Plot"]["SaveProperties"] = entire_path_json
+        
+            with open(entire_path_json, 'w') as outfile:
+                json.dump(settings, outfile, sort_keys=True, indent=4)
+
+    #here comes the csv data file 
+             
+    if save_data2csv == 1:
+        if (data is None) == False:
+                #here comes the data file 
+                data_name_csv = '%s_%s.csv'.format( date=datetime.datetime.now()) %(time_string, save_image_name)
+                entire_path_csv = my_dir_name +  data_name_csv
+                if type(data) == np.ndarray:
+                    np.savetxt(entire_path_csv, data, delimiter="," , fmt='%.10e', header = data_header)
+                else:
+                    data.to_csv(entire_path_csv, index = False)
             
     return settings
 

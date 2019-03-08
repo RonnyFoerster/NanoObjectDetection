@@ -46,7 +46,7 @@ tube lens length.
 | key: Viscocity
 | description: Viscocitiy of the fluid
 | example: 9.5e-16
-| unit: TODO
+| unit: Ns/(um^2) = 1E-12 * Ns(m^2) = 1E-15 * mPa * s
 
 | key: const_Boltz
 | description: Boltzmann constant for the diffusion
@@ -579,6 +579,11 @@ Parameters that define what is ploted, how it looks like and where it is safed.
 | example: "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly"
 | unit:
     
+| key: save_json
+| description: Boolean weather the properties are saved
+| example: 1
+| unit: boolean
+    
 | key: SaveProperties
 | description: The json file is saved along with the image. This makes it reproduceable
 | example: "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190305\\16_16_05_Diameter Histogramm.json"
@@ -588,7 +593,14 @@ Parameters that define what is ploted, how it looks like and where it is safed.
 | description: dpi of the saved image
 | example: 300
 | unit: dpi
+
+| key: save_data2csv
+| description: Boolean weather the data is saved
+| example: 1
+| unit: boolean
    
+
+          "": 0
 ########################################################################################################################
 
 

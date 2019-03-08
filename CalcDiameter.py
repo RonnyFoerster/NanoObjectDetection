@@ -71,7 +71,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     #
     # binning = 25 # Amount of bins used in histogram
     '''
-    
+
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
         
     microns_per_pixel = settings["MSD"]["effective_Microns_per_pixel"]
