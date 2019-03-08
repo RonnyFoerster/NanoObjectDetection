@@ -16,6 +16,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('C:/ProgramData/Anaconda3/Lib/site-packages/NanoObjectDetection'))
+sys.path.insert(0, os.path.abspath('C:/ProgramData/Anaconda3/Lib/site-packages/NanoObjectDetection/tutorial'))
 
 
 # -- Project information -----------------------------------------------------
@@ -72,6 +73,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # unit titles (such as .. function::).
 #
 add_module_names = False
+
+autodoc_member_order = 'bysource'
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None

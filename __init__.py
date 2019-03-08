@@ -3,6 +3,8 @@
 Created on Wed Feb  6 09:34:54 2019
 
 @author: foersterronny
+
+
 """
 from . import CheckSystem
 from . import AdjustSettings
@@ -16,7 +18,10 @@ from . import PreProcessing
 from . import Simulation
 from . import visualize
 
+from . import Tutorial
 from . import standard_json
+
+
 
 
 # you can run the Example code

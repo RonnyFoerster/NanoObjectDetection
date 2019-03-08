@@ -126,18 +126,18 @@
           "Histogramm_Show": 1,
           "Histogramm_Save": 1,
           "Histogramm_Bins_Auto": 1,
-          "Histogramm_Bins": 5,
+          "Histogramm_Bins": 2,
           "Histogramm_min_max_auto": 1,
           "Histogramm_min": 40.0,
-          "Histogramm_max": 70.0,
+          "Histogramm_max": 60.0,
           "DiamOverTraj_Show": 1,
           "DiamOverTraj_Save": 0,
           "fontsize": 14,
           "SaveFolder": "C:\\Users\\foersterronny\\Desktop\\TryNanoObjectDetection",
+          "save_json": 0,
           "SaveProperties": "C:\\Users\\foersterronny\\Desktop\\TryNanoObjectDetection\\190307\\16_06_04_Diameter Histogramm.json",
           "dpi": 300,
-          "save_json": 1,
-          "save_data2cs": 1
+          "save_data2csv": 1
      },
      "Old": {
           "Min displacement": 5,

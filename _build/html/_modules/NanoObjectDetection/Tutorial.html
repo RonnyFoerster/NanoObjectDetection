@@ -1,0 +1,529 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>NanoObjectDetection.Tutorial &#8212; NanoObjectDetection  documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for NanoObjectDetection.Tutorial</h1><div class="highlight"><pre>
+<span></span><span class="c1"># coding: utf-8</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">THIS IS A TUTORIAL FOR THE NANOOBEJCTDETECTION PACKAGE</span>
+
+<span class="sd">You can run it all at once. But it is of more use to go through it block by block and always have a look at your json file</span>
+
+<span class="sd">It contains a random walk, an ARHCF image and a nanobore (under construction)</span>
+
+<span class="sd">For some useful information it is sometime good to lock at the SAME step in ANOTHER example.</span>
+
+<span class="sd">INFORMATION:</span>
+<span class="sd">    </span>
+<span class="sd">1. Copy the tutorial json file to your system (not in the package folder)</span>
+
+<span class="sd">2. Open the json file with python/ spyder, etc</span>
+
+<span class="sd">    a.	Change the entry under “File” &gt; “json” to path + name of the json file</span>
+<span class="sd">    </span>
+<span class="sd">        i.	E.g:  &quot;C:\\RonnyFoerster\\tutorial_60nm_randomwalk.json&quot;</span>
+<span class="sd">        </span>
+<span class="sd">    b.	Change the entry under “Plot” &gt; “SaveFolder” to the path where the images shall be safed</span>
+<span class="sd">    </span>
+<span class="sd">        i.	E.g: “C:\\Users\\foersterronny\\Desktop\\TryNanoObjectDetection”</span>
+<span class="sd">        </span>
+<span class="sd">    c.	Change the entry under “Plot” &gt; “SaveFolder” to the path where the properties shall be safed</span>
+<span class="sd">    </span>
+<span class="sd">        i.	E.g: “C:\\Users\\foersterronny\\Desktop\\TryNanoObjectDetection”</span>
+<span class="sd">        </span>
+<span class="sd">    d.	Safe and close</span>
+<span class="sd">        </span>
+<span class="sd">    e.	Change “ParameterJsonFile” to path + name of the json file</span>
+<span class="sd">    </span>
+<span class="sd">        i.	E.g:  &quot;C:\\RonnyFoerster\\190304_60nm_randomwalk.json&quot;</span>
+<span class="sd">        </span>
+<span class="sd">    f.	Run the code</span>
+
+<span class="sd">from Stefan Weidlich and Ronny Förster</span>
+
+<span class="sd">******************************************************************************</span>
+<span class="sd">Importing neccessary libraries</span>
+
+<span class="sd">Problem fixing: If you get get the &quot;ModuleNotFoundError&quot; you have to install</span>
+<span class="sd">the missing package. This can be for example in the Anaconda Promt (run as Admin)</span>
+<span class="sd">To find out what you have write in there... google is your friend</span>
+<span class="sd">Running this the first time might take a while till all the packages are installed</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># Standard Libraries</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">unicode_literals</span><span class="p">,</span> <span class="n">print_function</span> <span class="c1"># For compatibility with Python 2 and 3</span>
+<span class="kn">from</span> <span class="nn">importlib</span> <span class="k">import</span> <span class="n">reload</span> <span class="c1"># only used for debugging --&gt; reload(package_name)</span>
+
+<span class="c1"># Own Library</span>
+<span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
+
+
+
+<div class="viewcode-block" id="RonnyRandomWalk"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.Tutorial.RonnyRandomWalk">[docs]</a><span class="k">def</span> <span class="nf">RonnyRandomWalk</span><span class="p">():</span> 
+    <span class="c1">#%% Information</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Here comes the first tutorial - the RANDOM walk </span>
+<span class="sd">    The data is first simulated and then analyzed</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+     
+    <span class="c1"># path of parameter json file</span>
+    <span class="n">ParameterJsonFile</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;C:\ProgramData\Anaconda3\Lib\site-packages\NanoObjectDetection\tutorial\Randomwalk\tutorial_60nm_randomwalk.json&#39;</span>
+
+    <span class="c1">#%% check if the python version and the library are good</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Python and Trackpy have a lot of version. The script does not work for the &#39;old&#39; versions</span>
+<span class="sd">    Thus they are checked here, if they meet the minimum requirements.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nd</span><span class="o">.</span><span class="n">CheckSystem</span><span class="o">.</span><span class="n">CheckAll</span><span class="p">()</span>
+    
+    
+    <span class="c1">#%% find the objects</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simulate Data points</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">rawframes_rot</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">obj_all</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">FindSpots</span><span class="p">(</span><span class="n">rawframes_rot</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    
+    
+    <span class="c1">#%% form trajectories of valid particle positions</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Link the particles to a trajectory</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t1_orig</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">link_df</span><span class="p">(</span><span class="n">obj_all</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">SearchFixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> 
+    
+    
+    <span class="c1">#%% remove to short trajectories</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Throw away to short trajectoies</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    Change in json and run everything from simulation again</span>
+<span class="sd">        a1) change: Exp / fps</span>
+<span class="sd">        --&gt; reduce and more time passes between two measurements linking fails more often</span>
+<span class="sd">        a2) change: Simulation / Diameter</span>
+<span class="sd">        --&gt; reduce and particles diffuse faster --&gt; linking fails more often</span>
+<span class="sd">        a3) change: Simulation / EstimationPrecision</span>
+<span class="sd">        --&gt; reduce and particles seems to diffuse faster due to unprecise position measurement --&gt; linking fails more often</span>
+<span class="sd">        b) change: Link / Max displacement --&gt; play with a and b</span>
+<span class="sd">        --&gt; reduce a --&gt; enhance b to enable linking again</span>
+<span class="sd">        c) change: Split / Max_traj_length    </span>
+<span class="sd">     </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t2_long</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">filter_stubs</span><span class="p">(</span><span class="n">t1_orig</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">FixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">BeforeDriftCorrection</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+       
+    
+    
+    <span class="c1">#%% identify and close gaps in the trajectory</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify and close gaps</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    The simulation does not have gaps - ToDo (?)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t3_gapless</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">close_gaps</span><span class="p">(</span><span class="n">t2_long</span><span class="p">)</span>
+    
+    
+    
+    <span class="c1">#%% calculate intensity fluctuations as a sign of wrong assignment</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate intensity fluctuations</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    The simulation does not have fluctuations - ToDo (?)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t3_gapless</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">calc_intensity_fluctuations</span><span class="p">(</span><span class="n">t3_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    
+    
+    <span class="c1">#%% split trajectories if necessary (e.g. to large intensity jumps)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Split doubted trajectories</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    The simulation does not have doubts - ToDo - simulate several particles that cross (?)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t4_cutted</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">split_traj</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    
+    <span class="c1">#%% drift correction</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Drift correction</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    The simulation does not have drift - ToDo (?)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t5_no_drift</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">Drift</span><span class="o">.</span><span class="n">DriftCorrection</span><span class="p">(</span><span class="n">t4_cutted</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">PlotGlobalDrift</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+    
+    
+    <span class="c1">#%% only long trajectories are used in the msd plort in order to get a good fit</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove to short trajectories</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    Change in json and run everything from simulation again</span>
+<span class="sd">        a) change: Simulation / NumberOfFrames</span>
+<span class="sd">        b) change: Link / Min_tracking_frames</span>
+<span class="sd">        c) change: Split / Max_traj_length    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t6_final</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">filter_stubs</span><span class="p">(</span><span class="n">t5_no_drift</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">FixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">BeforeDriftCorrection</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+    
+    
+    <span class="c1">#%% calculate the msd and process to diffusion and diameter</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove to short trajectories</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        a) change: Simulation / EstimationPrecision (run from simulation again)</span>
+<span class="sd">        --&gt; higher error in MSD --&gt; diameter has larger error</span>
+<span class="sd">        b) change: Split / Max_traj_length</span>
+<span class="sd">        --&gt; longer trajectorie length leads to better results</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">any_successful_check</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">CalcDiameter</span><span class="o">.</span><span class="n">Main</span><span class="p">(</span><span class="n">t6_final</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">MSD_fit_Show</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    
+    <span class="c1">#sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)</span>
+    
+    <span class="c1">#%% visualiz results</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Play with all the paramters in the plot part</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">nd</span><span class="o">.</span><span class="n">visualize</span><span class="o">.</span><span class="n">PlotDiameters</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">any_successful_check</span><span class="p">)</span></div>
+    
+    
+    
+    
+
+
+
+
+
+
+
+<div class="viewcode-block" id="MonaARHCF"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.Tutorial.MonaARHCF">[docs]</a><span class="k">def</span> <span class="nf">MonaARHCF</span><span class="p">():</span> 
+    <span class="c1">#%% Information</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Here comes the Tutorial of the ARHCF fiber</span>
+<span class="sd">    </span>
+<span class="sd">    Data acquired by Mona Nissen (Au50_922fps_mainChanOnly_16s_0-5msET.tif). You see just a subimage (rawframes_np[:,:,985:1130]; Au50_922fps_mainChanOnly_16s_0-5msET_roix_985_1130.tif) of the entire data set, due to copyright and limited space on github.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># path of parameter json file</span>
+    <span class="n">ParameterJsonFile</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;C:\ProgramData\Anaconda3\Lib\site-packages\NanoObjectDetection\tutorial\ARHCF_50nm\tutorial_50nm_beads.json&#39;</span>
+
+    <span class="c1">#%% check if the python version and the library are good</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Python and Trackpy have a lot of version. The script does not work for the &#39;old&#39; versions</span>
+<span class="sd">    Thus they are checked here, if they meet the minimum requirements.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nd</span><span class="o">.</span><span class="n">CheckSystem</span><span class="o">.</span><span class="n">CheckAll</span><span class="p">()</span>
+    
+    
+    <span class="c1">#%% read in the raw data into numpy</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reads in the image</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        The images transfered into the RAM</span>
+<span class="sd">        Other programm load every image when needed - this can be very slow</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rawframes_np</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadData2Numpy</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    
+    <span class="c1">#%% choose ROI if wantend</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Choose a ROI in case not the entire image shall be used. This can be very usefull for setting up a new system,</span>
+<span class="sd">    where you wanna have to processing time short</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        Set the Help --&gt; ROI value to one and see the maximum image of your datastack to localize particles</span>
+<span class="sd">        Try the supersampling by getting a factor in Subsampling --&gt; fac_frame&#39; or fac_xy</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="c1"># ROI (includes a help how to find it)</span>
+    <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Help&quot;</span><span class="p">][</span><span class="s2">&quot;ROI&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">nd</span><span class="o">.</span><span class="n">AdjustSettings</span><span class="o">.</span><span class="n">FindROI</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">)</span>
+    
+    <span class="n">rawframes_ROI</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">UseROI</span><span class="p">(</span><span class="n">rawframes_np</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>    
+    
+    <span class="c1"># supersampling  </span>
+    <span class="n">rawframes_super</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">UseSuperSampling</span><span class="p">(</span><span class="n">rawframes_ROI</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>    
+    
+    
+    <span class="c1">#%% standard image preprocessing</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Standard image processing here</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        Play with all parameters in the preprocessing section</span>
+<span class="sd">        Let it be plotted by changing the values in Plot--&gt; Background_Show or Laserfluctuation_Show to 1</span>
+<span class="sd">        See that by change from 0 to 1 they are switched on off</span>
+<span class="sd">        Try the Background_Save value (1) and save your plot in Plot --&gt; SaveFolder</span>
+<span class="sd">        Save also the json file and the data by changing Plot --&gt; save_json and &quot;save_data2csv&quot; to 1</span>
+<span class="sd">        Look for it in the explorer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="n">rawframes_pre</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">PreProcessing</span><span class="o">.</span><span class="n">Main</span><span class="p">(</span><span class="n">rawframes_super</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    
+    <span class="c1">#%% rotate the images if necessary </span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Try the rotation of the image</span>
+<span class="sd">    </span>
+<span class="sd">    Here is still a bit of work to do</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check if rotated data shall be used or not</span>
+    <span class="n">rawframes_rot</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">RotImages</span><span class="p">(</span><span class="n">rawframes_pre</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>
+       
+    <span class="k">del</span> <span class="n">rawframes_ROI</span><span class="p">,</span> <span class="n">rawframes_super</span><span class="p">,</span> <span class="n">rawframes_pre</span>
+    
+    
+    <span class="c1">#%% help with the parameters for finding objects </span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameter optimization</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        Try the help for getting the right bead brightness and size </span>
+<span class="sd">        Change Help --&gt; Bead brightness or Bead size to 1 and let you help    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Help&quot;</span><span class="p">][</span><span class="s2">&quot;Bead brightness&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">obj_first</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">AdjustSettings</span><span class="o">.</span><span class="n">FindSpot</span><span class="p">(</span><span class="n">rawframes_rot</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Help&quot;</span><span class="p">][</span><span class="s2">&quot;Bead size&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">nd</span><span class="o">.</span><span class="n">AdjustSettings</span><span class="o">.</span><span class="n">SpotSize</span><span class="p">(</span><span class="n">rawframes_rot</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>   
+        
+
+        
+    
+    <span class="c1">#%% find the objects</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simulate Data points</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">obj_all</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">FindSpots</span><span class="p">(</span><span class="n">rawframes_rot</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    
+    
+    <span class="c1">#%% form trajectories of valid particle positions</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Link the particles to a trajectory</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t1_orig</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">link_df</span><span class="p">(</span><span class="n">obj_all</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">SearchFixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> 
+    
+    
+    <span class="c1">#%% remove to short trajectories</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Throw away to short trajectoies</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    Change in json and run everything from simulation again</span>
+<span class="sd">        a1) change: Exp / fps</span>
+<span class="sd">        --&gt; reduce and more time passes between two measurements linking fails more often</span>
+<span class="sd">        a2) change: Simulation / Diameter</span>
+<span class="sd">        --&gt; reduce and particles diffuse faster --&gt; linking fails more often</span>
+<span class="sd">        a3) change: Simulation / EstimationPrecision</span>
+<span class="sd">        --&gt; reduce and particles seems to diffuse faster due to unprecise position measurement --&gt; linking fails more often</span>
+<span class="sd">        b) change: Link / Max displacement --&gt; play with a and b</span>
+<span class="sd">        --&gt; reduce a --&gt; enhance b to enable linking again</span>
+<span class="sd">        c) change: Split / Max_traj_length    </span>
+<span class="sd">     </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t2_long</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">filter_stubs</span><span class="p">(</span><span class="n">t1_orig</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">FixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">BeforeDriftCorrection</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+       
+    
+    
+    <span class="c1">#%% identify and close gaps in the trajectory</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify and close gaps</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    The simulation does not have gaps - ToDo (?)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t3_gapless</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">close_gaps</span><span class="p">(</span><span class="n">t2_long</span><span class="p">)</span>
+    
+    
+    
+    <span class="c1">#%% calculate intensity fluctuations as a sign of wrong assignment</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate intensity fluctuations</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    The simulation does not have fluctuations - ToDo (?)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t3_gapless</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">calc_intensity_fluctuations</span><span class="p">(</span><span class="n">t3_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    
+    
+    <span class="c1">#%% split trajectories if necessary (e.g. to large intensity jumps)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Split doubted trajectories</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    The simulation does not have doubts - ToDo - simulate several particles that cross (?)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t4_cutted</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">split_traj</span><span class="p">(</span><span class="n">t2_long</span><span class="p">,</span> <span class="n">t3_gapless</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">)</span>
+    
+    
+    <span class="c1">#%% drift correction</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Drift correction</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    The simulation does not have drift - ToDo (?)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t5_no_drift</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">Drift</span><span class="o">.</span><span class="n">DriftCorrection</span><span class="p">(</span><span class="n">t4_cutted</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">PlotGlobalDrift</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+    
+    
+    <span class="c1">#%% only long trajectories are used in the msd plort in order to get a good fit</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove to short trajectories</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">    Change in json and run everything from simulation again</span>
+<span class="sd">        a) change: Simulation / NumberOfFrames</span>
+<span class="sd">        b) change: Link / Min_tracking_frames</span>
+<span class="sd">        c) change: Split / Max_traj_length    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">t6_final</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">get_trajectorie</span><span class="o">.</span><span class="n">filter_stubs</span><span class="p">(</span><span class="n">t5_no_drift</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">FixedParticles</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">BeforeDriftCorrection</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+    
+    
+    <span class="c1">#%% calculate the msd and process to diffusion and diameter</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove to short trajectories</span>
+<span class="sd">    </span>
+<span class="sd">    Things to learn/ try:</span>
+<span class="sd">        a) change: Simulation / EstimationPrecision (run from simulation again)</span>
+<span class="sd">        --&gt; higher error in MSD --&gt; diameter has larger error</span>
+<span class="sd">        b) change: Split / Max_traj_length</span>
+<span class="sd">        --&gt; longer trajectorie length leads to better results</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">any_successful_check</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">CalcDiameter</span><span class="o">.</span><span class="n">Main</span><span class="p">(</span><span class="n">t6_final</span><span class="p">,</span> <span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">obj_all</span><span class="p">,</span> <span class="n">MSD_fit_Show</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    
+    <span class="c1">#sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)</span>
+    
+    <span class="c1">#%% visualiz results</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Play with all the paramters in the plot part</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">nd</span><span class="o">.</span><span class="n">visualize</span><span class="o">.</span><span class="n">PlotDiameters</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">,</span> <span class="n">sizes_df_lin</span><span class="p">,</span> <span class="n">any_successful_check</span><span class="p">)</span></div>
+
+
+
+
+
+<div class="viewcode-block" id="StefanNanoBore"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.Tutorial.StefanNanoBore">[docs]</a><span class="k">def</span> <span class="nf">StefanNanoBore</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Stefans stuff&quot;</span><span class="p">)</span></div>
+
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">NanoObjectDetection  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2019, Stefan Weidlich und Ronny Förster.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>

@@ -33,7 +33,7 @@
           "SimulateData": 1,
           "DiameterOfParticles": 60,
           "NumberOfParticles": 1,
-          "NumberOfFrames": 5000,
+          "NumberOfFrames": 600,
           "mass": 1000,
           "EstimationPrecision": 0.1,
           "Max_traj_length": 500
