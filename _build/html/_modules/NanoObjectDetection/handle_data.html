@@ -246,16 +246,18 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reads the images in</span>
 <span class="sd">    distinguishes between:</span>
-<span class="sd">        tif_series</span>
-<span class="sd">        tif_stack</span>
-<span class="sd">        fits</span>
+<span class="sd">    # tif_series</span>
+<span class="sd">    # tif_stack</span>
+<span class="sd">    # fits</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">settings</span> <span class="o">=</span> <span class="n">nd</span><span class="o">.</span><span class="n">handle_data</span><span class="o">.</span><span class="n">ReadJson</span><span class="p">(</span><span class="n">ParameterJsonFile</span><span class="p">)</span>
     
     <span class="n">DoSimulation</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Simulation&quot;</span><span class="p">][</span><span class="s2">&quot;SimulateData&quot;</span><span class="p">]</span>
     
     <span class="k">if</span> <span class="n">DoSimulation</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No data. Do a simulation later on&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No data. The simulation is not done NOW, because it does not provide an image</span><span class="se">\</span>
+<span class="s2">              it provides already the particle positions. Thus it is done in </span><span class="se">\</span>
+<span class="s2">              nd.get_trajectorie.FindSpots.&quot;</span><span class="p">)</span>
         <span class="n">rawframes_np</span> <span class="o">=</span> <span class="mi">0</span>
         
         

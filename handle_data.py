@@ -205,9 +205,9 @@ def ReadData2Numpy(ParameterJsonFile):
     """
     Reads the images in
     distinguishes between:
-        tif_series
-        tif_stack
-        fits
+    # tif_series
+    # tif_stack
+    # fits
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     

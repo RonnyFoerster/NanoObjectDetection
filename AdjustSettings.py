@@ -71,10 +71,10 @@ def AskDoItAgain():
 def AskMethodToImprove():
     """
     Ask which method shall be applied to improve the particle IDENTIFICATION
-    '1 - Bright (isolated) spots not recognized \n'
-    '2 - Spots where nothing is to be seen \n'
-    '3 - Bright (non-isolated) spots not recognized but you would like to have them both \n'
-    '4 - Much more recognized spots than I think I have particles \n')
+    1 - Bright (isolated) spots not recognized \n
+    2 - Spots where nothing is to be seen \n
+    3 - Bright (non-isolated) spots not recognized but you would like to have them both \n
+    4 - Much more recognized spots than I think I have particles \n
     """
     valid_answer = False
     while valid_answer == False:

@@ -62,22 +62,11 @@
 <dl class="function">
 <dt id="NanoObjectDetection.AdjustSettings.AskMethodToImprove">
 <code class="descname">AskMethodToImprove</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NanoObjectDetection/AdjustSettings.html#AskMethodToImprove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.AskMethodToImprove" title="Permalink to this definition">¶</a></dt>
-<dd><blockquote>
-<div>Ask which method shall be applied to improve the particle IDENTIFICATION
-‘1 - Bright (isolated) spots not recognized</div></blockquote>
-<dl class="docutils">
-<dt>‘</dt>
-<dd>‘2 - Spots where nothing is to be seen</dd>
-</dl>
-<dl class="docutils">
-<dt>‘</dt>
-<dd>‘3 - Bright (non-isolated) spots not recognized but you would like to have them both</dd>
-</dl>
-<dl class="docutils">
-<dt>‘</dt>
-<dd>‘4 - Much more recognized spots than I think I have particles</dd>
-</dl>
-<p>‘)</p>
+<dd><p>Ask which method shall be applied to improve the particle IDENTIFICATION
+1 - Bright (isolated) spots not recognized</p>
+<p>2 - Spots where nothing is to be seen</p>
+<p>3 - Bright (non-isolated) spots not recognized but you would like to have them both</p>
+<p>4 - Much more recognized spots than I think I have particles</p>
 </dd></dl>
 
 <dl class="function">
@@ -476,11 +465,10 @@ eg.: decace = +3 –&gt; round to 3.141</p>
 <dt id="NanoObjectDetection.handle_data.ReadData2Numpy">
 <code class="descname">ReadData2Numpy</code><span class="sig-paren">(</span><em>ParameterJsonFile</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NanoObjectDetection/handle_data.html#ReadData2Numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.handle_data.ReadData2Numpy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads the images in
-distinguishes between:</p>
-<blockquote>
-<div>tif_series
-tif_stack
-fits</div></blockquote>
+distinguishes between:
+# tif_series
+# tif_stack
+# fits</p>
 </dd></dl>
 
 <dl class="function">
@@ -602,8 +590,8 @@ can be used to remove laser fluctuations</p>
 </div>
 <div class="section" id="module-NanoObjectDetection.standard_json">
 <span id="nanoobjectdetection-standard-json-module"></span><h2>NanoObjectDetection.standard_json module<a class="headerlink" href="#module-NanoObjectDetection.standard_json" title="Permalink to this headline">¶</a></h2>
-<p>IMPORTANT:</p>
-<p>All the experimental parameters are find in a <a href="#id1"><span class="problematic" id="id2">*</span></a>.json file.
+<p>IMPORTANT:
+All the experimental parameters are find in a json file.
 The json datatype is quite strict with the format. The last entry of a key should not end whith a ” , ” . Booleans are written as 0 and 1.
 A path does not except ” ” instead you have to use ” “</p>
 <hr class="docutils" />
@@ -635,12 +623,10 @@ A path does not except ” ” instead you have to use ” “</p>
 </div>
 <div class="line-block">
 <div class="line">key: Microns_per_pixel</div>
-<div class="line">description: size of a camera pixel in object coordinate. This is given by the pixel pitch of the CCD and the </div>
+<div class="line">description: size of a camera pixel in object coordinate. This is given by the pixel pitch of the CCD and the magnification of the system. Be aware that the magnification written on an objective is only valid for the correct tube lens length.</div>
+<div class="line">example: 0.63</div>
+<div class="line">unit: µm/px</div>
 </div>
-<p>magnification of the system. Be aware that the magnification written on an objective is only valid for the correct 
-tube lens length.
-| example: 0.63
-| unit: µm/px</p>
 <div class="line-block">
 <div class="line">key: Temperature</div>
 <div class="line">description: temperature of the specimen</div>
@@ -651,7 +637,7 @@ tube lens length.
 <div class="line">key: Viscocity</div>
 <div class="line">description: Viscocitiy of the fluid</div>
 <div class="line">example: 9.5e-16</div>
-<div class="line">unit: TODO</div>
+<div class="line">unit: Ns/(um^2) = 1E-12 * Ns(m^2) = 1E-15 * mPa * s</div>
 </div>
 <div class="line-block">
 <div class="line">key: const_Boltz</div>
@@ -709,11 +695,10 @@ tube lens length.
 </div>
 <div class="line-block">
 <div class="line">key: DefaultParameterJsonFile</div>
-<div class="line">description: If a json file is incomplete, for example due to an update, the json file is completed by the default </div>
+<div class="line">description: If a json file is incomplete, for example due to an update, the json file is completed by the default value, whose path defined in here.</div>
+<div class="line">example: “Z:Datenauswertung9_ARHCF9080290225_default.json”</div>
+<div class="line">unit: </div>
 </div>
-<p>value, whose path defined in here.
-| example: “Z:Datenauswertung9_ARHCF9080290225_default.json”
-| unit:</p>
 <div class="line-block">
 <div class="line">key: json</div>
 <div class="line">description: path of the json file (if not given the code will write it into it.)</div>
@@ -761,11 +746,10 @@ tube lens length.
 </div>
 <div class="line-block">
 <div class="line">key: Max_traj_length</div>
-<div class="line">description: Maximum trajectory length. Longer trajectories are cutted and treates as independent particles at </div>
+<div class="line">description: Maximum trajectory length. Longer trajectories are cutted and treates as independent particles at different time points</div>
+<div class="line">example: 300</div>
+<div class="line">unit: frames</div>
 </div>
-<p>different time points
-| example: 300
-| unit: frames</p>
 <hr class="docutils" />
 <p>ROI - Region of interest</p>
 <p>Here a subregion (ROI) can be defined. This is especially helpfull for debugging, when not the entire image or all frames shall be used for the calculation in order to speed up the calculations. In addition, it can be helpfull if the image is large, but you just wanna evaluate a particle at a very defined region and time.</p>
@@ -904,11 +888,10 @@ A subsampled image is analyzed faster but information is obviously thrown away.<
 </div>
 <div class="line-block">
 <div class="line">key: Estimated particle size</div>
-<div class="line">description: estimated particle size of an object on the camera. This is required for Trackpy to find it with high </div>
+<div class="line">description: estimated particle size of an object on the camera. This is required for Trackpy to find it with high accuaray. The help routine is of use if unknown            </div>
+<div class="line">example: [9.0, 9.0]</div>
+<div class="line">unit: px</div>
 </div>
-<p>accuaray. The help routine is of use if unknown         
-| example: [9.0, 9.0]
-| unit: px</p>
 <div class="line-block">
 <div class="line">key:  Estimated particle size (log-scale)             </div>
 <div class="line">description:  as above (Estimated particle size)</div>
@@ -932,12 +915,10 @@ A subsampled image is analyzed faster but information is obviously thrown away.<
 <p>Parameters to use the Trackpy module to form trajectories of localized objects of different frames.</p>
 <div class="line-block">
 <div class="line">key: Dark time</div>
-<div class="line">description: An object can disappear from on frame to another. A reason can be local intensity fluctuations, for </div>
+<div class="line">description: An object can disappear from on frame to another. A reason can be local intensity fluctuations, for example generated by large stationary objects. The dark time define how long a object can be invisible before defined as lost.</div>
+<div class="line">example: 5</div>
+<div class="line">unit: frames</div>
 </div>
-<p>example generated by large stationary objects. The dark time define how long a object can be invisible before defined 
-as lost.
-| example: 5
-| unit: frames</p>
 <div class="line-block">
 <div class="line">key: Dwell time stationary objects</div>
 <div class="line">description: Number of frames an object must remain at it position in order to be classified as stationary.</div>
@@ -952,26 +933,22 @@ as lost.
 </div>
 <div class="line-block">
 <div class="line">key: Max displacement fix</div>
-<div class="line">description: Maximum movement of a particle that is tested between two frames for beeing stationary. </div>
+<div class="line">description: Maximum movement of a particle that is tested between two frames for beeing stationary. Important: this check musst happen before the drift correction, because stationary objects are independent  from the drift and vice versa.</div>
+<div class="line">example: 0.3</div>
+<div class="line">unit: px</div>
 </div>
-<p>Important: this check musst happen before the drift correction, because stationary objects are independent 
-from the drift and vice versa.
-| example: 0.3
-| unit: px</p>
 <div class="line-block">
 <div class="line">key: Min tracking frames before drift</div>
-<div class="line">description: Minimum length of a trajectory before the drift correction. A too short trajectory is considered</div>
+<div class="line">description: Minimum length of a trajectory before the drift correction. A too short trajectory is considered of beeing wrong assigned or very noise</div>
+<div class="line">example: 15</div>
+<div class="line">unit: frames</div>
 </div>
-<p>of beeing wrong assigned or very noise
-| example: 15
-| unit: frames</p>
 <div class="line-block">
 <div class="line">key: Min_tracking_frames</div>
-<div class="line">description: In order to get a good statistic, the squared deviation must be measured several times. This the </div>
+<div class="line">description: In order to get a good statistic, the squared deviation must be measured several times. This the trajectory lenght must have minium number of frames.</div>
+<div class="line">example: 500</div>
+<div class="line">unit: frames</div>
 </div>
-<p>trajectory lenght must have minium number of frames.
-| example: 500
-| unit: frames</p>
 <hr class="docutils" />
 <p>StationaryObjects</p>
 <p>Some Objects do not move. They might be attached to something. You never know. A subroutine checks it.</p>
@@ -983,45 +960,37 @@ from the drift and vice versa.
 </div>
 <div class="line-block">
 <div class="line">key: Min distance to stationary object</div>
-<div class="line">description: Stationary objects are bad, because they are normally quite large and interfere with neighbouring </div>
+<div class="line">description: Stationary objects are bad, because they are normally quite large and interfere with neighbouring particles, which distracts their localzation. Thus, a maximum distance from moving to stationary objects is defined in pixels bright particle cluster)</div>
+<div class="line">example: 20</div>
+<div class="line">unit: px</div>
 </div>
-<p>particles, which distracts their localzation. Thus, a maximum distance from moving to stationary objects is 
-defined in pixels.
-bright particle cluster)
-| example: 20
-| unit: px</p>
 <hr class="docutils" />
 <p>Split</p>
 <p>Sometimes a trajectory must be cut in two. A reason can be, that the assignment was wrong.</p>
 <div class="line-block">
 <div class="line">key: Max_traj_length</div>
-<div class="line">description: Maximum trajectory length. Longer trajectories are cutted and treates as independent particles at</div>
+<div class="line">description: Maximum trajectory length. Longer trajectories are cutted and treates as independent particles at different time points</div>
+<div class="line">example: 500</div>
+<div class="line">unit: frames</div>
 </div>
-<p>different time points
-| example: 500
-| unit: frames</p>
 <div class="line-block">
 <div class="line">key: Max_traj_length_keep_tail</div>
-<div class="line">description: If a trajectory is cutted, there will be a left over. This ‘tail’ can be kept, so that one </div>
+<div class="line">description: If a trajectory is cutted, there will be a left over. This ‘tail’ can be kept, so that one trajectore is longer (1), or can be discarded (0) so that all trajectories are of equal length.</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
 </div>
-<p>trajectore is longer (1), or can be discarded (0) so that all trajectories are of equal length.
-| example: 1
-| unit: boolean</p>
 <div class="line-block">
 <div class="line">key: Max rel median intensity step</div>
-<div class="line">description: Defines the maximum relativ intensity drop/raise are trajectory can have between to neighbouring pixels.
-If the value is exceeded the risk of a wrong assignment is too large. Thus the trajectory is splitted at this jump. </div>
+<div class="line">description: Defines the maximum relativ intensity drop/raise are trajectory can have between to neighbouring pixels.  If the value is exceeded the risk of a wrong assignment is too large. Thus the trajectory is splitted at this jump. </div>
 <div class="line">example: 0.5</div>
 <div class="line">unit: </div>
 </div>
 <div class="line-block">
 <div class="line">key: ParticleWithLongestTrajBeforeSplit</div>
-<div class="line">description: Particle ID with the longest trajectory. The longest trajectory can be cutted into the most</div>
+<div class="line">description: Particle ID with the longest trajectory. The longest trajectory can be cutted into the most subtrajectories, which can be all evaluated independently, which gives something like a std/ resolution of the measurement / analysis</div>
+<div class="line">example: 42 (this value is inserted by the algorithm)</div>
+<div class="line">unit: ID</div>
 </div>
-<p>subtrajectories, which can be all evaluated independently, which gives something like a std/ resolution of the
-measurement / analysis
-| example: 42 (this value is inserted by the algorithm)
-| unit: ID</p>
 <hr class="docutils" />
 <p>Drift</p>
 <p>A drift can occur during the measurement. The drift needs to be measured and subtracted from the movement in order to 
@@ -1062,11 +1031,10 @@ only be measured if many particles are present.</p>
 <p>Parameters of the mean-squared-displacement fit.</p>
 <div class="line-block">
 <div class="line">key: Amount summands</div>
-<div class="line">description: Minimum number of statistically indepent values at each considered lagtime. If a particles does not </div>
+<div class="line">description: Minimum number of statistically indepent values at each considered lagtime. If a particles does not fulfill this criterion, it is not evaluated further. The higher the value the better the fit.</div>
+<div class="line">example: 30</div>
+<div class="line">unit: </div>
 </div>
-<p>fulfill this criterion, it is not evaluated further. The higher the value the better the fit.
-| example: 30
-| unit:</p>
 <div class="line-block">
 <div class="line">key: Amount lagtimes auto</div>
 <div class="line">description: Boolean if the number of lagtimes for the fit is defined automatically</div>
@@ -1093,11 +1061,10 @@ only be measured if many particles are present.</p>
 </div>
 <div class="line-block">
 <div class="line">key: EstimateHindranceFactor</div>
-<div class="line">description: Boolean if hindrance factor shall be considered</div>
+<div class="line">description: Boolean if hindrance factor shall be considered (good when particle diameter in the range of the fiber diameter)</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
 </div>
-<p>(good when particle diameter in the range of the fiber diameter)
-| example: 1
-| unit: boolean</p>
 <div class="line-block">
 <div class="line">key: EvalOnlyLongestTraj</div>
 <div class="line">description: Boolean if only the longest trajectory shall be evaluated</div>
@@ -1210,6 +1177,12 @@ only be measured if many particles are present.</p>
 <div class="line">unit:</div>
 </div>
 <div class="line-block">
+<div class="line">key: save_json</div>
+<div class="line">description: Boolean weather the properties are saved</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
 <div class="line">key: SaveProperties</div>
 <div class="line">description: The json file is saved along with the image. This makes it reproduceable</div>
 <div class="line">example: “Z:DatenauswertungMona_NissenAu50_922fps_mainChanOnly19030516_16_05_Diameter Histogramm.json”</div>
@@ -1220,6 +1193,12 @@ only be measured if many particles are present.</p>
 <div class="line">description: dpi of the saved image</div>
 <div class="line">example: 300</div>
 <div class="line">unit: dpi</div>
+</div>
+<div class="line-block">
+<div class="line">key: save_data2csv</div>
+<div class="line">description: Boolean weather the data is saved</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
 </div>
 <hr class="docutils" />
 <p>Old</p>
@@ -1384,7 +1363,7 @@ only be measured if many particles are present.</p>
 
 <dl class="function">
 <dt id="NanoObjectDetection.visualize.export">
-<code class="descname">export</code><span class="sig-paren">(</span><em>save_folder_name</em>, <em>save_image_name</em>, <em>settings=None</em>, <em>use_dpi=None</em>, <em>data=None</em>, <em>data_header=None</em>, <em>save_json=1</em>, <em>save_data2cs=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NanoObjectDetection/visualize.html#export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.export" title="Permalink to this definition">¶</a></dt>
+<code class="descname">export</code><span class="sig-paren">(</span><em>save_folder_name</em>, <em>save_image_name</em>, <em>settings=None</em>, <em>use_dpi=None</em>, <em>data=None</em>, <em>data_header=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/NanoObjectDetection/visualize.html#export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#NanoObjectDetection.visualize.export" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">

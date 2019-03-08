@@ -54,6 +54,9 @@
 <span class="c1">#import matplotlib.pyplot as plt # Libraries for plotting</span>
 <span class="kn">import</span> <span class="nn">NanoObjectDetection</span> <span class="k">as</span> <span class="nn">nd</span>
 
+<span class="kn">from</span> <span class="nn">pdb</span> <span class="k">import</span> <span class="n">set_trace</span> <span class="k">as</span> <span class="n">bp</span> <span class="c1">#debugger</span>
+
+
 <span class="c1"># In[]</span>
 <div class="viewcode-block" id="GenerateRandomWalk"><a class="viewcode-back" href="../../docs/NanoObjectDetection.html#NanoObjectDetection.Simulation.GenerateRandomWalk">[docs]</a><span class="k">def</span> <span class="nf">GenerateRandomWalk</span><span class="p">(</span><span class="n">diameter</span><span class="p">,</span> <span class="n">num_particles</span><span class="p">,</span> <span class="n">frames</span><span class="p">,</span> <span class="n">frames_per_second</span><span class="p">,</span> <span class="n">ep</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mass</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">microns_per_pixel</span> <span class="o">=</span> <span class="mf">0.477</span><span class="p">,</span> <span class="n">temp_water</span> <span class="o">=</span> <span class="mi">295</span><span class="p">,</span> <span class="n">visc_water</span> <span class="o">=</span> <span class="mf">9.5e-16</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -76,12 +79,33 @@
     <span class="c1">#frames length of track of simulated particles</span>
     <span class="c1">#num_particles amount of simulated particles</span>
     
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Do random walk with parameters: </span><span class="se">\</span>
+<span class="s2">          </span><span class="se">\n</span><span class="s2"> diameter = </span><span class="si">{}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">          </span><span class="se">\n</span><span class="s2"> num_particles = </span><span class="si">{}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">          </span><span class="se">\n</span><span class="s2"> frames = </span><span class="si">{}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">          </span><span class="se">\n</span><span class="s2"> frames_per_second = </span><span class="si">{}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">          </span><span class="se">\n</span><span class="s2"> ep = </span><span class="si">{}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">          </span><span class="se">\n</span><span class="s2"> mass = </span><span class="si">{}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">          </span><span class="se">\n</span><span class="s2"> microns_per_pixel = </span><span class="si">{}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">          </span><span class="se">\n</span><span class="s2"> temp_water = </span><span class="si">{}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">          </span><span class="se">\n</span><span class="s2"> visc_water = </span><span class="si">{}</span><span class="s2">&quot;</span> \
+          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">diameter</span><span class="p">,</span><span class="n">num_particles</span><span class="p">,</span><span class="n">frames</span><span class="p">,</span><span class="n">frames_per_second</span><span class="p">,</span><span class="n">ep</span><span class="p">,</span><span class="n">mass</span><span class="p">,</span>\
+          <span class="n">microns_per_pixel</span><span class="p">,</span><span class="n">temp_water</span><span class="p">,</span><span class="n">visc_water</span><span class="p">))</span>
+    
+<span class="c1">#    diameter, num_particles, frames, frames_per_second, ep = 0, mass = 1,</span>
+<span class="c1">#    microns_per_pixel = 0.477, temp_water = 295, visc_water = 9.5e-16</span>
+    
     <span class="n">const_Boltz</span> <span class="o">=</span> <span class="mf">1.38e-23</span>
 
-    
-    <span class="n">sim_part_diff</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">const_Boltz</span><span class="o">*</span><span class="n">temp_water</span><span class="o">/</span><span class="p">(</span><span class="mi">6</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span><span class="n">visc_water</span><span class="p">)</span><span class="o">*</span><span class="mf">1e9</span><span class="p">)</span> <span class="o">/</span><span class="n">diameter</span> 
+    <span class="c1">#diffusion constant of the simulated particle</span>
+    <span class="c1"># sim_part_diff = (2*const_Boltz*temp_water/(6*math.pi *visc_water)*1e9) /diameter </span>
+    <span class="n">radius_m</span> <span class="o">=</span> <span class="n">diameter</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="mf">1e-9</span>
+    <span class="n">sim_part_diff</span> <span class="o">=</span> <span class="p">(</span><span class="n">const_Boltz</span><span class="o">*</span><span class="n">temp_water</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">6</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span><span class="n">visc_water</span> <span class="o">*</span> <span class="n">radius_m</span><span class="p">)</span>
+    <span class="c1"># unit sim_part_diff = um^2/s</span>
+
     <span class="c1"># [mum^2/s] x-diffusivity of simulated particle </span>
-    <span class="n">sim_part_sigma_x</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">sim_part_diff</span> <span class="o">/</span> <span class="n">frames_per_second</span><span class="p">)</span><span class="o">/</span><span class="n">microns_per_pixel</span> 
+    <span class="n">sim_part_sigma_um</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">sim_part_diff</span> <span class="o">/</span> <span class="n">frames_per_second</span><span class="p">)</span>
+    <span class="n">sim_part_sigma_x</span> <span class="o">=</span> <span class="n">sim_part_sigma_um</span> <span class="o">/</span> <span class="n">microns_per_pixel</span> 
     <span class="c1"># [pixel/frame] st.deviation for simulated particle&#39;s x-movement</span>
     
     <span class="c1"># Generating list to hold frames:</span>
@@ -107,7 +131,11 @@
                               <span class="s1">&#39;frame&#39;</span><span class="p">:</span><span class="n">sim_part_frame_list</span><span class="p">,</span> <span class="s1">&#39;particle&#39;</span><span class="p">:</span><span class="n">sim_part_part</span><span class="p">})</span>
     <span class="n">sim_part_tm</span><span class="o">.</span><span class="n">x</span><span class="o">=</span><span class="n">sim_part_tm</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;particle&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
     <span class="n">sim_part_tm</span><span class="o">.</span><span class="n">index</span><span class="o">=</span><span class="n">sim_part_tm</span><span class="o">.</span><span class="n">frame</span>
+
+    <span class="c1"># here come the localization precision ep on top    </span>
+    <span class="n">sim_part_tm</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">sim_part_tm</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">ep</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">sim_part_tm</span><span class="o">.</span><span class="n">x</span><span class="p">))</span>
     
+
     <span class="c1"># check if tm is gaussian distributed</span>
     <span class="n">my_mean</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">my_var</span> <span class="o">=</span> <span class="p">[]</span>
@@ -139,6 +167,7 @@
     <span class="n">microns_per_pixel</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Exp&quot;</span><span class="p">][</span><span class="s2">&quot;Microns_per_pixel&quot;</span><span class="p">]</span>
     <span class="n">temp_water</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Exp&quot;</span><span class="p">][</span><span class="s2">&quot;Temperature&quot;</span><span class="p">]</span>
     <span class="n">visc_water</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;Exp&quot;</span><span class="p">][</span><span class="s2">&quot;Viscocity&quot;</span><span class="p">]</span>
+
     
     <span class="n">output</span> <span class="o">=</span> <span class="n">GenerateRandomWalk</span><span class="p">(</span><span class="n">diameter</span><span class="p">,</span> <span class="n">num_particles</span><span class="p">,</span> <span class="n">frames</span><span class="p">,</span> <span class="n">frames_per_second</span><span class="p">,</span> \
                                               <span class="n">ep</span> <span class="o">=</span> <span class="n">EstimationPrecision</span><span class="p">,</span> <span class="n">mass</span> <span class="o">=</span> <span class="n">mass</span><span class="p">,</span> \
