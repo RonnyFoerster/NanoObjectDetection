@@ -55,7 +55,7 @@ import os
 abs_path = os.path.dirname(nd.__file__)
 
 #%%
-def RonnyRandomWalk(): 
+def RandomWalk(): 
     #%% Information
     """
     Here comes the first tutorial - the RANDOM walk 
