@@ -139,7 +139,9 @@ Test
           "DiamOverTraj_Save": 1,
           "fontsize": 14,
           "SaveFolder": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly",
+          "save_json": 0,
           "SaveProperties": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190305\\16_16_05_Diameter Histogramm.json",
+          "save_data2csv": 0,
           "dpi": 300
      },
      "Old": {

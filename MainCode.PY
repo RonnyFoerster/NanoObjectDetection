@@ -18,8 +18,8 @@ from importlib import reload # only used for debugging --> reload(package_name)
 import NanoObjectDetection as nd
 
 # path of parameter file
-#ParameterJsonFile = r'C:\ProgramData\Anaconda3\Lib\site-packages\NanoObjectDetection\tutorial\Randomwalk\190306_60nm_randomwalk.json'
-ParameterJsonFile = r'C:\ProgramData\Anaconda3\Lib\site-packages\NanoObjectDetection\tutorial\50nm Beads\tutorial_50nm_beads.json'
+ParameterJsonFile = "Z:\\Datenauswertung\\Torsten_Wieduwilt\\190322\\100nist_2000_40fps_0\\100nist_2000_40fps_0.json"
+
 
 #%% check if the python version and the library are good
 nd.CheckSystem.CheckAll()

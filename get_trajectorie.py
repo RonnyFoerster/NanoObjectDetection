@@ -123,19 +123,32 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             diameter = settings["Find"]["Estimated particle size (log-scale)"]
     
     
-        output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations)
-       
+        output_empty = True
+        
+        while output_empty == True:
+            output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations)
+                   
+            if output.empty:
+                print("Image is empty - reduce Minimal bead brightness")
+                minmass = minmass / 10
+                settings["Find"]["Minimal bead brightness"] = minmass
+            else:
+                output_empty = False
+                
+        
         output['abstime'] = output['frame'] / settings["MSD"]["effective_fps"]
-     
+ 
     
         nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
     
         if SaveFig == True:
-            params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
+            from NanoObjectDetection.PlotProperties import axis_font, title_font
+            
+#            params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
             fig = plt.figure()
 
-            plt.imshow(nd.handle_data.DispWithGamma(rawframes_ROI[0,:,:] ,gamma = gamma))
+            plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma))
             plt.scatter(output["x"],output["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
  
         
@@ -251,14 +264,14 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
         min_distance = settings["StationaryObjects"]["Min distance to stationary object"]
         
     
-        # loop through all stationary objects (cotains position (x,y) and time of existent (frame))
+        # loop through all stationary objects (contains position (x,y) and time of existent (frame))
         num_loop_elements = len(t2_long_fix)
-        for loop_t1_fix in range(0,len(t2_long_fix)):
-            nd.visualize.update_progress("Remove Spots In No Go Areas", (loop_t1_fix+1)/num_loop_elements)
-            #print(loop_t1_fix)
-            
+        for loop_t2_long_fix in range(0,len(t2_long_fix)):
+            nd.visualize.update_progress("Remove Spots In No Go Areas", (loop_t2_long_fix+1)/num_loop_elements)
+
+#            print(loop_t2_long_fix)
             # stationary object to check if it disturbs other particles
-            my_check = obj.iloc[obj]
+            my_check = t2_long_fix.iloc[loop_t2_long_fix]
         
             # SEMI EXPENSIVE STEP: calculate the position and time mismatch between all objects 
             # and stationary object under investigation    
@@ -300,12 +313,12 @@ def close_gaps(t1):
     
     # SORT BY PARTICLE AND THEN BY FRAME
     t1_search_gap = t1_before.sort_values(by = ['particle', 'frame'])
-
+    t1_search_gap["RealData"] = True
     #t1_search_gap.head()
     
     #fill the gaps now - get the header
     t1_gapless = pd.DataFrame(columns = t1_search_gap.columns)           
-            
+     
     #for loop_particle in range(0,int(num_last_particles)):
     for i, loop_particle in enumerate(valid_particle_number):
         nd.visualize.update_progress("Close gaps in trajectories", (i+1) / amount_valid_particles)
@@ -327,7 +340,8 @@ def close_gaps(t1):
                 # insert missing indicies by nearest neighbur
                 index_frames = np.linspace(start_frame, end_frame, num_frames, dtype='int')
                 t1_loop = t1_loop.reindex(index_frames)
-#               
+
+                t1_loop.loc[t1_loop["RealData"] != True, "RealData"] = False
 #                t1_loop["measured"] = True
 #                t1_loop.loc[np.isnan(t1_loop["particle"]), "measured"] = False
                 
@@ -389,7 +403,7 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
     # relative step
     #t1_search_gap_filled['rel_step'] = my_step_height / my_step_offest.mass_smooth
     t1_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offest.mass_smooth)
-    
+
     if PlotIntMedianFit == True:
         nd.visualize.IntMedianFit(t1_gapless)
     
@@ -499,8 +513,8 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6) or heavy
     substructures/intensity holes in the laser moder
     """
-    
-    
+    t4_cutted = t3_gapless.copy()
+        
     max_rel_median_intensity_step = settings["Split"]["Max rel median intensity step"]
     
     min_tracking_frames_before_drift = settings["Link"]["Min tracking frames before drift"]
@@ -525,6 +539,7 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
         counter_display = 1
     
     # now split the beads at the gap into two beads
+
     for x in range(0,num_split_particles):
         nd.visualize.update_progress("Close gaps in trajectories", (x+1) / num_split_particles)
         #print('split trajectorie',x ,'out of ',num_split_particles)
@@ -544,11 +559,12 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
         # the ".at" is necessary to change the value not on a copy but on t1 itself
         # https://stackoverflow.com/questions/13842088/set-value-for-particular-cell-in-pandas-dataframe-using-index
     
-       
-        #t1.at[((t1_before.particle == particle_to_split) & (t1_before.frame < first_new_frame)),'particle'] = num_last_particle + 1        
-        t2_long.at[((t2_long.particle == particle_to_split) & (t2_long.frame < first_new_frame)),'particle'] = num_last_particle + 1 
-    #    t1.at[((t1.particle == particle_to_split) & (t1.frame_as_column < first_new_frame)),'particle'] = num_last_particle + 1 
-         
+        t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame < first_new_frame)),'particle'] = \
+        num_last_particle + 1 
+
+        # to remove the step which is now not here anymore
+        t4_cutted.loc[(t4_cutted.particle == particle_to_split) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
+        
         # num_last_particle ++
         num_last_particle = num_last_particle + 1;
         
@@ -559,15 +575,15 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
                 nd.visualize.CutTrajectorieAtStep(t3_gapless, particle_to_split, max_rel_median_intensity_step)
 
             
-     
+
     # get rid of too short tracks - again because some have been splitted    
     #t1=t1.rename(columns={'frame_as_column':'frame'})
-    t2_long = tp.filter_stubs(t2_long, min_tracking_frames_before_drift) # filtering out of artifacts that are seen for a short time only
+    t4_cutted = tp.filter_stubs(t4_cutted, min_tracking_frames_before_drift) # filtering out of artifacts that are seen for a short time only
     # the second argument is the maximum amount of frames that a particle is supposed not to be seen in order
     # not to be filtered out.
     #t1=t1.rename(columns={'frame':'frame_as_column'})
     print('Trajectories with risk of wrong assignments :',t3_gapless['particle'].nunique())
-    print('Trajectories with reduced risk of wrong assignments ::', t2_long['particle'].nunique())
+    print('Trajectories with reduced risk of wrong assignments :', t2_long['particle'].nunique())
     # Compare the number of particles in the unfiltered and filtered data.
     
     #'''
@@ -585,195 +601,12 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
             #rawframes_before_filtering=rawframes
             nd.visualize.AnimateProcessedRawDate(rawframes_ROI, t2_long)
 
-    t4_cutted = t2_long.copy()
+
+    t4_cutted = t4_cutted.loc[t4_cutted["RealData"] == True ]
+    
+    t4_cutted = t4_cutted.drop(columns="RealData")
     
     return t4_cutted, settings
 
 
 
-
-
-
-
-    
-
-
-
-
-
-#def batch_np(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None,
-#          noise_size=1, smoothing_size=None, threshold=None, invert=False,
-#          percentile=64, topn=None, preprocess=True, max_iterations=10,
-#          filter_before=None, filter_after=None, characterize=True,
-#          engine='auto', output=None, meta=None):
-#    """Locate Gaussian-like blobs of some approximate size in a set of images.
-#
-#    Preprocess the image by performing a band pass and a threshold.
-#    Locate all peaks of brightness, characterize the neighborhoods of the peaks
-#    and take only those with given total brightness ("mass"). Finally,
-#    refine the positions of each peak.
-#
-#    Parameters
-#    ----------
-#    frames_np : HERE COMES THE DIFFERENCE
-#            NP ARRAY OF IMAGESTACK
-#            THAT SHOULD BE MUCH FASTER THE PIMS
-#    diameter : odd integer or tuple of odd integers
-#        This may be a single number or a tuple giving the feature's
-#        extent in each dimension, useful when the dimensions do not have
-#        equal resolution (e.g. confocal microscopy). The tuple order is the
-#        same as the image shape, conventionally (z, y, x) or (y, x). The
-#        number(s) must be odd integers. When in doubt, round up.
-#    minmass : float
-#        The minimum integrated brightness.
-#        Default is 100 for integer images and 1 for float images, but a good
-#        value is often much higher. This is a crucial parameter for eliminating
-#        spurious features.
-#        .. warning:: The mass value was changed since v0.3.3
-#    maxsize : float
-#        maximum radius-of-gyration of brightness, default None
-#    separation : float or tuple
-#        Minimum separtion between features.
-#        Default is diameter + 1. May be a tuple, see diameter for details.
-#    noise_size : float or tuple
-#        Width of Gaussian blurring kernel, in pixels
-#        Default is 1. May be a tuple, see diameter for details.
-#    smoothing_size : float or tuple
-#        The size of the sides of the square kernel used in boxcar (rolling
-#        average) smoothing, in pixels
-#        Default is diameter. May be a tuple, making the kernel rectangular.
-#    threshold : float
-#        Clip bandpass result below this value.
-#        Default, None, defers to default settings of the bandpass function.
-#    invert : boolean
-#        Set to True if features are darker than background. False by default.
-#    percentile : float
-#        Features must have a peak brighter than pixels in this
-#        percentile. This helps eliminate spurious peaks.
-#    topn : integer
-#        Return only the N brightest features above minmass.
-#        If None (default), return all features above minmass.
-#    preprocess : boolean
-#        Set to False to turn off bandpass preprocessing.
-#    max_iterations : integer
-#        max number of loops to refine the center of mass, default 10
-#    filter_before : boolean
-#        filter_before is no longer supported as it does not improve performance.
-#    filter_after : boolean
-#        This parameter has been deprecated: use minmass and maxsize.
-#    characterize : boolean
-#        Compute "extras": eccentricity, signal, ep. True by default.
-#    engine : {'auto', 'python', 'numba'}
-#    output : {None, trackpy.PandasHDFStore, SomeCustomClass}
-#        If None, return all results as one big DataFrame. Otherwise, pass
-#        results from each frame, one at a time, to the put() method
-#        of whatever class is specified here.
-#    meta : filepath or file object, optional
-#        If specified, information relevant to reproducing this batch is saved
-#        as a YAML file, a plain-text machine- and human-readable format.
-#        By default, this is None, and no file is saved.
-#
-#    Returns
-#    -------
-#    DataFrame([x, y, mass, size, ecc, signal])
-#        where mass means total integrated brightness of the blob,
-#        size means the radius of gyration of its Gaussian-like profile,
-#        and ecc is its eccentricity (0 is circular).
-#
-#    See Also
-#    --------
-#    locate : performs location on a single image
-#    minmass_v03_change : to convert minmass from v0.2.4 to v0.3.0
-#    minmass_v04_change : to convert minmass from v0.3.3 to v0.4.0
-#
-#    Notes
-#    -----
-#    This is an implementation of the Crocker-Grier centroid-finding algorithm.
-#    [1]_
-#
-#    Locate works with a coordinate system that has its origin at the center of
-#    pixel (0, 0). In almost all cases this will be the topleft pixel: the
-#    y-axis is pointing downwards.
-#
-#    References
-#    ----------
-#    .. [1] Crocker, J.C., Grier, D.G. http://dx.doi.org/10.1006/jcis.1996.0217
-#
-#    """
-#    
-#    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-#    
-#    UseLog = settings["Find"]["Analyze in log"]
-#    
-#    if UseLog == True:
-#        frames_np = nd.handle_data.LogData(frames_np)
-#    
-#    
-#    separation = settings["Find"]["Separation data"]
-#    minmass    = settings["Find"]["Minimal bead brightness"]
-#    
-#    if UseLog == False:
-#        diameter = settings["Find"]["Estimated particle size"]
-#    else:
-#        diameter = settings["Find"]["Estimated particle size (log-scale)"]
-#
-##    settings = None, diameter = None, minmass=100, maxsize=None, separation=None,
-##          noise_size=1, smoothing_size=None, threshold=None, invert=False,
-##          percentile=64, topn=None, preprocess=True, max_iterations=10,
-##          filter_before=None, filter_after=None, characterize=True,
-##          engine='auto', output=None, meta=None
-#
-#    all_features = []
-#    
-#    num_enumerate_elements = frames_np.shape[0]
-#
-#    for i, image in enumerate(frames_np):
-#        nd.visualize.update_progress("Find Particles", (i+1)/num_enumerate_elements)
-#        features = tp.locate(image, diameter, minmass, maxsize, separation,
-#                          noise_size, smoothing_size, threshold, invert,
-#                          percentile, topn, preprocess, max_iterations,
-#                          filter_before, filter_after, characterize,
-#                          engine)
-#        if hasattr(image, 'frame_no') and image.frame_no is not None:
-#            frame_no = image.frame_no
-#            # If this works, locate created a 'frame' column.
-#        else:
-#            frame_no = i
-#            features['frame'] = i  # just counting iterations
-#            
-#       
-#
-#        if len(features) == 0:
-#            continue
-#
-#        if output is None:
-#            all_features.append(features)
-#        else:
-#            output.put(features)
-#
-#
-#    if output is None:
-#        if len(all_features) > 0:
-#            
-#            output = pd.concat(all_features).reset_index(drop=True)
-#        else:  # return empty DataFrame
-#            warnings.warn("No maxima found in any frame.")
-#            output = pd.DataFrame(columns=list(features.columns) + ['frame'])
-#    
-##    tp.subpx_bias(output)
-#    
-#    output['abstime'] = output['frame'] / settings["Exp"]["fps"]
-# 
-#    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
-#    
-#    return output
-# 
-#
-#
-#
-# Test
-#for i,j in enumerate(mylist):
-#    print(i)
-#    time.sleep(0.1)
-#    update_progress("Some job", i/100.0)
-#update_progress("Some job", 1)

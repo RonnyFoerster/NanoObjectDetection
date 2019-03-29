@@ -13,42 +13,7 @@ import warnings
 import NanoObjectDetection as nd
 from pdb import set_trace as bp #debugger
 import matplotlib.pyplot as plt # Libraries for plotting
-
-def rolling_with_step(s, window, step, func): 
-    # Defining a function that allows to calculate another function over a window of a series,
-    # while the window moves with steps 
-    # See https://ga7g08.github.io/2015/01/30/Applying-python-functions-in-moving-windows/
-    vert_idx_list = np.arange(0, s.size - window, step)
-    hori_idx_list = np.arange(window)
-    A, B = np.meshgrid(hori_idx_list, vert_idx_list)
-    idx_array = A + B
-    x_array = s.values[idx_array]
-    idx = s.index[vert_idx_list + int(window/2.)]
-    d = func(x_array)
-    return pd.Series(d, index=idx)
-
-def mean_func(d):
-    # Function that calculates the mean of a series, while ignoring NaN and not yielding a warning when all are NaN
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=RuntimeWarning)
-        return np.nanmean(d, axis=1)
-
-
-def hindrance_fac(diam_fibre,diam_particle):
-    l = diam_particle / diam_fibre
-    # Eq 16 from "Hindrance Factors for Diffusion and Convection in Pores"  Dechadilok and Deen
-    h = 1 + 9/8*l*np.log(l) - 1.56034 * l \
-    + 0.528155 * np.power(l,2) \
-    + 1.915210 * np.power(l,3) \
-    - 2.819030 * np.power(l,4) \
-    + 0.270788 * np.power(l,5) \
-    + 1.101150 * np.power(l,6) \
-    - 0.435933 * np.power(l,7)
-    return h
- 
-
-
-    
+import sys
 
 
 def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None,
@@ -72,12 +37,16 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     # binning = 25 # Amount of bins used in histogram
     '''
 
+    #%% read the parameters
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
         
     microns_per_pixel = settings["MSD"]["effective_Microns_per_pixel"]
     frames_per_second = settings["MSD"]["effective_fps"]
     
+    temp_water = settings["Exp"]["Temperature"]
     visc_water = settings["Exp"]["Viscocity"]
+    
+    min_rel_error = settings["MSD"]["Min rel Error"]
     
     # check if only the longest trajectory shall be evaluated
     EvalOnlyLongestTraj = settings["MSD"]["EvalOnlyLongestTraj"]
@@ -104,9 +73,9 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
 
     
     amount_summands = settings["MSD"]["Amount summands"]
-    amount_lagtimes = settings["MSD"]["Amount lagtimes"]
     amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
  
+    # insert hindrance factor parameters
     UseHindranceFac =  settings["MSD"]["EstimateHindranceFactor"]
     
     if UseHindranceFac == True:
@@ -133,18 +102,27 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
         MSD_fit_Show = True
     
     particle_list_value=list(t6_final_use.particle.drop_duplicates())
-    
+
     sizes_df_lin=pd.DataFrame(columns={'diameter','particle'})       
     
     any_successful_check = False
-    
-    
+
+    # go through the particles
     num_loop_elements = len(particle_list_value)
     for i,particleid in enumerate(particle_list_value): # iteratig over all particles
         nd.visualize.update_progress("Analyze Particles", (i+1)/num_loop_elements)
-
+        print("Particle Id: ", particleid)
         # select track to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
+        start_frame = int(eval_tm.iloc[0].frame)
+
+        mean_mass = eval_tm["mass"].mean()
+        mean_size = eval_tm["size"].mean()
+        mean_ecc = eval_tm["ecc"].mean()
+        mean_signal = eval_tm["signal"].mean()
+        mean_raw_mass = eval_tm["raw_mass"].mean()
+        mean_ep = eval_tm["ep"].mean()
+        max_step = eval_tm["rel_step"].max()
         
         
         stable_num_lagtimes = False
@@ -152,59 +130,85 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
         
         if amount_lagtimes_auto == 1:
             max_counter = 10
-            current_amount_lagtimes = 2
+            lagtimes_min = CalculateLagtimes_min(eval_tm)
+            p_min_old = 2
+            lagtimes_max = lagtimes_min + p_min_old - 1
+            
         else:
             max_counter = 1
-            current_amount_lagtimes = amount_lagtimes
+            lagtimes_min = settings["MSD"]["lagtimes_min"]
+            lagtimes_max = settings["MSD"]["lagtimes_max"]
          
-
+            # iterate msd fit till it converges
         while ((stable_num_lagtimes == False) and (counter < max_counter)):
             counter = counter + 1 
             # Calc MSD
-            nan_tm_sq, amount_frames_lagt1, enough_values, traj_length = CalcMSD(eval_tm, microns_per_pixel, amount_summands, 
-                                                                current_amount_lagtimes)
+
+            nan_tm_sq, amount_frames_lagt1, enough_values, traj_length = \
+            CalcMSD(eval_tm, microns_per_pixel, amount_summands, lagtimes_min = lagtimes_min, lagtimes_max = lagtimes_max)
 
             if enough_values == True:  
-                if any_successful_check == False:
+                
+                if (any_successful_check == False) & (MSD_fit_Show == True):
                     any_successful_check = True
                     plt.plot()
-                    
 
                 #iterative to find optimal number of lagtimes in the fit    
                 # Average MSD (several (independent) values for each lagtime)
-                lagt_direct, mean_displ_direct, mean_displ_sigma_direct = AvgMsd(nan_tm_sq, frames_per_second)
-                # Fit MSD (slope is proportional to diffusion coefficent)
-                sizes_df_lin, diffusivity = FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, \
-                                                   mean_displ_sigma_direct, sizes_df_lin, particleid, traj_length, \
-                                                   visc_water = visc_water, UseHindranceFac = UseHindranceFac, \
-                                                   fibre_diameter_nm = fibre_diameter_nm, PlotMsdOverLagtime = MSD_fit_Show)
+                lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
+                AvgMsd(nan_tm_sq, frames_per_second,  lagtimes_min = lagtimes_min, lagtimes_max = lagtimes_max)
                 
+                # Fit MSD (slope is proportional to diffusion coefficent)
+                diff_direct_lin = \
+                FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
+                       PlotMsdOverLagtime = MSD_fit_Show)
+                  
                 # calculate theoretical best number of considered lagtimes
-                p_min = OptimalMSDPoints(settings, obj_all, diffusivity, amount_frames_lagt1)
+                p_min = OptimalMSDPoints(settings, mean_ep, mean_raw_mass, diff_direct_lin, amount_frames_lagt1)
+
 
                 if amount_lagtimes_auto == 1:
-                    if p_min == current_amount_lagtimes:
+                    if p_min == p_min_old:
                         stable_num_lagtimes = True 
                     else:
-                        current_amount_lagtimes = p_min
-                        print("p_min_before = ",p_min)
-                        print("p_min_after  = ", current_amount_lagtimes)
+                        lagtimes_max = lagtimes_min + p_min - 1
+                        print("p_min_before = ",p_min_old)
+                        print("p_min_after  = ",p_min)
+                        p_min_old = p_min
                         
                         # drop last line, because it is done again
                         sizes_df_lin = sizes_df_lin[:-1]                   
-                    
-                
+
+        if enough_values == True: 
+            red_ep = ReducedLocalPrecision(settings, mean_ep, mean_raw_mass, diff_direct_lin)
+            
+            # get the fit error if switches on (and working)
+            
+            rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error)
+            
+            diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water)
+            
+            
+            sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter, \
+                                   particleid, traj_length, amount_frames_lagt1, start_frame, \
+                                   mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
+                                   red_ep, max_step)
         
     
+    sizes_df_lin = sizes_df_lin.set_index('particle')
+
     if MSD_fit_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings)
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
-    
+
     return sizes_df_lin, any_successful_check
 
-    
-def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, amount_lagtimes = 5):
+ 
+
+
+
+def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, lagtimes_min = 1, lagtimes_max = 2):
 
     nan_tm_sq = 0
     amount_frames_lagt1 = 0
@@ -227,11 +231,16 @@ def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, amount_lagtimes
     length_indexer = max_frame - min_frame + 1
     traj_length = length_indexer
 
-    if length_indexer < (amount_lagtimes + amount_summands * amount_lagtimes):
+    if length_indexer < (lagtimes_max + amount_summands * lagtimes_max):
         enough_values = False
     
     else:
-        nan_tm = pd.DataFrame(index=min_frame+range(max_frame+1-min_frame),columns=range(amount_lagtimes + 1)) 
+        # columns has two parts. The lagtimes:
+        my_columns = range(lagtimes_min, lagtimes_max + 1)
+        #now add the zero where the position is int
+        my_columns = [0, *my_columns]
+        
+        nan_tm = pd.DataFrame(index=np.arange(min_frame,max_frame+1),columns = my_columns) 
         # setting up a matrix (dataframe) that has the correct size to put in all needed combinations of displacement and lag-times:
         # rows: frames: all frames from first appearance to diappearance are created. even if particle isn't recorded for some time,
         # in this case the respective positions will be filled with nan (that's the reason for the name of the variable)
@@ -239,13 +248,16 @@ def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, amount_lagtimes
         # columns: all others: displacement from original position
         nan_tm[0]=eval_tm.x*microns_per_pixel # filling column 0 with position of respective frame
     
-        for row in range(1,len(nan_tm.columns)):
+        for row in range(lagtimes_min, lagtimes_max + 1):
             nan_tm[row]=nan_tm[0].diff(row) # putting the displacement of position into the columns, each representing a lag-time
         
         # Checking already here if enough non NAN values exist to calculate
         # if not, particle is disregarded. another check of observation-number for each lagt is then obsolet
-        amount_frames_lagt1 = nan_tm[1].count() # SW, 181125: Might be better to use the highest lag-t for filtering instead of lag-t=1?!
-        if amount_frames_lagt1 < (amount_lagtimes + 1 + amount_summands * amount_lagtimes):
+
+        amount_frames_lagt1 = nan_tm[0].count() # SW, 181125: Might be better to use the highest lag-t for filtering instead of lag-t=1?!
+
+
+        if amount_frames_lagt1 < (lagtimes_max + 1 + amount_summands * lagtimes_max):
             enough_values = False
 
         else:
@@ -256,33 +268,38 @@ def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, amount_lagtimes
     
 
 
-def AvgMsd(nan_tm_sq, frames_per_second):
-    mean_displ_direct=pd.Series() # To hold the mean sq displacement of a particle
-    mean_displ_variance_direct=pd.Series() # To hold the variance of the msd of a particle
-
-    for column in range(1,len(nan_tm_sq.columns)):
+def AvgMsd(nan_tm_sq, frames_per_second, lagtimes_min, lagtimes_max):
+    mean_displ_direct = pd.Series() # To hold the mean sq displacement of a particle
+    mean_displ_variance_direct = pd.Series() # To hold the variance of the msd of a particle
+#    my_columns = nan_tm_sq.columns
+    
+    for column in nan_tm_sq.columns[1:]:
         # That iterates over lag-times for the respective particle and
         # calculates the msd in the following manner:
         # 1. Build sub-blocks for statistically independent lag-time measurements
+        nan_indi_means = rolling_with_step(nan_tm_sq[column], column, column, mean_func)
+        
         # 2. Calculate mean msd for the sublocks
+        mean_displ_direct_loop = nan_indi_means.mean(axis=0)
+        mean_displ_direct = mean_displ_direct.append(pd.Series(index=[column], data=[mean_displ_direct_loop]))
+        
         # 3. Check how many independent measurements are present (this number is used for filtering later. 
         # Also the iteration is limited to anaylzing
         # those lag-times only that can possibly yield enough entries according to the chosen filter). 
+        len_nan_tm_sq_loop = nan_indi_means.count()
+        
         # 4. Calculate the mean of these sub-means --> that's the msd for each lag-time
         # 5. Calculate the variance of these sub-means --> that's used for variance-based fitting 
         # when determining the slope of msd over time
-        nan_indi_means=rolling_with_step(nan_tm_sq[column], column, column, mean_func)
-        len_nan_tm_sq_loop=nan_indi_means.count()
-        mean_displ_direct_loop=nan_indi_means.mean(axis=0)
-        mean_displ_direct=mean_displ_direct.append(pd.Series(index=[column], data=[mean_displ_direct_loop]))
-        mean_displ_variance_direct_loop=nan_indi_means.var(axis=0)*(2/(len_nan_tm_sq_loop-1))
-        mean_displ_variance_direct=mean_displ_variance_direct.append(pd.Series(index=[column], 
+        
+        mean_displ_variance_direct_loop = nan_indi_means.var(axis=0)*(2/(len_nan_tm_sq_loop-1))
+        mean_displ_variance_direct = mean_displ_variance_direct.append(pd.Series(index=[column], 
                                                                                data=[mean_displ_variance_direct_loop]))
         
-        mean_displ_sigma_direct=np.sqrt(mean_displ_variance_direct)
+        mean_displ_sigma_direct = np.sqrt(mean_displ_variance_direct)
         
-        lagt_direct=mean_displ_direct.index/frames_per_second # converting frames into physical time: 
-        # first entry always starts with 1/frames_per_second
+    lagt_direct = mean_displ_direct.index/frames_per_second # converting frames into physical time: 
+    # first entry always starts with 1/frames_per_second
     
     return lagt_direct, mean_displ_direct, mean_displ_sigma_direct
 
@@ -317,67 +334,86 @@ def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm):
 
 
 
-def FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, sizes_df_lin, particleid, traj_length,
-           UseHindranceFac = 0, fibre_diameter_nm = None, temp_water = 295, visc_water = 9.5e-16, PlotMsdOverLagtime = False):
+def FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, PlotMsdOverLagtime = False):
     
     const_Boltz = 1.38e-23 # Boltzmann-constant
-    
-    if (len(lagt_direct) >= 4):
+
+    if (len(lagt_direct) >= 5):
         [fit_values, fit_cov]= np.polyfit(lagt_direct, mean_displ_direct, 1, w = 1/mean_displ_sigma_direct, cov=True) 
     else:
         fit_values= np.polyfit(lagt_direct, mean_displ_direct, 1, w = 1/mean_displ_sigma_direct) 
 #        fit_cov = []
-
     
-    diff_direct_lin = fit_values[0]/2 # diffusivity of each particle
-#    diff_direct_var = fit_cov[0,0] / 4 #always scare the scalars in var propagation
     
-    diam_direct_lin = (2*const_Boltz*temp_water/(6*math.pi *visc_water)*1e9) /diff_direct_lin # diameter of each particle
-
-    if UseHindranceFac == True:
+    diff_direct_lin = fit_values[0]/2
         
-        diam_direct_lin = EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm)
-    else:
-        print("WARNING: hindrance factor ignored. You just need to have the fiber diameter!")    
-
-
-    
-    #https://en.wikipedia.org/wiki/Propagation_of_uncertainty
-#    diam_direct_var = (diam_direct_lin/diff_direct_lin)**2 * diff_direct_var # diameter of each particle
-#    diam_direct_std = np.sqrt(diam_direct_var)
-    diam_direct_std = "still to do"
-    
-        
-    # Calculating error of diffusivity:
-    # "Single-Particle Tracking: The Distribution of Diffusion Coefficients"
-    # Biophysical Journal Volume 72 1997 1744-1753
-    rel_error_slope = 0.8165 * diff_direct_lin / np.sqrt(amount_frames_lagt1)
-    rel_error_slope = "still to do"
-    
-    # Storing results in df:
-    sizes_df_lin = sizes_df_lin.append(pd.DataFrame(data={'diameter': [diam_direct_lin],
-                                                        'particle': [particleid],
-                                                        'slope': [diff_direct_lin],
-                                                        'rel_error_slope': [rel_error_slope],
-                                                        'diameter_std': [diam_direct_std],
-                                                        # very old this is only frames when there are no gaps
-#                                                        'frames':[amount_frames_lagt1]}),sort=False)
-                                                        'traj_length': [traj_length],
-                                                        'valid_frames':[amount_frames_lagt1]}),sort=False)
-    
-    
     if PlotMsdOverLagtime == True:
+
         mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values[0])+ fit_values[1]
         # order of regression_coefficients depends on method for regression (0 and 1 are switched in the two methods)
         # fit results into non-log-space again
         nd.visualize.MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin)
     
-    return sizes_df_lin, diff_direct_lin
-    
+    return diff_direct_lin
 
-def OptimalMSDPoints(settings, obj_all, diffusivity, amount_frames_lagt1):
+
+
+
+
+def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None, temp_water = 295, visc_water = 9.5e-16):
+    const_Boltz = 1.38e-23 # Boltzmann-constant
+    
+    diameter = (2*const_Boltz*temp_water/(6*math.pi *visc_water)*1e9) /diffusion # diameter of each particle
+
+    if UseHindranceFac == True:
+        if diameter < fibre_diameter_nm:
+            diameter = EstimateHindranceFactor(diameter, fibre_diameter_nm)
+        else:
+            sys.exit("Here is something wrong. Since the diameter is calculated to be large than the core diameter. \
+                     Possible Reasons: \
+                     \n 1 - drift correctes motion instead of drift because to few particles inside. \
+                     \n 2 - stationary particle remains, which seems very big because it diffuses to little. ")
+            
+    else:
+        print("WARNING: hindrance factor ignored. You just need to have the fiber diameter!")   
+
+
+    return diameter
+
+
+
+def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diam_direct_lin,
+                    particleid, traj_length, amount_frames_lagt1, start_frame,
+                    mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
+                    red_ep, max_step):
+    
+    # Storing results in df:
+    sizes_df_lin = sizes_df_lin.append(pd.DataFrame(data={'particle': [particleid],
+                                                          'diffusion': [diff_direct_lin],
+                                                          'diffusion std': [diff_std],
+                                                          'diameter': [diam_direct_lin],
+                                                          'ep': [mean_ep],
+                                                          'redep' : [red_ep], 
+                                                          'signal': [mean_signal],
+                                                          'mass': [mean_mass],
+                                                          'rawmass': [mean_raw_mass],
+                                                          'max step': [max_step],
+                                                          'first frame': [start_frame],
+                                                          'traj length': [traj_length],
+                                                          'valid frames':[amount_frames_lagt1],
+                                                          'size': [mean_size],
+                                                          'ecc': [mean_ecc]}),sort=False)
+    
+    
+    
+    return sizes_df_lin
+
+
+
+
+def OptimalMSDPoints(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
     # XAVIER MICHALET AND ANDREW J. BERGLUND PHYSICAL REVIEW E 85, 2012
-    red_x = ReducedLocalPrecision(settings, obj_all, diffusivity)
+    red_x = ReducedLocalPrecision(settings, ep, raw_mass, diffusivity)
     
     
     if red_x >= 0:
@@ -397,14 +433,18 @@ def OptimalMSDPoints(settings, obj_all, diffusivity, amount_frames_lagt1):
     
     
     
-def ReducedLocalPrecision(settings, obj_all, diffusivity):
-    local_precision_px = np.mean(obj_all["ep"])
-    local_precision_um = local_precision_px * settings["Exp"]["Microns_per_pixel"]
+def ReducedLocalPrecision(settings, ep, mass, diffusion):
+    """
+    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD7
+    Eq 13
+    """
+    local_precision_um = ep * settings["Exp"]["Microns_per_pixel"]
     lagtime_s = 1/settings["Exp"]["fps"]
     exposure_time_s = settings["Exp"]["ExposureTime"]
     
     NA = settings["Exp"]["NA"]
     lambda_nm = settings["Exp"]["lambda"]
+    gain = settings["Exp"]["gain"]
     
     rayleigh_nm = 2 * 0.61 * lambda_nm / NA
     rayleigh_um = rayleigh_nm / 1000
@@ -413,16 +453,56 @@ def ReducedLocalPrecision(settings, obj_all, diffusivity):
     # 2* because it is coherent
     # not sure here
 
-    
-    
-    red_x = np.power(local_precision_um,2) / (diffusivity * lagtime_s) \
-    * (1 + (diffusivity * exposure_time_s / np.power(rayleigh_um,2))) \
+    num_photons = mass / gain
+    static_local_precision_um = rayleigh_um / np.power(num_photons ,1/2)
+
+    red_x = np.power(static_local_precision_um,2) / (diffusion * lagtime_s) \
+    * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
     - 1/3 * (exposure_time_s / lagtime_s)
 
+#    red_x = np.power(local_precision_um,2) / (diffusion * lagtime_s) \
+#    * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
+#    - 1/3 * (exposure_time_s / lagtime_s)
+
+    
+    if red_x < 0:
+        red_x = 0
     
     return red_x
     
+
+def DiffusionError(traj_length, red_x, diffusion, min_rel_error):
+    """
+    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD7
+    Eq 7
+    """
+    delta = DeltaErrorEstimation(red_x,traj_length)
+    if np.isnan(delta) == True:
+        rel_error = min_rel_error
+    else:
+        rel_error = np.power(2/(traj_length-1) * (1+delta**2),1/2)
+
     
+    diffusion_std = diffusion * rel_error
+    
+    "Min rel Error"
+    
+    return rel_error, diffusion_std
+
+
+def DeltaErrorEstimation(red_x,traj_length):
+    """
+    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#APP1
+    Eq A5 - A8
+    """
+
+
+    y1 = 1 / np.power(1 + 2*red_x**2 , 1/2)
+    y2 = (1+red_x) / np.power(1 + 2*red_x**2 , 3/2)
+    
+    delta = (1-y1) / np.power(y2 - y1**2 , 1/2)
+    
+    return delta
 
 
 def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None,
@@ -461,3 +541,112 @@ def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel =
 
 
 
+
+def rolling_with_step(s, window, step, func): 
+    # Defining a function that allows to calculate another function over a window of a series,
+    # while the window moves with steps 
+    # See https://ga7g08.github.io/2015/01/30/Applying-python-functions-in-moving-windows/
+    vert_idx_list = np.arange(0, s.size - window, step)
+    hori_idx_list = np.arange(window)
+    A, B = np.meshgrid(hori_idx_list, vert_idx_list)
+    idx_array = A + B
+    x_array = s.values[idx_array]
+    idx = s.index[vert_idx_list + int(window/2.)]
+    d = func(x_array)
+    return pd.Series(d, index=idx)
+
+def mean_func(d):
+    # Function that calculates the mean of a series, while ignoring NaN and not yielding a warning when all are NaN
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        return np.nanmean(d, axis=1)
+
+
+def hindrance_fac(diam_fibre,diam_particle):
+    l = diam_particle / diam_fibre
+    # Eq 16 from "Hindrance Factors for Diffusion and Convection in Pores"  Dechadilok and Deen
+    h = 1 + 9/8*l*np.log(l) - 1.56034 * l \
+    + 0.528155 * np.power(l,2) \
+    + 1.915210 * np.power(l,3) \
+    - 2.819030 * np.power(l,4) \
+    + 0.270788 * np.power(l,5) \
+    + 1.101150 * np.power(l,6) \
+    - 0.435933 * np.power(l,7)
+    return h
+
+
+def CalculateLagtimes_min(eval_tm, min_snr = 10):
+    """
+    Calculates the minimum lagtime for the MSD fit.
+    If the framerate is to high or the localization precision to bad, small lagtimes contain only noise
+    The function searches the first lagtime which has a msd which is at least 10 times beyond the noise floor
+    """
+        
+    msd_offset = np.power(eval_tm.ep,2).mean()
+    
+    valid_lagtimes_min = False
+    lagtimes_min = 1
+    while valid_lagtimes_min == False:
+        msd = np.power(eval_tm.x.diff(1),2).mean()
+    
+        # check if SNR of MSD is better the minimum SNR
+        current_snr = msd/msd_offset
+        if current_snr > min_snr:
+            valid_lagtimes_min = True
+        else:
+            lagtimes_min = lagtimes_min + 1
+    
+    return lagtimes_min
+
+
+def InvDiameter(sizes_df_lin):
+    
+    inv_diam = 1/sizes_df_lin["diameter"]
+    
+    rel_error = sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]
+    
+    inv_diam_std = inv_diam * rel_error
+    
+    return inv_diam,inv_diam_std
+
+
+
+def StatisticOneParticle(sizes_df_lin):
+    
+    # mean diameter is 1/(mean diffusion) not mean of all diameter values
+    diam_inv_mean = (1/sizes_df_lin.diameter).mean()
+    diam_inv_std  = (1/sizes_df_lin.diameter).std()
+    
+    return diam_inv_mean, diam_inv_std
+    
+    
+    
+    
+    
+    #    
+#def MSD_Var_f(diff, lagt_direct, ep, traj_length):
+#    """
+#    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3055791/
+#    Appendix D 15
+#    """
+#    N = traj_length
+#    K = N - n
+#    x = (ep**2) / (diff * lagt_direct)
+#    if n <= K:
+#        f = n / (6*(K**2)) * (4*(n**2)*K  + 2*K - n**3 + n) \
+#            + 1/K * (2*n*x + (1 + 1/2*(1-n/K)) * (x**2))
+#    else:
+#        f = 1 / (6*K) * (6*(n**2)*K - 4*n*(K**2) + 4*n + K**3 - K) \
+#            + 1/K * (2*n*x + (x**2))
+#            
+#    
+#    return
+    
+    
+    
+    
+    
+    
+    
+    
+    

@@ -85,12 +85,12 @@ Here are alle the file locations of the input
  
 | key: data_file_name
 | description: Complete path of the first image
-| example: "C:\Data\Mona_Nissen\40nmgold.fits"
+| example: "C:\\Data\\Mona_Nissen\\40nmgold.fits"
 | unit: 
 
 | key: data_folder_name
 | description: Location of the images
-| example: "C:\Data\Mona_Nissen"
+| example: "C:\\Data\\Mona_Nissen"
 | unit: 
     
  
@@ -101,12 +101,12 @@ Here are alle the file locations of the input
   
 | key: DefaultParameterJsonFile
 | description: If a json file is incomplete, for example due to an update, the json file is completed by the default value, whose path defined in here.
-| example: "Z:\Datenauswertung\19_ARHCF\190802\190225_default.json"
+| example: "Z:\\Datenauswertung\\19_ARHCF\\190802\\190225_default.json"
 | unit: 
  
 | key: json
 | description: path of the json file (if not given the code will write it into it.)
-| example: "Z:\Datenauswertung\Mona_Nissen\Au50_922fps_mainChanOnly\190227_Au50_922fps_mainChanOnly.json"
+| example: "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190227_Au50_922fps_mainChanOnly.json"
 | unit: 
    
 ########################################################################################################################

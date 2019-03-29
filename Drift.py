@@ -43,7 +43,6 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    
     ApplyDriftCorrection = settings["Drift"]["Apply"]    
     
     if ApplyDriftCorrection == 0:
@@ -74,7 +73,8 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
             in the next frame with a particle. So a small workaround here
             """
 
-            full_index = t_drift.frame.unique()
+#            full_index = t_drift.frame.unique()
+            full_index = t_drift.sort_values("frame").frame.unique()
             my_drift = my_drift.reindex(full_index)
             my_drift = my_drift.interpolate(method = 'linear')          
 
@@ -96,6 +96,7 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
         
         else:
             print('Mode: transversal correction')
+            
             # Y-Depending drift-correction
             # RF: Creation of y-sub-zones and calculation of drift
             # SW 180717: Subtraction of drift from trajectories
@@ -275,7 +276,13 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
             
             # Adding frame as a column
             t_no_drift_sub['frame'] = t_no_drift_sub.index 
-            t_no_drift_sub = t_no_drift_sub[['x','y','mass','size','ecc','signal','raw_mass','ep','frame','abstime','particle']] # Ordering as needed later
+            
+            #reindex https://stackoverflow.com/questions/25122099/move-column-by-name-to-front-of-table-in-pandas
+            cols = t_no_drift_sub.columns.tolist()
+            cols.insert(0, cols.pop(cols.index("y")))
+            cols.insert(0, cols.pop(cols.index("x")))
+            
+            t_no_drift_sub = t_no_drift_sub.reindex(columns= cols)# Ordering as needed later
             
             # Set this, if y-depending-drift-correction is to be used
             t_no_drift = t_no_drift_sub 

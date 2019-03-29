@@ -117,13 +117,13 @@ def FindSpot(rawframes_ROI, ParameterJsonFile):
     It runs the bead finding routine and ask the user what problem he has
     According to the problem it tries to improve
     """
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     UserSatisfied = False
     FirstRun = True
     
     while UserSatisfied == False:
-        obj_first, settings = nd.get_trajectorie.FindSpots(rawframes_ROI[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.7)
+        settings = nd.handle_data.ReadJson(ParameterJsonFile)
+        obj_first = nd.get_trajectorie.FindSpots(rawframes_ROI[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.7)
         
         plt.pause(3)
     
@@ -166,9 +166,9 @@ def FindSpot(rawframes_ROI, ParameterJsonFile):
                 GetNumericalInput("Enhance >Separation data< from %d to (must be integer): "\
                                   %settings["Find"]["Separation data"])
             
-        nd.handle_data.WriteJson(ParameterJsonFile, settings)  
+            nd.handle_data.WriteJson(ParameterJsonFile, settings)  
     
-    return obj_first
+    return obj_first, settings
     
 
 
@@ -176,23 +176,35 @@ def SpotSize(rawframes_rot, ParameterJsonFile):
     """
     Optimize the diameter of the Particles
     """
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
     UserSatisfied = False
-    try_diameter = (3,3)
+    try_diameter = [3.0 ,3.0]
     while UserSatisfied == False:
         print('UserSatisfied? : ', UserSatisfied)
         print('Try diameter:' , np.asarray(try_diameter))
-        obj_all = nd.get_trajectorie.batch_np(rawframes_rot, ParameterJsonFile, UseLog = False, diameter = try_diameter)
-        tp.subpx_bias(obj_all)
-        plt.draw()
-        plt.show()
-        plt.pause(3)
-        UserSatisfied = AskIfUserSatisfied('The histogramm should be flat. They should not have a dip in the middle!. Are you satisfied?')
-        
+#        obj_all = nd.get_trajectorie.batch_np(rawframes_rot, ParameterJsonFile, UseLog = False, diameter = try_diameter)
+        obj_all = tp.batch(rawframes_rot, diameter = try_diameter)
+
+        if obj_all.empty == True:
+            UserSatisfied = False
+        else:
+            tp.subpx_bias(obj_all)
+            plt.draw()
+            plt.show()
+            plt.pause(3)
+            UserSatisfied = AskIfUserSatisfied('The histogramm should be flat. They should not have a dip in the middle! \
+                                               Particles should be detected. Are you satisfied?')
+            
         if UserSatisfied == False:
             try_diameter = list(np.asarray(try_diameter) + 2)
-            
     
-    print('Your diameter should be (update JSON manually):', np.asarray(try_diameter))
+    settings["Find"]["Estimated particle size"] = try_diameter
+    
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)  
+    
+    print('Your diameter should be:', np.asarray(try_diameter))
     
     return
     
@@ -202,6 +214,12 @@ def FindROI(rawframes_np):
     Show the max of all images to show where the ROI is.
     """
     my_max = nd.handle_data.max_rawframes(rawframes_np)
-    plt.imshow(my_max)
+    
+    title = "Maximum projection of raw data",
+    xlabel = "x [Px]",
+    ylabel = "y [Px]"
+    nd.visualize.Plot2DImage(nd.handle_data.max_rawframes(rawframes_np),
+                             title = title, xlabel = xlabel, ylabel = ylabel)
+
     print('Chose the ROI of x and y for min and max value accoring your interest. Insert the values in your json file.')
 

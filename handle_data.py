@@ -318,13 +318,20 @@ def UseROI(image, ParameterJsonFile, x_min = None, x_max = None, y_min = None, y
         y_max = settings["ROI"]['y_max']
         frame_min = settings["ROI"]['frame_min']
         frame_max = settings["ROI"]['frame_max']
-            
-        image_ROI = image[frame_min : frame_max, x_min : x_max, y_min : y_max]
 
-    
+        
+        image_ROI = image[frame_min : frame_max, y_min : y_max, x_min : x_max]
+        
+        
+        if settings["ROI"]["Save"] == 1:
+            data_folder_name = settings["File"]["data_folder_name"]
+            SaveROIToTiffStack(image_ROI, data_folder_name)
+
+        
     WriteJson(ParameterJsonFile, settings)
     
     return image_ROI
+
 
 
 
@@ -361,9 +368,30 @@ def UseSuperSampling(image_in, ParameterJsonFile, fac_xy = None, fac_frame = Non
         settings["MSD"]["effective_fps"] = round(settings["Exp"]["fps"] / fac_frame,2)
         settings["MSD"]["effective_Microns_per_pixel"] = round(settings["Exp"]["Microns_per_pixel"] / fac_xy,5)
         
+        
+        if (settings["Subsampling"]["Save"] == 1) and (settings["Subsampling"]["Apply"] == 1):
+            data_folder_name = settings["File"]["data_folder_name"]
+            SaveROIToTiffStack(image_super, data_folder_name)
+        
+        
         WriteJson(ParameterJsonFile, settings)
     
     return image_super
+
+
+def SaveROIToTiffStack(image, data_folder_name):
+    from skimage import io
+
+    data_folder_name_roi = data_folder_name + "\\ROI"
+    if os.path.isdir(data_folder_name_roi) == False:
+        os.makedirs(data_folder_name_roi)
+        
+    data_folder_name_tif = data_folder_name_roi + "\\subimage.tif"
+
+
+    print("Save ROI and/or supersampled image in: {0}".format(data_folder_name_tif))
+    io.imsave(data_folder_name_tif, image)
+
 
 
 def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = None):

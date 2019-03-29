@@ -50,9 +50,11 @@ from importlib import reload # only used for debugging --> reload(package_name)
 
 # Own Library
 import NanoObjectDetection as nd
+import os
 
+abs_path = os.path.dirname(nd.__file__)
 
-
+#%%
 def RonnyRandomWalk(): 
     #%% Information
     """
@@ -61,7 +63,7 @@ def RonnyRandomWalk():
      """
      
     # path of parameter json file
-    ParameterJsonFile = r'C:\ProgramData\Anaconda3\Lib\site-packages\NanoObjectDetection\tutorial\Randomwalk\tutorial_60nm_randomwalk.json'
+    ParameterJsonFile = abs_path + "\\tutorial\\Randomwalk\\tutorial_60nm_randomwalk.json"
 
     #%% check if the python version and the library are good
     """
@@ -188,7 +190,7 @@ def RonnyRandomWalk():
     """
     sizes_df_lin, any_successful_check = nd.CalcDiameter.Main(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
     
-    #sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
+    
     
     #%% visualiz results
     """
@@ -199,12 +201,10 @@ def RonnyRandomWalk():
     
     
     
-    
+   
 
 
-
-
-
+    #%%
 
 
 def MonaARHCF(): 
@@ -212,11 +212,13 @@ def MonaARHCF():
     """
     Here comes the Tutorial of the ARHCF fiber
     
-    Data acquired by Mona Nissen (Au50_922fps_mainChanOnly_16s_0-5msET.tif). You see just a subimage (rawframes_np[:,:,985:1130]; Au50_922fps_mainChanOnly_16s_0-5msET_roix_985_1130.tif) of the entire data set, due to copyright and limited space on github.
+    Data acquired by Mona Nissen (Au50_922fps_mainChanOnly_16s_0-5msET.tif). 
+    You see just a subimage (rawframes_np[:,:,985:1130]; Au50_922fps_mainChanOnly_16s_0-5msET_roix_985_1130.tif) of the 
+    entire data set, due to copyright and limited space on github.
 
     """
     # path of parameter json file
-    ParameterJsonFile = r'C:\ProgramData\Anaconda3\Lib\site-packages\NanoObjectDetection\tutorial\ARHCF_50nm\tutorial_50nm_beads.json'
+    ParameterJsonFile = abs_path + "\\tutorial\\ARHCF_50nm\\tutorial_50nm_beads.json"
 
     #%% check if the python version and the library are good
     """
@@ -438,9 +440,362 @@ def MonaARHCF():
 
 
 
-def StefanNanoBore():
+
+
+
+
+#%%
+def StefanARHCF():
     print("Stefans stuff")
 
+    #%% Information
+    """
+    Here comes the Tutorial of the ARHCF fiber
+    
+    Data acquired by ??? Mona Nissen 
+    
+    You see just a subimage (rawframes_np[:,:,985:1130]; Au50_922fps_mainChanOnly_16s_0-5msET_roix_985_1130.tif) of the entire data set,
+    due to copyright and limited space on github.
+
+    """
+    # path of parameter json file
+    ParameterJsonFile = abs_path + "\\tutorial\\ARHCF_Stefan_40nm\\tutorial_ARHCF_Stefan_40nm.json"
+    
+    #%% check if the python version and the library are good
+    """
+    Python and Trackpy have a lot of version. The script does not work for the 'old' versions
+    Thus they are checked here, if they meet the minimum requirements.
+    """
+    nd.CheckSystem.CheckAll()
+    
+    
+    #%% read in the raw data into numpy
+    """
+    Reads in the image
+    
+    Things to learn/ try:
+        The images transfered into the RAM
+        Other programm load every image when needed - this can be very slow
+    """
+    rawframes_np = nd.handle_data.ReadData2Numpy(ParameterJsonFile)
+    
+    
+    #%% choose ROI if wantend
+    """
+    Choose a ROI in case not the entire image shall be used. This can be very usefull for setting up a new system,
+    where you wanna have to processing time short
+    
+    Things to learn/ try:
+        Set the Help --> ROI value to one and see the maximum image of your datastack to localize particles
+        Try the supersampling by getting a factor in Subsampling --> fac_frame' or fac_xy
+        """
+    # ROI (includes a help how to find it)
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    if settings["Help"]["ROI"] == 1:
+                nd.AdjustSettings.FindROI(rawframes_np)
+    
+    rawframes_ROI = nd.handle_data.UseROI(rawframes_np, ParameterJsonFile)    
+    
+    # supersampling  
+    rawframes_super = nd.handle_data.UseSuperSampling(rawframes_ROI, ParameterJsonFile)    
+    
+    
+    #%% standard image preprocessing
+    """
+    Standard image processing here
+    
+    Things to learn/ try:
+        Play with all parameters in the preprocessing section
+        Let it be plotted by changing the values in Plot--> Background_Show or Laserfluctuation_Show to 1
+        See that by change from 0 to 1 they are switched on off
+        Try the Background_Save value (1) and save your plot in Plot --> SaveFolder
+        Save also the json file and the data by changing Plot --> save_json and "save_data2csv" to 1
+        Look for it in the explorer
+        """
+
+    rawframes_pre = nd.PreProcessing.Main(rawframes_super, ParameterJsonFile)
+    
+    
+    #%% rotate the images if necessary 
+    """
+    Try the rotation of the image
+    
+    Here is still a bit of work to do
+    
+    Things to learn/ try:
+        
+    """
+
+    # Check if rotated data shall be used or not
+    rawframes_rot = nd.handle_data.RotImages(rawframes_pre, ParameterJsonFile)
+       
+    del rawframes_ROI, rawframes_super, rawframes_pre
+    
+    
+    #%% help with the parameters for finding objects 
+    """
+    Parameter optimization
+    
+    Things to learn/ try:
+        Try the help for getting the right bead brightness and size 
+        Change Help --> Bead brightness or Bead size to 1 and let you help    
+    """
+
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    if settings["Help"]["Bead brightness"] == 1:
+        obj_first = nd.AdjustSettings.FindSpot(rawframes_rot, ParameterJsonFile)
+    
+    if settings["Help"]["Bead size"] == 1:
+        nd.AdjustSettings.SpotSize(rawframes_rot, ParameterJsonFile)   
+        
+
+        
+    
+    #%% find the objects
+    """
+    Simulate Data points
+    
+    Things to learn/ try:
+        
+    """
+    
+    obj_all = nd.get_trajectorie.FindSpots(rawframes_rot, ParameterJsonFile)
+    
+    
+    
+    #%% form trajectories of valid particle positions
+    """
+    Link the particles to a trajectory
+    
+    Things to learn/ try:
+        
+    """
+    
+    t1_orig = nd.get_trajectorie.link_df(obj_all, ParameterJsonFile, SearchFixedParticles = False) 
+    
+    
+    #%% remove to short trajectories
+    """
+    Throw away to short trajectoies
+    
+    Things to learn/ try:
+    Change in json and run everything from simulation again
+        a1) change: Exp / fps
+        --> reduce and more time passes between two measurements linking fails more often
+        a2) change: Simulation / Diameter
+        --> reduce and particles diffuse faster --> linking fails more often
+        a3) change: Simulation / EstimationPrecision
+        --> reduce and particles seems to diffuse faster due to unprecise position measurement --> linking fails more often
+        b) change: Link / Max displacement --> play with a and b
+        --> reduce a --> enhance b to enable linking again
+        c) change: Split / Max_traj_length    
+     
+    """
+    t2_long = nd.get_trajectorie.filter_stubs(t1_orig, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = True)
+       
+    
+    
+    #%% identify and close gaps in the trajectory
+    """
+    Identify and close gaps
+    
+    Things to learn/ try:
+    The simulation does not have gaps - ToDo (?)
+    """
+    
+    t3_gapless = nd.get_trajectorie.close_gaps(t2_long)
+    
+    
+    
+    #%% calculate intensity fluctuations as a sign of wrong assignment
+    """
+    Calculate intensity fluctuations
+    
+    Things to learn/ try:
+    The simulation does not have fluctuations - ToDo (?)
+    """
+    
+    t3_gapless = nd.get_trajectorie.calc_intensity_fluctuations(t3_gapless, ParameterJsonFile)
+    
+    
+    
+    #%% split trajectories if necessary (e.g. to large intensity jumps)
+    """
+    Split doubted trajectories
+    
+    Things to learn/ try:
+    The simulation does not have doubts - ToDo - simulate several particles that cross (?)
+    """
+    
+    t4_cutted = nd.get_trajectorie.split_traj(t2_long, t3_gapless, ParameterJsonFile)
+    
+    
+    #%% drift correction
+    """
+    Drift correction
+    
+    Things to learn/ try:
+    The simulation does not have drift - ToDo (?)
+    """
+    
+    t5_no_drift = nd.Drift.DriftCorrection(t4_cutted, ParameterJsonFile, PlotGlobalDrift = False)
+    
+    
+    #%% only long trajectories are used in the msd plort in order to get a good fit
+    """
+    Remove to short trajectories
+    
+    Things to learn/ try:
+    Change in json and run everything from simulation again
+        a) change: Simulation / NumberOfFrames
+        b) change: Link / Min_tracking_frames
+        c) change: Split / Max_traj_length    
+    """
+    
+    t6_final = nd.get_trajectorie.filter_stubs(t5_no_drift, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False)
+    
+    
+    #%% calculate the msd and process to diffusion and diameter
+    """
+    Remove to short trajectories
+    
+    Things to learn/ try:
+        a) change: Simulation / EstimationPrecision (run from simulation again)
+        --> higher error in MSD --> diameter has larger error
+        b) change: Split / Max_traj_length
+        --> longer trajectorie length leads to better results
+    """
+    sizes_df_lin, any_successful_check = nd.CalcDiameter.Main(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
+    
+    #sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
+    
+       
+    
+    #%% visualiz results
+    """
+    Play with all the paramters in the plot part
+    """
+    
+    nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check)
 
 
+    
+
+
+
+
+
+
+
+#%%
+def HeraeusNanobore():
+    print("HeraeusNanobore")
+    
+    #%% path of parameter file
+    # this can be replaced by any json file
+    ParameterJsonFile = abs_path + "\\tutorial\\Nanobore_Torsten_100nm\\100nist_2000_40fps_0.json"
+
+    
+    #%% check if the python version and the library are good
+    nd.CheckSystem.CheckAll()
+    
+    
+    #%% read in the raw data into numpy
+    rawframes_np = nd.handle_data.ReadData2Numpy(ParameterJsonFile)
+    
+    
+    #%% choose ROI if wantend
+    # ROI (includes a help how to find it)
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    if settings["Help"]["ROI"] == 1:
+                nd.AdjustSettings.FindROI(rawframes_np)
+    
+    rawframes_ROI = nd.handle_data.UseROI(rawframes_np, ParameterJsonFile)    
+    
+    # supersampling  
+    rawframes_super = nd.handle_data.UseSuperSampling(rawframes_ROI, ParameterJsonFile)    
+    
+    
+    #%% standard image preprocessing
+    rawframes_pre = nd.PreProcessing.Main(rawframes_super, ParameterJsonFile)
+    
+    
+    #%% rotate the images if necessary 
+    # Check if rotated data shall be used or not
+    rawframes_rot = nd.handle_data.RotImages(rawframes_pre, ParameterJsonFile)
+       
+    del rawframes_ROI, rawframes_super, rawframes_pre
+    
+    
+    #%% help with the parameters for finding objects 
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    if settings["Help"]["Bead brightness"] == 1:
+        obj_first = nd.AdjustSettings.FindSpot(rawframes_rot, ParameterJsonFile)
+    
+    if settings["Help"]["Bead size"] == 1:
+        nd.AdjustSettings.SpotSize(rawframes_rot, ParameterJsonFile)   
+        
+    
+    #%% find the objects
+    obj_all = nd.get_trajectorie.FindSpots(rawframes_rot, ParameterJsonFile)
+    
+    
+    #%% identify static objects
+    # find trajectories of very slow diffusing (maybe stationary) objects
+    t1_orig_slow_diff = nd.get_trajectorie.link_df(obj_all, ParameterJsonFile, SearchFixedParticles = True)
+    
+    # delete trajectories which are not long enough. stationary objects have long trajcetories and survive the test   
+    t2_stationary = nd.get_trajectorie.filter_stubs(t1_orig_slow_diff, ParameterJsonFile, FixedParticles = True, BeforeDriftCorrection = True)
+    
+    
+    
+    #%% cut trajectories when a moving particles comes to close to a stationary object
+    obj_moving = nd.get_trajectorie.RemoveSpotsInNoGoAreas(obj_all, t2_stationary, ParameterJsonFile)
+       
+    
+    
+    #%% form trajectories of valid particle positions
+    t1_orig = nd.get_trajectorie.link_df(obj_moving, ParameterJsonFile, SearchFixedParticles = False) 
+    
+    
+    
+    #%% remove to short trajectories
+    t2_long = nd.get_trajectorie.filter_stubs(t1_orig, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = True)
+       
+    
+    
+    #%% identify and close gaps in the trajectory
+    t3_gapless = nd.get_trajectorie.close_gaps(t2_long)
+    
+    
+    
+    #%% calculate intensity fluctuations as a sign of wrong assignment
+    t3_gapless = nd.get_trajectorie.calc_intensity_fluctuations(t3_gapless, ParameterJsonFile)
+    
+    
+    
+    #%% split trajectories if necessary (e.g. to large intensity jumps)
+    t4_cutted = nd.get_trajectorie.split_traj(t2_long, t3_gapless, ParameterJsonFile)
+    
+    
+    #%% drift correction
+    t5_no_drift = nd.Drift.DriftCorrection(t4_cutted, ParameterJsonFile, PlotGlobalDrift = False)
+    
+    
+    #%% only long trajectories are used in the msd plort in order to get a good fit
+    t6_final = nd.get_trajectorie.filter_stubs(t5_no_drift, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False)
+    
+    
+    #%% calculate the msd and process to diffusion and diameter
+    sizes_df_lin, any_successful_check = nd.CalcDiameter.Main(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
+    
+    #sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
+    
+    #%% visualiz results
+    nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check)
+    
+    
+    
 
