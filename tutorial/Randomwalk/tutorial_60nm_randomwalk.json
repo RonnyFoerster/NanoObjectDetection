@@ -7,7 +7,8 @@
           "Microns_per_pixel": 0.477,
           "Temperature": 295.0,
           "Viscocity": 9.5e-16,
-          "const_Boltz": 1.38e-23
+          "const_Boltz": 1.38e-23,
+          "gain": "unknown"
      },
      "Fiber": {
           "Shape": "hex",
@@ -20,23 +21,32 @@
                338
           ],
           "CalcTubeDiameterOutOfSidelength": 1,
-          "TubeDiameter_nm": 554545.0
+          "TubeDiameter_nm": 554545.0,
+          "hex_sidelength_um": [
+               0,
+               0,
+               0,
+               0,
+               0,
+               0
+          ]
      },
      "File": {
           "data_file_name": "",
           "data_folder_name": "",
           "data_type": "",
-          "DefaultParameterJsonFile": "",
+          "DefaultParameterJsonFile": "default",
           "json": "C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\NanoObjectDetection\\tutorial\\Randomwalk\\tutorial_60nm_randomwalk.json"
      },
      "Simulation": {
           "SimulateData": 1,
           "DiameterOfParticles": 60,
           "NumberOfParticles": 1,
-          "NumberOfFrames": 600,
+          "NumberOfFrames": 10000,
           "mass": 1000,
           "EstimationPrecision": 0.1,
-          "Max_traj_length": 500
+          "Max_traj_length": 500,
+          "RatioDroppedFrames": 0.0
      },
      "ROI": {
           "Apply": 0,
@@ -45,12 +55,14 @@
           "y_min": 0,
           "y_max": 1300,
           "frame_min": 0,
-          "frame_max": 2000
+          "frame_max": 2000,
+          "Save": 0
      },
      "Subsampling": {
           "Apply": 0,
           "fac_xy": 1,
-          "fac_frame": 1
+          "fac_frame": 1,
+          "Save": 1
      },
      "PreProcessing": {
           "Remove_CameraOffset": 0,
@@ -95,7 +107,7 @@
           "Min distance to stationary object": 20
      },
      "Split": {
-          "Max_traj_length": 500.0,
+          "Max_traj_length": 1000.0,
           "Max_traj_length_keep_tail": 0,
           "Max rel median intensity step": 0.5,
           "ParticleWithLongestTrajBeforeSplit": 0
@@ -109,12 +121,16 @@
      },
      "MSD": {
           "Amount summands": 30,
-          "Amount lagtimes auto": 1,
-          "Amount lagtimes": 5,
+          "Amount lagtimes auto": 0,
+          "Amount lagtimes": 2,
           "effective_fps": 922.0,
           "effective_Microns_per_pixel": 0.477,
           "EstimateHindranceFactor": 0,
-          "EvalOnlyLongestTraj": 1
+          "EvalOnlyLongestTraj": 1,
+          "lagtimes_min": 1,
+          "lagtimes_max": 5,
+          "Calculate Error": 0,
+          "Min rel Error": 0
      },
      "Plot": {
           "Background_Show": 0,
@@ -129,7 +145,7 @@
           "Histogramm_Bins": 3,
           "Histogramm_min_max_auto": 1,
           "Histogramm_min": 50.0,
-          "Histogramm_max": 80.0,
+          "Histogramm_max": 70.0,
           "DiamOverTraj_Show": 0,
           "DiamOverTraj_Save": 0,
           "fontsize": 14,
@@ -137,7 +153,19 @@
           "save_json": 0,
           "SaveProperties": "C:\\Users\\foersterronny\\Desktop\\TryNanoObjectDetection\\RandomWalk\\190308\\13_41_46_Diameter Histogramm.json",
           "dpi": 300,
-          "save_data2csv": 0
+          "save_data2csv": 0,
+          "Histogramm_Fit_1_Particle": 1,
+          "Histogramm_time_Show": 0,
+          "Histogramm_time_Save": 0,
+          "DiameterPDF_Show": 0,
+          "DiameterPDF_Save": 0,
+          "PDF_min": 0.0,
+          "PDF_max": 1000.0,
+          "Correlation_Show": 0,
+          "Correlation_Save": 0,
+          "Pearson_Show": 0,
+          "Pearson_Save": 0,
+          "Title": "Choose a title in the json file"
      },
      "Old": {
           "Min displacement": 5,

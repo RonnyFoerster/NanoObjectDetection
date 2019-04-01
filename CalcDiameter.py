@@ -149,9 +149,10 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
 
             if enough_values == True:  
                 
-                if (any_successful_check == False) & (MSD_fit_Show == True):
+                if any_successful_check == False:
                     any_successful_check = True
-                    plt.plot()
+                    if MSD_fit_Show == True:
+                        plt.plot()
 
                 #iterative to find optimal number of lagtimes in the fit    
                 # Average MSD (several (independent) values for each lagtime)
@@ -163,11 +164,11 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                 FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
                        PlotMsdOverLagtime = MSD_fit_Show)
                   
-                # calculate theoretical best number of considered lagtimes
-                p_min = OptimalMSDPoints(settings, mean_ep, mean_raw_mass, diff_direct_lin, amount_frames_lagt1)
-
 
                 if amount_lagtimes_auto == 1:
+                    # calculate theoretical best number of considered lagtimes
+                    p_min = OptimalMSDPoints(settings, mean_ep, mean_raw_mass, diff_direct_lin, amount_frames_lagt1)
+
                     if p_min == p_min_old:
                         stable_num_lagtimes = True 
                     else:
@@ -452,21 +453,24 @@ def ReducedLocalPrecision(settings, ep, mass, diffusion):
     # we use rayleigh as resolution of the system
     # 2* because it is coherent
     # not sure here
-
-    num_photons = mass / gain
-    static_local_precision_um = rayleigh_um / np.power(num_photons ,1/2)
-
-    red_x = np.power(static_local_precision_um,2) / (diffusion * lagtime_s) \
-    * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
-    - 1/3 * (exposure_time_s / lagtime_s)
-
-#    red_x = np.power(local_precision_um,2) / (diffusion * lagtime_s) \
-#    * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
-#    - 1/3 * (exposure_time_s / lagtime_s)
-
+    if gain == "unknown":
+        red_x = -1
+    else:
+            
+        num_photons = mass / gain
+        static_local_precision_um = rayleigh_um / np.power(num_photons ,1/2)
     
-    if red_x < 0:
-        red_x = 0
+        red_x = np.power(static_local_precision_um,2) / (diffusion * lagtime_s) \
+        * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
+        - 1/3 * (exposure_time_s / lagtime_s)
+    
+    #    red_x = np.power(local_precision_um,2) / (diffusion * lagtime_s) \
+    #    * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
+    #    - 1/3 * (exposure_time_s / lagtime_s)
+    
+        
+        if red_x < 0:
+            red_x = 0
     
     return red_x
     

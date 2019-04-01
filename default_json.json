@@ -1,8 +1,3 @@
-"""
-Test
-"""
-
-
 {
      "Exp": {
           "NA": 0.13,
@@ -10,41 +5,44 @@ Test
           "fps": 922,
           "ExposureTime": 0.001,
           "Microns_per_pixel": 0.477,
+          "gain": "unknown",
           "Temperature": 295.0,
           "Viscocity": 9.5e-16,
           "const_Boltz": 1.38e-23
      },
      "Fiber": {
-          "Shape": "hex",
-          "ARHCF_hex_sidelength_um": [
-               315,
-               315,
-               318,
-               335,
-               300,
-               338
+          "Shape": "round",
+          "hex_sidelength_um": [
+               0,
+               0,
+               0,
+               0,
+               0,
+               0
           ],
           "CalcTubeDiameterOutOfSidelength": 1,
-          "TubeDiameter_nm": 554545.0
+          "TubeDiameter_nm": 1000.0
      },
      "File": {
-          "data_file_name": "Z:\\Data\\Mona_Nissen\\Au50_922fps_mainChanOnly_16s_0-5msET.tif",
-          "data_folder_name": "Z:\\Data\\Mona_Nissen",
+          "data_file_name": "Here comes the data path.",
+          "data_folder_name": "Here comes the data directory.",
           "data_type": "tif_stack",
-          "DefaultParameterJsonFile": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190227_Au50_922fps_mainChanOnly.json",
-          "json": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190227_Au50_922fps_mainChanOnly.json"
+          "DefaultParameterJsonFile": "default",
+          "json": "Here comes the data path of the json parameter file."
      },
      "Simulation": {
           "SimulateData": 0,
           "DiameterOfParticles": 0,
           "NumberOfParticles": 0,
           "NumberOfFrames": 0,
+          "RatioDroppedFrames": 0,
           "mass": 0,
           "EstimationPrecision": 0,
           "Max_traj_length": 0
      },
      "ROI": {
           "Apply": 0,
+          "Save": 0,
           "x_min": 0,
           "x_max": 55,
           "y_min": 0,
@@ -54,6 +52,7 @@ Test
      },
      "Subsampling": {
           "Apply": 0,
+          "Save": 1,
           "fac_xy": 1,
           "fac_frame": 1
      },
@@ -75,14 +74,9 @@ Test
           "Bead size": 0
      },
      "Find": {
-          "Analyze in log": 0,
           "Estimated particle size": [
                9.0,
                9.0
-          ],
-          "Estimated particle size (log-scale)": [
-               7.0,
-               7.0
           ],
           "Minimal bead brightness": 200.0,
           "Separation data": 1.5
@@ -115,38 +109,48 @@ Test
      "MSD": {
           "Amount summands": 30,
           "Amount lagtimes auto": 1,
-          "Amount lagtimes": 5,
-          "effective_fps": 922.0,
-          "effective_Microns_per_pixel": 0.477,
-          "EstimateHindranceFactor": 1,
+          "lagtimes_min": 1,
+          "lagtimes_max": 5,
+          "effective_fps": 0,
+          "effective_Microns_per_pixel": 0,
+          "EstimateHindranceFactor": 0,
+          "Calculate Error": 0,
+          "Min rel Error": 0,
           "EvalOnlyLongestTraj": 0
      },
      "Plot": {
           "Background_Show": 0,
-          "Background_Save": 1,
+          "Background_Save": 0,
           "Laserfluctuation_Show": 0,
-          "Laserfluctuation_Save": 1,
+          "Laserfluctuation_Save": 0,
           "MSD_fit_Show": 1,
           "MSD_fit_Save": 0,
           "Histogramm_Show": 1,
-          "Histogramm_Save": 1,
+          "Histogramm_Save": 0,
+          "Histogramm_Fit_1_Particle": 0,
+          "Histogramm_time_Show": 0,
+          "Histogramm_time_Save": 0,
           "Histogramm_Bins_Auto": 1,
-          "Histogramm_Bins": 58,
+          "Histogramm_Bins": 3,
           "Histogramm_min_max_auto": 1,
-          "Histogramm_min": 30.0,
-          "Histogramm_max": 80.0,
-          "DiamOverTraj_Show": 1,
-          "DiamOverTraj_Save": 1,
+          "Histogramm_min": 0.0,
+          "Histogramm_max": 1000.0,
+          "DiameterPDF_Show": 0,
+          "DiameterPDF_Save": 0,
+          "PDF_min": 0.0,
+          "PDF_max": 1000.0,
+          "DiamOverTraj_Show": 0,
+          "DiamOverTraj_Save": 0,
+          "Correlation_Show": 0,
+          "Correlation_Save": 0,
+          "Pearson_Show": 0,
+          "Pearson_Save": 0,
           "fontsize": 14,
           "SaveFolder": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly",
+          "Title": "Choose a title in the json file",
           "save_json": 0,
           "SaveProperties": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190305\\16_16_05_Diameter Histogramm.json",
           "save_data2csv": 0,
           "dpi": 300
-     },
-     "Old": {
-          "Min displacement": 5,
-          "Rolling window size": 5,
-          "data_file_extension": "tif"
      }
 }

@@ -7,7 +7,8 @@
           "Microns_per_pixel": 0.477,
           "Temperature": 295.0,
           "Viscocity": 9.5e-16,
-          "const_Boltz": 1.38e-23
+          "const_Boltz": 1.38e-23,
+          "gain": "unknown"
      },
      "Fiber": {
           "Shape": "hex",
@@ -20,13 +21,21 @@
                338
           ],
           "CalcTubeDiameterOutOfSidelength": 0,
-          "TubeDiameter_nm": 40000.0
+          "TubeDiameter_nm": 40000.0,
+          "hex_sidelength_um": [
+               0,
+               0,
+               0,
+               0,
+               0,
+               0
+          ]
      },
      "File": {
           "data_file_name": "C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\NanoObjectDetection\\tutorial\\ARHCF_Mona_50nm\\50nm_Au_beads.tif",
           "data_folder_name": "C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\NanoObjectDetection\\tutorial\\ARHCF_Mona_50nm",
           "data_type": "tif_stack",
-          "DefaultParameterJsonFile": "C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\NanoObjectDetection\\tutorial\\ARHCF_Mona_50nm\\tutorial_50nm_beads.json",
+          "DefaultParameterJsonFile": "default",
           "json": "C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\NanoObjectDetection\\tutorial\\ARHCF_Mona_50nm\\tutorial_50nm_beads.json"
      },
      "Simulation": {
@@ -36,7 +45,8 @@
           "NumberOfFrames": 0,
           "mass": 0,
           "EstimationPrecision": 0,
-          "Max_traj_length": 0
+          "Max_traj_length": 0,
+          "RatioDroppedFrames": 0
      },
      "ROI": {
           "Apply": 0,
@@ -45,12 +55,14 @@
           "y_min": 0,
           "y_max": 1300,
           "frame_min": 0,
-          "frame_max": 2000
+          "frame_max": 2000,
+          "Save": 0
      },
      "Subsampling": {
           "Apply": 0,
           "fac_xy": 1,
-          "fac_frame": 1
+          "fac_frame": 1,
+          "Save": 1
      },
      "PreProcessing": {
           "Remove_CameraOffset": 1,
@@ -115,7 +127,9 @@
           "effective_fps": 922.0,
           "effective_Microns_per_pixel": 0.477,
           "EstimateHindranceFactor": 1,
-          "EvalOnlyLongestTraj": 0
+          "EvalOnlyLongestTraj": 0,
+          "Calculate Error": 0,
+          "Min rel Error": 0
      },
      "Plot": {
           "Background_Show": 0,
@@ -138,7 +152,19 @@
           "save_json": 0,
           "SaveProperties": "C:\\Users\\foersterronny\\Desktop\\TryNanoObjectDetection\\190307\\16_06_04_Diameter Histogramm.json",
           "dpi": 300,
-          "save_data2csv": 1
+          "save_data2csv": 1,
+          "Histogramm_Fit_1_Particle": 1,
+          "Histogramm_time_Show": 0,
+          "Histogramm_time_Save": 0,
+          "DiameterPDF_Show": 0,
+          "DiameterPDF_Save": 0,
+          "PDF_min": 0.0,
+          "PDF_max": 1000.0,
+          "Correlation_Show": 0,
+          "Correlation_Save": 0,
+          "Pearson_Show": 0,
+          "Pearson_Save": 0,
+          "Title": "Choose a title in the json file"
      },
      "Old": {
           "Min displacement": 5,

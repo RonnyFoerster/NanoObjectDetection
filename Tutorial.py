@@ -218,7 +218,7 @@ def MonaARHCF():
 
     """
     # path of parameter json file
-    ParameterJsonFile = abs_path + "\\tutorial\\ARHCF_50nm\\tutorial_50nm_beads.json"
+    ParameterJsonFile = abs_path + "\\tutorial\\ARHCF_Mona_50nm\\tutorial_50nm_beads.json"
 
     #%% check if the python version and the library are good
     """
@@ -320,8 +320,7 @@ def MonaARHCF():
     """
     
     obj_all = nd.get_trajectorie.FindSpots(rawframes_rot, ParameterJsonFile)
-    
-    
+
     
     #%% form trajectories of valid particle positions
     """
@@ -680,7 +679,8 @@ def StefanARHCF():
     nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check)
 
 
-    
+
+
 
 
 

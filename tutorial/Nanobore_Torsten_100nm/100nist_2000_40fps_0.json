@@ -16,17 +16,31 @@
                0
           ],
           "CalcTubeDiameterOutOfSidelength": 0,
-          "TubeDiameter_nm": 670.0
+          "TubeDiameter_nm": 670.0,
+          "hex_sidelength_um": [
+               0,
+               0,
+               0,
+               0,
+               0,
+               0
+          ]
      },
      "File": {
           "data_file_name": "C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\NanoObjectDetection\\tutorial\\Nanobore_Torsten_100nm\\100nist_2000_40fps_0.tif",
           "data_folder_name": "C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\NanoObjectDetection\\tutorial\\Nanobore_Torsten_100nm",
           "data_type": "tif_stack",
-          "DefaultParameterJsonFile": "C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\NanoObjectDetection\\tutorial\\ARHCF_50nm\\tutorial_50nm_beads.json",
+          "DefaultParameterJsonFile": "default",
           "json": "C:\\ProgramData\\Anaconda3\\lib\\site-packages\\NanoObjectDetection\\tutorial\\Nanobore_Torsten_100nm\\100nist_2000_40fps_0.json"
      },
      "Simulation": {
-          "SimulateData": 0
+          "SimulateData": 0,
+          "DiameterOfParticles": 0,
+          "NumberOfParticles": 0,
+          "NumberOfFrames": 0,
+          "mass": 0,
+          "EstimationPrecision": 0,
+          "Max_traj_length": 0
      },
      "ROI": {
           "Apply": 1,
@@ -108,7 +122,8 @@
           "effective_Microns_per_pixel": 0.1295,
           "EstimateHindranceFactor": 1,
           "Min rel Error": 0.01,
-          "EvalOnlyLongestTraj": 0
+          "EvalOnlyLongestTraj": 0,
+          "Calculate Error": 0
      },
      "Plot": {
           "Background_Show": 0,
@@ -142,7 +157,8 @@
           "save_json": 0,
           "SaveProperties": "Z:\\Datenauswertung\\Torsten_Wieduwilt\\190322\\100nist_2000_40fps_0",
           "save_data2csv": 0,
-          "dpi": 200
+          "dpi": 200,
+          "Title": "Choose a title in the json file"
      },
      "Old": {
           "Min displacement": 5,

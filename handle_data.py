@@ -30,15 +30,59 @@ def ReadJson(mypath):
     """
     with open(mypath) as json_file:
         settings = json.load(json_file)
-            
+    
+    
+
     # check if json path is written in file. otherwise put it there
-    if "path_setting" in list(settings["Exp"].keys()):
-        if settings["File"]["json"] != mypath:
+    if "json" in list(settings["File"].keys()):
+        
+        # compare given and saved json path
+        # lower is needed to convert Lib to lib, which is identical in the explorer
+        if settings["File"]["json"].lower() != mypath.lower():
             bp()
             sys.exit("Given Json path does not match defined path in json file! ,\
                      You might wanna delete the 'settings' row entirely from the json file.")
     else:
         settings["File"]["json"] = mypath
+    
+    
+    # check if some keys are missing.
+    mypath_default = settings["File"]["DefaultParameterJsonFile"]
+    if mypath_default == "default":
+        mypath_default = os.path.dirname(nd.__file__) + "\\default_json.json"
+    
+    try:    
+        with open(mypath_default) as json_file:
+            settings_default = json.load(json_file)
+    except:
+        sys.exit("Default Json file probably not found. You can insert default at the key DefaultParameterJsonFile.")
+        
+        
+
+    changed_something = False
+    
+    #go through all the main keys in defauls
+    for loop_key in settings_default.keys():
+        # check if the current key is in
+        if loop_key in settings.keys():
+            # if so check all subkeys
+            for loop_subkey in settings_default[loop_key].keys():
+                if (loop_subkey in settings[loop_key].keys()) == False:
+                    print("Insert defaul key: %s with subkey: %s" %(loop_key,loop_subkey))
+                    settings[loop_key][loop_subkey] = settings_default[loop_key][loop_subkey]
+                    changed_something = True
+        
+        
+        # if not copy the entire defaul key
+        else:
+            print("Insert defaul key: %s" %(loop_key))
+            settings[loop_key] = settings_default[loop_key]
+            changed_something = True
+     
+        
+    if changed_something == True:
+        WriteJson(mypath, settings)
+    
     
     return settings
 
@@ -258,7 +302,7 @@ def ReadTiffStack2Numpy(data_file_name):
     "Reads a tiff stack in"
 
     rawframes_np = io.imread(data_file_name)
-    
+        
 
     
     return rawframes_np 

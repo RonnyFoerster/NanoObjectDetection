@@ -10,6 +10,7 @@ import pandas as pd
 import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 matplotlib.rcParams['text.latex.unicode'] = True
+import sys
 #import matplotlib.pyplot as plt # Libraries for plotting
 import NanoObjectDetection as nd
 
@@ -17,7 +18,7 @@ from pdb import set_trace as bp #debugger
 
 
 # In[]
-def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, ep = 0, mass = 1, microns_per_pixel = 0.477, temp_water = 295, visc_water = 9.5e-16):
+def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, RatioDroppedFrames = 0, ep = 0, mass = 1, microns_per_pixel = 0.477, temp_water = 295, visc_water = 9.5e-16):
     """
     Simulate a random walk of brownian diffusion and return it in a panda like it came from real data
     
@@ -78,16 +79,57 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, ep = 
     sim_part_part=[]
     sim_part_x=[]
 
+
+    drop_rate = RatioDroppedFrames
     
-    for sim_part in range(num_particles):
-        for sim_frame in range(frames):
-            sim_part_part.append(sim_part)
-            sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x)) #sigma given by sim_part_sigma as above
-            # Is that possibly wrong??
+    if drop_rate == 0:
+        for sim_part in range(num_particles):
+            loop_frame_drop = 0
+            for sim_frame in range(frames):
+                sim_part_part.append(sim_part)
+                sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x)) #sigma given by sim_part_sigma as above
+                # Is that possibly wrong??
+     
+    else:        
+        drop_frame = 1/drop_rate
+
+        if drop_frame > 5:
+            print("Drops every %s frame" %(drop_frame))
+        else:
+            sys.exit("Such high drop rates are probably not right implemented")
+     
+               
+        for sim_part in range(num_particles):
+            loop_frame_drop = 0
+            for sim_frame in range(frames):
+                sim_part_part.append(sim_part)
+                
+                if loop_frame_drop <= drop_frame:
+                    loop_frame_drop += 1
+                    lag_frame = 1
+                else:
+                    loop_frame_drop = 1
+                    lag_frame = 2
+                
+                sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x * lag_frame)) #sigma given by sim_part_sigma as above
+                # Is that possibly wrong??
+
+
+
     
     # Putting the results into a df and formatting correctly:
-    sim_part_tm=pd.DataFrame({'x':sim_part_x, 'y':0, 'mass':mass, 'ep': 0, \
-                              'frame':sim_part_frame_list, 'particle':sim_part_part})
+    sim_part_tm=pd.DataFrame({'x':sim_part_x, \
+                              'y':0,  \
+                              'mass':mass, \
+                              'ep': 0, \
+                              'frame':sim_part_frame_list, \
+                              'particle':sim_part_part, \
+                              "size": 0, \
+                              "ecc": 0, \
+                              "signal": 0, \
+                              "raw_mass":mass,})
+    
+    
     sim_part_tm.x=sim_part_tm.groupby('particle').x.cumsum()
     sim_part_tm.index=sim_part_tm.frame
 
@@ -117,18 +159,22 @@ def PrepareRandomWalk(ParameterJsonFile):
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)    
     
-    diameter = settings["Simulation"]["DiameterOfParticles"]
-    num_particles = settings["Simulation"]["NumberOfParticles"]
-    frames = settings["Simulation"]["NumberOfFrames"]
-    frames_per_second = settings["Exp"]["fps"]
+    diameter            = settings["Simulation"]["DiameterOfParticles"]
+    num_particles       = settings["Simulation"]["NumberOfParticles"]
+    frames              = settings["Simulation"]["NumberOfFrames"]
+    RatioDroppedFrames  = settings["Simulation"]["RatioDroppedFrames"]
     EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
-    mass = settings["Simulation"]["mass"]
-    microns_per_pixel = settings["Exp"]["Microns_per_pixel"]
-    temp_water = settings["Exp"]["Temperature"]
-    visc_water = settings["Exp"]["Viscocity"]
+    mass                = settings["Simulation"]["mass"]
+    
+    
+    frames_per_second   = settings["Exp"]["fps"]
+    microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
+    temp_water          = settings["Exp"]["Temperature"]
+    visc_water          = settings["Exp"]["Viscocity"]
 
     
     output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, \
+                                              RatioDroppedFrames = RatioDroppedFrames, \
                                               ep = EstimationPrecision, mass = mass, \
                                               microns_per_pixel = microns_per_pixel, temp_water = temp_water, \
                                               visc_water = visc_water)
