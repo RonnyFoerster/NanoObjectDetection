@@ -1,4 +1,5 @@
-Code is shown in blue 
+Code is shown as 
+> this is code
 
 ### Requirements:
 - Installation of Python (>= 3.6)
@@ -6,21 +7,21 @@ Code is shown in blue
 - Installation of all other packages (TrackPy etc.)
   - Spyder issues an error in the console when a package is missing.
   - These can then be installed in the Anaconda Promt.
-  - It is helpful here to search the package online https://pypi.org/)NanoObjectDetection Modul
+  - It is helpful here to search the package online https://pypi.org/) NanoObjectDetection Modul
 - Download a Github release (https://github.com/RonnyFoerster/NanoObjectDetection/releases)
   - Copy the folder NanoObjectDetection into the directory of the Python packages
   - E.g.: C:\ProgramData\Anaconda3\Lib\site-packages\NanoObjectDetection
-  - Import package by import NanoObjectDetection as nd
+  - Import package by **import NanoObjectDetection as nd**
 
 In general, the data should be sparse enough, sothat the captured particles are individual (well separated from each other) for at least 100 frames. The higher the framerate the easier this is. A longer track leads to a smaller confidence interval in the final diameter estimation.
 
 ### Example:
-- Code is shown in blue 
+- Code is shown as **this is code** 
 - The module contains several examples which run fully automatically. However, they can also be executed block by block (in nd.Tutorial.py) in order to learn, debug and optimize
-  - nd.Tutorial.RandomWalk () 
-  - nd.Tutorial.MonaARHCF () 
-  - nd.Tutorial.StefanARHCF () 
-  - nd.Tutorial.HeraeusNanobore() 
+  - > nd.Tutorial.RandomWalk() *
+  - **nd.Tutorial.MonaARHCF() **
+  - **nd.Tutorial.StefanARHCF() **
+  - **nd.Tutorial.HeraeusNanobore() **
 
 - For a new set of data: Copy the parameter json file (for example: “default_json.json” or “tutorial_50nm_beads.json” in the new folder.
 - Open the json file and fill in the parameters as good as you can
