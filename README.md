@@ -1,50 +1,50 @@
 Code is shown in blue 
 
-Requirements:
-•	Installation of Python (>= 3.6)
-o	Preferably Anaconda + Spyder
-•	Installation of all other packages (TrackPy etc.)
-o	Spyder issues an error in the console when a package is missing.
-o	These can then be installed in the Anaconda Promt.
-o	It is helpful here to search the package online https://pypi.org/)NanoObjectDetection Modul
-•	Download a Github release (https://github.com/RonnyFoerster/NanoObjectDetection/releases)
-o	Copy the folder NanoObjectDetection into the directory of the Python packages
-o	E.g.: C:\ProgramData\Anaconda3\Lib\site-packages\NanoObjectDetection
-o	Import package by import NanoObjectDetection as nd
+### Requirements:
+- Installation of Python (>= 3.6)
+  - Preferably Anaconda + Spyder
+- Installation of all other packages (TrackPy etc.)
+  - Spyder issues an error in the console when a package is missing.
+  - These can then be installed in the Anaconda Promt.
+  - It is helpful here to search the package online https://pypi.org/)NanoObjectDetection Modul
+- Download a Github release (https://github.com/RonnyFoerster/NanoObjectDetection/releases)
+  - Copy the folder NanoObjectDetection into the directory of the Python packages
+  - E.g.: C:\ProgramData\Anaconda3\Lib\site-packages\NanoObjectDetection
+  - Import package by import NanoObjectDetection as nd
 
 In general, the data should be sparse enough, sothat the captured particles are individual (well separated from each other) for at least 100 frames. The higher the framerate the easier this is. A longer track leads to a smaller confidence interval in the final diameter estimation.
 
-Example:
-•	Code is shown in blue 
-•	The module contains several examples which run fully automatically. However, they can also be executed block by block (in nd.Tutorial.py) in order to learn, debug and optimize
-o	 nd.Tutorial.RandomWalk () 
-o	nd.Tutorial.MonaARHCF () 
-o	nd.Tutorial.StefanARHCF () 
-o	nd.Tutorial.HeraeusNanobore() 
+### Example:
+- Code is shown in blue 
+- The module contains several examples which run fully automatically. However, they can also be executed block by block (in nd.Tutorial.py) in order to learn, debug and optimize
+  - nd.Tutorial.RandomWalk () 
+  - nd.Tutorial.MonaARHCF () 
+  - nd.Tutorial.StefanARHCF () 
+  - nd.Tutorial.HeraeusNanobore() 
 
-•	For a new set of data: Copy the parameter json file (for example: “default_json.json” or “tutorial_50nm_beads.json” in the new folder.
-•	Open the json file and fill in the parameters as good as you can
-o	The parameters are explained in default_json.py
-o	Be aware that python uses „\\“ instead of „\“ for path- and file directories
-o	Each line of a key has to be finished with a comma (,), except the last entry of each block.
-	"StationaryObjects": {
-"Analyze fixed spots": 0,
-"Min distance to stationary object": 0
-			}
-o	Enter the path of the new directory in „SaveFolder“ and „SaveProperties“ ( + beispielsweise „\\parameters.json“)
-	"data_file_name": "Z:\\Data\\TorstenWieduwilt\\190322_test_heraeus\\100nist_1000_50fps_1.tif",
-o	If you dont know your parameter you should use the default value
-	You can delete a key completely and python will reintroduce this key with the default value, if you have "DefaultParameterJsonFile": "default",
-o	For the Nanobore the following Parameters are important:
-	"Shape": "round" , because the fiber is round
-	"SimulateData": 0, to not generate artificial data
-	"Remove_CameraOffset": 1, because the camera has offset
-	"Remove_Laserfluctuation": 0, it would be nice to remove the laser fluctuations. However, for this at least a couple of dozen of particles are required which do not fit in a nanobore (in contrast to a ARHCF)
-	"Help": "ROI": 1,  "Bead brightness": 1, "Bead size": 1, for opening the help to adjust new experimental parameters in case of a new specimen or changed experimental parameters  (Fiber, Camera, Objective etc.)
-	"Analyze fixed spots": 1, because partikels to attached to the fiber in the Nanobore
-	Dift: "Apply": 1, because drift occurs
-	"Do transversal drift correction": 0, because you need a lot of particles to do that, which do not fit in a nanobore (in contrast to a ARHCF)
-	"EstimateHindranceFactor": 1, because the particle diameter is not neglectable comparing the the fiber diameter.
+- For a new set of data: Copy the parameter json file (for example: “default_json.json” or “tutorial_50nm_beads.json” in the new folder.
+- Open the json file and fill in the parameters as good as you can
+  - The parameters are explained in default_json.py
+  - Be aware that python uses „\\“ instead of „\“ for path- and file directories
+  - Each line of a key has to be finished with a comma (,), except the last entry of each block.
+    - "StationaryObjects": {
+	"Analyze fixed spots": 0,
+	"Min distance to stationary object": 0
+			    }
+  - Enter the path of the new directory in „SaveFolder“ and „SaveProperties“ ( + beispielsweise „\\parameters.json“)
+    - "data_file_name": "Z:\\Data\\TorstenWieduwilt\\190322_test_heraeus\\100nist_1000_50fps_1.tif",
+  - If you dont know your parameter you should use the default value
+    - You can delete a key completely and python will reintroduce this key with the default value, if you have "DefaultParameterJsonFile": "default",
+  - For the Nanobore the following Parameters are important:
+    - "Shape": "round" , because the fiber is round
+    - "SimulateData": 0, to not generate artificial data
+    - "Remove_CameraOffset": 1, because the camera has offset
+    - "Remove_Laserfluctuation": 0, it would be nice to remove the laser fluctuations. However, for this at least a couple of dozen of particles are required which do not fit in a nanobore (in contrast to a ARHCF)
+    - "Help": "ROI": 1,  "Bead brightness": 1, "Bead size": 1, for opening the help to adjust new experimental parameters in case of a new specimen or changed experimental parameters  (Fiber, Camera, Objective etc.)
+    - "Analyze fixed spots": 1, because partikels to attached to the fiber in the Nanobore
+    - Dift: "Apply": 1, because drift occurs
+    - "Do transversal drift correction": 0, because you need a lot of particles to do that, which do not fit in a nanobore (in contrast to a ARHCF)
+    - "EstimateHindranceFactor": 1, because the particle diameter is not neglectable comparing the the fiber diameter.
 o	The Json file can be changed (and saved) at any time, because the parameters are read in at any block. This makes debugging and optimizing easier.
 •	Opening of MainCode.py in the Python Editor (e.g. Spyder)
 o	Inserting the full path of the parameter json file:
