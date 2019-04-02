@@ -8,7 +8,9 @@
           "Temperature": 295.0,
           "Viscocity": 9.5e-16,
           "const_Boltz": 1.38e-23,
-          "gain": "unknown"
+          "gain": "unknown",
+          "Viscocity_auto": 0,
+          "solvent": "water"
      },
      "Fiber": {
           "Shape": "hex",
@@ -42,10 +44,10 @@
           "SimulateData": 1,
           "DiameterOfParticles": 60,
           "NumberOfParticles": 1,
-          "NumberOfFrames": 10000,
+          "NumberOfFrames": 2000,
           "mass": 1000,
           "EstimationPrecision": 0.1,
-          "Max_traj_length": 500,
+          "Max_traj_length": 200,
           "RatioDroppedFrames": 0.0
      },
      "ROI": {
@@ -107,7 +109,7 @@
           "Min distance to stationary object": 20
      },
      "Split": {
-          "Max_traj_length": 1000.0,
+          "Max_traj_length": 500.0,
           "Max_traj_length_keep_tail": 0,
           "Max rel median intensity step": 0.5,
           "ParticleWithLongestTrajBeforeSplit": 0
@@ -142,10 +144,10 @@
           "Histogramm_Show": 1,
           "Histogramm_Save": 1,
           "Histogramm_Bins_Auto": 1,
-          "Histogramm_Bins": 3,
+          "Histogramm_Bins": 1,
           "Histogramm_min_max_auto": 1,
           "Histogramm_min": 50.0,
-          "Histogramm_max": 70.0,
+          "Histogramm_max": 80.0,
           "DiamOverTraj_Show": 0,
           "DiamOverTraj_Save": 0,
           "fontsize": 14,
