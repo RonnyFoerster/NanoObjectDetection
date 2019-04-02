@@ -44,7 +44,13 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     frames_per_second = settings["MSD"]["effective_fps"]
     
     temp_water = settings["Exp"]["Temperature"]
+    solvent = settings["Exp"]["solvent"]
+    
+    if settings["Exp"]["Viscocity_auto"] == 1:
+        settings["Exp"]["Viscocity"] = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
+    
     visc_water = settings["Exp"]["Viscocity"]
+        
     
     min_rel_error = settings["MSD"]["Min rel Error"]
     

@@ -5,10 +5,12 @@
           "fps": 922,
           "ExposureTime": 0.0004992,
           "Microns_per_pixel": 0.477,
-          "Temperature": 295.0,
-          "Viscocity": 9.5e-16,
+          "Temperature": 297.0,
+          "Viscocity": 9.13847295188505e-16,
           "const_Boltz": 1.38e-23,
-          "gain": "unknown"
+          "gain": "unknown",
+          "Viscocity_auto": 1,
+          "solvent": "water"
      },
      "Fiber": {
           "Shape": "hex",

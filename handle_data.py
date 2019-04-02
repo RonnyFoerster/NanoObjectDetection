@@ -115,6 +115,16 @@ def ARHCF_HexToDiameter(side_length):
     return diameter_inner, diameter_outer
 
 
+
+def GetViscocity(temperature = 295.15, solvent = "Water"):
+    import CoolProp as CP
+    my_visc = CP.CoolProp.Props('V','T',temperature,'P',101.3,solvent)
+    
+    # units
+    my_visc = my_visc * 1e-12
+    
+    return my_visc
+
 def GetTrajLengthAndParticleNumber(t):
     """
     Searches for the particle with the longest trajectory

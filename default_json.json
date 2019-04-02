@@ -8,6 +8,8 @@
           "gain": "unknown",
           "Temperature": 295.0,
           "Viscocity": 9.5e-16,
+          "Viscocity_auto": 0,
+          "solvent": "water",
           "const_Boltz": 1.38e-23
      },
      "Fiber": {

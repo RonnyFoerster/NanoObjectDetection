@@ -170,7 +170,14 @@ def PrepareRandomWalk(ParameterJsonFile):
     frames_per_second   = settings["Exp"]["fps"]
     microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
     temp_water          = settings["Exp"]["Temperature"]
-    visc_water          = settings["Exp"]["Viscocity"]
+
+    solvent = settings["Exp"]["solvent"]
+    
+    if settings["Exp"]["Viscocity_auto"] == 1:
+        visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
+        bp()
+    else:
+        visc_water = settings["Exp"]["Viscocity"]
 
     
     output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, \
@@ -178,5 +185,7 @@ def PrepareRandomWalk(ParameterJsonFile):
                                               ep = EstimationPrecision, mass = mass, \
                                               microns_per_pixel = microns_per_pixel, temp_water = temp_water, \
                                               visc_water = visc_water)
+
+    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
     return output
