@@ -45,34 +45,34 @@ In general, the data should be sparse enough, sothat the captured particles are 
     - Dift: "Apply": 1, because drift occurs
     - "Do transversal drift correction": 0, because you need a lot of particles to do that, which do not fit in a nanobore (in contrast to a ARHCF)
     - "EstimateHindranceFactor": 1, because the particle diameter is not neglectable comparing the the fiber diameter.
-o	The Json file can be changed (and saved) at any time, because the parameters are read in at any block. This makes debugging and optimizing easier.
-•	Opening of MainCode.py in the Python Editor (e.g. Spyder)
-o	Inserting the full path of the parameter json file:
-	ParameterJsonFile = "Z:\\Datenauswertung\\Torsten_Wieduwilt\\190322\\100nist_1000_50fps_1\\100nist_1000_50fps_1.json"
-o	Execute the code blockwise (use Shift + Enter)
-	As soon as the json file is optimized the code can run completely at once.
-•	The help opens in nd.AdjustSettings.FindSpot(rawframes_rot, ParameterJsonFile)
-o	„ROI“
-	Shows a maximum projection.
-	Choose a region of interest (ROI). A ROI is computed much faster than the entire dataset. Thus, parameters can be optimized faster. This is vaild for frames, too.
-	The ROI can be inserted in the json.
-	A huge dataset can be evaluated best, if the parameters are first optimized on a ROI with a few hundred frames.
-o	"Bead brightness"
-	The image of the particle detection (successful detection in red circles) is saved. The image must be opened in the displayed folder.
-	The help ask if the detection is good (yes (y) or no(n))
-•	If not, the question arises what is wrong:
-o	1 - Bright (isolated) spots not recognized 
-o	2 - Spots where nothing is to be seen 
-o	3 - Bright (non-isolated) spots not recognized but you would like to have them both 
-o	4 - Much more recognized spots than I think I have particles
-•	Insert the number of the problem (1-4). The problem displays which parameter needs to changed in which direction.
-•	Then the routine runs again.
-	If the help is not required anymore, the help parameter can be set to 0.
-o	"Bead size"
-	The histogram of the subpixel accuracy should be flat (noise allowed). Is the estimated particle size to small the histogram has a dip in the middle at 0.5.
-•	The help routine ask again if the user is satisfied or not
-	The plot of the images can be in an external window or inside the consol. This can be set in the console using:
-•	External window:	%matplotlib qt
-•	Consol:			%matplotlib inline
-•	The remaining code runs without any help. Not all parameter have a parameter estimation, so that the algorithm produces results if a new specimen or component is in.  Than the parameters need to be optimized by hand. 
+  - The Json file can be changed (and saved) at any time, because the parameters are read in at any block. This makes debugging and optimizing easier.
+- Opening of MainCode.py in the Python Editor (e.g. Spyder)
+  - Inserting the full path of the parameter json file:
+    - ParameterJsonFile = "Z:\\Datenauswertung\\Torsten_Wieduwilt\\190322\\100nist_1000_50fps_1\\100nist_1000_50fps_1.json"
+  - Execute the code blockwise (use Shift + Enter)
+    - As soon as the json file is optimized the code can run completely at once.
+- The help opens in nd.AdjustSettings.FindSpot(rawframes_rot, ParameterJsonFile)
+  - „ROI“
+    - Shows a maximum projection.
+    - Choose a region of interest (ROI). A ROI is computed much faster than the entire dataset. Thus, parameters can be optimized faster. This is vaild for frames, too.
+    - The ROI can be inserted in the json.
+    - A huge dataset can be evaluated best, if the parameters are first optimized on a ROI with a few hundred frames.
+  - "Bead brightness"
+    - The image of the particle detection (successful detection in red circles) is saved. The image must be opened in the displayed folder.
+    - The help ask if the detection is good (yes (y) or no(n))
+- If not, the question arises what is wrong:
+  - 1 - Bright (isolated) spots not recognized 
+  - 2 - Spots where nothing is to be seen 
+  - 3 - Bright (non-isolated) spots not recognized but you would like to have them both 
+  - 4 - Much more recognized spots than I think I have particles
+- Insert the number of the problem (1-4). The problem displays which parameter needs to changed in which direction.
+- Then the routine runs again.
+    - If the help is not required anymore, the help parameter can be set to 0.
+  - "Bead size"
+    - The histogram of the subpixel accuracy should be flat (noise allowed). Is the estimated particle size to small the histogram has a dip in the middle at 0.5.
+- The help routine ask again if the user is satisfied or not
+    - The plot of the images can be in an external window or inside the consol. This can be set in the console using:
+- External window:	%matplotlib qt
+- Consol:			%matplotlib inline
+- The remaining code runs without any help. Not all parameter have a parameter estimation, so that the algorithm produces results if a new specimen or component is in.  Than the parameters need to be optimized by hand. 
 
