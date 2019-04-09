@@ -115,8 +115,6 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
                 # Is that possibly wrong??
 
 
-
-    
     # Putting the results into a df and formatting correctly:
     sim_part_tm=pd.DataFrame({'x':sim_part_x, \
                               'y':0,  \
@@ -131,7 +129,12 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     
     
     sim_part_tm.x=sim_part_tm.groupby('particle').x.cumsum()
-    sim_part_tm.index=sim_part_tm.frame
+    
+
+#    sim_part_tm.index=sim_part_tm.frame # old method RF 190408
+#    copies frame to index and thus exists twice. not good
+#    bp()
+
 
     # here come the localization precision ep on top    
     sim_part_tm.x = sim_part_tm.x + np.random.normal(0,ep,len(sim_part_tm.x))

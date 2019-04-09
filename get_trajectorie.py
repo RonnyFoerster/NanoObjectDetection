@@ -208,7 +208,7 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
     BeforeDriftCorrection = Defines if the particles have been already drift corrected
     Before drift correction short trajectories are ok
     """
-    
+
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
@@ -225,6 +225,10 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         
 
     traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
+    
+    # RF 190408 remove Frames because the are doupled and panda does not like it
+#    traj_min_length = traj_min_length.drop(columns="frame")
+#    traj_min_length = traj_min_length.reset_index()
 
     particle_number = traj_all['particle'].unique(); #particlue numbers that fulfill all previous requirements
     amount_particles = len(particle_number); #total number of valid particles

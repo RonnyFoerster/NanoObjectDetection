@@ -4,9 +4,11 @@ Created on Mon Feb 25 14:02:50 2019
 
 @author: foersterronny
 """
-import trackpy as tp
 import sys
 import platform
+import trackpy as tp
+import pandas as pd
+
 
 # In[] check python version
 
@@ -16,6 +18,7 @@ def CheckAll():
     """
     CheckPython()
     CheckTrackpy()
+    CheckPanda()
     
 def CheckPython():
     """
@@ -35,7 +38,7 @@ def CheckPython():
 # In[] check trackpy version    
 def CheckTrackpy():
     """
-    Checks if the trackpy version is 
+    Checks if the trackpy version is right
     """
     
     tp_minimum_versions = '0.4'
@@ -47,5 +50,27 @@ def CheckTrackpy():
         print("Trackpy minimum versions: ", tp_minimum_versions)
         print("Your trackpy versions: ", tp_version)
         sys.exit("Change your trackpy version accoringly, or insert your trackpy version in tp_allowed_versions")
+        
+        
+        
     
+    # In[] check trackpy version    
+def CheckPanda():
+    """
+    Checks if the panda version is right
+    """
     
+    pd_maximum_versions = '0.23.4'
+    pd_version = pd.__version__
+    
+    if pd_version <= pd_maximum_versions:
+        print("Pandas version valid: ", pd_version)
+    else:
+        print("Pandas maximum versions: ", pd_maximum_versions)
+        print("Your trackpy versions: ", pd_version)
+        print("New panda versions do not work since https://github.com/soft-matter/trackpy/issues/529#issue-410397797")
+        print("Try: Downgrading your system in Anaconda promt using >>> conda install pandas=0.23.4 <<<")
+        sys.exit("Change your pandas version accoringly, or insert your pandas version in pd_maximum_versions")
+        
+        
+        

@@ -60,7 +60,7 @@ def SetXYLim(x_min_max = None, y_min_max = None):
     if (y_min_max is None) == False:
         plt.ylim([y_min_max[0], y_min_max[1]])
 
-def Plot1DPlot(plot_np,title, xlabel, ylabel):
+def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
     plt.figure()

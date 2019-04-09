@@ -16,12 +16,13 @@ from . import mpl_style
 from . import PlotProperties
 from . import PreProcessing
 from . import Simulation
+from . import Tools
 from . import wlsice
 from . import visualize
 
 
 from . import Tutorial
-from . import standard_json
+from . import default_json
 
 
 
