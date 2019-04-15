@@ -120,6 +120,10 @@
           "Min rel Error": 0,
           "EvalOnlyLongestTraj": 0
      },
+     "Time": {
+          "DoRolling": 0,
+          "Frames": 100
+     },
      "Plot": {
           "Background_Show": 0,
           "Background_Save": 0,

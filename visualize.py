@@ -768,6 +768,49 @@ def AnimateProcessedRawDate(rawframes_ROI, t_long):
     return anim
     
     
+
+def AnimateDiameterAndRawdata(rawframes_rot, sizes_df_lin_rolling):
+    
+    
+    fig, (ax0, ax5) = plt.subplots(2, sharex=True, sharey=True)
+#    scat5 = ax5.scatter([], [], s=60)
+
+    im_data=rawframes_rot
+
+    background0 = ax0.imshow(im_data0, animated=True)
+#    background5 = ax5.imshow(im_data, animated=True)
+    fig.subplots_adjust(hspace=0)
+    
+    def init():
+#        scat5.set_offsets([])
+#        im_data0=rawframes_before_filtering[0]
+        im_data=rawframes_rot
+        background0.set_data(im_data0)
+        background5.set_data(im_data)
+        ax0.set_ylabel('raw-data')
+#        ax5.set_ylabel('size-analyzed particles')    
+#        ax5.set_xlabel('x-Position [Pixel]')
+        return background0, background5, scat5,
+    
+    def animate(i):
+        ax0.clear()
+#        ax5.clear()
+#        scat5 = ax5.scatter(t_long.x[t_long.frame==i].values, t_long.y[t_long.frame==i].values, s=70, 
+#                            alpha = 0.4, c=t_long.particle[t_long.frame==i].values % 20)
+#        im_data0=rawframes_before_filtering[i]
+        im_data=rawframes_rot[i]
+        background0 = ax0.imshow(im_data0, animated=True)
+        background5 = ax5.imshow(im_data, animated=True)
+        return background0, background5, scat5
+    
+    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=t_long.frame.nunique(), 
+                                   interval=1000, blit=True, repeat=False)
+    
+    return anim
+
+
+
+
     
 def DriftAvgSpeed():
     # show average speed

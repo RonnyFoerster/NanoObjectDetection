@@ -489,7 +489,7 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
         traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
         
         
-        
+        print("traj_length", traj_length)
         while traj_length > Max_traj_length:
             if (traj_length > 2*Max_traj_length) or (keep_tail == 0):
                 start_frame = t4_cutted[t4_cutted["particle"] == test_particle].iloc[Max_traj_length]["frame"]

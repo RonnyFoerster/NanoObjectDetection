@@ -63,9 +63,9 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     
         settings["Split"]["ParticleWithLongestTrajBeforeSplit"] = longest_particle
     
-        t6_final_use = t6_final[t6_final["particle"] == longest_particle]
+        t6_final_use = t6_final[t6_final["particle"] == longest_particle].copy()
     else:
-        t6_final_use = t6_final
+        t6_final_use = t6_final.copy()
     
 
     Max_traj_length = int(settings["Split"]["Max_traj_length"])
@@ -110,8 +110,10 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     particle_list_value=list(t6_final_use.particle.drop_duplicates())
 
     sizes_df_lin=pd.DataFrame(columns={'diameter','particle'})       
+    sizes_df_lin_rolling = pd.DataFrame()   
     
     any_successful_check = False
+
 
     # go through the particles
     num_loop_elements = len(particle_list_value)
@@ -129,11 +131,9 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
         mean_raw_mass = eval_tm["raw_mass"].mean()
         mean_ep = eval_tm["ep"].mean()
         max_step = eval_tm["rel_step"].max()
+        true_particle = eval_tm["true_particle"].max()
         
-        
-        stable_num_lagtimes = False
-        counter = 0
-        
+        # defines how many lagtimes are considered for the fit
         if amount_lagtimes_auto == 1:
             max_counter = 10
             lagtimes_min = CalculateLagtimes_min(eval_tm)
@@ -144,6 +144,9 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
             max_counter = 1
             lagtimes_min = settings["MSD"]["lagtimes_min"]
             lagtimes_max = settings["MSD"]["lagtimes_max"]
+        
+        stable_num_lagtimes = False
+        counter = 0
          
             # iterate msd fit till it converges
         while ((stable_num_lagtimes == False) and (counter < max_counter)):
@@ -162,14 +165,24 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
 
                 #iterative to find optimal number of lagtimes in the fit    
                 # Average MSD (several (independent) values for each lagtime)
+
                 lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
-                AvgMsd(nan_tm_sq, frames_per_second,  lagtimes_min = lagtimes_min, lagtimes_max = lagtimes_max)
+                AvgMsdRolling(nan_tm_sq, frames_per_second, DoRolling = False)
                 
-                # Fit MSD (slope is proportional to diffusion coefficent)
                 diff_direct_lin = \
-                FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
-                       PlotMsdOverLagtime = MSD_fit_Show)
-                  
+                FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
+                           PlotMsdOverLagtime = MSD_fit_Show, DoRolling = False)
+                    
+                do_rolling = 1
+                my_rolling = 240
+                if do_rolling == True:
+                    lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
+                    AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = my_rolling, DoRolling = True)
+                    
+                    diff_direct_lin_rolling = \
+                    FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
+                               PlotMsdOverLagtime = MSD_fit_Show, my_rolling = my_rolling, DoRolling = True)
+
 
                 if amount_lagtimes_auto == 1:
                     # calculate theoretical best number of considered lagtimes
@@ -186,8 +199,9 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                         # drop last line, because it is done again
                         sizes_df_lin = sizes_df_lin[:-1]                   
 
+
         if enough_values == True: 
-            red_ep = ReducedLocalPrecision(settings, mean_ep, mean_raw_mass, diff_direct_lin)
+            red_ep = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
             
             # get the fit error if switches on (and working)
             
@@ -195,21 +209,42 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
             
             diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water)
             
-            
             sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter, \
                                    particleid, traj_length, amount_frames_lagt1, start_frame, \
                                    mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
-                                   red_ep, max_step)
+                                   red_ep, max_step, true_particle)
+            
+            if do_rolling == True:
+                red_ep_rolling = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin_rolling)
+           
+                # get the fit error if switches on (and working)
+                rel_error_diff_rolling, diff_std_rolling = \
+                DiffusionError(traj_length, red_ep_rolling, diff_direct_lin_rolling, min_rel_error)
+                
+                diameter_rolling = DiffusionToDiameter(diff_direct_lin_rolling, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water, DoRolling = True)
+                
+                sizes_df_lin_rolling = ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, \
+                                       diff_std_rolling, diameter_rolling, \
+                                       particleid, traj_length, amount_frames_lagt1, start_frame, \
+                                       mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
+                
+                       red_ep, max_step)
+                
+            else:
+                sizes_df_lin_rolling = -1
         
-    
     sizes_df_lin = sizes_df_lin.set_index('particle')
+    
+    if do_rolling == True:
+        sizes_df_lin_rolling = sizes_df_lin_rolling.set_index('frame')
 
     if MSD_fit_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings)
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
-    return sizes_df_lin, any_successful_check
+    
+    return sizes_df_lin, sizes_df_lin_rolling, any_successful_check
 
  
 
@@ -275,7 +310,7 @@ def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, lagtimes_min = 
     
 
 
-def AvgMsd(nan_tm_sq, frames_per_second, lagtimes_min, lagtimes_max):
+def AvgMsd(nan_tm_sq, frames_per_second):
     mean_displ_direct = pd.Series() # To hold the mean sq displacement of a particle
     mean_displ_variance_direct = pd.Series() # To hold the variance of the msd of a particle
 #    my_columns = nan_tm_sq.columns
@@ -312,32 +347,73 @@ def AvgMsd(nan_tm_sq, frames_per_second, lagtimes_min, lagtimes_max):
 
 
 
-def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm):
-    diam_direct_lin_corr_old = 0;
-    diam_direct_lin_corr = diam_direct_lin;
+def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = False):
     
-    my_iter = 0
-    while np.abs(diam_direct_lin_corr - diam_direct_lin_corr_old) > 0.1:
-        my_iter = my_iter + 1
-        diam_direct_lin_corr_old = diam_direct_lin_corr
-#        corr_visc = 1 + 2.105 * (diam_direct_lin_corr / fibre_diameter_nm)
-#        hindrance = hindrance_fac(fibre_diameter_nm,diam_direct_lin_corr)
-        hindrance = hindrance_fac(fibre_diameter_nm,diam_direct_lin_corr)
-        corr_visc = 1 / hindrance
-        diam_direct_lin_corr = diam_direct_lin / corr_visc # diameter of each particle
-        
-        # this steps helps converging. Otherwise it might jump from 1/10 to 10 to 1/10 ...
-        diam_direct_lin_corr = np.sqrt(diam_direct_lin_corr * diam_direct_lin_corr_old)
-#        print(my_iter, 'diamter:',diam_direct_lin,'corr_visc:',corr_visc,'corr diameter:',diam_direct_lin_corr)
-        print("Iter: %d: Starting Diameter: %.1f; corr. viscocity: %.3f; corr. diameter: %.2f" % (my_iter, round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
+    if DoRolling == False:
+        mean_displ_direct = pd.DataFrame(index = [0], columns = nan_tm_sq.columns.tolist()[1:])
+        mean_displ_variance_direct = mean_displ_direct.copy()    
 
-        if my_iter > 100:
-            print("Iteration does not converge. Abort !!!")
-            bp()
-            input("PRESS ENTER TO CONTINUE.")
-            diam_direct_lin_corr = diam_direct_lin_corr_old
+        for column in mean_displ_direct.columns:
+            # That iterates over lag-times for the respective particle and
+            # calculates the msd in the following manner:
+            # 1. Build sub-blocks for statistically independent lag-time measurements
+            nan_indi_means = rolling_with_step(nan_tm_sq[column], column, column, mean_func)
+            
+            # 2. Calculate mean msd for the sublocks
+            mean_displ_direct[column] = nan_indi_means.mean(axis=0)
+            
+            # 3. Check how many independent measurements are present (this number is used for filtering later. 
+            # Also the iteration is limited to anaylzing
+            # those lag-times only that can possibly yield enough entries according to the chosen filter). 
+            
+            len_nan_tm_sq_loop = nan_indi_means.count()
+            
+            # 4. Calculate the mean of these sub-means --> that's the msd for each lag-time
+            # 5. Calculate the variance of these sub-means --> that's used for variance-based fitting 
+            # when determining the slope of msd over time
+            
+            mean_displ_variance_direct_loop = nan_indi_means.var(axis=0)*(2/(len_nan_tm_sq_loop-1))
+            
+            mean_displ_variance_direct[column] = mean_displ_variance_direct_loop
+            
+    else:   
+        mean_displ_direct = pd.DataFrame(index = nan_tm_sq.index, columns = nan_tm_sq.columns.tolist()[1:])
+        mean_displ_variance_direct = mean_displ_direct.copy()    
 
-    return diam_direct_lin_corr
+        for column in mean_displ_direct.columns:
+            my_rol = np.int(np.floor(my_rolling/column))
+            nan_indi_means = rolling_with_step(nan_tm_sq[column], column, column, mean_func)
+            mean_displ_direct[column] = nan_indi_means.rolling(my_rol, center = True, min_periods = 1).mean()
+            
+            len_nan_tm_sq_loop = nan_indi_means.rolling(my_rol, center = True).count()            
+           
+            mean_displ_variance_direct[column] = nan_indi_means.rolling(my_rol, center = True, min_periods = 1).var(ddof = False)*(2/(len_nan_tm_sq_loop-1))
+            
+            # mean_displ_direct[column] = nan_indi_means.rolling(my_rolling, center = True).mean()
+            # mean_displ_direct = mean_displ_direct.append(pd.Series(index=[column], data=[mean_displ_direct_loop]))
+
+            #remove NaN at the side with nearest neighbour
+            mean_displ_direct = FillNanInPanda(mean_displ_direct)
+            mean_displ_variance_direct = FillNanInPanda(mean_displ_variance_direct)
+    
+    mean_displ_sigma_direct = np.sqrt(mean_displ_variance_direct)
+    
+    lagt_direct = mean_displ_direct.columns/frames_per_second # converting frames into physical time: 
+    # first entry always starts with 1/frames_per_second
+    
+    return lagt_direct, mean_displ_direct, mean_displ_sigma_direct
+
+
+
+def FillNanInPanda(panda_in):
+    # fills gaps in between linearly
+    panda_out = panda_in.interpolate()
+    
+    # fill NaN at the beginning and the end with nearest neighbour
+    panda_out = panda_out.fillna(method = "bfill")
+    panda_out = panda_out.fillna(method = "ffill")
+    
+    return panda_out
 
 
 
@@ -366,15 +442,66 @@ def FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma
 
 
 
+def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, PlotMsdOverLagtime = False,  my_rolling = 100, DoRolling = False):
 
-def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None, temp_water = 295, visc_water = 9.5e-16):
+    weigths = mean_displ_sigma_direct.median()
+    
+#    if DoRolling == False:
+#        bp()
+#        weigths = np.squeeze(np.asarray(mean_displ_sigma_direct))
+#    else:
+#        bp()
+
+    if (len(lagt_direct) >= 5):
+        [fit_values, fit_cov]= np.polyfit(lagt_direct, mean_displ_direct, 1, w = 1/mean_displ_sigma_direct, cov=True) 
+    else:
+        try:
+            fit_values= np.polyfit(lagt_direct, mean_displ_direct.T, 1, w = 1/weigths) 
+        except:
+            bp()
+
+        
+    if PlotMsdOverLagtime == True:
+        
+        show_mean_displ_direct = mean_displ_direct.median()
+        
+        if DoRolling == False:
+            mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values[0])+ fit_values[1]
+#            show_mean_displ_direct = mean_displ_direct.median()
+            # order of regression_coefficients depends on method for regression (0 and 1 are switched in the two methods)
+            # fit results into non-log-space again
+#            nd.visualize.MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin)
+#            nd.visualize.MsdOverLagtime(lagt_direct, np.squeeze(np.asarray(mean_displ_direct)), mean_displ_fit_direct_lin)
+        else:
+            fit_values_median = np.median(fit_values,axis=1)    
+            mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values_median[0])+ fit_values_median[1]
+            
+            
+            
+        nd.visualize.MsdOverLagtime(lagt_direct, show_mean_displ_direct, mean_displ_fit_direct_lin)
+    
+    
+    diff_direct_lin = fit_values[0]/2
+    diff_direct_lin = np.squeeze(diff_direct_lin)
+    
+    return diff_direct_lin
+
+
+
+def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None, temp_water = 295, visc_water = 9.5e-16, DoRolling = False):
     const_Boltz = 1.38e-23 # Boltzmann-constant
     
     diameter = (2*const_Boltz*temp_water/(6*math.pi *visc_water)*1e9) /diffusion # diameter of each particle
 
     if UseHindranceFac == True:
-        if diameter < fibre_diameter_nm:
-            diameter = EstimateHindranceFactor(diameter, fibre_diameter_nm)
+        if np.max(diameter) < fibre_diameter_nm:
+            if DoRolling == False:
+                diamter_corr = EstimateHindranceFactor(diameter, fibre_diameter_nm, DoPrint = True)
+            else:
+                diamter_corr = diameter.copy()
+                for counter, diameter_rolling in enumerate(diameter):
+                    diamter_corr[counter] = EstimateHindranceFactor(diameter_rolling, fibre_diameter_nm, DoPrint = False)
+                
         else:
             sys.exit("Here is something wrong. Since the diameter is calculated to be large than the core diameter. \
                      Possible Reasons: \
@@ -385,20 +512,52 @@ def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None
         print("WARNING: hindrance factor ignored. You just need to have the fiber diameter!")   
 
 
-    return diameter
+    return diamter_corr
 
 
 
-def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diam_direct_lin,
+def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm, DoPrint = True):
+    
+    diam_direct_lin_corr = diam_direct_lin
+    diam_direct_lin_corr_old = 0
+    
+    my_iter = 0        
+    while np.abs(diam_direct_lin_corr - diam_direct_lin_corr_old) > 0.1:
+        my_iter = my_iter + 1
+        diam_direct_lin_corr_old = diam_direct_lin_corr
+        
+#        corr_visc = 1 + 2.105 * (diam_direct_lin_corr / fibre_diameter_nm)
+#        hindrance = hindrance_fac(fibre_diameter_nm,diam_direct_lin_corr)
+        hindrance = hindrance_fac(fibre_diameter_nm,diam_direct_lin_corr)
+        corr_visc = 1 / hindrance
+        diam_direct_lin_corr = diam_direct_lin / corr_visc # diameter of each particle
+        
+        # this steps helps converging. Otherwise it might jump from 1/10 to 10 to 1/10 ...
+        diam_direct_lin_corr = np.sqrt(diam_direct_lin_corr * diam_direct_lin_corr_old)
+#        print(my_iter, 'diamter:',diam_direct_lin,'corr_visc:',corr_visc,'corr diameter:',diam_direct_lin_corr)
+        if DoPrint == True:
+            print("Iter: %d: Starting Diameter: %.1f; corr. viscocity: %.3f; corr. diameter: %.2f" % (my_iter, round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
+
+        if my_iter > 100:
+            print("Iteration does not converge. Abort !!!")
+            bp()
+            input("PRESS ENTER TO CONTINUE.")
+            diam_direct_lin_corr = diam_direct_lin_corr_old
+
+    return diam_direct_lin_corr
+
+
+
+def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                     particleid, traj_length, amount_frames_lagt1, start_frame,
                     mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
-                    red_ep, max_step):
+                    red_ep, max_step, true_particle):
     
     # Storing results in df:
     sizes_df_lin = sizes_df_lin.append(pd.DataFrame(data={'particle': [particleid],
                                                           'diffusion': [diff_direct_lin],
                                                           'diffusion std': [diff_std],
-                                                          'diameter': [diam_direct_lin],
+                                                          'diameter': [diameter],
                                                           'ep': [mean_ep],
                                                           'redep' : [red_ep], 
                                                           'signal': [mean_signal],
@@ -409,7 +568,8 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diam_direct_lin,
                                                           'traj length': [traj_length],
                                                           'valid frames':[amount_frames_lagt1],
                                                           'size': [mean_size],
-                                                          'ecc': [mean_ecc]}),sort=False)
+                                                          'ecc': [mean_ecc],
+                                                          'true_particle': [true_particle]}),sort=False)
     
     
     
@@ -417,10 +577,42 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diam_direct_lin,
 
 
 
+def ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, diff_std_rolling, diameter_rolling, 
+                    particleid, traj_length, amount_frames_lagt1, start_frame,
+                    mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
+                    red_ep, max_step):
+    
+
+    # Storing results in df:
+    new_panda = pd.DataFrame(data={'particle': particleid,
+                                  'frame': np.arange(start_frame,start_frame + len(diff_direct_lin_rolling), dtype = int),
+                                  'diffusion': diff_direct_lin_rolling,
+                                  'diffusion std': diff_std_rolling,
+                                  'diameter': diameter_rolling,
+                                  'ep': mean_ep,
+                                  'redep' : red_ep, 
+                                  'signal': mean_signal,
+                                  'mass': mean_mass,
+                                  'rawmass': mean_raw_mass,
+                                  'max step': max_step,
+                                  'first frame': start_frame,
+                                  'traj length': traj_length,
+                                  'valid frames':amount_frames_lagt1,
+                                  'size': mean_size,
+                                  'ecc': mean_ecc})
+
+    
+    sizes_df_lin_rolling = sizes_df_lin_rolling.append(new_panda, sort=False)
+    
+    
+    
+    return sizes_df_lin_rolling
+
+
 
 def OptimalMSDPoints(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
     # XAVIER MICHALET AND ANDREW J. BERGLUND PHYSICAL REVIEW E 85, 2012
-    red_x = ReducedLocalPrecision(settings, ep, raw_mass, diffusivity)
+    red_x = ReducedLocalPrecision(settings, raw_mass, diffusivity)
     
     
     if red_x >= 0:
@@ -440,12 +632,12 @@ def OptimalMSDPoints(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
     
     
     
-def ReducedLocalPrecision(settings, ep, mass, diffusion):
+def ReducedLocalPrecision(settings, mass, diffusion, DoRolling = False):
     """
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD7
     Eq 13
     """
-    local_precision_um = ep * settings["Exp"]["Microns_per_pixel"]
+#    local_precision_um = ep * settings["Exp"]["Microns_per_pixel"]
     lagtime_s = 1/settings["Exp"]["fps"]
     exposure_time_s = settings["Exp"]["ExposureTime"]
     
@@ -481,12 +673,16 @@ def ReducedLocalPrecision(settings, ep, mass, diffusion):
     return red_x
     
 
-def DiffusionError(traj_length, red_x, diffusion, min_rel_error):
+def DiffusionError(traj_length, red_x, diffusion, min_rel_error, DoRolling = False):
     """
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD7
     Eq 7
     """
-    delta = DeltaErrorEstimation(red_x,traj_length)
+    if DoRolling == False:
+        delta = DeltaErrorEstimation(red_x,traj_length)
+    else:
+        bp()
+        
     if np.isnan(delta) == True:
         rel_error = min_rel_error
     else:

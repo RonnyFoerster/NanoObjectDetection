@@ -8,6 +8,7 @@ import sys
 import platform
 import trackpy as tp
 import pandas as pd
+from pdb import set_trace as bp #debugger
 
 
 # In[] check python version

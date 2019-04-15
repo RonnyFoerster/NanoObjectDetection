@@ -45,7 +45,6 @@ def ReadJson(mypath):
     else:
         settings["File"]["json"] = mypath
     
-    
     # check if some keys are missing.
     mypath_default = settings["File"]["DefaultParameterJsonFile"]
     if mypath_default == "default":

@@ -109,10 +109,10 @@
           "Min distance to stationary object": 20
      },
      "Split": {
-          "Max_traj_length": 501,
+          "Max_traj_length": 50001,
           "Max_traj_length_keep_tail": 1,
           "Max rel median intensity step": 0.5,
-          "ParticleWithLongestTrajBeforeSplit": 4
+          "ParticleWithLongestTrajBeforeSplit": 27
      },
      "Drift": {
           "Apply": 1,
@@ -131,7 +131,7 @@
           "EstimateHindranceFactor": 1,
           "EvalOnlyLongestTraj": 0,
           "Calculate Error": 0,
-          "Min rel Error": 0
+          "Min rel Error": 0.0001
      },
      "Plot": {
           "Background_Show": 0,
@@ -143,10 +143,10 @@
           "Histogramm_Show": 1,
           "Histogramm_Save": 1,
           "Histogramm_Bins_Auto": 1,
-          "Histogramm_Bins": 6,
+          "Histogramm_Bins": 2,
           "Histogramm_min_max_auto": 1,
           "Histogramm_min": 40.0,
-          "Histogramm_max": 70.0,
+          "Histogramm_max": 60.0,
           "DiamOverTraj_Show": 1,
           "DiamOverTraj_Save": 0,
           "fontsize": 14,
@@ -172,5 +172,9 @@
           "Min displacement": 5,
           "Rolling window size": 5,
           "data_file_extension": "tif"
+     },
+     "Time": {
+          "DoRolling": 0,
+          "Frames": 100
      }
 }
