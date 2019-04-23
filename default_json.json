@@ -122,7 +122,8 @@
      },
      "Time": {
           "DoRolling": 0,
-          "Frames": 100
+          "Frames": 100,
+          "skip_image_fac": 10
      },
      "Plot": {
           "Background_Show": 0,

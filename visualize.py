@@ -40,9 +40,13 @@ from matplotlib import animation # Allows to create animated plots and videos fr
 import json
 import sys
 import datetime
-from PIL import Image
 from pdb import set_trace as bp #debugger
 import scipy
+import os.path
+
+import time
+from matplotlib.animation import FuncAnimation, PillowWriter
+
 
 """
 ******************************************************************************
@@ -588,7 +592,6 @@ def GetPlotParameters(settings):
 
 
 def export(save_folder_name, save_image_name, settings = None, use_dpi = None, data = None, data_header = None):    
-    import os.path
     import NanoObjectDetection as nd
     if settings is None:
         if use_dpi is None:
@@ -728,48 +731,210 @@ def CutTrajectorieAtStep(t1_gapless, particle_to_split, max_rel_median_intensity
     
    
     
-def AnimateProcessedRawDate(rawframes_ROI, t_long):
-    rawframes_before_filtering=rawframes_ROI
+def AnimateProcessedRawData(ParameterJsonFile, rawframes_rot, t4_cutted, t6_final, sizes_df_lin, sizes_df_lin_rolling):
+    import NanoObjectDetection as nd
     
-    fig, (ax0, ax5) = plt.subplots(2, sharex=True, sharey=True)
-    scat5 = ax5.scatter([], [], s=60)
-    im_data0=rawframes_before_filtering[0]
-    #im_data=rawframes[0]
-    im_data=rawframes_ROI[0]
-    background0 = ax0.imshow(im_data0, animated=True)
-    background5 = ax5.imshow(im_data, animated=True)
-    fig.subplots_adjust(hspace=0)
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    t4_cutted_show = t4_cutted.copy()
+    t6_final_show = t6_final.copy()
+    
+    
+    fig = plt.figure(figsize=(5,14))
+    
+    
+    ax00 = plt.subplot2grid((5,1), (0,0))
+    ax10 = plt.subplot2grid((5,1), (1,0), sharex=ax00, sharey=ax00)
+    ax20 = plt.subplot2grid((5,1), (2,0), sharex=ax00, sharey=ax00)
+    ax30 = plt.subplot2grid((5,1), (3,0), sharex=ax00, sharey=ax00)
+    ax40 = plt.subplot2grid((5,1), (4,0), sharex=ax00, sharey=ax00)
+    ax40.axis('off')
+    
+    plt.subplots_adjust(hspace=0.7)
+    
+      
+    time_text = ax40.text(0.1, 0.1, '', transform=ax40.transAxes, fontsize = 16, zorder=0)  
+    
+    skip_image_fac = settings["Time"]["skip_image_fac"]
+    fps = 992
+    effective_fps = fps / skip_image_fac
+        
+    
+    start_frame = 1000
+    
+    #    raw_im  = ax0.imshow(rawframes_rot[my_frame,:,:])
+    raw_im  = ax00.imshow(rawframes_rot[start_frame,:,:], cmap='gray')
+    ax00.set_title("Raw image")
+    
+    particles_detected = t4_cutted_show[t4_cutted_show.frame == start_frame]
+    particles_detected_im = ax10.scatter(particles_detected.x,particles_detected.y,c = 'w')
+    ax10.set_title("Identified particles")
+    ax10.set_facecolor((0, 0, 0))
+    
+    particles_analysed = t6_final_show[t6_final_show.frame == start_frame]
+    particles_analysed_im = ax20.scatter(particles_analysed.x,particles_analysed.y)    
+    ax20.set_title("Analyzed particles (with Diameter)")
+    
+    sizes_df_lin_frame = sizes_df_lin[sizes_df_lin.index.isin(particles_analysed["particle"].values)]
+    
+    particles_analysed_im.set_array(sizes_df_lin_frame["diameter"])
+    
+    min_diam = np.floor(np.min(sizes_df_lin["diameter"]))
+    max_diam = np.ceil(np.max(sizes_df_lin["diameter"]))
+    
+    particles_analysed_im.set_clim(min_diam,max_diam)
+    #    plt.colorbar(particles_analysed_im, ax=ax[2,1])
+    
+    
+    particles_analysed_r_im = ax30.scatter(particles_analysed.x,particles_analysed.y)    
+    ax30.set_title("Time-resolved diameter") 
+    
+    particles_analysed_r_im.set_array(sizes_df_lin_frame["diameter"])
+    
+    min_diam = np.floor(np.min(sizes_df_lin["diameter"]))
+    max_diam = np.ceil(np.max(sizes_df_lin["diameter"]))
+    
+    particles_analysed_r_im.set_clim(min_diam,max_diam)
+    my_colbar = plt.colorbar(particles_analysed_r_im, ax=ax40, orientation='horizontal')
+    my_colbar.set_label("Diameter [nm]")
+    
+    
+    
+    #do all the axes
+    # scale them
+    ax00.axis("scaled")
+    ax10.axis("scaled")
+    ax20.axis("scaled")
+    ax30.axis("scaled")
+    
+    # set borders
+    ax00.set_ylim([0, rawframes_rot.shape[1]])
+    ax00.set_xlim([0, rawframes_rot.shape[2]])
+    
+    plt.subplots_adjust(hspace=.0)
+    ax30.set_xlabel("Position fiber direction [px]")
+    
+    fig.add_subplot(111, frameon=False)
+    plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+    plt.ylabel("Position [px]")
+    
+    
+    # place a text box in upper left in axes coords
+    
+    #    textstr = "frame no.: %.0f" %(start_frame, )
+    #    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    #    info_text = ax01.text(0.05, 0.95, textstr, transform=ax01.transAxes, fontsize=14,
+    #        verticalalignment='top', bbox=props)
     
     def init():
-        scat5.set_offsets([])
-        im_data0=rawframes_before_filtering[0]
-        im_data=rawframes_ROI[0]
-        background0.set_data(im_data0)
-        background5.set_data(im_data)
-        ax0.set_ylabel('raw-data')
-        ax5.set_ylabel('size-analyzed particles')    
-        ax5.set_xlabel('x-Position [Pixel]')
-        return background0, background5, scat5,
+        raw_im.set_array(rawframes_rot[start_frame,:,:])
+        
+        particles_detected = t4_cutted_show[t4_cutted_show.frame == start_frame]
+        particles_detected_im.set_offsets(np.asarray(particles_detected[["x","y"]]))
+        
+        particles_analysed = t6_final_show[t6_final_show.frame == start_frame]
+        particles_analysed_im.set_offsets(np.asarray(particles_analysed[["x","y"]])) 
+        
+        particles_analysed_r_im.set_offsets(np.asarray(particles_analysed[["x","y"]])) 
+        
+    #        textstr = "frame no.: %.0f" %(0)
+    #        info_text.set_text(textstr)
+        
+        time_text.set_text('')
+        
+        return [raw_im, particles_detected_im, particles_analysed_im, particles_analysed_r_im, time_text]
+    
+    
+    max_frame = round(len(rawframes_rot)/skip_image_fac)
     
     def animate(i):
-        ax0.clear()
-        ax5.clear()
-        scat5 = ax5.scatter(t_long.x[t_long.frame==i].values, t_long.y[t_long.frame==i].values, s=70, 
-                            alpha = 0.4, c=t_long.particle[t_long.frame==i].values % 20)
-        im_data0=rawframes_before_filtering[i]
-        im_data=rawframes_ROI[i]
-        background0 = ax0.imshow(im_data0, animated=True)
-        background5 = ax5.imshow(im_data, animated=True)
-        return background0, background5, scat5
+#         start = time.time()
+        i = i * skip_image_fac
+        
+        print("Progress %.0f of 100 " %(i/ max_frame))
+        
+        current_time_ms = round(i/ fps * 1000)
+        
+        time_text.set_text('%.0f ms' % current_time_ms)
+            
+        # raw image   
+        raw_im.set_array(rawframes_rot[i,:,:])
+        
+        # tracked
+        particles_detected = t4_cutted_show[t4_cutted_show.frame == i]
+        particles_detected_im.set_offsets(np.asarray(particles_detected[["x","y"]]))
+            
+        # analyzed
+        particles_analysed = t6_final_show[t6_final_show.frame == i]
+        particles_analysed = particles_analysed.sort_values("particle")
+        particles_analysed_im.set_offsets(np.asarray(particles_analysed[["x","y"]])) 
+       
+        # Set colors..
+        sizes_df_lin_frame = sizes_df_lin[sizes_df_lin.index.isin(particles_analysed["particle"].values)]
+        sizes_df_lin_frame = sizes_df_lin_frame.sort_values("particle")
+        
+        particles_analysed_im.set_array(sizes_df_lin_frame["diameter"])
+        
+        #evaluated
+        particles_analysed_r_im.set_offsets(np.asarray(particles_analysed[["x","y"]])) 
+       
+        # Set colors..
+        sizes_df_lin_rolling_frame = sizes_df_lin_rolling \
+        [(sizes_df_lin_rolling["particle"].isin(particles_analysed["particle"].values)) & (sizes_df_lin_rolling.index == i)]
+        
+        sizes_df_lin_rolling_frame = sizes_df_lin_rolling_frame.sort_values("particle")
+        
+        particles_analysed_r_im.set_array(sizes_df_lin_rolling_frame["diameter"])
+        
+    #    end = time.time()
+           
+    #    print("processing time for frame {}: {}".format(i, end-start))
+        
+        return [raw_im, particles_detected_im, particles_analysed_im, particles_analysed_r_im, time_text]
     
-    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=t_long.frame.nunique(), 
-                                   interval=1000, blit=True, repeat=False)
     
-    return anim
+    
+    
+    #    ani = animation.FuncAnimation(fig, animate, init_func=init, interval = 10, blit=True)
+    print("start animating")
+    ani = animation.FuncAnimation(fig, animate, interval = 1/effective_fps, frames = max_frame, repeat = 0, blit=True)  
+    print("animating finished")
+    
+    
+    save_folder_name = settings["Plot"]["SaveFolder"]
+    save_image_name = "animate_results"
+    
+    my_dir_name = '%s\\{date:%y%m%d}\\'.format( date=datetime.datetime.now()) %save_folder_name
+    
+    try:
+        os.stat(my_dir_name)
+    except:
+        os.mkdir(my_dir_name) 
+    
+    time_string = '{date:%H_%M_%S}'.format( date=datetime.datetime.now())
+    
+    file_name_image = '%s_%s.gif'.format( date=datetime.datetime.now()) %(time_string, save_image_name)
+    
+    entire_path_image = my_dir_name +  file_name_image
+    
+    
+    
+    
+    print("start saving")
+    ani.save(entire_path_image, writer=PillowWriter(fps = fps))
+    
+    print('Animation saved at: {}'.format(my_dir_name))
+    
+    plt.show()
+    
+
+
+    
+    
     
     
 
-def AnimateDiameterAndRawdata(rawframes_rot, sizes_df_lin_rolling):
+def AnimateDiameterAndRawData(rawframes_rot, sizes_df_lin_rolling):
     
     
     fig, (ax0, ax5) = plt.subplots(2, sharex=True, sharey=True)
@@ -777,15 +942,15 @@ def AnimateDiameterAndRawdata(rawframes_rot, sizes_df_lin_rolling):
 
     im_data=rawframes_rot
 
-    background0 = ax0.imshow(im_data0, animated=True)
-#    background5 = ax5.imshow(im_data, animated=True)
+    background0 = ax0.imshow(im_data, animated=True)
+    background5 = ax5.imshow(im_data, animated=True)
     fig.subplots_adjust(hspace=0)
     
     def init():
 #        scat5.set_offsets([])
 #        im_data0=rawframes_before_filtering[0]
         im_data=rawframes_rot
-        background0.set_data(im_data0)
+        background0.set_data(im_data)
         background5.set_data(im_data)
         ax0.set_ylabel('raw-data')
 #        ax5.set_ylabel('size-analyzed particles')    

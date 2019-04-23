@@ -438,8 +438,7 @@ def MonaARHCF():
 
 
     #%% show diamter on the image
-    nd.visualize.AnimateDiameterAndRawdata(rawframes_rot, sizes_df_lin_rolling)
-    
+    nd.visualize.AnimateProcessedRawData(ParameterJsonFile, rawframes_rot, t4_cutted, t6_final, sizes_df_lin, sizes_df_lin_rolling)
 
     
 

@@ -173,8 +173,8 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                 FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
                            PlotMsdOverLagtime = MSD_fit_Show, DoRolling = False)
                     
-                do_rolling = 0
-                my_rolling = 240
+                do_rolling = settings["Time"]["DoRolling"]
+                my_rolling = settings["Time"]["Frames"]
                 if do_rolling == True:
                     lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
                     AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = my_rolling, DoRolling = True)
