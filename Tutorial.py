@@ -672,7 +672,7 @@ def StefanARHCF():
         b) change: Split / Max_traj_length
         --> longer trajectorie length leads to better results
     """
-    sizes_df_lin, any_successful_check = nd.CalcDiameter.Main(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
+    sizes_df_lin, sizes_df_lin_rolling, any_successful_check = nd.CalcDiameter.Main(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
     
     #sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
     

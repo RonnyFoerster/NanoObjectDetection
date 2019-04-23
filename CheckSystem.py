@@ -9,7 +9,7 @@ import platform
 import trackpy as tp
 import pandas as pd
 from pdb import set_trace as bp #debugger
-
+from distutils.spawn import find_executable
 
 # In[] check python version
 
@@ -20,6 +20,7 @@ def CheckAll():
     CheckPython()
     CheckTrackpy()
     CheckPanda()
+    CheckLatex()
     
 def CheckPython():
     """
@@ -73,5 +74,12 @@ def CheckPanda():
         print("Try: Downgrading your system in Anaconda promt using >>> conda install pandas=0.23.4 <<<")
         sys.exit("Change your pandas version accoringly, or insert your pandas version in pd_maximum_versions")
         
-        
+    
+
+def CheckLatex():
+#    https://stackoverflow.com/questions/40894859/how-do-i-check-from-within-python-whether-latex-and-tex-live-are-installed-on-a
+    if find_executable('latex'):
+        print("Latex installed")    
+    else:
+        sys.exit("Latex not installed for making good figures")
         

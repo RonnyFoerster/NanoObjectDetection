@@ -55,8 +55,7 @@ def ReadJson(mypath):
             settings_default = json.load(json_file)
     except:
         sys.exit("Default Json file probably not found. You can insert default at the key DefaultParameterJsonFile.")
-        
-        
+       
 
     changed_something = False
     
@@ -78,12 +77,48 @@ def ReadJson(mypath):
             settings[loop_key] = settings_default[loop_key]
             changed_something = True
      
-        
+    
+    
+    
+     # check if saving folders are valid
+    my_path = settings["Plot"]["SaveFolder"]
+    invalid, my_path = CheckIfFolderGeneratable(my_path)
+     
+    if invalid == True:
+        settings["Plot"]["SaveFolder"] = my_path
+        changed_something = True
+    
+    # check if saving folders are valid
+    my_path = settings["Plot"]["SaveProperties"]
+    invalid, my_path = CheckIfFolderGeneratable(my_path)
+     
+    if invalid == True:
+        settings["Plot"]["SaveProperties"] = my_path
+        changed_something = True
+         
+            
+            
     if changed_something == True:
-        WriteJson(mypath, settings)
+        WriteJson(mypath, settings)    
     
     
     return settings
+
+
+def CheckIfFolderGeneratable(my_path):
+    invalid = False
+    try:
+        os.stat(my_path)
+    except:
+        try:
+            os.mkdir(my_path)
+        except:
+            my_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+            invalid = True
+            print("Path not accessible. Write on desktop.")
+
+    return invalid, my_path
+
 
 
 def WriteJson(mypath, settings):
@@ -263,6 +298,7 @@ def ReadData2Numpy(ParameterJsonFile):
     # fits
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
+
     
     DoSimulation = settings["Simulation"]["SimulateData"]
     

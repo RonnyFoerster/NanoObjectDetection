@@ -108,10 +108,10 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
         output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile)       
         
     else:
-        UseLog = settings["Find"]["Analyze in log"]
-        
-        if UseLog == True:
-            frames_np = nd.handle_data.LogData(frames_np)
+#        UseLog = settings["Find"]["Analyze in log"]
+#        
+#        if UseLog == True:
+#            frames_np = nd.handle_data.LogData(frames_np)
         
         
         separation = settings["Find"]["Separation data"]

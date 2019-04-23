@@ -118,8 +118,8 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     # go through the particles
     num_loop_elements = len(particle_list_value)
     for i,particleid in enumerate(particle_list_value): # iteratig over all particles
-        nd.visualize.update_progress("Analyze Particles", (i+1)/num_loop_elements)
-        print("Particle Id: ", particleid)
+#        nd.visualize.update_progress("Analyze Particles", (i+1)/num_loop_elements)
+#        print("Particle Id: ", particleid)
         # select track to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
         start_frame = int(eval_tm.iloc[0].frame)
@@ -173,7 +173,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                 FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
                            PlotMsdOverLagtime = MSD_fit_Show, DoRolling = False)
                     
-                do_rolling = 1
+                do_rolling = 0
                 my_rolling = 240
                 if do_rolling == True:
                     lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
@@ -237,6 +237,8 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     
     if do_rolling == True:
         sizes_df_lin_rolling = sizes_df_lin_rolling.set_index('frame')
+    else:
+        sizes_df_lin_rolling = "Undone"
 
     if MSD_fit_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings)
@@ -288,7 +290,11 @@ def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, lagtimes_min = 
         # in this case the respective positions will be filled with nan (that's the reason for the name of the variable)
         # columns: 0: initial position in respective frame
         # columns: all others: displacement from original position
-        nan_tm[0]=eval_tm.x*microns_per_pixel # filling column 0 with position of respective frame
+        
+        
+        
+#        nan_tm[0]=eval_tm.x*microns_per_pixel # filling column 0 with position of respective frame
+        nan_tm[0]=eval_tm.y*microns_per_pixel # filling column 0 with position of respective frame
     
         for row in range(lagtimes_min, lagtimes_max + 1):
             nan_tm[row]=nan_tm[0].diff(row) # putting the displacement of position into the columns, each representing a lag-time
@@ -349,15 +355,22 @@ def AvgMsd(nan_tm_sq, frames_per_second):
 
 def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = False):
     
+    num_cols = len(nan_tm_sq.columns) - 1
+    
+    lagt_direct = np.linspace(1,num_cols,num_cols) /frames_per_second # converting frames into physical time: 
+    # first entry always starts with 1/frames_per_second
+    
     if DoRolling == False:
-        mean_displ_direct = pd.DataFrame(index = [0], columns = nan_tm_sq.columns.tolist()[1:])
+#        mean_displ_direct = pd.DataFrame(index = [0], columns = nan_tm_sq.columns.tolist()[1:])
+        mean_displ_direct = np.zeros(num_cols)
         mean_displ_variance_direct = mean_displ_direct.copy()    
-
-        for column in mean_displ_direct.columns:
+                
+        for column in range(num_cols):           
+            eval_column = column + 1
             # That iterates over lag-times for the respective particle and
             # calculates the msd in the following manner:
             # 1. Build sub-blocks for statistically independent lag-time measurements
-            nan_indi_means = rolling_with_step(nan_tm_sq[column], column, column, mean_func)
+            nan_indi_means = rolling_with_step(nan_tm_sq[eval_column], eval_column, eval_column, mean_func)
             
             # 2. Calculate mean msd for the sublocks
             mean_displ_direct[column] = nan_indi_means.mean(axis=0)
@@ -375,7 +388,7 @@ def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = Fa
             mean_displ_variance_direct_loop = nan_indi_means.var(axis=0)*(2/(len_nan_tm_sq_loop-1))
             
             mean_displ_variance_direct[column] = mean_displ_variance_direct_loop
-            
+           
     else:   
         mean_displ_direct = pd.DataFrame(index = nan_tm_sq.index, columns = nan_tm_sq.columns.tolist()[1:])
         mean_displ_variance_direct = mean_displ_direct.copy()    
@@ -398,8 +411,7 @@ def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = Fa
     
     mean_displ_sigma_direct = np.sqrt(mean_displ_variance_direct)
     
-    lagt_direct = mean_displ_direct.columns/frames_per_second # converting frames into physical time: 
-    # first entry always starts with 1/frames_per_second
+
     
     return lagt_direct, mean_displ_direct, mean_displ_sigma_direct
 
@@ -444,7 +456,8 @@ def FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma
 
 def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, PlotMsdOverLagtime = False,  my_rolling = 100, DoRolling = False):
 
-    weigths = mean_displ_sigma_direct.median()
+    if DoRolling == True:
+        mean_displ_sigma_direct = mean_displ_sigma_direct.median()
     
 #    if DoRolling == False:
 #        bp()
@@ -453,36 +466,31 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
 #        bp()
 
     if (len(lagt_direct) >= 5):
-        [fit_values, fit_cov]= np.polyfit(lagt_direct, mean_displ_direct, 1, w = 1/mean_displ_sigma_direct, cov=True) 
+        [fit_values, fit_cov]= np.polyfit(lagt_direct, mean_displ_direct.T, 1, w = 1/mean_displ_sigma_direct, cov=True) 
     else:
         try:
-            fit_values= np.polyfit(lagt_direct, mean_displ_direct.T, 1, w = 1/weigths) 
+            fit_values= np.polyfit(lagt_direct, mean_displ_direct.T, 1, w = 1/mean_displ_sigma_direct) 
         except:
             bp()
+
+
+    diff_direct_lin = fit_values[0]/2
+    diff_direct_lin = np.squeeze(diff_direct_lin)
 
         
     if PlotMsdOverLagtime == True:
         
-        show_mean_displ_direct = mean_displ_direct.median()
-        
-        if DoRolling == False:
-            mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values[0])+ fit_values[1]
-#            show_mean_displ_direct = mean_displ_direct.median()
-            # order of regression_coefficients depends on method for regression (0 and 1 are switched in the two methods)
-            # fit results into non-log-space again
-#            nd.visualize.MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin)
-#            nd.visualize.MsdOverLagtime(lagt_direct, np.squeeze(np.asarray(mean_displ_direct)), mean_displ_fit_direct_lin)
-        else:
-            fit_values_median = np.median(fit_values,axis=1)    
-            mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values_median[0])+ fit_values_median[1]
+        if DoRolling == True:
+            mean_displ_direct = mean_displ_direct.median()
+            fit_values = np.median(fit_values,axis=1)    
             
+#        mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values[0]+ fit_values[1])
+        mean_displ_fit_direct_lin = lagt_direct *fit_values[0]+ fit_values[1]
+    
             
-            
-        nd.visualize.MsdOverLagtime(lagt_direct, show_mean_displ_direct, mean_displ_fit_direct_lin)
+        nd.visualize.MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin)
     
     
-    diff_direct_lin = fit_values[0]/2
-    diff_direct_lin = np.squeeze(diff_direct_lin)
     
     return diff_direct_lin
 
@@ -509,9 +517,9 @@ def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None
                      \n 2 - stationary particle remains, which seems very big because it diffuses to little. ")
             
     else:
-        print("WARNING: hindrance factor ignored. You just need to have the fiber diameter!")   
-
-
+#        print("WARNING: hindrance factor ignored. You just need to have the fiber diameter!")   
+        diamter_corr = diameter
+    
     return diamter_corr
 
 
