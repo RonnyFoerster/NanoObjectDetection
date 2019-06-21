@@ -26,7 +26,8 @@ def CheckPython():
     """
     Checks if the python version is right
     """
-    python_minimum_versions = '3.6.5'
+#    python_minimum_versions = '3.6.5'
+    python_minimum_versions = '3.6.4'
     python_version = platform.python_version()
     
     if python_version >= python_minimum_versions:

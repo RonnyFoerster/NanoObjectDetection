@@ -358,7 +358,9 @@ def ReadTiffSeries2Numpy(data_folder_name):
     
     rawframes_np = []
     for fname in os.listdir(data_folder_name):
-        if fnmatch.fnmatch(fname, '*.tif'):
+        is_tif = fnmatch.fnmatch(fname, '*.tif')
+        is_tiff = fnmatch.fnmatch(fname, '*.tiff')
+        if is_tif or is_tiff:
             im = Image.open(os.path.join(data_folder_name, fname))
             imarray = np.array(im)
             rawframes_np.append(imarray)

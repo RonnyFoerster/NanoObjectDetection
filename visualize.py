@@ -45,7 +45,8 @@ import scipy
 import os.path
 
 import time
-from matplotlib.animation import FuncAnimation, PillowWriter
+#from matplotlib.animation import FuncAnimation, PillowWriter
+from matplotlib.animation import FuncAnimation
 
 
 """
@@ -921,7 +922,8 @@ def AnimateProcessedRawData(ParameterJsonFile, rawframes_rot, t4_cutted, t6_fina
     
     
     print("start saving")
-    ani.save(entire_path_image, writer=PillowWriter(fps = fps))
+#    ani.save(entire_path_image, writer=PillowWriter(fps = fps))
+    print("THIS IS NOT WORKING WITH PILLOW ANYMORE")
     
     print('Animation saved at: {}'.format(my_dir_name))
     
