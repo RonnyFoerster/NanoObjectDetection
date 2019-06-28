@@ -266,20 +266,21 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
     if settings["StationaryObjects"]["Analyze fixed spots"] == 1:
         #required minimum distance in pixels between moving and stationary particles
         min_distance = settings["StationaryObjects"]["Min distance to stationary object"]
-        
-    
+
+        stationary_particles = t2_long_fix.groupby("particle").mean()
+
         # loop through all stationary objects (contains position (x,y) and time of existent (frame))
-        num_loop_elements = len(t2_long_fix)
-        for loop_t2_long_fix in range(0,len(t2_long_fix)):
+        num_loop_elements = len(stationary_particles)
+        for loop_t2_long_fix in range(0,num_loop_elements):
             nd.visualize.update_progress("Remove Spots In No Go Areas", (loop_t2_long_fix+1)/num_loop_elements)
 
 #            print(loop_t2_long_fix)
             # stationary object to check if it disturbs other particles
-            my_check = t2_long_fix.iloc[loop_t2_long_fix]
+            my_check = stationary_particles.iloc[loop_t2_long_fix]
         
             # SEMI EXPENSIVE STEP: calculate the position and time mismatch between all objects 
             # and stationary object under investigation    
-            mydiff = obj[['x','y','frame']] - my_check[['x','y','frame']]
+            mydiff = obj[['x','y']] - my_check[['x','y']]
             
             # get the norm
             # THIS ALSO ACCOUNT FOR THE TIME DIMENSION!
@@ -287,10 +288,10 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
             mynorm = np.linalg.norm(mydiff.values,axis=1)
             
             # check for which particles the criteria of minimum distance is fulfilled
-            check_distance = mynorm > min_distance 
+            valid_distance = mynorm > min_distance 
             
             # keep only the good ones
-            obj = obj[check_distance]
+            obj = obj[valid_distance]
             
     else:
         print("!!! PARTICLES CAN ENTER NO GO AREA WITHOUT GETTING CUT !!!")

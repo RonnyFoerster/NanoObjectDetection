@@ -179,13 +179,22 @@ def SpotSize(rawframes_rot, ParameterJsonFile):
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
+    separation = settings["Find"]["Separation data"]
+    minmass    = settings["Find"]["Minimal bead brightness"]
+
     UserSatisfied = False
     try_diameter = [3.0 ,3.0]
+    
+    if len(rawframes_rot) > 300:
+        rawframes_rot = rawframes_rot[0:300,:,:]
+    
+    
     while UserSatisfied == False:
         print('UserSatisfied? : ', UserSatisfied)
         print('Try diameter:' , np.asarray(try_diameter))
 #        obj_all = nd.get_trajectorie.batch_np(rawframes_rot, ParameterJsonFile, UseLog = False, diameter = try_diameter)
-        obj_all = tp.batch(rawframes_rot, diameter = try_diameter)
+        obj_all = tp.batch(rawframes_rot, diameter = try_diameter, minmass = minmass, separation = separation)
+                    
 
         if obj_all.empty == True:
             UserSatisfied = False

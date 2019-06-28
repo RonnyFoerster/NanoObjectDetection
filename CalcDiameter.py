@@ -39,7 +39,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
 
     #%% read the parameters
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        
+  
     microns_per_pixel = settings["MSD"]["effective_Microns_per_pixel"]
     frames_per_second = settings["MSD"]["effective_fps"]
     
@@ -118,6 +118,9 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     # go through the particles
     num_loop_elements = len(particle_list_value)
     for i,particleid in enumerate(particle_list_value): # iteratig over all particles
+        print("Particle number: ",  round(particleid))
+#        if particleid == 7:
+#            bp()
 #        nd.visualize.update_progress("Analyze Particles", (i+1)/num_loop_elements)
 #        print("Particle Id: ", particleid)
         # select track to analyze
@@ -227,8 +230,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                                        diff_std_rolling, diameter_rolling, \
                                        particleid, traj_length, amount_frames_lagt1, start_frame, \
                                        mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
-                
-                       red_ep, max_step)
+                                       red_ep, max_step)
                 
             else:
                 sizes_df_lin_rolling = -1
@@ -293,8 +295,8 @@ def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, lagtimes_min = 
         
         
         
-#        nan_tm[0]=eval_tm.x*microns_per_pixel # filling column 0 with position of respective frame
-        nan_tm[0]=eval_tm.y*microns_per_pixel # filling column 0 with position of respective frame
+        nan_tm[0]=eval_tm.x*microns_per_pixel # filling column 0 with position of respective frame
+#        nan_tm[0]=eval_tm.y*microns_per_pixel # filling column 0 with position of respective frame
     
         for row in range(lagtimes_min, lagtimes_max + 1):
             nan_tm[row]=nan_tm[0].diff(row) # putting the displacement of position into the columns, each representing a lag-time
@@ -560,8 +562,25 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                     particleid, traj_length, amount_frames_lagt1, start_frame,
                     mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
                     red_ep, max_step, true_particle):
-    
+
     # Storing results in df:
+#    sizes_df_lin = sizes_df_lin.append(pd.DataFrame(data={'particle': [particleid],
+#                                                          'diffusion': [diff_direct_lin],
+#                                                          'diffusion std': [diff_std],
+#                                                          'diameter': [diameter],
+#                                                          'ep': [mean_ep],
+#                                                          'redep' : [red_ep], 
+#                                                          'signal': [mean_signal],
+#                                                          'mass': [mean_mass],
+#                                                          'rawmass': [mean_raw_mass],
+#                                                          'max step': [max_step],
+#                                                          'first frame': [start_frame],
+#                                                          'traj length': [traj_length],
+#                                                          'valid frames':[amount_frames_lagt1],
+#                                                          'size': [mean_size],
+#                                                          'ecc': [mean_ecc],
+#                                                          'true_particle': [true_particle]}),sort=False)
+    
     sizes_df_lin = sizes_df_lin.append(pd.DataFrame(data={'particle': [particleid],
                                                           'diffusion': [diff_direct_lin],
                                                           'diffusion std': [diff_std],
@@ -577,7 +596,7 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                                                           'valid frames':[amount_frames_lagt1],
                                                           'size': [mean_size],
                                                           'ecc': [mean_ecc],
-                                                          'true_particle': [true_particle]}),sort=False)
+                                                          'true_particle': [true_particle]}))
     
     
     
@@ -710,11 +729,16 @@ def DeltaErrorEstimation(red_x,traj_length):
     Eq A5 - A8
     """
 
+    # old red_x**2 is wrong
+#    y1 = 1 / np.power(1 + 2*red_x**2 , 1/2)
+#    y2 = (1+red_x) / np.power(1 + 2*red_x**2 , 3/2)
 
-    y1 = 1 / np.power(1 + 2*red_x**2 , 1/2)
-    y2 = (1+red_x) / np.power(1 + 2*red_x**2 , 3/2)
+    y1 = 1 / np.sqrt(1 + 2*red_x)
+    y2 = (1+red_x) / np.power(1 + 2*red_x , 3/2)
     
-    delta = (1-y1) / np.power(y2 - y1**2 , 1/2)
+    
+    delta = (1-y1) / np.sqrt(y2 - y1**2)
+
     
     return delta
 

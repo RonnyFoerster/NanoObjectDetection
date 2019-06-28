@@ -396,7 +396,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
     import NanoObjectDetection as nd
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-       
+
     Histogramm_Show = settings["Plot"]['Histogramm_Show']
     Histogramm_Save = settings["Plot"]['Histogramm_Save']
     
@@ -417,7 +417,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
     xlabel = 'Diameter [nm]'
     ylabel = 'Absolute occurance'
     title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
-
+    
     values_hist = nd.visualize.PlotDiameterHistogramm(sizes_df_lin, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
     
     if settings["Plot"]["Histogramm_Fit_1_Particle"] == 1:
