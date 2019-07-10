@@ -39,7 +39,6 @@ def ReadJson(mypath):
         # compare given and saved json path
         # lower is needed to convert Lib to lib, which is identical in the explorer
         if settings["File"]["json"].lower() != mypath.lower():
-            bp()
             sys.exit("Given Json path does not match defined path in json file! ,\
                      You might wanna delete the 'settings' row entirely from the json file.")
     else:

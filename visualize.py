@@ -33,8 +33,8 @@ import seaborn as sns # allows boxplots to be put in one graph
 sns.reset_orig()
 import math # offering some maths functions
 import matplotlib
-matplotlib.rcParams['text.usetex'] = True
-matplotlib.rcParams['text.latex.unicode'] = True
+matplotlib.rcParams['text.usetex'] = False
+matplotlib.rcParams['text.latex.unicode'] = False
 import matplotlib.pyplot as plt # Libraries for plotting
 from matplotlib import animation # Allows to create animated plots and videos from them
 import json
@@ -526,7 +526,8 @@ def PlotDiameterHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10
     # histogram of sizes, only taking into account 
     sns.distplot(show_diameters, bins=binning, rug=True, kde=False) 
     #those that are below threshold size as defined in the initial parameters
-    plt.rc('text', usetex=True)
+#    plt.rc('text', usetex=True)
+    plt.rc('text', usetex=False)
     plt.title(title, **title_font)
     #   plt.ylabel(r'absolute occurance')
     plt.ylabel(ylabel, **axis_font)
