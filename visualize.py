@@ -2,30 +2,19 @@
 """
 Created on Tue Feb  5 12:23:39 2019
 
-@author: Ronny Förster und Stefan Weidlich
+@author: Ronny Förster and Stefan Weidlich
 """
 
 # In[0]:
 # coding: utf-8
 """
-Analyzis of Gold-Particle data for ARHCF paper
+collection of plotting functions for visualization
 
-Created on 20181001 by Stefan Weidlich (SW)
-Based on previous skript of Ronny Förster (RF) and SW
-
-Target here: Implement only routines as they'll be used in paper
-
-Modifications:
-181020, SW: Cleaning up of code
-Amongst others: Python v3.5 implementation deleted. Now working with 3.6 and above only
-181025, SW: Adjustment of tracking-parameters and structuring of header
---> Realized that 32-bit parameters for tracking lead to unsufficient pixel-precision for 64 bit-version
-181026, SW: Taking out of log-tracking. --> Not needed
+190903 MN modified+added some comments
 
 ******************************************************************************
 Importing neccessary libraries
 """
-#from __future__ import division, unicode_literals, print_function # For compatibility with Python 2 and 3
 import numpy as np # Library for array-manipulation
 import pandas as pd # Library for DataFrame Handling
 import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
@@ -44,28 +33,27 @@ from pdb import set_trace as bp #debugger
 import scipy
 import os.path
 
-import time
+## unused for the moment
+#import time
 #from matplotlib.animation import FuncAnimation, PillowWriter
-from matplotlib.animation import FuncAnimation
-
-
-"""
-******************************************************************************
-Some settings
-"""
-pd.set_option('display.max_columns',20) # I'm just using this to tell my Spyder-console to allow me to 
-# see up to 20 columns of a dataframe (instead of a few only by default)
+#from matplotlib.animation import FuncAnimation
 
 
 # In[]
 def SetXYLim(x_min_max = None, y_min_max = None):
+    """ set axes limits to fixed values """
+    
     if (x_min_max is None) == False:
         plt.xlim([x_min_max[0], x_min_max[1]])
 
     if (y_min_max is None) == False:
         plt.ylim([y_min_max[0], y_min_max[1]])
 
+
+
 def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None):
+    """ plot 1D-data in standardized format as line plot """
+    
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
     plt.figure()
@@ -75,8 +63,11 @@ def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None):
     plt.ylabel(ylabel, **axis_font)
 
 
+
 def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':',
                x_lim = None):
+    """ plot 2D-data in standardized format as line plot """
+    
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     sns.reset_orig()
     
@@ -89,8 +80,12 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
     if x_lim != None:
         plt.xlim(x_lim)
 
+
+
 def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1,
                   x_min_max = None, y_min_max = None):
+    """ plot 2D-data in standardized format as individual, scattered points """
+    
     from NanoObjectDetection.PlotProperties import axis_font, title_font
 
     plt.figure()
@@ -104,6 +99,8 @@ def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha 
 
 
 def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None):
+    """ plot image in standardized format """
+    
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
     plt.figure()
@@ -115,9 +112,9 @@ def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None):
     
     
 
-
-
 def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
+    """ plot and/or save diameter histogram for analyzed particles """
+    
     import NanoObjectDetection as nd
 
     if any_successful_check == False:
@@ -154,11 +151,21 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
         if show_pearson or save_pearson:
             Pearson(ParameterJsonFile, sizes_df_lin, show_pearson, save_pearson)
 
+    
 
-
-
+def corrfunc(x, y, **kws):
+    """ function for applying Pearson statistics on (diameter) data """
+    
+    pearson, _ = scipy.stats.pearsonr(x, y)
+    ax = plt.gca()
+    ax.annotate("p = {:.2f}".format(pearson),
+                xy=(.1, .9), xycoords=ax.transAxes)
+    
+    
+    
 def Correlation(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
-    """
+    """ produces grid plot for the investigation of particle data correlation
+    
     https://stackoverflow.com/questions/30942577/seaborn-correlation-coefficient-on-pairgrid
     """
     import NanoObjectDetection as nd
@@ -213,13 +220,7 @@ def Pearson(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None)
                                        settings, data = sizes_df_lin)
 
     plt.show()
-    
 
-def corrfunc(x, y, **kws):
-    pearson, _ = scipy.stats.pearsonr(x, y)
-    ax = plt.gca()
-    ax.annotate("p = {:.2f}".format(pearson),
-                xy=(.1, .9), xycoords=ax.transAxes)
 
 
 
@@ -252,6 +253,9 @@ def ShowAllCorrel(sizes_df_lin,min_correl = 0.4):
 
 
 def DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
+    """ plot (and save) calculated particle diameters vs. the number of frames
+        where the individual particle is visible (in standardized format) """
+    
     import NanoObjectDetection as nd
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -286,10 +290,11 @@ def DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, s
 
 
 
-
-
 def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, 
                            Histogramm_min_max_auto = None, binning = None):
+    """ aim: plot (and save) time-weighted histogram of particle diameters 
+        (in standardized format) """    
+    
     import NanoObjectDetection as nd
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
