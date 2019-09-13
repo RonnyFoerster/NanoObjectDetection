@@ -117,10 +117,11 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
         separation = settings["Find"]["Separation data"]
         minmass    = settings["Find"]["Minimal bead brightness"]
         
-        if UseLog == False:
-            diameter = settings["Find"]["Estimated particle size"]
-        else:
-            diameter = settings["Find"]["Estimated particle size (log-scale)"]
+        if diameter == None:
+            if UseLog == False:
+                diameter = settings["Find"]["Estimated particle size"]
+            else:
+                diameter = settings["Find"]["Estimated particle size (log-scale)"]
     
     
         output_empty = True
@@ -163,6 +164,23 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
     
     return output
 
+def AnalyzeMovingSpots(frames_np, ParameterJsonFile):
+    """
+    Find moving spots by using a much larger diameter than for the slow moving (unsmeared) particles
+    """
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    diameter = settings["Find"]["Estimated moving particle size"]
+    if diameter == "auto":
+        diameter_fixed = settings["Find"]["Estimated particle size"]
+        
+        # use the double size for the smeared particles
+        diameter = (np.asarray(diameter_fixed)*2+1).tolist()
+            
+    output = nd.get_trajectorie.FindSpots(frames_np, ParameterJsonFile, diameter = diameter)
+
+    return output
 
 
 
@@ -449,7 +467,6 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
     
     Important is too look at the temporal component, thus particle 2 never exists twice
     """
-
     keep_tail = settings["Split"]["Max_traj_length_keep_tail"]
     
     if Max_traj_length is None:

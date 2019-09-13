@@ -81,6 +81,10 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     amount_summands = settings["MSD"]["Amount summands"]
     amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
  
+    do_rolling = settings["Time"]["DoRolling"]
+    my_rolling = settings["Time"]["Frames"]
+                
+    
     # insert hindrance factor parameters
     UseHindranceFac =  settings["MSD"]["EstimateHindranceFactor"]
     
@@ -119,8 +123,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     num_loop_elements = len(particle_list_value)
     for i,particleid in enumerate(particle_list_value): # iteratig over all particles
         print("Particle number: ",  round(particleid))
-#        if particleid == 7:
-#            bp()
+
 #        nd.visualize.update_progress("Analyze Particles", (i+1)/num_loop_elements)
 #        print("Particle Id: ", particleid)
         # select track to analyze
@@ -159,8 +162,9 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
             nan_tm_sq, amount_frames_lagt1, enough_values, traj_length = \
             CalcMSD(eval_tm, microns_per_pixel, amount_summands, lagtimes_min = lagtimes_min, lagtimes_max = lagtimes_max)
 
+#            print("enough values:  ",enough_values)
+
             if enough_values == True:  
-                
                 if any_successful_check == False:
                     any_successful_check = True
                     if MSD_fit_Show == True:
@@ -170,17 +174,15 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                 # Average MSD (several (independent) values for each lagtime)
 
                 lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
-                AvgMsdRolling(nan_tm_sq, frames_per_second, DoRolling = False)
+                AvgMsdRolling(nan_tm_sq, frames_per_second, DoRolling = False, lagtimes_min = lagtimes_min)
                 
                 diff_direct_lin = \
                 FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
                            PlotMsdOverLagtime = MSD_fit_Show, DoRolling = False)
                     
-                do_rolling = settings["Time"]["DoRolling"]
-                my_rolling = settings["Time"]["Frames"]
                 if do_rolling == True:
                     lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
-                    AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = my_rolling, DoRolling = True)
+                    AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = my_rolling, DoRolling = True, lagtimes_min = lagtimes_min)
                     
                     diff_direct_lin_rolling = \
                     FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
@@ -197,10 +199,11 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                         lagtimes_max = lagtimes_min + p_min - 1
                         print("p_min_before = ",p_min_old)
                         print("p_min_after  = ",p_min)
+                        
                         p_min_old = p_min
                         
                         # drop last line, because it is done again
-                        sizes_df_lin = sizes_df_lin[:-1]                   
+#                        sizes_df_lin = sizes_df_lin[:-1]                   
 
 
         if enough_values == True: 
@@ -236,7 +239,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                 sizes_df_lin_rolling = -1
         
     sizes_df_lin = sizes_df_lin.set_index('particle')
-    
+
     if do_rolling == True:
         sizes_df_lin_rolling = sizes_df_lin_rolling.set_index('frame')
     else:
@@ -355,7 +358,7 @@ def AvgMsd(nan_tm_sq, frames_per_second):
 
 
 
-def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = False):
+def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = False, lagtimes_min = 1):
     
     num_cols = len(nan_tm_sq.columns) - 1
     
@@ -366,9 +369,9 @@ def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = Fa
 #        mean_displ_direct = pd.DataFrame(index = [0], columns = nan_tm_sq.columns.tolist()[1:])
         mean_displ_direct = np.zeros(num_cols)
         mean_displ_variance_direct = mean_displ_direct.copy()    
-                
-        for column in range(num_cols):           
-            eval_column = column + 1
+
+        for column in range(num_cols): 
+            eval_column = column + lagtimes_min
             # That iterates over lag-times for the respective particle and
             # calculates the msd in the following manner:
             # 1. Build sub-blocks for statistically independent lag-time measurements
@@ -475,7 +478,6 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
         except:
             bp()
 
-
     diff_direct_lin = fit_values[0]/2
     diff_direct_lin = np.squeeze(diff_direct_lin)
 
@@ -489,7 +491,7 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
 #        mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values[0]+ fit_values[1])
         mean_displ_fit_direct_lin = lagt_direct *fit_values[0]+ fit_values[1]
     
-            
+        
         nd.visualize.MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin)
     
     
@@ -825,13 +827,16 @@ def CalculateLagtimes_min(eval_tm, min_snr = 10):
     valid_lagtimes_min = False
     lagtimes_min = 1
     while valid_lagtimes_min == False:
-        msd = np.power(eval_tm.x.diff(1),2).mean()
-    
+        msd = np.power(eval_tm.x.diff(lagtimes_min),2).mean()
+        
         # check if SNR of MSD is better the minimum SNR
         current_snr = msd/msd_offset
         if current_snr > min_snr:
             valid_lagtimes_min = True
         else:
+            print("msd offset is: ", msd_offset)
+            print("msd (at first lagtime = {:d}) is: {:f}".format(lagtimes_min,msd))
+
             lagtimes_min = lagtimes_min + 1
     
     return lagtimes_min

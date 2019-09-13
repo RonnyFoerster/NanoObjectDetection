@@ -65,7 +65,8 @@ def SetXYLim(x_min_max = None, y_min_max = None):
     if (y_min_max is None) == False:
         plt.ylim([y_min_max[0], y_min_max[1]])
 
-def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None):
+def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None, settings = None):
+    import NanoObjectDetection as nd
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
     plt.figure()
@@ -73,6 +74,10 @@ def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None):
     plt.title(title, **title_font)
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
+    
+    
+    if settings != None:
+        nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings, data = plot_np)
 
 
 def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':',
@@ -1094,14 +1099,17 @@ def PlotGlobalDrift(d):
     
    
     
-def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, collect_data = None, alpha_values = 0.1, alpha_fit = 0.3):
+def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, collect_data = None, alpha_values = 0.5, alpha_fit = 0.3):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
-    plt.plot(lagt_direct, mean_displ_direct,'k-', alpha = alpha_values) # plotting msd-lag-time-tracks for all particles
-    plt.plot(lagt_direct, mean_displ_fit_direct_lin, 'r', alpha = alpha_fit) # plotting the lin fits
+    plt.plot(lagt_direct, mean_displ_direct,'k.', alpha = alpha_values) # plotting msd-lag-time-tracks for all particles
+    plt.plot(lagt_direct, mean_displ_fit_direct_lin, 'r-', alpha = alpha_fit) # plotting the lin fits
     #ax.annotate(particleid, xy=(lagt_direct.max(), mean_displ_fit_direct_lin.max()))
     plt.title("MSD fit", **title_font)
     plt.ylabel("MSD $[\mu m^2]$", **axis_font)
     plt.xlabel("Lagtime [s]", **axis_font)
+
+    plt.xlim(0,np.max(lagt_direct) * 1.1)
+    plt.ylim(0,plt.ylim()[1])
 
 
     
