@@ -18,6 +18,95 @@ from pdb import set_trace as bp #debugger
 
 
 # In[]
+def PrepareRandomWalk(ParameterJsonFile):
+    """
+    Configure the parameters for a randowm walk out of a JSON file
+    """
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)    
+    
+    diameter            = settings["Simulation"]["DiameterOfParticles"]
+    num_particles       = settings["Simulation"]["NumberOfParticles"]
+    frames              = settings["Simulation"]["NumberOfFrames"]
+    RatioDroppedFrames  = settings["Simulation"]["RatioDroppedFrames"]
+    EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
+    mass                = settings["Simulation"]["mass"]
+    
+    
+    frames_per_second   = settings["Exp"]["fps"]
+    microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
+    temp_water          = settings["Exp"]["Temperature"]
+
+    solvent = settings["Exp"]["solvent"]
+    
+    if settings["Exp"]["Viscocity_auto"] == 1:
+        visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
+        bp()
+    else:
+        visc_water = settings["Exp"]["Viscocity"]
+
+    
+    output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, \
+                                              RatioDroppedFrames = RatioDroppedFrames, \
+                                              ep = EstimationPrecision, mass = mass, \
+                                              microns_per_pixel = microns_per_pixel, temp_water = temp_water, \
+                                              visc_water = visc_water)
+        
+    #check if buoyancy shall be considered
+    DoBuoyancy = settings["Simulation"]["DoBuoyancy"]
+    if DoBuoyancy == 1:
+        # include Buoyancy
+        rho_particle = settings["Simulation"]["Density_Particle"]
+        rho_fluid    = settings["Simulation"]["Density_Fluid"]
+        
+        visc_water_m_Pa_s = visc_water * 1e12
+        
+        v_sedi = StokesVelocity(rho_particle, rho_fluid, diameter, visc_water_m_Pa_s)
+        
+        # convert in px per second
+        v_sedi = v_sedi * 1e6 / microns_per_pixel 
+        
+        # sedimentation per frame
+        delta_t = 1 / frames_per_second
+        delta_x_sedi = v_sedi * delta_t
+               
+        x_sedi = np.zeros([1,frames])
+        x_sedi[:] = delta_x_sedi
+        x_sedi = x_sedi.cumsum()
+        
+        bp()
+        output.x = output.x + x_sedi
+        
+          
+    
+    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+
+    return output
+
+
+def StokesVelocity(rho_particle, rho_fluid, diameter, visc_water):
+    #https://en.wikipedia.org/wiki/Stokes%27_law
+    
+    #g is the gravitational field strength (N/kg)
+    g = 9.81
+    
+    #R is the radius of the spherical particle (m)
+    R = diameter*1e-9 / 2
+    
+    #rho_particle is the mass density of the particles (kg/m3)
+    
+    #rho_fluid is the mass density of the fluid (kg/m3)
+    
+    #visc_water is the dynamic viscosity (Ns/m^2).
+    
+    #v_sedi sedimentation velocity (m/s)
+    
+    v_sedi = 2/9 * (rho_particle - rho_fluid) * g * R**2 / visc_water
+    
+    
+    return v_sedi
+    
+
 def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, RatioDroppedFrames = 0, ep = 0, mass = 1, microns_per_pixel = 0.477, temp_water = 295, visc_water = 9.5e-16):
     """
     Simulate a random walk of brownian diffusion and return it in a panda like it came from real data
@@ -61,6 +150,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     # sim_part_diff = (2*const_Boltz*temp_water/(6*math.pi *visc_water)*1e9) /diameter 
     radius_m = diameter/2 * 1e-9
     sim_part_diff = (const_Boltz*temp_water)/(6*math.pi *visc_water * radius_m)
+    bp()
     # unit sim_part_diff = um^2/s
 
     # [mum^2/s] x-diffusivity of simulated particle 
@@ -155,40 +245,3 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
 
 
 
-def PrepareRandomWalk(ParameterJsonFile):
-    """
-    Configure the parameters for a randowm walk out of a JSON file
-    """
-    
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)    
-    
-    diameter            = settings["Simulation"]["DiameterOfParticles"]
-    num_particles       = settings["Simulation"]["NumberOfParticles"]
-    frames              = settings["Simulation"]["NumberOfFrames"]
-    RatioDroppedFrames  = settings["Simulation"]["RatioDroppedFrames"]
-    EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
-    mass                = settings["Simulation"]["mass"]
-    
-    
-    frames_per_second   = settings["Exp"]["fps"]
-    microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
-    temp_water          = settings["Exp"]["Temperature"]
-
-    solvent = settings["Exp"]["solvent"]
-    
-    if settings["Exp"]["Viscocity_auto"] == 1:
-        visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
-        bp()
-    else:
-        visc_water = settings["Exp"]["Viscocity"]
-
-    
-    output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, \
-                                              RatioDroppedFrames = RatioDroppedFrames, \
-                                              ep = EstimationPrecision, mass = mass, \
-                                              microns_per_pixel = microns_per_pixel, temp_water = temp_water, \
-                                              visc_water = visc_water)
-
-    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
-
-    return output

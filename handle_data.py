@@ -23,11 +23,14 @@ import NanoObjectDetection as nd
 
 # In[2]:
 
-def ReadJson(mypath):
+def ReadJson(mypath, CreateNew = False):
     """
     Reads the json parameter file into a dict
     mypath: path to the json file
     """
+    changed_something = False
+
+
     with open(mypath) as json_file:
         settings = json.load(json_file)
     
@@ -41,10 +44,14 @@ def ReadJson(mypath):
         comp1 = settings["File"]["json"].lower()
         comp2 = mypath.lower()
         if comp1 != comp2:
-            print(comp1)
-            print(comp2)
-            sys.exit("Given Json path does not match defined path in json file! ,\
-                     You might wanna delete the 'settings' row entirely from the json file.")
+            if CreateNew == False:
+                print(comp1)
+                print(comp2)
+                sys.exit("Given Json path does not match defined path in json file! ,\
+                         You might wanna delete the 'settings' row entirely from the json file.")
+            else:
+                settings["File"]["json"] = mypath
+                changed_something = True
     else:
         settings["File"]["json"] = mypath
     
@@ -60,7 +67,7 @@ def ReadJson(mypath):
         sys.exit("Default Json file probably not found. You can insert default at the key DefaultParameterJsonFile.")
        
 
-    changed_something = False
+
     
     #go through all the main keys in defauls
     for loop_key in settings_default.keys():

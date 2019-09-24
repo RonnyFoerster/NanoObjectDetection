@@ -210,8 +210,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
             red_ep = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
             
             # get the fit error if switches on (and working)
-            
-            rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error)
+            rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
             
             diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water)
             
@@ -295,7 +294,6 @@ def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, lagtimes_min = 
         # in this case the respective positions will be filled with nan (that's the reason for the name of the variable)
         # columns: 0: initial position in respective frame
         # columns: all others: displacement from original position
-        
         
         
         nan_tm[0]=eval_tm.x*microns_per_pixel # filling column 0 with position of respective frame
@@ -547,14 +545,17 @@ def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm, DoPrint = True):
         # this steps helps converging. Otherwise it might jump from 1/10 to 10 to 1/10 ...
         diam_direct_lin_corr = np.sqrt(diam_direct_lin_corr * diam_direct_lin_corr_old)
 #        print(my_iter, 'diamter:',diam_direct_lin,'corr_visc:',corr_visc,'corr diameter:',diam_direct_lin_corr)
-        if DoPrint == True:
-            print("Iter: %d: Starting Diameter: %.1f; corr. viscocity: %.3f; corr. diameter: %.2f" % (my_iter, round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
-
+        
         if my_iter > 100:
             print("Iteration does not converge. Abort !!!")
             bp()
             input("PRESS ENTER TO CONTINUE.")
             diam_direct_lin_corr = diam_direct_lin_corr_old
+
+    if DoPrint == True:
+#        print("After iteration %d: Starting Diameter: %.1f nm; corr. viscocity: %.3f; corr. diameter: %.2nmf" % (my_iter, round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
+        print("Starting Diameter: %.1fnm; hindrance factor: %.3f; Corrected Diameter: %.2fnm" % (round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
+
 
     return diam_direct_lin_corr
 
@@ -681,7 +682,7 @@ def ReducedLocalPrecision(settings, mass, diffusion, DoRolling = False):
     # 2* because it is coherent
     # not sure here
     if gain == "unknown":
-        red_x = -1
+        red_x = "unknown"
     else:
             
         num_photons = mass / gain
@@ -702,20 +703,27 @@ def ReducedLocalPrecision(settings, mass, diffusion, DoRolling = False):
     return red_x
     
 
-def DiffusionError(traj_length, red_x, diffusion, min_rel_error, DoRolling = False):
-    """
-    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD7
-    Eq 7
-    """
-    if DoRolling == False:
-        delta = DeltaErrorEstimation(red_x,traj_length)
+def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, DoRolling = False):
+    
+    if red_x != "unknown":
+        """
+        https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD7
+        Eq 7
+        """
+        if DoRolling == False:
+            delta = DeltaErrorEstimation(red_x,traj_length)
+        else:
+            bp()
+            
+        if np.isnan(delta) == True:
+            rel_error = min_rel_error
+        else:
+            rel_error = np.power(2/(traj_length-1) * (1+delta**2),1/2)
+    
     else:
-        bp()
-        
-    if np.isnan(delta) == True:
-        rel_error = min_rel_error
-    else:
-        rel_error = np.power(2/(traj_length-1) * (1+delta**2),1/2)
+        #Foerster2019 ARHCF-paper
+        rel_error = np.sqrt((2*lagtimes_max) / (3*(traj_length-lagtimes_max)))
+
 
     
     diffusion_std = diffusion * rel_error
@@ -723,6 +731,9 @@ def DiffusionError(traj_length, red_x, diffusion, min_rel_error, DoRolling = Fal
     "Min rel Error"
     
     return rel_error, diffusion_std
+
+
+
 
 
 def DeltaErrorEstimation(red_x,traj_length):

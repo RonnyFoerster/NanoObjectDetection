@@ -149,7 +149,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
 #            params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
             fig = plt.figure()
 
-            plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma))
+            plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma), cmap = "gray")
             plt.scatter(output["x"],output["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
  
         
@@ -161,6 +161,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
     
             settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
         
+            plt.close(fig)
     
     return output
 
@@ -318,6 +319,123 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
     
         
     return obj
+
+
+
+
+def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    SaturatedPixelValue = settings["Find"]["SaturatedPixelValue"]
+    
+    sort_obj_moving = obj_moving.sort_values("raw_mass")
+    
+    saturated_psf = True
+    while saturated_psf:
+        # get pos and frame of spot with highest mass
+        pos_x = np.int(sort_obj_moving.iloc[-1]["x"])
+        pos_y = np.int(sort_obj_moving.iloc[-1]["y"])
+        frame = np.int(sort_obj_moving.iloc[-1]["frame"])
+        number = np.int(sort_obj_moving.iloc[-1]["frame"])
+            
+        # get signal at maxima
+        signal_at_max = rawframes_rot[frame,pos_y,pos_x]
+        if signal_at_max >= SaturatedPixelValue:
+            sort_obj_moving = sort_obj_moving.iloc[:-2]
+    
+        else:
+            saturated_psf = False
+     
+    print("Deleted overexposed particles...")       
+    
+    obj_moving = sort_obj_moving
+    
+    return obj_moving 
+
+
+# not really done
+def RemoveNoGoAreasAroundOverexposedAreas():
+    # check for saturated/overexposed areas on the chip
+    my_max = 65520 
+    
+    import numpy as np
+    
+    sat_px = np.argwhere(rawframes_rot >= my_max)
+    
+    import numpy as np
+    import pandas as pd
+    import time
+    
+    num_sat_px = sat_px.shape[0]
+    # minimum allowed distance to saturated area
+    min_distance = settings["Find"]["Separation data"]
+    
+    min_distance = 10
+    
+    # first frame. variable is used to check if a new frames is reached
+    frame_sat_px_old = -1
+    
+    #previous position
+    loop_sat_pos_old = np.zeros(2)
+    loop_sat_pos = np.zeros(2)
+    
+    for loop_counter, loop_sat_px in enumerate(sat_px):
+    #    print(loop_counter)
+        t = time.time()
+    #    print("avoid saturaed px = ", loop_sat_px)
+        
+        nd.visualize.update_progress("Remove Spots In Overexposed Areas", (loop_counter+1)/num_sat_px)
+    
+        # position of the overexposition
+        loop_sat_pos[:] = [loop_sat_px[1], loop_sat_px[2]]
+        
+        
+        # check the difference to the precious saturated pixel
+        
+        diff_px = np.linalg.norm(loop_sat_pos_old - loop_sat_pos)
+       
+        # if they are neighbouring than ignore it to speed it up
+        if diff_px > 5:
+            # frame of the overexposition
+            frame_sat_px = loop_sat_px[0]
+        
+    #        print("t1 = ", time.time() - t)
+            
+            # only do that if a new frame starts
+    #        if frame_sat_px != frame_sat_px_old:
+    #            print("frame:", frame_sat_px)
+    ##            obj_moving_frame = obj_moving[obj_moving.frame == frame_sat_px]
+    #            frame_sat_px_old = frame_sat_px
+        
+    #        print("t2 = ", time.time() - t)
+        
+            # SEMI EXPENSIVE STEP: calculate the position and time mismatch between all objects 
+            # and stationary object under investigation    
+    #        mydiff = obj_moving_frame[['x','y']] - [pos_sat_px_x, pos_sat_px_y]
+            mydiff = obj_moving[obj_moving.frame == frame_sat_px][['y','x']] - loop_sat_pos
+    #        print("t3 = ", time.time() - t)  
+                    
+            # get the norm
+    #        mynorm = np.linalg.norm(mydiff.values,axis=1)
+            mynorm = np.sqrt(mydiff["y"]**2 + mydiff["x"]**2)
+    #        print("t4 = ", time.time() - t)
+            # check for which particles the criteria of minimum distance is fulfilled
+            
+            remove_close_object = mynorm < min_distance 
+            
+            remove_loc = remove_close_object.index[remove_close_object].tolist()
+            
+            # keep only the good ones
+            obj_moving = obj_moving.drop(remove_loc)
+            
+    #        obj_moving = pd.concat([obj_moving_frame[valid_distance], obj_moving[obj_moving.frame != frame_sat_px]])
+    #        print("t5 = ", time.time() - t)        
+            
+            frame_sat_px_old = frame_sat_px
+    
+            loop_sat_pos_old = loop_sat_pos.copy()
+
+
 
 
 

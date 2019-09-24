@@ -95,7 +95,8 @@ def CheckJson(ParameterJsonFile):
     try:
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
     except:
-        print("No Json File found")
+        print("No Json File found in >> {} <<".format(ParameterJsonFile))
+        bp()
         CopyJson = input("Copy standard json (y/n)? ")
         if CopyJson == 'y':
             print("Try copying standard json file")
@@ -108,6 +109,11 @@ def CheckJson(ParameterJsonFile):
             
             previous_name = copy_to_path + "\\" + json_name
             os.rename(previous_name, ParameterJsonFile)
+            
+            # write JsonPath into Json itself
+            settings = nd.handle_data.ReadJson(ParameterJsonFile, CreateNew = True)
+            
+            
             print("Done")
         else:
             print("Abort")

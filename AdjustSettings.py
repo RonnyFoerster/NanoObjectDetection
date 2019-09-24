@@ -123,10 +123,8 @@ def FindSpot(rawframes_ROI, ParameterJsonFile):
     
     while UserSatisfied == False:
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        obj_first = nd.get_trajectorie.FindSpots(rawframes_ROI[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.7)
-        
-        plt.pause(3)
-    
+        obj_first = nd.get_trajectorie.FindSpots(rawframes_ROI[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.3)
+            
         if FirstRun == True:
             FirstRun = False
             DoItAgain = False
@@ -194,12 +192,13 @@ def SpotSize(rawframes_rot, ParameterJsonFile):
         print('Try diameter:' , np.asarray(try_diameter))
 #        obj_all = nd.get_trajectorie.batch_np(rawframes_rot, ParameterJsonFile, UseLog = False, diameter = try_diameter)
         obj_all = tp.batch(rawframes_rot, diameter = try_diameter, minmass = minmass, separation = separation)
-                    
+              
 
         if obj_all.empty == True:
             UserSatisfied = False
         else:
             tp.subpx_bias(obj_all)
+
             plt.draw()
             plt.show()
             plt.pause(3)
@@ -208,6 +207,8 @@ def SpotSize(rawframes_rot, ParameterJsonFile):
             
         if UserSatisfied == False:
             try_diameter = list(np.asarray(try_diameter) + 2)
+            
+
     
     settings["Find"]["Estimated particle size"] = try_diameter
     
