@@ -335,12 +335,12 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
 
 
 
-def PlotDiameter2DHistogramm(sizes_df_lin, binning, show_plot = None, save_plot = None, min_size = 0, 
-                             cutoff_size = 10000, title = '', xlabel = '', ylabel = ''):
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
+def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm_max = 10000, 
+                             title = '', xlabel = '', ylabel = ''):
+#    from NanoObjectDetection.PlotProperties import axis_font, title_font
     
-    import seaborn as sns
-    import numpy as np
+#    import seaborn as sns
+#    import numpy as np
 
     sns.set(style="darkgrid")
     
@@ -409,8 +409,8 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, show_plot = None, save_plot 
     rect_histy = [left_h, bottom, 0.2, height]
     
     # start with a rectangular Figure
-    plt.figure()
-    plt.figure(1, figsize=(8, 8))
+    plt.figure(figsize=(8, 8))
+#    plt.figure(1, figsize=(8, 8))
     
     axScatter = plt.axes(rect_scatter)
     axHistx = plt.axes(rect_histx)
@@ -425,7 +425,6 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, show_plot = None, save_plot 
     axScatter.set_xlabel("Diamter [nm]")
     axScatter.set_ylabel("Time [frames]")
         
-    
     axScatter.set_xlim((lim_diam_start, lim_diam_end))
     axScatter.set_ylim((lim_time_start, lim_time_end))
     
@@ -440,7 +439,6 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, show_plot = None, save_plot 
     
     plt.show()      
 
-        
 
         
         
@@ -635,13 +633,14 @@ def GetMeanStdMedian(data):
     return my_mean, my_std, my_median    
     
 
-def PlotDiameterHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10000, title = '', xlabel = '', ylabel = ''):
+def PlotDiameterHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm_max = 10000, title = '', xlabel = '', ylabel = ''):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     import NanoObjectDetection as nd
+
 #    plt.figure()
     fig, ax = plt.subplots()
     diameters = sizes_df_lin.diameter
-    show_diameters = diameters[(diameters >= min_size) & (diameters <= cutoff_size)]
+    show_diameters = diameters[(diameters >= histogramm_min) & (diameters <= histogramm_max)]
     values_hist, positions_hist = np.histogram(sizes_df_lin["diameter"], bins = binning)
     # histogram of sizes, only taking into account 
     sns.distplot(show_diameters, bins=binning, rug=True, kde=False) 
@@ -654,7 +653,7 @@ def PlotDiameterHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10
     plt.xlabel(xlabel, **axis_font)
     plt.grid(True)
  
-    ax.set_xlim(min_size, cutoff_size)
+    ax.set_xlim(histogramm_min, histogramm_max)
 
     # infobox
     _, _, my_median = GetMeanStdMedian(sizes_df_lin.diameter)
