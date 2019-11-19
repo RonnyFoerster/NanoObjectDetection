@@ -65,7 +65,7 @@ def NewEvaluation():
     settings["Exp"]["NA"]                = float(input("NA = "))
     settings["Exp"]["lambda"]            = float(input("lambda [nm] = "))
     settings["Exp"]["fps"]               = float(input("fps = "))
-    settings["Exp"]["ExposureTime"]      = float(input("Exposure Time [s] = "))
+    settings["Exp"]["ExposureTime"]      = float(input("Exposure Time [ms] = ")) / 1000
     settings["Exp"]["Microns_per_pixel"] = float(input("Microns per pixel [um/px] = "))
     settings["Exp"]["gain"]              = float(input("gain (if unknown type 0) = "))
     if settings["Exp"]["gain"] == 0:
@@ -78,7 +78,7 @@ def NewEvaluation():
 #    settings["Exp"]["solvent"] = input(: "water",
 
 
-    settings["Fiber"]["TubeDiameter_nm"] = float(input("Channel Diameter [nm] = "))
+    settings["Fiber"]["TubeDiameter_nm"] = float(input("Channel Diameter [um] = ")) * 1000
     
     settings["File"]["data_file_name"]   = os.path.normpath(data_file_name)
     settings["File"]["data_folder_name"] = os.path.normpath(data_folder_name)
@@ -93,7 +93,6 @@ def NewEvaluation():
     settings["File"]["json"] = mypath.replace("/","\\")
 
     # save the stuff   
-    bp()
     nd.handle_data.WriteJson(mypath.replace("/","\\"), settings)    
 
 

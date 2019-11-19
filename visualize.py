@@ -147,7 +147,8 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
 
         show_hist_time, save_hist_time = settings["Plot"]["Histogramm_time_Show"], settings["Plot"]["Histogramm_time_Save"]
         if show_hist_time or save_hist_time:
-            DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_hist_time, save_hist_time)
+            DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin)
+#            PlotDiameter2DHistogramm(ParameterJsonFile, sizes_df_lin, show_hist_time, save_hist_time)
 
 
         show_correl, save_correl = settings["Plot"]["Correlation_Show"], settings["Plot"]["Correlation_Save"]
@@ -293,14 +294,14 @@ def DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, s
 
 
 
-def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, 
+def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None, histogramm_min = None, histogramm_max = None, 
                            Histogramm_min_max_auto = None, binning = None):
     import NanoObjectDetection as nd
-    
+
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
         
-    Histogramm_Show = settings["Plot"]['Histogramm_Show']
-    Histogramm_Save = settings["Plot"]['Histogramm_Save']
+    Histogramm_Show = settings["Plot"]['Histogramm_time_Show']
+    Histogramm_Save = settings["Plot"]['Histogramm_time_Save']
     
     if settings["Plot"]["Histogramm_Bins_Auto"] == 1:
         settings["Plot"]["Histogramm_Bins"] = NumberOfBinsAuto(sizes_df_lin)
@@ -332,15 +333,129 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, histogramm_min = Non
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
 
-def PlotDiameter2DHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10000, title = '', xlabel = '', ylabel = ''):
+
+
+def PlotDiameter2DHistogramm(sizes_df_lin, binning, show_plot = None, save_plot = None, min_size = 0, 
+                             cutoff_size = 10000, title = '', xlabel = '', ylabel = ''):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
     import seaborn as sns
+    import numpy as np
+
     sns.set(style="darkgrid")
     
-    tips = sns.load_dataset("tips")
-    g = sns.jointplot("total_bill", "tip", data=tips, kind="reg",
-                      xlim=(0, 60), ylim=(0, 12), color="m", height=7)
+#    tips = sns.load_dataset("tips")
+    
+    time_points = int(sizes_df_lin["traj length"].sum())
+    plot_data = np.zeros([time_points,2])
+   
+    num_eval_particles = sizes_df_lin.shape[0]
+    
+    first_element = True
+    
+    for ii in range(0,num_eval_particles):
+        ii_save = sizes_df_lin.iloc[ii]
+        
+        ii_first_frame = int(ii_save["first frame"])
+        ii_traj_length = int(ii_save["traj length"])
+        ii_last_frame = ii_first_frame + ii_traj_length - 1
+        ii_diameter = ii_save["diameter"]
+        
+        
+        add_data_plot = np.zeros([ii_traj_length,2])
+        
+        add_data_plot[:,0] = np.linspace(ii_first_frame,ii_last_frame,ii_traj_length)
+        add_data_plot[:,1] = ii_diameter
+        
+        if first_element == True:
+            plot_data = add_data_plot
+            first_element = False
+        else:
+            plot_data = np.concatenate((plot_data,add_data_plot), axis = 0)
+
+
+    from matplotlib.ticker import NullFormatter
+    
+    # the random data
+    diam = plot_data[:,1] #x
+    time = plot_data[:,0] #y
+    
+    diam_max = np.max(diam)
+    diam_min = np.min(diam)
+    
+    if 1==0:
+        lim_diam_start = 0
+        lim_diam_end = np.round(1.10*diam_max,-1)
+    else:
+        lim_diam_start = diam_min
+        lim_diam_end = diam_max
+    
+    lim_time_start = np.min(time)
+    lim_time_end = np.max(time)+1
+    
+    diam_bins_nm = 10
+    diam_bins = int((lim_diam_end - lim_diam_start)/diam_bins_nm)
+    time_bins = int(lim_time_end - lim_time_start + 0)
+    
+    nullfmt = NullFormatter()         # no labels
+    
+    # definitions for the axes
+    left, width = 0.1, 0.65
+    bottom, height = 0.1, 0.65
+    bottom_h = left_h = left + width + 0.02
+    
+    rect_scatter = [left, bottom, width, height]
+    rect_histx = [left, bottom_h, width, 0.2]
+    rect_histy = [left_h, bottom, 0.2, height]
+    
+    # start with a rectangular Figure
+    plt.figure()
+    plt.figure(1, figsize=(8, 8))
+    
+    axScatter = plt.axes(rect_scatter)
+    axHistx = plt.axes(rect_histx)
+    axHisty = plt.axes(rect_histy)
+    
+    # no labels
+    axHistx.xaxis.set_major_formatter(nullfmt)
+    axHisty.yaxis.set_major_formatter(nullfmt)
+    
+    # the scatter plot:
+    axScatter.hist2d(diam, time, bins = [diam_bins, time_bins], cmap = "jet")
+    axScatter.set_xlabel("Diamter [nm]")
+    axScatter.set_ylabel("Time [frames]")
+        
+    
+    axScatter.set_xlim((lim_diam_start, lim_diam_end))
+    axScatter.set_ylim((lim_time_start, lim_time_end))
+    
+    axHistx.hist(diam, bins=diam_bins)
+    axHistx.set_ylabel("Occurancy [a.u.]")
+    
+    time_hist = axHisty.hist(time, bins=time_bins, orientation='horizontal')
+    axHisty.set_xlabel("Analyzed Particles")
+    
+    axHistx.set_xlim(axScatter.get_xlim())
+    axHisty.set_ylim(axScatter.get_ylim())
+    
+    plt.show()      
+
+        
+
+        
+        
+        
+        
+        
+    
+#    my_x = sizes_df_lin["diameter"].values
+#    my_y = sizes_df_lin["traj length"].values
+#    g = sns.jointplot(x = plot_data[:,1], y = plot_data[:,0], kind='kde')
+    
+    
+    
+#    g = sns.jointplot(x = my_x, y = my_y, kind="reg",
+#                      xlim=(0, 60), ylim=(0, 12), color="m", height=7)
     
     
     
@@ -422,7 +537,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
     xlabel = 'Diameter [nm]'
     ylabel = 'Absolute occurance'
     title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
-    
+
     values_hist = nd.visualize.PlotDiameterHistogramm(sizes_df_lin, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
     
     if settings["Plot"]["Histogramm_Fit_1_Particle"] == 1:
