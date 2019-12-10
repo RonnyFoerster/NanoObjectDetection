@@ -26,7 +26,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     num_particles: number of particles to simular
     frames: frames simulated
     frames_per_second
-    ep = 0 :estimation precision
+    ep = 0 : estimation precision
     mass = 1: mass of the particle
     microns_per_pixel = 0.477
     temp_water = 295
@@ -136,7 +136,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
 #    bp()
 
 
-    # here come the localization precision ep on top    
+    # here comes the localization precision ep on top    
     sim_part_tm.x = sim_part_tm.x + np.random.normal(0,ep,len(sim_part_tm.x))
     
 
@@ -156,8 +156,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
 
 
 def PrepareRandomWalk(ParameterJsonFile):
-    """
-    Configure the parameters for a randowm walk out of a JSON file
+    """ Configure the parameters for a randowm walk out of a JSON file and return a simulated dataframe
     """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)    
@@ -176,11 +175,11 @@ def PrepareRandomWalk(ParameterJsonFile):
 
     solvent = settings["Exp"]["solvent"]
     
-    if settings["Exp"]["Viscocity_auto"] == 1:
-        visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
+    if settings["Exp"]["Viscosity_auto"] == 1:
+        visc_water = nd.handle_data.GetViscosity(temperature = temp_water, solvent = solvent)
         bp()
     else:
-        visc_water = settings["Exp"]["Viscocity"]
+        visc_water = settings["Exp"]["Viscosity"]
 
     
     output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, \

@@ -36,7 +36,7 @@ import sys
 
 import NanoObjectDetection as nd
 import matplotlib.pyplot as plt # Libraries for plotting
-import matplotlib as mpl # I import this entirely here, as it's needed to change colormaps
+#import matplotlib as mpl # I import this entirely here, as it's needed to change colormaps
 from tqdm import tqdm# progress bar
 
 from pdb import set_trace as bp #debugger
@@ -93,7 +93,7 @@ from pdb import set_trace as bp #debugger
 def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None,
                     max_iterations=10, SaveFig = False, gamma = 0.8):
     """
-    Defines the paramter for the trackpy routine tp.batch, which spots particles, out of the json file
+    Defines the parameters for the trackpy routine tp.batch, which spots particles, out of the json file
     
     important parameters:
     separation = settings["Find"]["Separation data"] ... minimum distance of spotes objects
@@ -168,13 +168,13 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
 
 def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displacement = None, dark_time = None):
     """
-    Defines the paramter for the trackpy routine tp.link, which forms trajectories
+    Defines the parameters for the trackpy routine tp.link, which forms trajectories
     out of particle positions, out of the json file.
     
     important parameters:
-    SearchFixedParticles = Defines weather fixed or moving particles are under current investigation
+    SearchFixedParticles = Defines whether fixed or moving particles are under current investigation
     dark_time            = settings["Link"]["Dark time"] ... maximum number of frames a particle can disappear
-    max_displacement     = ["Link"]["Max displacement"]   ...maximum displacement between two frames
+    max_displacement     = ["Link"]["Max displacement"]  ... maximum displacement between two frames
 
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -198,7 +198,7 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
 
 def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
     """
-    Defines the paramter for the trackpy routine tp.filter_stubs, which cuts to short trajectories,
+    Defines the parameters for the trackpy routine tp.filter_stubs, which cuts to short trajectories,
     out of the json file.
     
     important parameters:
@@ -241,10 +241,10 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         print('Number of stationary objects (might detected multiple times after beeing dark):', amount_valid_particles)
     
     elif (FixedParticles == False) and (BeforeDriftCorrection == True):
-        print("To short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
+        print("Too short trajectories removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
             
     else:
-        print("To short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
+        print("Too short trajectories removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
@@ -477,7 +477,7 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
     num_particle_list = len(particle_list)
 
     for count, test_particle in enumerate(particle_list):
-        nd.visualize.update_progress("Split to long trajectories", (count+1) / num_particle_list)
+        nd.visualize.update_progress("Split too long trajectories", (count+1) / num_particle_list)
 
 
 #        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]

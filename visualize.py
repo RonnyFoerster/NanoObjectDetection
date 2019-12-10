@@ -2,19 +2,17 @@
 """
 Created on Tue Feb  5 12:23:39 2019
 
-@author: Ronny Förster and Stefan Weidlich
+@author: Ronny Förster, Stefan Weidlich and Mona Nissen
 """
 
 # In[0]:
 # coding: utf-8
 """
 collection of plotting functions for visualization
-
-190903 MN modified+added some comments
-
-******************************************************************************
-Importing neccessary libraries
 """
+# ******************************************************************************
+# Importing neccessary libraries
+
 import numpy as np # Library for array-manipulation
 import pandas as pd # Library for DataFrame Handling
 import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
@@ -113,7 +111,7 @@ def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None):
     
 
 def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
-    """ plot and/or save diameter histogram for analyzed particles """
+    """ plot and/or save diameter histogram (or other statistics) for analyzed particles """
     
     import NanoObjectDetection as nd
 
@@ -126,26 +124,21 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
         if show_hist or save_hist:
             DiameterHistogramm(ParameterJsonFile, sizes_df_lin)
 
-
         show_pdf, save_pdf = settings["Plot"]["DiameterPDF_Show"], settings["Plot"]["DiameterPDF_Save"]
         if show_pdf or save_pdf:
             DiameterPDF(ParameterJsonFile, sizes_df_lin)
 
-        
         show_diam_traj, save_diam_traj = settings["Plot"]["DiamOverTraj_Show"], settings["Plot"]["DiamOverTraj_Save"]
         if show_diam_traj or save_diam_traj:
             DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_diam_traj, save_diam_traj)
-
 
         show_hist_time, save_hist_time = settings["Plot"]["Histogramm_time_Show"], settings["Plot"]["Histogramm_time_Save"]
         if show_hist_time or save_hist_time:
             DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_hist_time, save_hist_time)
 
-
         show_correl, save_correl = settings["Plot"]["Correlation_Show"], settings["Plot"]["Correlation_Save"]
         if show_correl or save_correl:
-            Correlation(ParameterJsonFile, sizes_df_lin, show_correl, save_correl)
-            
+            Correlation(ParameterJsonFile, sizes_df_lin, show_correl, save_correl)     
             
         show_pearson, save_pearson = settings["Plot"]["Pearson_Show"], settings["Plot"]["Pearson_Save"]
         if show_pearson or save_pearson:
@@ -154,7 +147,7 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
     
 
 def corrfunc(x, y, **kws):
-    """ function for applying Pearson statistics on (diameter) data """
+    """ auxiliary function for applying Pearson statistics on (diameter) data """
     
     pearson, _ = scipy.stats.pearsonr(x, y)
     ax = plt.gca()
@@ -166,6 +159,7 @@ def corrfunc(x, y, **kws):
 def Correlation(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
     """ produces grid plot for the investigation of particle data correlation
     
+    for more information, see
     https://stackoverflow.com/questions/30942577/seaborn-correlation-coefficient-on-pairgrid
     """
     import NanoObjectDetection as nd
@@ -202,7 +196,6 @@ def Pearson(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None)
                                  "axes.titlesize":8,
                                  "axes.labelsize":100})
                             
-
     mycorr = sizes_df_lin.corr()
     
     plt.figure()
@@ -220,7 +213,6 @@ def Pearson(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None)
                                        settings, data = sizes_df_lin)
 
     plt.show()
-
 
 
 
@@ -248,7 +240,6 @@ def ShowAllCorrel(sizes_df_lin,min_correl = 0.4):
         
     
     plt.show()
-
 
 
 
@@ -332,6 +323,7 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, histogramm_min = Non
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
 
+
 def PlotDiameter2DHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10000, title = '', xlabel = '', ylabel = ''):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
@@ -341,9 +333,6 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 
     tips = sns.load_dataset("tips")
     g = sns.jointplot("total_bill", "tip", data=tips, kind="reg",
                       xlim=(0, 60), ylim=(0, 12), color="m", height=7)
-    
-    
-    
     
     
 #    plt.figure()
@@ -386,18 +375,20 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 
 
 
 
-
-
-def NumberOfBinsAuto(mydata, average_heigt = 4):
+def NumberOfBinsAuto(mydata, average_height = 4):
+    """ calculates a (hopefully) reasonable number of bins for histogram plotting """
+    
     number_of_points = len(mydata)
     
-    bins = int(np.ceil(number_of_points / average_heigt))
+    bins = int(np.ceil(number_of_points / average_height))
     
     return bins
 
 
 
 def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
+    """  """
+    
     import NanoObjectDetection as nd
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -448,7 +439,6 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
         
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
-
 
 
 
@@ -520,6 +510,7 @@ def GetMeanStdMedian(data):
     return my_mean, my_std, my_median    
     
 
+
 def PlotDiameterHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10000, title = '', xlabel = '', ylabel = ''):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     import NanoObjectDetection as nd
@@ -583,6 +574,7 @@ def update_progress(job_title, progress):
     sys.stdout.flush()
 
 
+
 def GetPlotParameters(settings):
     
     with open(settings["Plot"]['SaveProperties']) as json_file:
@@ -595,7 +587,6 @@ def GetPlotParameters(settings):
     
     return params, title_font, axis_font
     
-
 
 
 def export(save_folder_name, save_image_name, settings = None, use_dpi = None, data = None, data_header = None):    
@@ -677,6 +668,7 @@ def IntMedianFit(t1_gapless, my_particle = -1):
     plt.ylim(0)
     
     
+    
 def MaxIntFluctuationPerBead(t1_gapless): 
     beads_property = pd.DataFrame(columns=['max_step']);
     
@@ -688,6 +680,7 @@ def MaxIntFluctuationPerBead(t1_gapless):
     plt.title("Intensity Analysis of each Particle")
     plt.xlabel("particle")
     plt.ylabel("Maximum relative step")
+
 
     
 def CutTrajectorieAtStep(t1_gapless, particle_to_split, max_rel_median_intensity_step):  
@@ -935,13 +928,8 @@ def AnimateProcessedRawData(ParameterJsonFile, rawframes_rot, t4_cutted, t6_fina
     
     plt.show()
     
-
-
     
     
-    
-    
-
 def AnimateDiameterAndRawData(rawframes_rot, sizes_df_lin_rolling):
     
     
@@ -982,8 +970,6 @@ def AnimateDiameterAndRawData(rawframes_rot, sizes_df_lin_rolling):
     return anim
 
 
-
-
     
 def DriftAvgSpeed():
     # show average speed
@@ -994,7 +980,8 @@ def DriftAvgSpeed():
     plt.xlabel('Lateral position in fibre [px]')
     plt.legend(['y', 'x (flow-direction)'])
         
-        
+    
+    
 def DriftTimeDevelopment():
     # SW 180701: There is some issue with the plot in the block beneath!
     # show time developement
@@ -1005,6 +992,7 @@ def DriftTimeDevelopment():
     plt.ylabel('Drift [px]')
     plt.xlabel('Time frame')
     
+  
     
 def DriftFalseColorMapFlow():
     
@@ -1022,6 +1010,7 @@ def DriftFalseColorMapFlow():
     plt.ylabel('Lateral position in fibre [px]')
     plt.colorbar(mappable=heatmap, orientation='vertical', label='Drift along fiber direction')
       
+ 
     
 def DriftVectors():
         
@@ -1066,7 +1055,7 @@ def DriftVectors():
 #        plt.xlabel('Frame')
 #        plt.ylabel('Lateral position in fibre [px]')
 #        plt.colorbar(mappable=heatmap, orientation='vertical', label='Drift along fiber direction')
-    #    
+     
         
 
 def DriftFalseColorMapSpeed():
@@ -1085,6 +1074,7 @@ def DriftFalseColorMapSpeed():
     plt.colorbar(mappable=heatmap, orientation='vertical', label='Speed')
 
 
+
 def DriftCorrectedTraj():
     # Show drift-corrected trajectories
     fig, ax = plt.subplots()
@@ -1092,6 +1082,7 @@ def DriftCorrectedTraj():
     plt.title('Trajectories: Drift-Correction depending on laterial-position (y)')
     plt.xlabel('x-Position [px]')
     plt.ylabel('Lateral position in fibre (y) [px]')
+    
     
     
 def PlotGlobalDrift(d):
@@ -1109,7 +1100,6 @@ def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, co
     plt.xlabel("Lagtime [s]", **axis_font)
 
 
-    
     
 def VarDiameterOverTracklength(sizes_df_lin, save_folder_name = r'Z:\Datenauswertung\19_ARHCF', save_image_name = 'errorpropagation_diameter_vs_trajectorie_length'):
     import NanoObjectDetection as nd
@@ -1145,6 +1135,7 @@ def VarDiameterOverTracklength(sizes_df_lin, save_folder_name = r'Z:\Datenauswer
 
     
     #rt.mpl_style.export(save_folder_name, save_image_name)
+    
     
     
 def VarDiameterOverMinTracklength(settings, sizes_df_lin, obj_all, num_bins_traj_length = 100, min_traj_length = 0, max_traj_length = 1000):
@@ -1284,7 +1275,6 @@ def AnimateStationaryParticles(rawframes_np):
     #frames=t.frame.nunique()
     anim = animation.FuncAnimation(fig, animate, init_func=init, frames=t1_fix.frame.nunique(), 
                                    interval=50, blit=True, repeat=False)
-    
     
     
     

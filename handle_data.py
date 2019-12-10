@@ -149,7 +149,7 @@ def ARHCF_HexToDiameter(side_length):
 
 
 
-def GetViscocity(temperature = 295.15, solvent = "Water"):
+def GetViscosity(temperature = 295.15, solvent = "Water"):
     import CoolProp as CP
     my_visc = CP.CoolProp.Props('V','T',temperature,'P',101.3,solvent)
     
