@@ -15,7 +15,9 @@ from pdb import set_trace as bp #debugger
 import json
 from tkinter import filedialog
 
+<<<<<<< HEAD
 # dies ist ein random kommi
+>>>>>>> test_conflict
 
 # In[]
 def NewEvaluation():
