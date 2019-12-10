@@ -23,11 +23,14 @@ import NanoObjectDetection as nd
 
 # In[2]:
 
-def ReadJson(mypath):
+def ReadJson(mypath, CreateNew = False):
     """
     Reads the json parameter file into a dict
     mypath: path to the json file
     """
+    changed_something = False
+
+
     with open(mypath) as json_file:
         settings = json.load(json_file)
     
@@ -38,9 +41,17 @@ def ReadJson(mypath):
         
         # compare given and saved json path
         # lower is needed to convert Lib to lib, which is identical in the explorer
-        if settings["File"]["json"].lower() != mypath.lower():
-            sys.exit("Given Json path does not match defined path in json file! ,\
-                     You might wanna delete the 'settings' row entirely from the json file.")
+        comp1 = settings["File"]["json"].lower()
+        comp2 = mypath.lower()
+        if comp1 != comp2:
+            if CreateNew == False:
+                print(comp1)
+                print(comp2)
+                sys.exit("Given Json path does not match defined path in json file! ,\
+                         You might wanna delete the 'settings' row entirely from the json file.")
+            else:
+                settings["File"]["json"] = mypath
+                changed_something = True
     else:
         settings["File"]["json"] = mypath
     
@@ -56,7 +67,7 @@ def ReadJson(mypath):
         sys.exit("Default Json file probably not found. You can insert default at the key DefaultParameterJsonFile.")
        
 
-    changed_something = False
+
     
     #go through all the main keys in defauls
     for loop_key in settings_default.keys():
@@ -77,14 +88,24 @@ def ReadJson(mypath):
             changed_something = True
      
     
+    # set SaveFolder in case of auto     
+    if settings["Plot"]["SaveFolder"] == "auto":
+#        settings["Plot"]["SaveFolder"] = settings["File"]["data_folder_name"] + "\\analysis"
+        settings["Plot"]["SaveFolder"] = os.path.dirname(settings["File"]["json"]) + "\\analysis"
+        changed_something = True
     
-    
-     # check if saving folders are valid
+    # check if saving folders are valid    
     my_path = settings["Plot"]["SaveFolder"]
+    
     invalid, my_path = CheckIfFolderGeneratable(my_path)
      
     if invalid == True:
         settings["Plot"]["SaveFolder"] = my_path
+        changed_something = True
+    
+    # set SaveProperties in case of auto  
+    if settings["Plot"]["SaveProperties"] == "auto":
+        settings["Plot"]["SaveProperties"] = settings["Plot"]["SaveFolder"]
         changed_something = True
     
     # check if saving folders are valid
@@ -312,6 +333,7 @@ def ReadData2Numpy(ParameterJsonFile):
         data_type        = nd.handle_data.GetVarOfSettings(settings,"File","data_type")
         data_folder_name = nd.handle_data.GetVarOfSettings(settings,"File","data_folder_name")
         data_file_name   = nd.handle_data.GetVarOfSettings(settings,"File","data_file_name")
+        use_num_frame   = nd.handle_data.GetVarOfSettings(settings,"File","use_num_frame")
     
         print('start reading in raw images. (That may take a while...)')
         if data_type == 'tif_series':
@@ -319,12 +341,13 @@ def ReadData2Numpy(ParameterJsonFile):
                 sys.exit('!!! data_folder_name required !!!')
                 
             else:
-                rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name)
+                rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name,use_num_frame)
         
         elif data_type == 'tif_stack':
             if data_file_name == 0:
                 sys.exit('!!! data_file_name required !!!')
             else:
+                print(data_file_name)
                 rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
         
         elif data_type == 'fits':
@@ -352,17 +375,28 @@ def ReadTiffStack2Numpy(data_file_name):
     return rawframes_np 
 
 
-def ReadTiffSeries2Numpy(data_folder_name):
+def ReadTiffSeries2Numpy(data_folder_name, use_num_frame):
     "Reads a tiff series in"
     
+    if use_num_frame == "all":
+        use_num_frame = 1000000000
+    num_frames_count = 0
+    
     rawframes_np = []
-    for fname in os.listdir(data_folder_name):
+#    for fname in os.listdir(data_folder_name):
+    for fname in sorted(os.listdir(data_folder_name)): #sorted in case it is unsorted
+        print(fname)
         is_tif = fnmatch.fnmatch(fname, '*.tif')
         is_tiff = fnmatch.fnmatch(fname, '*.tiff')
         if is_tif or is_tiff:
             im = Image.open(os.path.join(data_folder_name, fname))
             imarray = np.array(im)
             rawframes_np.append(imarray)
+            
+            num_frames_count = num_frames_count + 1
+            if num_frames_count >= use_num_frame: # break loop if number of frames is reached
+                print("Stop reading in after {} frames are read in".format(num_frames_count))
+                break
         else:
             print('%s is not a >tif<  file. Skipped it.'%fname)
     
@@ -392,7 +426,6 @@ def UseROI(image, ParameterJsonFile, x_min = None, x_max = None, y_min = None, y
     """
     Applies a ROI to a given image
     """ 
-    
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 

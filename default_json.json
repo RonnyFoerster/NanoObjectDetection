@@ -29,6 +29,7 @@
           "data_file_name": "Here comes the data path.",
           "data_folder_name": "Here comes the data directory.",
           "data_type": "tif_stack",
+          "use_num_frame": "all",
           "DefaultParameterJsonFile": "default",
           "json": "Here comes the data path of the json parameter file."
      },
@@ -80,15 +81,16 @@
                9.0,
                9.0
           ],
-          "Minimal bead brightness": 200.0,
-          "Separation data": 1.5
+          "Minimal bead brightness": 500.0,
+          "SaturatedPixelValue": 65000,
+          "Separation data": 15
      },
      "Link": {
           "Dark time": 5,
           "Dwell time stationary objects": 100,
           "Max displacement": 3,
           "Max displacement fix": 0.3,
-          "Min tracking frames before drift": 15.0,
+          "Min tracking frames before drift": 100.0,
           "Min_tracking_frames": 500.0
      },
      "StationaryObjects": {
@@ -96,7 +98,7 @@
           "Min distance to stationary object": 20
      },
      "Split": {
-          "Max_traj_length": 500.0,
+          "Max_traj_length": 1000000.0,
           "Max_traj_length_keep_tail": 0,
           "Max rel median intensity step": 0.5,
           "ParticleWithLongestTrajBeforeSplit": 976
@@ -110,7 +112,7 @@
      },
      "MSD": {
           "Amount summands": 30,
-          "Amount lagtimes auto": 1,
+          "Amount lagtimes auto": 0,
           "lagtimes_min": 1,
           "lagtimes_max": 5,
           "effective_fps": 0,
@@ -133,7 +135,7 @@
           "MSD_fit_Show": 1,
           "MSD_fit_Save": 0,
           "Histogramm_Show": 1,
-          "Histogramm_Save": 0,
+          "Histogramm_Save": 1,
           "Histogramm_Fit_1_Particle": 0,
           "Histogramm_time_Show": 0,
           "Histogramm_time_Save": 0,
@@ -153,11 +155,11 @@
           "Pearson_Show": 0,
           "Pearson_Save": 0,
           "fontsize": 14,
-          "SaveFolder": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly",
+          "SaveFolder": "auto",
           "Title": "Choose a title in the json file",
-          "save_json": 0,
-          "SaveProperties": "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190305\\16_16_05_Diameter Histogramm.json",
-          "save_data2csv": 0,
+          "save_json": 1,
+          "SaveProperties": "auto",
+          "save_data2csv": 1,
           "dpi": 300
      }
 }

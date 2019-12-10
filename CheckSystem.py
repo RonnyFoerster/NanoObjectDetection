@@ -10,10 +10,14 @@ import trackpy as tp
 import pandas as pd
 from pdb import set_trace as bp #debugger
 from distutils.spawn import find_executable
+import NanoObjectDetection as nd
+import shutil
+import os
+
 
 # In[] check python version
 
-def CheckAll():
+def CheckAll(ParameterJsonFile):
     """
     Main Function
     """
@@ -21,6 +25,7 @@ def CheckAll():
     CheckTrackpy()
     CheckPanda()
     CheckLatex()
+    CheckJson(ParameterJsonFile)
     
 def CheckPython():
     """
@@ -38,7 +43,6 @@ def CheckPython():
         sys.exit("Change your python version accoringly, or insert your python version in python_allowed_versions")
     
 
-# In[] check trackpy version    
 def CheckTrackpy():
     """
     Checks if the trackpy version is right
@@ -56,8 +60,6 @@ def CheckTrackpy():
         
         
         
-    
-    # In[] check trackpy version    
 def CheckPanda():
     """
     Checks if the panda version is right
@@ -84,3 +86,37 @@ def CheckLatex():
     else:
         sys.exit("Latex not installed for making good figures")
         
+
+def CheckJson(ParameterJsonFile):
+    """
+    check if json file exists
+    otherwise create a default one
+    """
+    try:
+        settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    except:
+        print("No Json File found in >> {} <<".format(ParameterJsonFile))
+        bp()
+        CopyJson = input("Copy standard json (y/n)? ")
+        if CopyJson == 'y':
+            print("Try copying standard json file")
+            nd_path = os.path.dirname(nd.__file__)
+            json_name = "default_json.json"
+            source_path_default_json = nd_path + "\\" + json_name
+            copy_to_path = os.path.dirname(ParameterJsonFile)
+            
+            shutil.copy2(source_path_default_json, copy_to_path)
+            
+            previous_name = copy_to_path + "\\" + json_name
+            os.rename(previous_name, ParameterJsonFile)
+            
+            # write JsonPath into Json itself
+            settings = nd.handle_data.ReadJson(ParameterJsonFile, CreateNew = True)
+            
+            
+            print("Done")
+        else:
+            print("Abort")
+    
+    
+    
