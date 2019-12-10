@@ -37,6 +37,7 @@ def PrepareRandomWalk(ParameterJsonFile):
     microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
     temp_water          = settings["Exp"]["Temperature"]
 
+
     solvent = settings["Exp"]["solvent"]
     
     if settings["Exp"]["Viscocity_auto"] == 1:
@@ -51,32 +52,33 @@ def PrepareRandomWalk(ParameterJsonFile):
                                               ep = EstimationPrecision, mass = mass, \
                                               microns_per_pixel = microns_per_pixel, temp_water = temp_water, \
                                               visc_water = visc_water)
-        
-    #check if buoyancy shall be considered
-    DoBuoyancy = settings["Simulation"]["DoBuoyancy"]
-    if DoBuoyancy == 1:
-        # include Buoyancy
-        rho_particle = settings["Simulation"]["Density_Particle"]
-        rho_fluid    = settings["Simulation"]["Density_Fluid"]
-        
-        visc_water_m_Pa_s = visc_water * 1e12
-        
-        v_sedi = StokesVelocity(rho_particle, rho_fluid, diameter, visc_water_m_Pa_s)
-        
-        # convert in px per second
-        v_sedi = v_sedi * 1e6 / microns_per_pixel 
-        
-        # sedimentation per frame
-        delta_t = 1 / frames_per_second
-        delta_x_sedi = v_sedi * delta_t
-               
-        x_sedi = np.zeros([1,frames])
-        x_sedi[:] = delta_x_sedi
-        x_sedi = x_sedi.cumsum()
-        
-        bp()
-        output.x = output.x + x_sedi
-        
+       
+    if 1 == 0:
+        #check if buoyancy shall be considered
+        DoBuoyancy = settings["Simulation"]["DoBuoyancy"]
+        if DoBuoyancy == 1:
+            # include Buoyancy
+            rho_particle = settings["Simulation"]["Density_Particle"]
+            rho_fluid    = settings["Simulation"]["Density_Fluid"]
+            
+            visc_water_m_Pa_s = visc_water * 1e12
+            
+            v_sedi = StokesVelocity(rho_particle, rho_fluid, diameter, visc_water_m_Pa_s)
+            
+            # convert in px per second
+            v_sedi = v_sedi * 1e6 / microns_per_pixel 
+            
+            # sedimentation per frame
+            delta_t = 1 / frames_per_second
+            delta_x_sedi = v_sedi * delta_t
+                   
+            x_sedi = np.zeros([1,frames])
+            x_sedi[:] = delta_x_sedi
+            x_sedi = x_sedi.cumsum()
+            
+            bp()
+            output.x = output.x + x_sedi
+            
           
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
@@ -149,8 +151,9 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     #diffusion constant of the simulated particle
     # sim_part_diff = (2*const_Boltz*temp_water/(6*math.pi *visc_water)*1e9) /diameter 
     radius_m = diameter/2 * 1e-9
+
     sim_part_diff = (const_Boltz*temp_water)/(6*math.pi *visc_water * radius_m)
-    bp()
+
     # unit sim_part_diff = um^2/s
 
     # [mum^2/s] x-diffusivity of simulated particle 
@@ -168,7 +171,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     # generating list to hold its x-position, coming from a Gaussian-distribution
     sim_part_part=[]
     sim_part_x=[]
-
+    sim_part_y=[]
 
     drop_rate = RatioDroppedFrames
     
@@ -178,6 +181,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
             for sim_frame in range(frames):
                 sim_part_part.append(sim_part)
                 sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x)) #sigma given by sim_part_sigma as above
+                sim_part_y.append(np.random.normal(loc=0,scale=sim_part_sigma_x)) #sigma given by sim_part_sigma as above
                 # Is that possibly wrong??
      
     else:        
@@ -202,12 +206,13 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
                     lag_frame = 2
                 
                 sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x * lag_frame)) #sigma given by sim_part_sigma as above
+                sim_part_y.append(np.random.normal(loc=0,scale=sim_part_sigma_x * lag_frame)) #sigma given by sim_part_sigma as above
                 # Is that possibly wrong??
 
 
     # Putting the results into a df and formatting correctly:
     sim_part_tm=pd.DataFrame({'x':sim_part_x, \
-                              'y':0,  \
+                              'y':sim_part_y,  \
                               'mass':mass, \
                               'ep': 0, \
                               'frame':sim_part_frame_list, \
@@ -219,6 +224,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     
     
     sim_part_tm.x=sim_part_tm.groupby('particle').x.cumsum()
+    sim_part_tm.y=sim_part_tm.groupby('particle').y.cumsum()
     
 
 #    sim_part_tm.index=sim_part_tm.frame # old method RF 190408
@@ -228,6 +234,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
 
     # here come the localization precision ep on top    
     sim_part_tm.x = sim_part_tm.x + np.random.normal(0,ep,len(sim_part_tm.x))
+    sim_part_tm.y = sim_part_tm.y + np.random.normal(0,ep,len(sim_part_tm.x))
     
 
     # check if tm is gaussian distributed

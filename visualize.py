@@ -265,9 +265,14 @@ def DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, s
     Histogramm_min_max_auto = settings["Plot"]["Histogramm_min_max_auto"]
     
     if Histogramm_min_max_auto == 1:
-            histogramm_min = np.round(np.min(sizes_df_lin.diameter) - 5, -1)
-            histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)
-            
+        histogramm_min = np.round(np.min(sizes_df_lin.diameter) - 5, -1)
+        histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)
+    else:
+        histogramm_min = None
+        histogramm_max = None 
+
+#    bp()
+    
     histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
     histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
     

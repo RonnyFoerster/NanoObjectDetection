@@ -347,6 +347,7 @@ def ReadData2Numpy(ParameterJsonFile):
             if data_file_name == 0:
                 sys.exit('!!! data_file_name required !!!')
             else:
+                print(data_file_name)
                 rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
         
         elif data_type == 'fits':

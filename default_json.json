@@ -81,9 +81,9 @@
                9.0,
                9.0
           ],
-          "Minimal bead brightness": 200.0,
+          "Minimal bead brightness": 500.0,
           "SaturatedPixelValue": 65000,
-          "Separation data": 1.5
+          "Separation data": 15
      },
      "Link": {
           "Dark time": 5,
@@ -135,7 +135,7 @@
           "MSD_fit_Show": 1,
           "MSD_fit_Save": 0,
           "Histogramm_Show": 1,
-          "Histogramm_Save": 0,
+          "Histogramm_Save": 1,
           "Histogramm_Fit_1_Particle": 0,
           "Histogramm_time_Show": 0,
           "Histogramm_time_Save": 0,
@@ -157,9 +157,9 @@
           "fontsize": 14,
           "SaveFolder": "auto",
           "Title": "Choose a title in the json file",
-          "save_json": 0,
+          "save_json": 1,
           "SaveProperties": "auto",
-          "save_data2csv": 0,
+          "save_data2csv": 1,
           "dpi": 300
      }
 }

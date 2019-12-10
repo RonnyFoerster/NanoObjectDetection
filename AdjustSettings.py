@@ -183,8 +183,8 @@ def SpotSize(rawframes_rot, ParameterJsonFile):
     UserSatisfied = False
     try_diameter = [3.0 ,3.0]
     
-    if len(rawframes_rot) > 300:
-        rawframes_rot = rawframes_rot[0:300,:,:]
+    if len(rawframes_rot) > 100:
+        rawframes_rot = rawframes_rot[0:100,:,:]
     
     
     while UserSatisfied == False:
