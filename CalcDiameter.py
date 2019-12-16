@@ -331,7 +331,7 @@ def AvgMsd(nan_tm_sq, frames_per_second):
         
         # 2. Calculate mean msd for the sublocks
         mean_displ_direct_loop = nan_indi_means.mean(axis=0)
-        mean_displ_direct = mean_displ_direct.append(pd.Series(index=[column], data=[mean_displ_direct_loop]))
+        mean_displ_direct = mean_displ_direct.append(pd.Series(index=[column], data=[mean_displ_direct_loop]), sort=False)
         
         # 3. Check how many independent measurements are present (this number is used for filtering later. 
         # Also the iteration is limited to anaylzing
@@ -343,8 +343,7 @@ def AvgMsd(nan_tm_sq, frames_per_second):
         # when determining the slope of msd over time
         
         mean_displ_variance_direct_loop = nan_indi_means.var(axis=0)*(2/(len_nan_tm_sq_loop-1))
-        mean_displ_variance_direct = mean_displ_variance_direct.append(pd.Series(index=[column], 
-                                                                               data=[mean_displ_variance_direct_loop]))
+        mean_displ_variance_direct = mean_displ_variance_direct.append(pd.Series(index=[column], data=[mean_displ_variance_direct_loop]), sort=False)
         
         mean_displ_sigma_direct = np.sqrt(mean_displ_variance_direct)
         
@@ -598,7 +597,7 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                                                           'valid frames':[amount_frames_lagt1],
                                                           'size': [mean_size],
                                                           'ecc': [mean_ecc],
-                                                          'true_particle': [true_particle]}))
+                                                          'true_particle': [true_particle]}), sort=False)
     
     
     
@@ -782,7 +781,7 @@ def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel =
             sizes_df_lin = sizes_df_lin_new
         else:
             
-            sizes_df_lin = sizes_df_lin.append(sizes_df_lin_new)
+            sizes_df_lin = sizes_df_lin.append(sizes_df_lin_new, sort=False)
             
         cur_ind_particles = cur_ind_particles * 2
 
