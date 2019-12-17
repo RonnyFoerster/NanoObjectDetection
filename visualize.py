@@ -777,10 +777,11 @@ def export(save_folder_name, save_image_name, settings = None, use_dpi = None, d
 
 
 def IntMedianFit(t1_gapless, my_particle = -1):
+    """ plot comparison of the median filter smoothed particle intensity ("mass") with original values """
+    
     if my_particle == -1:
-        #get the first occuring particle
-        # can be different from 0 or 1 because they might have been thrown away due to beeing stumps
-        # show the maximum relative step for each particle
+        # get the first occuring particle
+        # (can be different from 0 or 1 because they might have been thrown away due to being stumps)
         my_particle = t1_gapless.iloc[0].particle
         
 #    show_curve = t1_gapless[t1_gapless['particle'] == my_particle][['mass','mass_smooth','rel_step']]
@@ -795,7 +796,10 @@ def IntMedianFit(t1_gapless, my_particle = -1):
     plt.ylim(0)
     
     
+    
 def MaxIntFluctuationPerBead(t1_gapless): 
+    """ show the maximum relative step for each particle """
+
     beads_property = pd.DataFrame(columns=['max_step']);
     
     beads_property['max_step'] = t1_gapless.groupby('particle')['rel_step'].max()
@@ -807,11 +811,10 @@ def MaxIntFluctuationPerBead(t1_gapless):
     plt.xlabel("particle")
     plt.ylabel("Maximum relative step")
 
+
     
 def CutTrajectorieAtStep(t1_gapless, particle_to_split, max_rel_median_intensity_step):  
-    
-    #Display the intensity curvature of particles that need to split
-
+    """ display the intensity ("mass") vs. frame# of a particle trajectory that needs to be split """
     
     show_with_fit = t1_gapless[t1_gapless.particle == particle_to_split]
     show_no_fit= t1_gapless[t1_gapless.particle == particle_to_split]

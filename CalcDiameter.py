@@ -642,9 +642,11 @@ def OptimalMSDPoints(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
     # XAVIER MICHALET AND ANDREW J. BERGLUND PHYSICAL REVIEW E 85, 2012
     red_x = ReducedLocalPrecision(settings, raw_mass, diffusivity)
     
-    
-    if red_x >= 0:
-        f_b = 2 + 1.35 * np.power(red_x,0.6)
+    if type(red_x) != type('abc'): # exclude that red_x is a string ("unknown")
+        if red_x >= 0:
+            f_b = 2 + 1.35 * np.power(red_x,0.6)
+        else:
+            f_b = 2
     else:
         f_b = 2
     L_b = 0.8 + 0.564 * amount_frames_lagt1

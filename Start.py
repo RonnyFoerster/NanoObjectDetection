@@ -16,16 +16,6 @@ import json
 from tkinter import filedialog
 
 
-# dies ist ein random kommi
-# =======
-# Here comes a test comment by Ronny
-
-# Here comes a test comment by Ronny + Mona
-# hallo welt
-#noch ein test
-
-# ein test von Ronny
-
 # In[]
 def NewEvaluation():
     #where is the data
