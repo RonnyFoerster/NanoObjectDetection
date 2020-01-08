@@ -217,7 +217,7 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
 
 def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
     """
-    Defines the paramter for the trackpy routine tp.filter_stubs, which cuts to short trajectories,
+    Defines the parameter for the trackpy routine tp.filter_stubs, which cuts too short trajectories,
     out of the json file.
     
     important parameters:
@@ -260,10 +260,10 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         print('Number of stationary objects (might detected multiple times after beeing dark):', amount_valid_particles)
     
     elif (FixedParticles == False) and (BeforeDriftCorrection == True):
-        print("To short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
+        print("Too short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
             
     else:
-        print("To short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
+        print("Too short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
@@ -498,9 +498,7 @@ def close_gaps(t1):
 
 
 def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None, PlotIntMedianFit = False, PlotIntFlucPerBead = False):
-    """
-    Calculates the intensity fluctuation of a particle along its trajectory
-    """
+    """ calculate the intensity fluctuation of a particle along its trajectory """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -509,29 +507,29 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
     # MEDIAN FILTER OF MASS
     # CALCULATE RELATIVE STEP HEIGHTS OVER TIME
     
-    # rolling median filter
+    # apply rolling median filter on data sorted by particleID
     # NOT VERY ACCURATE BUT DOES IT FOR THE MOMENT.
     rolling_median_filter = t1_gapless.groupby('particle')['mass'].rolling(2*dark_time, center=True).median()
     
     # get it back to old format
-    rolling_median_filter = rolling_median_filter.to_frame()
+    rolling_median_filter = rolling_median_filter.to_frame() # convert to DataFrame
     rolling_median_filter = rolling_median_filter.reset_index(level='particle')
     
     # insert median filtered mass in original data frame
     t1_gapless['mass_smooth'] = rolling_median_filter['mass'].values
     
-    # CALC DIFFERENCE
+    # CALC DIFFERENCES in mass and particleID
     my_diff = t1_gapless[['particle','mass_smooth']].diff()
     
        
     # remove gap if NaN
-    my_diff.loc[pd.isna(my_diff['particle']),'mass_smooth']=0 # RF 180906
+    my_diff.loc[pd.isna(my_diff['particle']),'mass_smooth'] = 0 # RF 180906
     
-    # remove gap when new particle is occurs 
-    my_diff.loc[my_diff['particle'] > 0 ,'mass_smooth']=0 # RF 180906    
+    # remove gap if new particle occurs 
+    my_diff.loc[my_diff['particle'] > 0 ,'mass_smooth'] = 0 # RF 180906    
     
-    # remove NaN when median filter is to close on the edge defined by dark time in the median filter
-    my_diff.loc[pd.isna(my_diff['mass_smooth']),'mass_smooth']=0 # RF 180906
+    # remove NaN if median filter is too close to the edge defined by dark time in the median filter
+    my_diff.loc[pd.isna(my_diff['mass_smooth']),'mass_smooth'] = 0 # RF 180906
     
     
     # relative step is median smoothed difference over its value
@@ -539,11 +537,11 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
     # step height
     my_step_height = abs(my_diff['mass_smooth'])
     # average step offset (top + bottom )/2
-    my_step_offest = t1_gapless.groupby('particle')['mass_smooth'].rolling(2).mean()
-    my_step_offest = my_step_offest.to_frame().reset_index(level='particle')
+    my_step_offset = t1_gapless.groupby('particle')['mass_smooth'].rolling(2).mean()
+    my_step_offset = my_step_offset.to_frame().reset_index(level='particle')
     # relative step
     #t1_search_gap_filled['rel_step'] = my_step_height / my_step_offest.mass_smooth
-    t1_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offest.mass_smooth)
+    t1_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offset.mass_smooth)
 
     if PlotIntMedianFit == True:
         nd.visualize.IntMedianFit(t1_gapless)
@@ -559,9 +557,8 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
 
 
 def split_traj(t2_long, t3_gapless, ParameterJsonFile):
-    """
-    Define settings for split trajectory at high intensity jumps
-    """
+    """ define settings for split trajectory at high intensity jumps """
+    
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     t4_cutted, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
@@ -645,13 +642,13 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
 
 
 def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_intensity_step = None,
-                             min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = False, NumParticles2Plot = 3,
+                             min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = True, NumParticles2Plot = 3,
                              PlotAnimationFiltering = False, rawframes_ROI = -1):
-    """
-    Splits the trajectory at high intensity jumps.
+    """ split the trajectory at high intensity jumps
+    
     This is motivated by the idea, that an intensity jump is more likely to happen because of a wrong assignment in
     the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6) or heavy
-    substructures/intensity holes in the laser moder
+    substructures/intensity holes in the laser mode
     """
     t4_cutted = t3_gapless.copy()
         
