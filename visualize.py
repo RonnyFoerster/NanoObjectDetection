@@ -330,7 +330,7 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     
     xlabel = 'Diameter [nm]'
     ylabel = 'Absolute occurance'
-    title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
+    title = 'Amount of particles analyzed = %r' % len(sizes_df_lin)
 
     nd.visualize.PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
   
