@@ -851,12 +851,19 @@ def CalculateLagtimes_min(eval_tm, min_snr = 10):
     return lagtimes_min
 
 
-def InvDiameter(sizes_df_lin):
+def InvDiameter(sizes_df_lin, settings):
     
     inv_diam = 1/sizes_df_lin["diameter"]
     
-    rel_error = sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]
+    t_max = settings["MSD"]["lagtimes_max"]
+    print("t_max = ", t_max)
     
+    f = sizes_df_lin["traj length"]
+    print("f = ", f)
+    
+#    rel_error = sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]
+    rel_error = np.sqrt((2*t_max)/(3*(f-t_max)))
+    print("rel_error = ", rel_error)
     inv_diam_std = inv_diam * rel_error
     
     return inv_diam,inv_diam_std
