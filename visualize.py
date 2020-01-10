@@ -20,7 +20,7 @@ import numpy as np # library for array-manipulation
 import pandas as pd # library for DataFrame handling
 import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
 import seaborn as sns # allows boxplots to be put in one graph
-sns.reset_orig()
+#sns.reset_orig()
 import math # offering some maths functions
 import matplotlib
 #matplotlib.rcParams['text.usetex'] = False
@@ -622,7 +622,7 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
     xlabel = "Diameter [nm]"
     ylabel = "Probability"
     x_lim = [histogramm_min, histogramm_max]
-    y_lim = [0, 1.1*np.max(my_pdf)]
+    y_lim = [0, 1.1*np.max(prob_inv_diam)]
 #    sns.reset_orig()
     
     
