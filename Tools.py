@@ -10,8 +10,9 @@ Created on Fri Apr  5 08:54:11 2019
 import numpy as np
 import pandas as pd
 import matplotlib
-matplotlib.rcParams['text.usetex'] = True
-matplotlib.rcParams['text.latex.unicode'] = True
+# False since deprecated from version 3.0
+#matplotlib.rcParams['text.usetex'] = False
+#matplotlib.rcParams['text.latex.unicode'] = False
 
 #import matplotlib.pyplot as plt # Libraries for plotting
 import NanoObjectDetection as nd

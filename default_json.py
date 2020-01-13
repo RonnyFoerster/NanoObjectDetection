@@ -11,7 +11,7 @@ Exp
 Experimental parameters
 
 | key: NA:
-| description: numberical aperture of the detection objective
+| description: numerical aperture of the detection objective
 | example: 0.13
 | unit: none
 

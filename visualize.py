@@ -2,41 +2,31 @@
 """
 Created on Tue Feb  5 12:23:39 2019
 
-@author: Ronny Förster und Stefan Weidlich
+@author: Ronny Förster, Stefan Weidlich, Mona Nissen
 """
 
 # In[0]:
 # coding: utf-8
+
 """
-Analyzis of Gold-Particle data for ARHCF paper
+collection of plotting functions for visualization
 
-Created on 20181001 by Stefan Weidlich (SW)
-Based on previous skript of Ronny Förster (RF) and SW
-
-Target here: Implement only routines as they'll be used in paper
-
-Modifications:
-181020, SW: Cleaning up of code
-Amongst others: Python v3.5 implementation deleted. Now working with 3.6 and above only
-181025, SW: Adjustment of tracking-parameters and structuring of header
---> Realized that 32-bit parameters for tracking lead to unsufficient pixel-precision for 64 bit-version
-181026, SW: Taking out of log-tracking. --> Not needed
 
 ******************************************************************************
 Importing neccessary libraries
 """
-#from __future__ import division, unicode_literals, print_function # For compatibility with Python 2 and 3
-import numpy as np # Library for array-manipulation
-import pandas as pd # Library for DataFrame Handling
+
+import numpy as np # library for array-manipulation
+import pandas as pd # library for DataFrame handling
 import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
 import seaborn as sns # allows boxplots to be put in one graph
-sns.reset_orig()
+#sns.reset_orig()
 import math # offering some maths functions
 import matplotlib
-matplotlib.rcParams['text.usetex'] = True
-matplotlib.rcParams['text.latex.unicode'] = True
-import matplotlib.pyplot as plt # Libraries for plotting
-from matplotlib import animation # Allows to create animated plots and videos from them
+#matplotlib.rcParams['text.usetex'] = False
+#matplotlib.rcParams['text.latex.unicode'] = False
+import matplotlib.pyplot as plt # libraries for plotting
+from matplotlib import animation # allows to create animated plots and videos from them
 import json
 import sys
 import datetime
@@ -44,28 +34,31 @@ from pdb import set_trace as bp #debugger
 import scipy
 import os.path
 
-import time
+import NanoObjectDetection as nd
+
+## unused for the moment:
+#import time
 #from matplotlib.animation import FuncAnimation, PillowWriter
-from matplotlib.animation import FuncAnimation
+#from matplotlib.animation import FuncAnimation
 
-
-"""
-******************************************************************************
-Some settings
-"""
-pd.set_option('display.max_columns',20) # I'm just using this to tell my Spyder-console to allow me to 
-# see up to 20 columns of a dataframe (instead of a few only by default)
 
 
 # In[]
 def SetXYLim(x_min_max = None, y_min_max = None):
+    """ set axes limits to fixed values """
+    
     if (x_min_max is None) == False:
         plt.xlim([x_min_max[0], x_min_max[1]])
 
     if (y_min_max is None) == False:
         plt.ylim([y_min_max[0], y_min_max[1]])
 
-def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None):
+
+
+def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None, settings = None):
+    """ plot 1D-data in standardized format as line plot """
+    
+    import NanoObjectDetection as nd
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     
     plt.figure()
@@ -73,12 +66,20 @@ def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None):
     plt.title(title, **title_font)
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
+    
+    
+    if settings != None:
+        nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings, data = plot_np)
 
 
-def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':',
-               x_lim = None):
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
-    sns.reset_orig()
+
+def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':', x_lim = None, y_lim = None, y_ticks = None):
+    """ plot 2D-data in standardized format as line plot """
+    
+    from NanoObjectDetection.PlotProperties import axis_font, title_font, params
+#    sns.reset_orig()
+    
+    plt.style.use(params)
     
     plt.figure()
     plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
@@ -86,11 +87,29 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
 
+#    matplotlib.rcParams.update(params)
+
+    
+
     if x_lim != None:
         plt.xlim(x_lim)
+        
+    if y_lim != None:
+        plt.ylim(y_lim)
+                
+    if y_ticks != None:
+        frame1 = plt.gca() 
+        frame1.axes.yaxis.set_ticks(y_ticks)
+
+
+    nd.PlotProperties
+    plt.style.use(params)
+
 
 def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1,
                   x_min_max = None, y_min_max = None):
+    """ plot 2D-data in standardized format as individual, scattered points """
+    
     from NanoObjectDetection.PlotProperties import axis_font, title_font
 
     plt.figure()
@@ -104,7 +123,10 @@ def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha 
 
 
 def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None):
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
+    """ plot image in standardized format """
+    
+    from NanoObjectDetection.PlotProperties import axis_font, title_font, params
+
     
     plt.figure()
     plt.imshow(array_np, cmap='gray')
@@ -115,9 +137,9 @@ def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None):
     
     
 
-
-
 def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
+    """ plot and/or save diameter histogram (or other statistics) for analyzed particles """
+    
     import NanoObjectDetection as nd
 
     if any_successful_check == False:
@@ -142,7 +164,8 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
 
         show_hist_time, save_hist_time = settings["Plot"]["Histogramm_time_Show"], settings["Plot"]["Histogramm_time_Save"]
         if show_hist_time or save_hist_time:
-            DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_hist_time, save_hist_time)
+            DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin)
+#            PlotDiameter2DHistogramm(ParameterJsonFile, sizes_df_lin, show_hist_time, save_hist_time)
 
 
         show_correl, save_correl = settings["Plot"]["Correlation_Show"], settings["Plot"]["Correlation_Save"]
@@ -156,9 +179,20 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
 
 
 
+def corrfunc(x, y, **kws):
+    """ auxiliary function for applying Pearson statistics on (diameter) data """
+    
+    pearson, _ = scipy.stats.pearsonr(x, y)
+    ax = plt.gca()
+    ax.annotate("p = {:.2f}".format(pearson),
+                xy=(.1, .9), xycoords=ax.transAxes)
+    
+
 
 def Correlation(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
-    """
+    """ produces grid plot for the investigation of particle data correlation
+    
+    for more information, see
     https://stackoverflow.com/questions/30942577/seaborn-correlation-coefficient-on-pairgrid
     """
     import NanoObjectDetection as nd
@@ -195,7 +229,6 @@ def Pearson(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None)
                                  "axes.titlesize":8,
                                  "axes.labelsize":100})
                             
-
     mycorr = sizes_df_lin.corr()
     
     plt.figure()
@@ -214,13 +247,6 @@ def Pearson(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None)
 
     plt.show()
     
-
-def corrfunc(x, y, **kws):
-    pearson, _ = scipy.stats.pearsonr(x, y)
-    ax = plt.gca()
-    ax.annotate("p = {:.2f}".format(pearson),
-                xy=(.1, .9), xycoords=ax.transAxes)
-
 
 
 def ShowAllCorrel(sizes_df_lin,min_correl = 0.4):
@@ -250,8 +276,10 @@ def ShowAllCorrel(sizes_df_lin,min_correl = 0.4):
 
 
 
-
 def DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
+    """ plot (and save) calculated particle diameters vs. the number of frames
+    where the individual particle is visible (in standardized format) """
+        
     import NanoObjectDetection as nd
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -259,9 +287,14 @@ def DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, s
     Histogramm_min_max_auto = settings["Plot"]["Histogramm_min_max_auto"]
     
     if Histogramm_min_max_auto == 1:
-            histogramm_min = np.round(np.min(sizes_df_lin.diameter) - 5, -1)
-            histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)
-            
+        histogramm_min = np.round(np.min(sizes_df_lin.diameter) - 5, -1)
+        histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)
+    else:
+        histogramm_min = None
+        histogramm_max = None 
+
+#    bp()
+    
     histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
     histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
     
@@ -288,14 +321,14 @@ def DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, s
 
 
 
-def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, 
+def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None, histogramm_min = None, histogramm_max = None, 
                            Histogramm_min_max_auto = None, binning = None):
     import NanoObjectDetection as nd
-    
+
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
         
-    Histogramm_Show = settings["Plot"]['Histogramm_Show']
-    Histogramm_Save = settings["Plot"]['Histogramm_Save']
+    Histogramm_Show = settings["Plot"]['Histogramm_time_Show']
+    Histogramm_Save = settings["Plot"]['Histogramm_time_Save']
     
     if settings["Plot"]["Histogramm_Bins_Auto"] == 1:
         settings["Plot"]["Histogramm_Bins"] = NumberOfBinsAuto(sizes_df_lin)
@@ -315,7 +348,7 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, histogramm_min = Non
     
     xlabel = 'Diameter [nm]'
     ylabel = 'Absolute occurance'
-    title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
+    title = 'Amount of particles analyzed = %r' % len(sizes_df_lin)
 
     nd.visualize.PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
   
@@ -327,15 +360,122 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, histogramm_min = Non
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
 
-def PlotDiameter2DHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10000, title = '', xlabel = '', ylabel = ''):
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
+
+def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm_max = 10000, 
+                             title = '', xlabel = '', ylabel = ''):
+#    from NanoObjectDetection.PlotProperties import axis_font, title_font
     
-    import seaborn as sns
+#    import seaborn as sns
+#    import numpy as np
+
     sns.set(style="darkgrid")
     
-    tips = sns.load_dataset("tips")
-    g = sns.jointplot("total_bill", "tip", data=tips, kind="reg",
-                      xlim=(0, 60), ylim=(0, 12), color="m", height=7)
+#    tips = sns.load_dataset("tips")
+    
+    time_points = int(sizes_df_lin["traj length"].sum())
+    plot_data = np.zeros([time_points,2])
+   
+    num_eval_particles = sizes_df_lin.shape[0]
+    
+    first_element = True
+    
+    for ii in range(0,num_eval_particles):
+        ii_save = sizes_df_lin.iloc[ii]
+        
+        ii_first_frame = int(ii_save["first frame"])
+        ii_traj_length = int(ii_save["traj length"])
+        ii_last_frame = ii_first_frame + ii_traj_length - 1
+        ii_diameter = ii_save["diameter"]
+        
+        
+        add_data_plot = np.zeros([ii_traj_length,2])
+        
+        add_data_plot[:,0] = np.linspace(ii_first_frame,ii_last_frame,ii_traj_length)
+        add_data_plot[:,1] = ii_diameter
+        
+        if first_element == True:
+            plot_data = add_data_plot
+            first_element = False
+        else:
+            plot_data = np.concatenate((plot_data,add_data_plot), axis = 0)
+
+
+    from matplotlib.ticker import NullFormatter
+    
+    # the random data
+    diam = plot_data[:,1] #x
+    time = plot_data[:,0] #y
+    
+    diam_max = np.max(diam)
+    diam_min = np.min(diam)
+    
+    if 1==0:
+        lim_diam_start = 0
+        lim_diam_end = np.round(1.10*diam_max,-1)
+    else:
+        lim_diam_start = diam_min
+        lim_diam_end = diam_max
+    
+    lim_time_start = np.min(time)
+    lim_time_end = np.max(time)+1
+    
+    diam_bins_nm = 10
+    diam_bins = int((lim_diam_end - lim_diam_start)/diam_bins_nm)
+    time_bins = int(lim_time_end - lim_time_start + 0)
+    
+    nullfmt = NullFormatter()         # no labels
+    
+    # definitions for the axes
+    left, width = 0.1, 0.65
+    bottom, height = 0.1, 0.65
+    bottom_h = left_h = left + width + 0.02
+    
+    rect_scatter = [left, bottom, width, height]
+    rect_histx = [left, bottom_h, width, 0.2]
+    rect_histy = [left_h, bottom, 0.2, height]
+    
+    # start with a rectangular Figure
+    plt.figure(figsize=(8, 8))
+#    plt.figure(1, figsize=(8, 8))
+    
+    axScatter = plt.axes(rect_scatter)
+    axHistx = plt.axes(rect_histx)
+    axHisty = plt.axes(rect_histy)
+    
+    # no labels
+    axHistx.xaxis.set_major_formatter(nullfmt)
+    axHisty.yaxis.set_major_formatter(nullfmt)
+    
+    # the scatter plot:
+    axScatter.hist2d(diam, time, bins = [diam_bins, time_bins], cmap = "jet")
+    axScatter.set_xlabel("Diamter [nm]")
+    axScatter.set_ylabel("Time [frames]")
+        
+    axScatter.set_xlim((lim_diam_start, lim_diam_end))
+    axScatter.set_ylim((lim_time_start, lim_time_end))
+    
+    axHistx.hist(diam, bins=diam_bins)
+    axHistx.set_ylabel("Occurancy [a.u.]")
+    
+    time_hist = axHisty.hist(time, bins=time_bins, orientation='horizontal')
+    axHisty.set_xlabel("Analyzed Particles")
+    
+    axHistx.set_xlim(axScatter.get_xlim())
+    axHisty.set_ylim(axScatter.get_ylim())
+    
+    plt.show()      
+
+
+        
+    
+#    my_x = sizes_df_lin["diameter"].values
+#    my_y = sizes_df_lin["traj length"].values
+#    g = sns.jointplot(x = plot_data[:,1], y = plot_data[:,0], kind='kde')
+    
+    
+    
+#    g = sns.jointplot(x = my_x, y = my_y, kind="reg",
+#                      xlim=(0, 60), ylim=(0, 12), color="m", height=7)
     
     
     
@@ -396,7 +536,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
     import NanoObjectDetection as nd
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-       
+
     Histogramm_Show = settings["Plot"]['Histogramm_Show']
     Histogramm_Save = settings["Plot"]['Histogramm_Save']
     
@@ -459,34 +599,34 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
 
     histogramm_min = settings["Plot"]['PDF_min']
     histogramm_max = settings["Plot"]['PDF_max']
-    
-    xlabel = 'Diameter [nm]'
-    ylabel = 'Probability'
-    title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
-
-    
+        
     diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
     diam_grid = np.linspace(histogramm_min,histogramm_max,10000)
     diam_grid_inv = 1/diam_grid
     
     
-    inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin)
+    inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
     
     prob_inv_diam = np.zeros_like(diam_grid_inv)
     for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
+        print("mean_diam_part = ", 1 / loop_mean)
+
         my_pdf = scipy.stats.norm(loop_mean,loop_std).pdf(diam_grid_inv)
 
         my_pdf = my_pdf / np.sum(my_pdf)
         
-        prob_inv_diam = prob_inv_diam + my_pdf
-     
+        prob_inv_diam = prob_inv_diam + my_pdf    
+
       
     title = settings["Plot"]["Title"]
     xlabel = "Diameter [nm]"
-    ylabel = "Probability [a.u.]"
+    ylabel = "Probability"
     x_lim = [histogramm_min, histogramm_max]
-    sns.reset_orig()
-    Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim)
+    y_lim = [0, 1.1*np.max(prob_inv_diam)]
+#    sns.reset_orig()
+    
+    
+    Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0])
 
     
     
@@ -515,25 +655,27 @@ def GetMeanStdMedian(data):
     return my_mean, my_std, my_median    
     
 
-def PlotDiameterHistogramm(sizes_df_lin, binning, min_size = 0, cutoff_size = 10000, title = '', xlabel = '', ylabel = ''):
+def PlotDiameterHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm_max = 10000, title = '', xlabel = '', ylabel = ''):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
     import NanoObjectDetection as nd
+
 #    plt.figure()
     fig, ax = plt.subplots()
     diameters = sizes_df_lin.diameter
-    show_diameters = diameters[(diameters >= min_size) & (diameters <= cutoff_size)]
+    show_diameters = diameters[(diameters >= histogramm_min) & (diameters <= histogramm_max)]
     values_hist, positions_hist = np.histogram(sizes_df_lin["diameter"], bins = binning)
     # histogram of sizes, only taking into account 
     sns.distplot(show_diameters, bins=binning, rug=True, kde=False) 
     #those that are below threshold size as defined in the initial parameters
-    plt.rc('text', usetex=True)
+#    plt.rc('text', usetex=True)
+    plt.rc('text', usetex=False)
     plt.title(title, **title_font)
     #   plt.ylabel(r'absolute occurance')
     plt.ylabel(ylabel, **axis_font)
     plt.xlabel(xlabel, **axis_font)
     plt.grid(True)
  
-    ax.set_xlim(min_size, cutoff_size)
+    ax.set_xlim(histogramm_min, histogramm_max)
 
     # infobox
     _, _, my_median = GetMeanStdMedian(sizes_df_lin.diameter)
@@ -653,10 +795,11 @@ def export(save_folder_name, save_image_name, settings = None, use_dpi = None, d
 
 
 def IntMedianFit(t1_gapless, my_particle = -1):
+    """ plot comparison of the median filter smoothed particle intensity ("mass") with original values """
+    
     if my_particle == -1:
-        #get the first occuring particle
-        # can be different from 0 or 1 because they might have been thrown away due to beeing stumps
-        # show the maximum relative step for each particle
+        # get the first occuring particle
+        # (can be different from 0 or 1 because they might have been thrown away due to being stumps)
         my_particle = t1_gapless.iloc[0].particle
         
 #    show_curve = t1_gapless[t1_gapless['particle'] == my_particle][['mass','mass_smooth','rel_step']]
@@ -671,7 +814,10 @@ def IntMedianFit(t1_gapless, my_particle = -1):
     plt.ylim(0)
     
     
+    
 def MaxIntFluctuationPerBead(t1_gapless): 
+    """ show the maximum relative step for each particle """
+
     beads_property = pd.DataFrame(columns=['max_step']);
     
     beads_property['max_step'] = t1_gapless.groupby('particle')['rel_step'].max()
@@ -683,11 +829,10 @@ def MaxIntFluctuationPerBead(t1_gapless):
     plt.xlabel("particle")
     plt.ylabel("Maximum relative step")
 
+
     
 def CutTrajectorieAtStep(t1_gapless, particle_to_split, max_rel_median_intensity_step):  
-    
-    #Display the intensity curvature of particles that need to split
-
+    """ display the intensity ("mass") vs. frame# of a particle trajectory that needs to be split """
     
     show_with_fit = t1_gapless[t1_gapless.particle == particle_to_split]
     show_no_fit= t1_gapless[t1_gapless.particle == particle_to_split]
@@ -1093,14 +1238,17 @@ def PlotGlobalDrift(d):
     
    
     
-def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, collect_data = None, alpha_values = 0.1, alpha_fit = 0.3):
+def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, collect_data = None, alpha_values = 0.5, alpha_fit = 0.3):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
-    plt.plot(lagt_direct, mean_displ_direct,'k-', alpha = alpha_values) # plotting msd-lag-time-tracks for all particles
-    plt.plot(lagt_direct, mean_displ_fit_direct_lin, 'r', alpha = alpha_fit) # plotting the lin fits
+    plt.plot(lagt_direct, mean_displ_direct,'k.', alpha = alpha_values) # plotting msd-lag-time-tracks for all particles
+    plt.plot(lagt_direct, mean_displ_fit_direct_lin, 'r-', alpha = alpha_fit) # plotting the lin fits
     #ax.annotate(particleid, xy=(lagt_direct.max(), mean_displ_fit_direct_lin.max()))
     plt.title("MSD fit", **title_font)
     plt.ylabel("MSD $[\mu m^2]$", **axis_font)
     plt.xlabel("Lagtime [s]", **axis_font)
+
+    plt.xlim(0,np.max(lagt_direct) * 1.1)
+    plt.ylim(0,plt.ylim()[1])
 
 
     

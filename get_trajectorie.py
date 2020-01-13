@@ -105,8 +105,8 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
     DoSimulation = settings["Simulation"]["SimulateData"]
     if DoSimulation == 1:
         print("No data. A simulation is done instead")        
-        output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile)       
-        
+        output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile)
+
     else:
 #        UseLog = settings["Find"]["Analyze in log"]
 #        
@@ -117,15 +117,21 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
         separation = settings["Find"]["Separation data"]
         minmass    = settings["Find"]["Minimal bead brightness"]
         
-        if UseLog == False:
-            diameter = settings["Find"]["Estimated particle size"]
-        else:
-            diameter = settings["Find"]["Estimated particle size (log-scale)"]
+        if diameter == None:
+            if UseLog == False:
+                diameter = settings["Find"]["Estimated particle size"]
+            else:
+                diameter = settings["Find"]["Estimated particle size (log-scale)"]
     
     
         output_empty = True
         
         while output_empty == True:
+            print("Minmass = ", minmass)
+            print("Separation = ", separation)
+            print("Diameter = ", diameter)
+            print("Max iterations = ", max_iterations)
+            plt.imshow(frames_np[0,:,:])
             output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations)
                    
             if output.empty:
@@ -148,7 +154,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
 #            params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
             fig = plt.figure()
 
-            plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma))
+            plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma), cmap = "gray")
             plt.scatter(output["x"],output["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
  
         
@@ -160,9 +166,27 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
     
             settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
         
+            plt.close(fig)
     
     return output
 
+def AnalyzeMovingSpots(frames_np, ParameterJsonFile):
+    """
+    Find moving spots by using a much larger diameter than for the slow moving (unsmeared) particles
+    """
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    diameter = settings["Find"]["Estimated moving particle size"]
+    if diameter == "auto":
+        diameter_fixed = settings["Find"]["Estimated particle size"]
+        
+        # use the double size for the smeared particles
+        diameter = (np.asarray(diameter_fixed)*2+1).tolist()
+            
+    output = nd.get_trajectorie.FindSpots(frames_np, ParameterJsonFile, diameter = diameter)
+
+    return output
 
 
 
@@ -198,7 +222,7 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
 
 def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
     """
-    Defines the paramter for the trackpy routine tp.filter_stubs, which cuts to short trajectories,
+    Defines the parameter for the trackpy routine tp.filter_stubs, which cuts too short trajectories,
     out of the json file.
     
     important parameters:
@@ -223,7 +247,7 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         # moving particle after drift correction
         min_tracking_frames = settings["Link"]["Min_tracking_frames"]
         
-
+    print("Minimum trajectorie length: ", min_tracking_frames)
     traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
     
     # RF 190408 remove Frames because the are doupled and panda does not like it
@@ -241,10 +265,10 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         print('Number of stationary objects (might detected multiple times after beeing dark):', amount_valid_particles)
     
     elif (FixedParticles == False) and (BeforeDriftCorrection == True):
-        print("To short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
+        print("Too short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
             
     else:
-        print("To short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
+        print("Too short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
@@ -266,20 +290,21 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
     if settings["StationaryObjects"]["Analyze fixed spots"] == 1:
         #required minimum distance in pixels between moving and stationary particles
         min_distance = settings["StationaryObjects"]["Min distance to stationary object"]
-        
-    
+
+        stationary_particles = t2_long_fix.groupby("particle").mean()
+
         # loop through all stationary objects (contains position (x,y) and time of existent (frame))
-        num_loop_elements = len(t2_long_fix)
-        for loop_t2_long_fix in range(0,len(t2_long_fix)):
+        num_loop_elements = len(stationary_particles)
+        for loop_t2_long_fix in range(0,num_loop_elements):
             nd.visualize.update_progress("Remove Spots In No Go Areas", (loop_t2_long_fix+1)/num_loop_elements)
 
 #            print(loop_t2_long_fix)
             # stationary object to check if it disturbs other particles
-            my_check = t2_long_fix.iloc[loop_t2_long_fix]
+            my_check = stationary_particles.iloc[loop_t2_long_fix]
         
             # SEMI EXPENSIVE STEP: calculate the position and time mismatch between all objects 
             # and stationary object under investigation    
-            mydiff = obj[['x','y','frame']] - my_check[['x','y','frame']]
+            mydiff = obj[['x','y']] - my_check[['x','y']]
             
             # get the norm
             # THIS ALSO ACCOUNT FOR THE TIME DIMENSION!
@@ -287,10 +312,10 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
             mynorm = np.linalg.norm(mydiff.values,axis=1)
             
             # check for which particles the criteria of minimum distance is fulfilled
-            check_distance = mynorm > min_distance 
+            valid_distance = mynorm > min_distance 
             
             # keep only the good ones
-            obj = obj[check_distance]
+            obj = obj[valid_distance]
             
     else:
         print("!!! PARTICLES CAN ENTER NO GO AREA WITHOUT GETTING CUT !!!")
@@ -299,6 +324,123 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
     
         
     return obj
+
+
+
+
+def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    SaturatedPixelValue = settings["Find"]["SaturatedPixelValue"]
+    
+    sort_obj_moving = obj_moving.sort_values("raw_mass")
+    
+    saturated_psf = True
+    while saturated_psf:
+        # get pos and frame of spot with highest mass
+        pos_x = np.int(sort_obj_moving.iloc[-1]["x"])
+        pos_y = np.int(sort_obj_moving.iloc[-1]["y"])
+        frame = np.int(sort_obj_moving.iloc[-1]["frame"])
+        number = np.int(sort_obj_moving.iloc[-1]["frame"])
+            
+        # get signal at maxima
+        signal_at_max = rawframes_rot[frame,pos_y,pos_x]
+        if signal_at_max >= SaturatedPixelValue:
+            sort_obj_moving = sort_obj_moving.iloc[:-2]
+    
+        else:
+            saturated_psf = False
+     
+    print("Deleted overexposed particles...")       
+    
+    obj_moving = sort_obj_moving
+    
+    return obj_moving 
+
+
+# not really done
+def RemoveNoGoAreasAroundOverexposedAreas():
+    # check for saturated/overexposed areas on the chip
+    my_max = 65520 
+    
+    import numpy as np
+    
+    sat_px = np.argwhere(rawframes_rot >= my_max)
+    
+    import numpy as np
+    import pandas as pd
+    import time
+    
+    num_sat_px = sat_px.shape[0]
+    # minimum allowed distance to saturated area
+    min_distance = settings["Find"]["Separation data"]
+    
+    min_distance = 10
+    
+    # first frame. variable is used to check if a new frames is reached
+    frame_sat_px_old = -1
+    
+    #previous position
+    loop_sat_pos_old = np.zeros(2)
+    loop_sat_pos = np.zeros(2)
+    
+    for loop_counter, loop_sat_px in enumerate(sat_px):
+    #    print(loop_counter)
+        t = time.time()
+    #    print("avoid saturaed px = ", loop_sat_px)
+        
+        nd.visualize.update_progress("Remove Spots In Overexposed Areas", (loop_counter+1)/num_sat_px)
+    
+        # position of the overexposition
+        loop_sat_pos[:] = [loop_sat_px[1], loop_sat_px[2]]
+        
+        
+        # check the difference to the precious saturated pixel
+        
+        diff_px = np.linalg.norm(loop_sat_pos_old - loop_sat_pos)
+       
+        # if they are neighbouring than ignore it to speed it up
+        if diff_px > 5:
+            # frame of the overexposition
+            frame_sat_px = loop_sat_px[0]
+        
+    #        print("t1 = ", time.time() - t)
+            
+            # only do that if a new frame starts
+    #        if frame_sat_px != frame_sat_px_old:
+    #            print("frame:", frame_sat_px)
+    ##            obj_moving_frame = obj_moving[obj_moving.frame == frame_sat_px]
+    #            frame_sat_px_old = frame_sat_px
+        
+    #        print("t2 = ", time.time() - t)
+        
+            # SEMI EXPENSIVE STEP: calculate the position and time mismatch between all objects 
+            # and stationary object under investigation    
+    #        mydiff = obj_moving_frame[['x','y']] - [pos_sat_px_x, pos_sat_px_y]
+            mydiff = obj_moving[obj_moving.frame == frame_sat_px][['y','x']] - loop_sat_pos
+    #        print("t3 = ", time.time() - t)  
+                    
+            # get the norm
+    #        mynorm = np.linalg.norm(mydiff.values,axis=1)
+            mynorm = np.sqrt(mydiff["y"]**2 + mydiff["x"]**2)
+    #        print("t4 = ", time.time() - t)
+            # check for which particles the criteria of minimum distance is fulfilled
+            
+            remove_close_object = mynorm < min_distance 
+            
+            remove_loc = remove_close_object.index[remove_close_object].tolist()
+            
+            # keep only the good ones
+            obj_moving = obj_moving.drop(remove_loc)
+            
+    #        obj_moving = pd.concat([obj_moving_frame[valid_distance], obj_moving[obj_moving.frame != frame_sat_px]])
+    #        print("t5 = ", time.time() - t)        
+            
+            frame_sat_px_old = frame_sat_px
+    
+            loop_sat_pos_old = loop_sat_pos.copy()
+
+
 
 
 
@@ -361,9 +503,7 @@ def close_gaps(t1):
 
 
 def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None, PlotIntMedianFit = False, PlotIntFlucPerBead = False):
-    """
-    Calculates the intensity fluctuation of a particle along its trajectory
-    """
+    """ calculate the intensity fluctuation of a particle along its trajectory """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -372,29 +512,29 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
     # MEDIAN FILTER OF MASS
     # CALCULATE RELATIVE STEP HEIGHTS OVER TIME
     
-    # rolling median filter
+    # apply rolling median filter on data sorted by particleID
     # NOT VERY ACCURATE BUT DOES IT FOR THE MOMENT.
     rolling_median_filter = t1_gapless.groupby('particle')['mass'].rolling(2*dark_time, center=True).median()
     
     # get it back to old format
-    rolling_median_filter = rolling_median_filter.to_frame()
+    rolling_median_filter = rolling_median_filter.to_frame() # convert to DataFrame
     rolling_median_filter = rolling_median_filter.reset_index(level='particle')
     
     # insert median filtered mass in original data frame
     t1_gapless['mass_smooth'] = rolling_median_filter['mass'].values
     
-    # CALC DIFFERENCE
+    # CALC DIFFERENCES in mass and particleID
     my_diff = t1_gapless[['particle','mass_smooth']].diff()
     
        
     # remove gap if NaN
-    my_diff.loc[pd.isna(my_diff['particle']),'mass_smooth']=0 # RF 180906
+    my_diff.loc[pd.isna(my_diff['particle']),'mass_smooth'] = 0 # RF 180906
     
-    # remove gap when new particle is occurs 
-    my_diff.loc[my_diff['particle'] > 0 ,'mass_smooth']=0 # RF 180906    
+    # remove gap if new particle occurs 
+    my_diff.loc[my_diff['particle'] > 0 ,'mass_smooth'] = 0 # RF 180906    
     
-    # remove NaN when median filter is to close on the edge defined by dark time in the median filter
-    my_diff.loc[pd.isna(my_diff['mass_smooth']),'mass_smooth']=0 # RF 180906
+    # remove NaN if median filter is too close to the edge defined by dark time in the median filter
+    my_diff.loc[pd.isna(my_diff['mass_smooth']),'mass_smooth'] = 0 # RF 180906
     
     
     # relative step is median smoothed difference over its value
@@ -402,11 +542,11 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
     # step height
     my_step_height = abs(my_diff['mass_smooth'])
     # average step offset (top + bottom )/2
-    my_step_offest = t1_gapless.groupby('particle')['mass_smooth'].rolling(2).mean()
-    my_step_offest = my_step_offest.to_frame().reset_index(level='particle')
+    my_step_offset = t1_gapless.groupby('particle')['mass_smooth'].rolling(2).mean()
+    my_step_offset = my_step_offset.to_frame().reset_index(level='particle')
     # relative step
     #t1_search_gap_filled['rel_step'] = my_step_height / my_step_offest.mass_smooth
-    t1_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offest.mass_smooth)
+    t1_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offset.mass_smooth)
 
     if PlotIntMedianFit == True:
         nd.visualize.IntMedianFit(t1_gapless)
@@ -422,9 +562,8 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
 
 
 def split_traj(t2_long, t3_gapless, ParameterJsonFile):
-    """
-    Define settings for split trajectory at high intensity jumps
-    """
+    """ define settings for split trajectory at high intensity jumps """
+    
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     t4_cutted, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
@@ -448,7 +587,6 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
     
     Important is too look at the temporal component, thus particle 2 never exists twice
     """
-
     keep_tail = settings["Split"]["Max_traj_length_keep_tail"]
     
     if Max_traj_length is None:
@@ -509,13 +647,13 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
 
 
 def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_intensity_step = None,
-                             min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = False, NumParticles2Plot = 3,
+                             min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = True, NumParticles2Plot = 3,
                              PlotAnimationFiltering = False, rawframes_ROI = -1):
-    """
-    Splits the trajectory at high intensity jumps.
+    """ split the trajectory at high intensity jumps
+    
     This is motivated by the idea, that an intensity jump is more likely to happen because of a wrong assignment in
     the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6) or heavy
-    substructures/intensity holes in the laser moder
+    substructures/intensity holes in the laser mode
     """
     t4_cutted = t3_gapless.copy()
         
