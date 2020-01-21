@@ -40,8 +40,8 @@ Experimental parameters
 | example: 295
 | unit: K
    
-| key: Viscocity
-| description: Viscocitiy of the fluid
+| key: Viscosity
+| description: Viscosity of the fluid
 | example: 9.5e-16
 | unit: Ns/(um^2) = 1E-12 * Ns(m^2) = 1E-15 * mPa * s
 
@@ -49,8 +49,17 @@ Experimental parameters
 | description: Boltzmann constant for the diffusion
 | example: 1.38e-23
 | unit: m^2 * kg / (s^2 * K) = J / K
+
+| key: solvent
+| description: the kind of liquid that surrounds the nanoobjects under investigation
+| example: "water"
+| unit: none
+          
+| key: particleConc_inSolvent
+| description: estimated concentration value of the prepared particle solution
+| example: "0.188"
+| unit: 1/nL
  
-  
 ########################################################################################################################
 
 Fiber
@@ -58,22 +67,22 @@ Fiber
 Here are all the fiber parameters
 
 | key: Shape
-| description: Shape of the fiber
+| description: Shape of the fiber channel where the particles are in
 | example: "hex"
 | unit: 
     
 | key: ARHCF_hex_sidelength_um
-| description: If its an hexagonal ARHCF, the 6 side length are insert here
+| description: If its an hexagonal ARHCF, the 6 side lengths are inserted here
 | example: [315, 315, 318, 335, 300, 338]
 | unit: um
       
 | key: CalcTubeDiameterOutOfSidelength
-| description: Calculated the fiber diameter out of the given side length and fiber shape
+| description: Calculate the fiber diameter out of the given side length and fiber shape
 | example: 1
 | unit: boolean
     
 | key: TubeDiameter_nm
-| description: Diameter of the fiber
+| description: Diameter of fiber channel where the particles are in (distance between parallel walls)
 | example: 10000
 | unit: nm        
           

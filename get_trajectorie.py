@@ -217,15 +217,15 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
 
 def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
     """
-    Defines the parameter for the trackpy routine tp.filter_stubs, which cuts too short trajectories,
+    Defines the parameters for the trackpy routine tp.filter_stubs, which cuts too short trajectories,
     out of the json file.
     
     important parameters:
-    FixedParticles        = Defines weather fixed or moving particles are under current investigation
-    Fixed Particles must have long trajectories to ensure that they are really stationary
+    FixedParticles        = defines whether fixed or moving particles are under current investigation
+    Fixed particles must have long trajectories to ensure that they are really stationary.
     
-    BeforeDriftCorrection = Defines if the particles have been already drift corrected
-    Before drift correction short trajectories are ok
+    BeforeDriftCorrection = defines if the particles have been already drift corrected
+    Before drift correction short trajectories are okay.
     """
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -264,16 +264,14 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
 #    elif (FixedParticles == False) and (BeforeDriftCorrection == True):
 #        print("Too short trajectories removed!")
 #        print("Before: %d, After = %d, Removed: %d (%d %%)" 
-#              %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
-#            
+#              %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))     
     else:
         print("Too short trajectories removed!")
-        print("Before: %d, After = %d, Removed: %d (%d%%)" 
+        print("Before: %d, After: %d, Removed: %d (%d%%)" 
               %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
-
     return traj_min_length
 
 

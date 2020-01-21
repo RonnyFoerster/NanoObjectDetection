@@ -329,7 +329,7 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     
     
     xlabel = 'Diameter [nm]'
-    ylabel = 'Absolute occurance'
+    ylabel = 'Absolute occurrence' # better: "Absolute number of occurrences"?
     title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
 
     nd.visualize.PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
@@ -430,14 +430,14 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogra
     
     # the scatter plot:
     axScatter.hist2d(diam, time, bins = [diam_bins, time_bins], cmap = "jet")
-    axScatter.set_xlabel("Diamter [nm]")
+    axScatter.set_xlabel("Diameter [nm]")
     axScatter.set_ylabel("Time [frames]")
         
     axScatter.set_xlim((lim_diam_start, lim_diam_end))
     axScatter.set_ylim((lim_time_start, lim_time_end))
     
     axHistx.hist(diam, bins=diam_bins)
-    axHistx.set_ylabel("Occurancy [a.u.]")
+    axHistx.set_ylabel("Occurrence [a.u.]")
     
     time_hist = axHisty.hist(time, bins=time_bins, orientation='horizontal')
     axHisty.set_xlabel("Analyzed Particles")
@@ -473,7 +473,7 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogra
 #    #those that are below threshold size as defined in the initial parameters
 #    plt.rc('text', usetex=True)
 #    plt.title(title, **title_font)
-#    #   plt.ylabel(r'absolute occurance')
+#    #   plt.ylabel(r'absolute occurrence')
 #    plt.ylabel(ylabel, **axis_font)
 #    plt.ylabel(ylabel, **axis_font)
 #    plt.xlabel(xlabel, **axis_font)
@@ -652,7 +652,7 @@ def PlotDiameterHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm
 #    plt.rc('text', usetex=True)
     plt.rc('text', usetex=False)
     plt.title(title, **title_font)
-    #   plt.ylabel(r'absolute occurance')
+    #   plt.ylabel(r'absolute occurrence')
     plt.ylabel(ylabel, **axis_font)
     plt.xlabel(xlabel, **axis_font)
     plt.grid(True)
