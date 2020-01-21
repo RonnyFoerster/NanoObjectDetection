@@ -20,11 +20,11 @@ import numpy as np # library for array-manipulation
 import pandas as pd # library for DataFrame handling
 import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
 import seaborn as sns # allows boxplots to be put in one graph
-sns.reset_orig()
+#sns.reset_orig()
 import math # offering some maths functions
 import matplotlib
-matplotlib.rcParams['text.usetex'] = False
-matplotlib.rcParams['text.latex.unicode'] = False
+#matplotlib.rcParams['text.usetex'] = False
+#matplotlib.rcParams['text.latex.unicode'] = False
 import matplotlib.pyplot as plt # libraries for plotting
 from matplotlib import animation # allows to create animated plots and videos from them
 import json
@@ -33,6 +33,8 @@ import datetime
 from pdb import set_trace as bp #debugger
 import scipy
 import os.path
+
+import NanoObjectDetection as nd
 
 ## unused for the moment:
 #import time
@@ -71,12 +73,13 @@ def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None, settings = No
 
 
 
-def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':',
-               x_lim = None):
+def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':', x_lim = None, y_lim = None, y_ticks = None):
     """ plot 2D-data in standardized format as line plot """
     
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
-    sns.reset_orig()
+    from NanoObjectDetection.PlotProperties import axis_font, title_font, params
+#    sns.reset_orig()
+    
+    plt.style.use(params)
     
     plt.figure()
     plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
@@ -84,9 +87,23 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
 
+#    matplotlib.rcParams.update(params)
+
+    
+
     if x_lim != None:
         plt.xlim(x_lim)
+        
+    if y_lim != None:
+        plt.ylim(y_lim)
+                
+    if y_ticks != None:
+        frame1 = plt.gca() 
+        frame1.axes.yaxis.set_ticks(y_ticks)
 
+
+    nd.PlotProperties
+    plt.style.use(params)
 
 
 def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1,
@@ -108,7 +125,8 @@ def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha 
 def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None):
     """ plot image in standardized format """
     
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
+    from NanoObjectDetection.PlotProperties import axis_font, title_font, params
+
     
     plt.figure()
     plt.imshow(array_np, cmap='gray')
@@ -581,34 +599,34 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
 
     histogramm_min = settings["Plot"]['PDF_min']
     histogramm_max = settings["Plot"]['PDF_max']
-    
-    xlabel = 'Diameter [nm]'
-    ylabel = 'Probability'
-    title = 'Amount of particles analyzed =%r' % len(sizes_df_lin)
-
-    
+        
     diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
     diam_grid = np.linspace(histogramm_min,histogramm_max,10000)
     diam_grid_inv = 1/diam_grid
     
     
-    inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin)
+    inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
     
     prob_inv_diam = np.zeros_like(diam_grid_inv)
     for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
+        print("mean_diam_part = ", 1 / loop_mean)
+
         my_pdf = scipy.stats.norm(loop_mean,loop_std).pdf(diam_grid_inv)
 
         my_pdf = my_pdf / np.sum(my_pdf)
         
-        prob_inv_diam = prob_inv_diam + my_pdf
-     
+        prob_inv_diam = prob_inv_diam + my_pdf    
+
       
     title = settings["Plot"]["Title"]
     xlabel = "Diameter [nm]"
-    ylabel = "Probability [a.u.]"
+    ylabel = "Probability"
     x_lim = [histogramm_min, histogramm_max]
-    sns.reset_orig()
-    Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim)
+    y_lim = [0, 1.1*np.max(prob_inv_diam)]
+#    sns.reset_orig()
+    
+    
+    Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0])
 
     
     

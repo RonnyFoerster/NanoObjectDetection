@@ -105,8 +105,8 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
     DoSimulation = settings["Simulation"]["SimulateData"]
     if DoSimulation == 1:
         print("No data. A simulation is done instead")        
-        output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile)       
-        
+        output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile)
+
     else:
 #        UseLog = settings["Find"]["Analyze in log"]
 #        
@@ -127,6 +127,11 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
         output_empty = True
         
         while output_empty == True:
+            print("Minmass = ", minmass)
+            print("Separation = ", separation)
+            print("Diameter = ", diameter)
+            print("Max iterations = ", max_iterations)
+            plt.imshow(frames_np[0,:,:])
             output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations)
                    
             if output.empty:
@@ -242,7 +247,7 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         # moving particle after drift correction
         min_tracking_frames = settings["Link"]["Min_tracking_frames"]
         
-
+    print("Minimum trajectorie length: ", min_tracking_frames)
     traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
     
     # RF 190408 remove Frames because the are doupled and panda does not like it
