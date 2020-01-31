@@ -56,7 +56,6 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     # check if only the longest trajectory shall be evaluated
     EvalOnlyLongestTraj = settings["MSD"]["EvalOnlyLongestTraj"]
     
-
     if EvalOnlyLongestTraj == 1:
         longest_particle, longest_traj = nd.handle_data.GetTrajLengthAndParticleNumber(t6_final)
     
@@ -68,7 +67,6 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     
 
     Max_traj_length = int(settings["Split"]["Max_traj_length"])
-    
     Min_traj_length = int(settings["Link"]["Min_tracking_frames"])
     
     if Max_traj_length is None:
@@ -511,7 +509,7 @@ def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None
                     diamter_corr[counter] = EstimateHindranceFactor(diameter_rolling, fibre_diameter_nm, DoPrint = False)
                 
         else:
-            sys.exit("Here is something wrong. Since the diameter is calculated to be large than the core diameter. \
+            sys.exit("Here is something wrong: The diameter is calculated to be larger than the core diameter. \
                      Possible Reasons: \
                      \n 1 - drift correctes motion instead of drift because to few particles inside. \
                      \n 2 - stationary particle remains, which seems very big because it diffuses to little. ")
@@ -796,7 +794,6 @@ def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel =
 
 
 
-
 def rolling_with_step(s, window, step, func): 
     # Defining a function that allows to calculate another function over a window of a series,
     # while the window moves with steps 
@@ -810,6 +807,8 @@ def rolling_with_step(s, window, step, func):
     d = func(x_array)
     return pd.Series(d, index=idx)
 
+
+
 def mean_func(d):
     # Function that calculates the mean of a series, while ignoring NaN and not yielding a warning when all are NaN
     with warnings.catch_warnings():
@@ -817,22 +816,29 @@ def mean_func(d):
         return np.nanmean(d, axis=1)
 
 
-def hindrance_fac(diam_fibre,diam_particle):
-    l = diam_particle / diam_fibre
-    # Eq 16 from "Hindrance Factors for Diffusion and Convection in Pores"  Dechadilok and Deen
-    h = 1 + 9/8*l*np.log(l) - 1.56034 * l \
+def hindrance_fac(diam_channel,diam_particle):
+    """ calculate the hindrance factor for diffusion from particle and channel dimensions
+    according to eq. 16 from "Hindrance Factors for Diffusion and Convection in Pores", 
+    Dechadilok and Deen (2006)
+    """
+    
+    l = diam_particle / diam_channel # relative particle size
+    
+    H = 1 + 9/8*l*np.log(l) - 1.56034 * l \
     + 0.528155 * np.power(l,2) \
     + 1.915210 * np.power(l,3) \
     - 2.819030 * np.power(l,4) \
     + 0.270788 * np.power(l,5) \
     + 1.101150 * np.power(l,6) \
     - 0.435933 * np.power(l,7)
-    return h
+    
+    return H
+
 
 
 def CalculateLagtimes_min(eval_tm, min_snr = 10):
-    """
-    Calculates the minimum lagtime for the MSD fit.
+    """ calculate the minimum lagtime for the MSD fit
+    
     If the framerate is to high or the localization precision to bad, small lagtimes contain only noise
     The function searches the first lagtime which has a msd which is at least 10 times beyond the noise floor
     """
@@ -855,6 +861,7 @@ def CalculateLagtimes_min(eval_tm, min_snr = 10):
             lagtimes_min = lagtimes_min + 1
     
     return lagtimes_min
+
 
 
 def InvDiameter(sizes_df_lin, settings):

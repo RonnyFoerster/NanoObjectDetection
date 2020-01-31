@@ -78,8 +78,8 @@ def EstimateConcentration(obj_matrix,totalframe,fovlen,ParamJsonFilepath):
         print("Invalid/unknown channel shape.")
         conc = "unknown"
     
-    # NB: 1000 um³ = 1 nL = 0.001 uL
-    return 1000*conc # particles/nL
+    # NB: 1000000 um³ = 1 nL = 0.001 uL
+    return 1000000*conc # particles/nL
 
 
 
