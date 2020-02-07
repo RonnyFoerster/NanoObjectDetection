@@ -20,6 +20,7 @@ from . import Simulation
 from . import Tools
 from . import wlsice
 from . import visualize
+from . import particleStats
 
 
 from . import Tutorial

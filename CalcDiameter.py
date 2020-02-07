@@ -19,15 +19,15 @@ import scipy
 
 def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None,
          amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, EvalOnlyLongestTraj = 0, Max_traj_length = None):
-    '''
-    Calculating msd of individual particles:
+    """ calculate diameters of individual particles via mean squared displacement analysis
     
-    1.) filtering out too short tracks
-    2.) constructing matrix with defined lag-times for each particle. Amount of lag-times is set.
-    3.) calculating mean and variance of lag-times for each particle
-    4.) regressing each particle individually linearly: msd per lag-time 
+    Procedure:
+    1.) filter out too short tracks
+    2.) construct matrix with defined lag-times for each particle. Amount of lag-times is set.
+    3.) calculate mean and variance of lag-times for each particle
+    4.) regress each particle individually linearly: msd per lag-time 
     5.) slope of regression used to calculate size of particle
-    6.) standard error of lag-time=1 used as error on slope
+    6.) standard error of lagtime=1 used as error on slope
     
     Parameters to be adjusted:
     # amount_summands ... If msd for a given lag-time is calculated by less than this amount of summands, the corresponding lag-time is disregarded in the fit
@@ -36,7 +36,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     # cutoff_size [nm] ... particles with size exceeding this will not be plotted
     #
     # binning = 25 # Amount of bins used in histogram
-    '''
+    """
 
     #%% read the parameters
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -46,10 +46,10 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     temp_water = settings["Exp"]["Temperature"]
     solvent = settings["Exp"]["solvent"]
     
-    if settings["Exp"]["Viscocity_auto"] == 1:
-        settings["Exp"]["Viscocity"] = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
+    if settings["Exp"]["Viscosity_auto"] == 1:
+        settings["Exp"]["Viscosity"] = nd.handle_data.GetViscosity(temperature = temp_water, solvent = solvent)
     
-    visc_water = settings["Exp"]["Viscocity"]
+    visc_water = settings["Exp"]["Viscosity"]
         
     
     min_rel_error = settings["MSD"]["Min rel Error"]
@@ -57,7 +57,6 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     # check if only the longest trajectory shall be evaluated
     EvalOnlyLongestTraj = settings["MSD"]["EvalOnlyLongestTraj"]
     
-
     if EvalOnlyLongestTraj == 1:
         longest_particle, longest_traj = nd.handle_data.GetTrajLengthAndParticleNumber(t6_final)
     
@@ -69,7 +68,6 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     
 
     Max_traj_length = int(settings["Split"]["Max_traj_length"])
-    
     Min_traj_length = int(settings["Link"]["Min_tracking_frames"])
     
     if Max_traj_length is None:
@@ -554,7 +552,7 @@ def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None
                     diamter_corr[counter] = EstimateHindranceFactor(diameter_rolling, fibre_diameter_nm, DoPrint = False)
                 
         else:
-            sys.exit("Here is something wrong. Since the diameter is calculated to be large than the core diameter. \
+            sys.exit("Here is something wrong: The diameter is calculated to be larger than the core diameter. \
                      Possible Reasons: \
                      \n 1 - drift correctes motion instead of drift because to few particles inside. \
                      \n 2 - stationary particle remains, which seems very big because it diffuses to little. ")
@@ -594,7 +592,7 @@ def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm, DoPrint = True):
             diam_direct_lin_corr = diam_direct_lin_corr_old
 
     if DoPrint == True:
-#        print("After iteration %d: Starting Diameter: %.1f nm; corr. viscocity: %.3f; corr. diameter: %.2nmf" % (my_iter, round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
+#        print("After iteration %d: Starting Diameter: %.1f nm; corr. viscosity: %.3f; corr. diameter: %.2nmf" % (my_iter, round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
         print("Starting Diameter: %.1fnm; hindrance factor: %.3f; Corrected Diameter: %.2fnm" % (round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
 
 
@@ -682,34 +680,37 @@ def ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, diff_s
 
 
 def OptimalMSDPoints(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
-    # XAVIER MICHALET AND ANDREW J. BERGLUND PHYSICAL REVIEW E 85, 2012
+    """
+    
+    XAVIER MICHALET AND ANDREW J. BERGLUND, PHYSICAL REVIEW E 85, 2012
+    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/
+    """
     red_x = ReducedLocalPrecision(settings, raw_mass, diffusivity)
+    
+    f_b = 2
     
     if type(red_x) != type('abc'): # exclude that red_x is a string ("unknown")
         if red_x >= 0:
             f_b = 2 + 1.35 * np.power(red_x,0.6)
-        else:
-            f_b = 2
-    else:
-        f_b = 2
-    L_b = 0.8 + 0.564 * amount_frames_lagt1
     
+    L_b = 0.8 + 0.564 * amount_frames_lagt1
     
     value_1 = L_b
     value_2 = (f_b * L_b) / np.power(np.power(f_b,3) + np.power(L_b,3),1/3)
        
     p_min = np.int(np.min(np.round([value_1, value_2])))
 
-    
     return p_min
     
     
     
 def ReducedLocalPrecision(settings, mass, diffusion, DoRolling = False):
+    """ calculate reduced square localization error from experimental parameters
+    
+    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD13
+    Eq. 13
     """
-    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD7
-    Eq 13
-    """
+    
 #    local_precision_um = ep * settings["Exp"]["Microns_per_pixel"]
     lagtime_s = 1/settings["Exp"]["fps"]
     exposure_time_s = settings["Exp"]["ExposureTime"]
@@ -726,11 +727,12 @@ def ReducedLocalPrecision(settings, mass, diffusion, DoRolling = False):
     # not sure here
     if gain == "unknown":
         red_x = "unknown"
+        
     else:
-            
         num_photons = mass / gain
         static_local_precision_um = rayleigh_um / np.power(num_photons ,1/2)
-    
+        
+        # Eq. 13:
         red_x = np.power(static_local_precision_um,2) / (diffusion * lagtime_s) \
         * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
         - 1/3 * (exposure_time_s / lagtime_s)
@@ -738,13 +740,13 @@ def ReducedLocalPrecision(settings, mass, diffusion, DoRolling = False):
     #    red_x = np.power(local_precision_um,2) / (diffusion * lagtime_s) \
     #    * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
     #    - 1/3 * (exposure_time_s / lagtime_s)
-    
         
         if red_x < 0:
             red_x = 0
     
     return red_x
     
+
 
 def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, DoRolling = False):
     
@@ -835,7 +837,6 @@ def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel =
 
 
 
-
 def rolling_with_step(s, window, step, func): 
     # Defining a function that allows to calculate another function over a window of a series,
     # while the window moves with steps 
@@ -849,6 +850,8 @@ def rolling_with_step(s, window, step, func):
     d = func(x_array)
     return pd.Series(d, index=idx)
 
+
+
 def mean_func(d):
     # Function that calculates the mean of a series, while ignoring NaN and not yielding a warning when all are NaN
     with warnings.catch_warnings():
@@ -856,22 +859,29 @@ def mean_func(d):
         return np.nanmean(d, axis=1)
 
 
-def hindrance_fac(diam_fibre,diam_particle):
-    l = diam_particle / diam_fibre
-    # Eq 16 from "Hindrance Factors for Diffusion and Convection in Pores"  Dechadilok and Deen
-    h = 1 + 9/8*l*np.log(l) - 1.56034 * l \
+def hindrance_fac(diam_channel,diam_particle):
+    """ calculate the hindrance factor for diffusion from particle and channel dimensions
+    according to eq. 16 from "Hindrance Factors for Diffusion and Convection in Pores", 
+    Dechadilok and Deen (2006)
+    """
+    
+    l = diam_particle / diam_channel # relative particle size
+    
+    H = 1 + 9/8*l*np.log(l) - 1.56034 * l \
     + 0.528155 * np.power(l,2) \
     + 1.915210 * np.power(l,3) \
     - 2.819030 * np.power(l,4) \
     + 0.270788 * np.power(l,5) \
     + 1.101150 * np.power(l,6) \
     - 0.435933 * np.power(l,7)
-    return h
+    
+    return H
+
 
 
 def CalculateLagtimes_min(eval_tm, min_snr = 10):
-    """
-    Calculates the minimum lagtime for the MSD fit.
+    """ calculate the minimum lagtime for the MSD fit
+    
     If the framerate is to high or the localization precision to bad, small lagtimes contain only noise
     The function searches the first lagtime which has a msd which is at least 10 times beyond the noise floor
     """
@@ -894,6 +904,7 @@ def CalculateLagtimes_min(eval_tm, min_snr = 10):
             lagtimes_min = lagtimes_min + 1
     
     return lagtimes_min
+
 
 
 def InvDiameter(sizes_df_lin, settings):

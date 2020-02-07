@@ -222,15 +222,15 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
 
 def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
     """
-    Defines the parameter for the trackpy routine tp.filter_stubs, which cuts too short trajectories,
+    Defines the parameters for the trackpy routine tp.filter_stubs, which cuts too short trajectories,
     out of the json file.
     
     important parameters:
-    FixedParticles        = Defines weather fixed or moving particles are under current investigation
-    Fixed Particles must have long trajectories to ensure that they are really stationary
+    FixedParticles        = defines whether fixed or moving particles are under current investigation
+    Fixed particles must have long trajectories to ensure that they are really stationary.
     
-    BeforeDriftCorrection = Defines if the particles have been already drift corrected
-    Before drift correction short trajectories are ok
+    BeforeDriftCorrection = defines if the particles have been already drift corrected
+    Before drift correction short trajectories are okay.
     """
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -260,19 +260,23 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
     valid_particle_number = traj_min_length['particle'].unique(); #particlue numbers that fulfill all previous requirements
     amount_valid_particles = len(valid_particle_number); #total number of valid particles
     
+    amount_removed_traj = amount_particles - amount_valid_particles
+    ratio_removed_traj = amount_removed_traj/amount_particles * 100
     
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
-        print('Number of stationary objects (might detected multiple times after beeing dark):', amount_valid_particles)
+        print('Number of stationary objects (might be detected multiple times after being dark):', amount_valid_particles)
     
-    elif (FixedParticles == False) and (BeforeDriftCorrection == True):
-        print("Too short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
-            
+#    elif (FixedParticles == False) and (BeforeDriftCorrection == True):
+#        print("Too short trajectories removed!")
+#        print("Before: %d, After = %d, Removed: %d (%d %%)" 
+#              %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))     
     else:
-        print("Too short particles removed! Before: %d, After = %d" %(amount_particles,amount_valid_particles))
+        print("Too short trajectories removed!")
+        print("Before: %d, After: %d, Removed: %d (%d%%)" 
+              %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
-
     return traj_min_length
 
 
@@ -575,17 +579,17 @@ def split_traj(t2_long, t3_gapless, ParameterJsonFile):
 
 
 def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, Max_traj_length = None):
-    """
-    Splits trajectory if they are too long
-    This might be usefull, to have sufficently long trajectorys all at the same length.
-    Otherwise they have very diffent conficence intervalls
+    """ split trajectories if they are too long
+    
+    This might be usefull, to have sufficently long trajectories all at the same length.
+    Otherwise they have very different confidence intervalls
     E.g: 2 particles: 1: 500 frames, 2: 2000 frames
     particle 2 is splitted into 4 500frames
     
     Splitting of a particle is fine, because a particle can go out of focus and return later
     and is assigned as new particle too.
     
-    Important is too look at the temporal component, thus particle 2 never exists twice
+    Important is to look at the temporal component, thus particle 2 never exists twice
     """
     keep_tail = settings["Split"]["Max_traj_length_keep_tail"]
     
@@ -614,7 +618,7 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
     num_particle_list = len(particle_list)
 
     for count, test_particle in enumerate(particle_list):
-        nd.visualize.update_progress("Split to long trajectories", (count+1) / num_particle_list)
+        nd.visualize.update_progress("Split too long trajectories", (count+1) / num_particle_list)
 
 
 #        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
@@ -646,6 +650,7 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
     return t4_cutted
 
 
+
 def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_intensity_step = None,
                              min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = True, NumParticles2Plot = 3,
                              PlotAnimationFiltering = False, rawframes_ROI = -1):
@@ -669,12 +674,14 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     split_particle_at = split_particle_at[['frame','particle']]
     #split_particle_at = split_particle_at[['frame_as_column','particle']]
     
-    # how many trajectories need splitting
+    # how many splits of trajectories are needed
     num_split_particles = split_particle_at.shape[0]  
+    # how many trajectories are concerned
+    num_split_traj = split_particle_at['particle'].nunique()
+    ratio_split_traj = num_split_traj / t3_gapless['particle'].nunique() * 100
     
-    # currently last bead. so the number of the new bead is defined and not unique
+    # currently last bead (so the number of the new bead is defined and unique)
     num_last_particle = np.max(t3_gapless['particle']) 
-    #num_last_particle = np.max(t1_before['particle']) 
     
     # loop variable in case of plotting
     if PlotTrajWhichNeedACut == True:
@@ -683,7 +690,7 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     # now split the beads at the gap into two beads
 
     for x in range(0,num_split_particles):
-        nd.visualize.update_progress("Close gaps in trajectories", (x+1) / num_split_particles)
+        nd.visualize.update_progress("Split trajectories at high intensity jumps", (x+1) / num_split_particles)
         #print('split trajectorie',x ,'out of ',num_split_particles)
         
         # NOW DO A PRECISE CHECK OF THE MASS
@@ -717,22 +724,26 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
                 nd.visualize.CutTrajectorieAtStep(t3_gapless, particle_to_split, max_rel_median_intensity_step)
 
             
-
+    num_part_after_split = t4_cutted['particle'].nunique()
+    
     # get rid of too short tracks - again because some have been splitted    
     #t1=t1.rename(columns={'frame_as_column':'frame'})
     t4_cutted = tp.filter_stubs(t4_cutted, min_tracking_frames_before_drift) # filtering out of artifacts that are seen for a short time only
     # the second argument is the maximum amount of frames that a particle is supposed not to be seen in order
     # not to be filtered out.
     #t1=t1.rename(columns={'frame':'frame_as_column'})
-    print('Trajectories with risk of wrong assignments :',t3_gapless['particle'].nunique())
-    print('Trajectories with reduced risk of wrong assignments :', t2_long['particle'].nunique())
-    # Compare the number of particles in the unfiltered and filtered data.
+    print('Trajectories with risk of wrong assignments (i.e. before splitting):',t3_gapless['particle'].nunique())
+    print('Trajectories with reduced risk of wrong assignments (i.e. after splitting):', t4_cutted['particle'].nunique())
+    # Compare the number of particles in the unfiltered and filtered data. (Mona: what does "filter" mean here??)
+    
+    print('Number of performed trajectory splits:', num_split_particles)
+    print('Number of concerned trajectories: %d (%d%%)' %(num_split_traj, ratio_split_traj))
+    print('Number of trajectories that became too short and were filtered out:', num_part_after_split-t4_cutted['particle'].nunique())
     
     #'''
     #wrong_particles=beads_property[beads_property['max_step'] > max_rel_median_intensity_step].index.get_value
 
       
-    
     if PlotAnimationFiltering == True:
         if rawframes_ROI == -1:
             sys.exit("Insert the rawdata (rawframes_ROI)")
