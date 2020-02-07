@@ -564,8 +564,16 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
         max_hist = values_hist.max()
         # here comes the fit
     
-        
-        diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
+        if 1 == 1:
+            print("method 1")
+#        diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
+            diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
+        else:
+            print("NOT SURE IF THIS IS RIGHT")
+            diam_mean, diam_mean_std =  nd.CalcDiameter.FitMeanDiameter(sizes_df_lin, settings)
+            diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
+            diam_inv_mean = 1/diam_mean
+            
         diam_grid = np.linspace(histogramm_min,histogramm_max,1000)
         diam_grid_inv = 1/diam_grid
         
@@ -1076,12 +1084,408 @@ def AnimateProcessedRawData(ParameterJsonFile, rawframes_rot, t4_cutted, t6_fina
     
 
 
+ 
     
+def AnimateDiameterAndRawData(rawframes_rot, sizes_df_lin, t6_final, settings, DoScatter=True, DoText=False): 
     
+    id_particle = sizes_df_lin.true_particle.unique()
+        
+#    fig, (ax_raw, ax_eval, ax_hist) = plt.subplots(3, sharex=True, sharey=True, figsize = [18,8])
+    fig, (ax_raw, ax_eval, ax_hist) = plt.subplots(3, figsize = [18, 10], constrained_layout=True)
     
+    raw_image = ax_raw.imshow(rawframes_rot[0,:,:], cmap = 'gray', animated = True)
+#    diameter_image  = ax_eval.plot()
+  
+    ax_raw.set_title('raw-data')
+    ax_raw.set_ylabel('y-Position [Pixel]')    
+    ax_raw.set_xlabel('x-Position [Pixel]')
     
 
-def AnimateDiameterAndRawData(rawframes_rot, sizes_df_lin_rolling):
+    
+    diam_max = np.round(np.max(sizes_df_lin.diameter) + 5,-1)
+    diam_min = np.round(np.min(sizes_df_lin.diameter) - 5,-1)
+    
+    
+    fps = settings["Exp"]["fps"]
+   
+    
+    def animate(i):
+        print("animate frame: ", i)
+#        background.clear()
+        raw_image.set_data(rawframes_rot[i,:,:])
+        
+        time_ms = i * (1/fps) * 1000
+        time_ms = np.round(time_ms,1)
+        
+        ax_raw.set_title('frame: ' + str(i) + '; time: ' + str(time_ms) + ' ms')
+    
+        
+        t6_frame = t6_final[t6_final.frame == i]
+        t6_frame = t6_frame[t6_frame.particle.isin(id_particle)]
+        
+        t6_frame = t6_frame.set_index(["particle"])
+        t6_frame = t6_frame.sort_index()
+        
+        ax_eval.clear()
+        ax_hist.clear()
+      
+        sizes_df_lin_frame = sizes_df_lin[sizes_df_lin.true_particle.isin(t6_frame.index)]
+        sizes_df_lin_frame = sizes_df_lin_frame.sort_index()
+            
+        
+        if DoScatter == True:           
+            ax_scatter = ax_eval.scatter(t6_frame.x, t6_frame.y, c = sizes_df_lin_frame.diameter, cmap='jet', vmin=diam_min, vmax=diam_max)
+            ax_eval.set_xlim(ax_raw.get_xlim())
+            ax_eval.set_ylim(ax_raw.get_ylim())
+            
+            ax_eval.set_ylabel('y-Position [Pixel]')    
+            ax_eval.set_xlabel('x-Position [Pixel]')
+            
+            if i == 2:
+                fig.colorbar(ax_scatter, ax = ax_eval)
+
+        # histogram
+        num_bins = 10
+        show_diameters = sizes_df_lin_frame.diameter
+        
+        histogramm_min = diam_min
+        histogramm_max = diam_max
+        
+        
+        diam_grid = np.linspace(histogramm_min,histogramm_max,100)
+        diam_grid_inv = 1/diam_grid
+        
+        inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin_frame, settings)
+        
+        prob_inv_diam = np.zeros_like(diam_grid_inv)
+        for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
+#            print("mean_diam_part = ", 1 / loop_mean)
+    
+            my_pdf = scipy.stats.norm(loop_mean,loop_std).pdf(diam_grid_inv)
+    
+            my_pdf = my_pdf / np.sum(my_pdf)
+            
+            prob_inv_diam = prob_inv_diam + my_pdf    
+        
+        ax_hist.plot(diam_grid, prob_inv_diam)
+        
+        ax_hist.set_xlim([histogramm_min, histogramm_max])
+        ax_hist.set_ylim([0, 1.1*np.max(prob_inv_diam)])
+ 
+        ax_hist.set_xlabel('Diameter [nm]')    
+        ax_hist.set_ylabel('Occurance')
+        ax_hist.set_yticks([])
+         
+#        title = settings["Plot"]["Title"]
+#        xlabel = "Diameter [nm]"
+#        ylabel = "Probability"
+#        x_lim = [histogramm_min, histogramm_max]
+#        y_lim = [0, 1.1*np.max(prob_inv_diam)]
+    #    sns.reset_orig()
+        
+        
+
+            
+            
+#            if DoText == True:
+#                str_diam = float(np.round(diameter,1))
+#                str_diam_error = float(np.round(diameter_error,1))
+#                loop_text = str(str_diam) + ' +- ' + str(str_diam_error)
+#            
+#                ax_eval.text(x_pos, y_pos, loop_text, fontsize=10)
+##                ax_eval.text(x_pos, y_pos, diameter, fontsize=15)
+
+        return raw_image
+    
+    
+#    anim = animation.FuncAnimation(fig, animate, init_func=init, frames = 100, interval=100, blit=True, repeat=False)
+    
+    anim = animation.FuncAnimation(fig, animate, frames = 1000, interval = 10, repeat = False)
+    
+#    anim.save('the_movie_1.html', writer = 'html', fps=100)
+    
+    return anim
+
+
+
+
+
+
+def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings): 
+    from matplotlib.gridspec import GridSpec
+    my_gamma = 2
+
+    num_points_pdf = 100
+
+    microns_per_pixel = settings["Exp"]["Microns_per_pixel"]
+
+    global my_font_size
+    my_font_size = 16
+    my_font_size_title = 22
+
+    global ColorbarDone
+    ColorbarDone = False
+
+    global prob_inv_diam_sum
+    prob_inv_diam_sum = np.zeros(num_points_pdf)
+    
+    id_particle = sizes_df_lin.true_particle.unique()
+    
+    traj = traj[traj.particle.isin(id_particle)]
+        
+#    fig, (ax_raw, ax_eval, ax_hist) = plt.subplots(3, sharex=True, sharey=True, figsize = [18,8])
+    fig = plt.figure(figsize = [22, 14], constrained_layout=True)
+    gs = GridSpec(4, 2, figure=fig)
+
+#    fig, ax_tot = plt.subplots(4,2, figsize = [18, 10], constrained_layout=True)
+    ax_raw = fig.add_subplot(gs[0, :])
+#    ax_traj = fig.add_subplot(gs[1, :], sharex = ax_raw, sharey = ax_raw)
+#    ax_eval = fig.add_subplot(gs[2, :], sharex = ax_raw, sharey = ax_raw)
+
+    ax_traj = fig.add_subplot(gs[1, :], aspect = "equal")
+    ax_eval = fig.add_subplot(gs[2, :], aspect = "equal")
+    
+    ax_hist = fig.add_subplot(gs[3, 0])
+    ax_hist_cum = fig.add_subplot(gs[3, 1])
+    
+   
+    import matplotlib.colors as colors
+#    raw_image = ax_raw.imshow(rawframes_rot[0,:,:]**my_gamma, cmap = 'gray', animated = True)
+    raw_image = ax_raw.imshow(rawframes_rot[0,:,:], cmap = 'gray', norm=colors.PowerNorm(gamma=1/my_gamma), animated = True, vmin = np.min(rawframes_rot), vmax = np.max(rawframes_rot))
+#    raw_image = ax_raw.imshow(rawframes_rot[0,:,:], cmap = 'PuBu_r', animated = True)
+#    diameter_image  = ax_eval.plot()
+  
+    ax_raw.set_title('raw-data', fontsize = my_font_size_title)
+    ax_raw.set_ylabel('y-Position [um]', fontsize = my_font_size)    
+    ax_raw.set_xlabel('x-Position [um]', fontsize = my_font_size)
+    
+    Show_all = False
+    if Show_all:
+        [x_min, x_max, y_min, y_max] = [0, rawframes_rot.shape[2],0, rawframes_rot.shape[1]]        
+        
+    else:
+        [x_min, x_max, y_min, y_max] = [0, rawframes_rot.shape[2], 30, 120]
+
+    ax_raw.set_xlim([x_min, x_max])
+    ax_raw.set_ylim([y_min, y_max])
+    
+    x_max_um = x_max * microns_per_pixel
+    y_min_um = y_min * microns_per_pixel
+    y_max_um = y_max * microns_per_pixel
+
+    part_id_min = np.min(traj.particle)
+    part_id_max = np.max(traj.particle)
+    
+    diam_max = np.round(np.max(sizes_df_lin.diameter) + 5,-1)
+    diam_min = np.round(np.min(sizes_df_lin.diameter) - 5,-1)
+        
+    fps = settings["Exp"]["fps"]
+
+    
+    #plot trajectory
+    
+    
+    def init():
+        prob_inv_diam_sum[:] = 0
+    
+    def animate(i):
+        global prob_inv_diam_sum
+        global ColorbarDone
+                
+        print("animate frame: ", i)
+#        background.clear()
+        raw_image.set_data(rawframes_rot[i,:,:])
+        
+        time_ms = i * (1/fps) * 1000
+        time_ms = np.round(time_ms,1)
+        
+#        ax_raw.set_title('frame: ' + str(i) + '; time: ' + str(time_ms) + ' ms')
+        fig.suptitle('frame: ' + str(i) + '; time: ' + str(time_ms) + ' ms', fontsize = my_font_size_title)
+    
+        ## HERE COMES THE TRAJECTORY
+        #particles in frame
+        id_particle_frame = list(traj[traj.frame == i].particle)
+        
+        t_hist = traj[traj.frame <= i]
+        t_hist = t_hist[t_hist.particle.isin(id_particle_frame)]
+#        ax_scatter = ax_traj.scatter(t_hist.x, t_hist.y, s = 3, c = t_hist.particle, cmap='prism', vmin=part_id_min, vmax=diam_max)
+        ax_traj.clear()
+        ax_scatter_traj = ax_traj.scatter(t_hist.x, t_hist.y, s = 3, c = t_hist.particle, cmap = 'gist_ncar', alpha = 0.5, vmin = part_id_min,  vmax = part_id_max)
+        
+        ax_traj.set_xlim(ax_raw.get_xlim())
+        ax_traj.set_ylim(ax_raw.get_ylim())
+        ax_traj.set_title('drift corrected trajectory', fontsize = my_font_size_title)
+        ax_traj.set_ylabel('y-Position [um]', fontsize = my_font_size)    
+        ax_traj.set_xlabel('x-Position [um]', fontsize = my_font_size)
+
+        ## HERE COMES THE DIAMETER
+        t6_frame = traj[traj.frame == i]
+        t6_frame = t6_frame[t6_frame.particle.isin(id_particle)]
+        
+        t6_frame = t6_frame.set_index(["particle"])
+        t6_frame = t6_frame.sort_index()
+        
+        ax_eval.clear()
+        ax_hist.clear()
+        ax_hist_cum.clear()
+      
+        sizes_df_lin_frame = sizes_df_lin[sizes_df_lin.true_particle.isin(t6_frame.index)]
+        sizes_df_lin_frame = sizes_df_lin_frame.sort_index()
+                    
+         
+        ax_scatter_diam = ax_eval.scatter(t6_frame.x, t6_frame.y, c = sizes_df_lin_frame.diameter, cmap='jet', vmin=diam_min, vmax=diam_max)
+ 
+        ax_raw.tick_params(direction = 'out')
+        ax_traj.tick_params(direction = 'out')
+        ax_eval.tick_params(direction = 'out')
+        
+        ax_eval.set_title('Diameter of each particle', fontsize = my_font_size_title)
+        ax_eval.set_ylabel('y-Position [um]', fontsize = my_font_size)    
+        ax_eval.set_xlabel('x-Position [um]', fontsize = my_font_size)
+        
+       
+        ax_eval.set_xlim(ax_raw.get_xlim())
+        ax_eval.set_ylim(ax_raw.get_ylim())
+
+
+        if ColorbarDone == False:
+            print("Insert Colorbar")
+            cb_raw = fig.colorbar(raw_image , ax = ax_raw)
+            cb_raw.set_label("Brightness", fontsize = my_font_size)
+            
+            cb_traj = fig.colorbar(ax_scatter_traj , ax = ax_traj)
+            cb_traj.set_label("Particle ID", fontsize = my_font_size)
+            
+            cb_eval = fig.colorbar(ax_scatter_diam , ax = ax_eval)
+            cb_eval.set_label("Diameter [nm]", fontsize = my_font_size)
+            
+            ColorbarDone = True
+  
+        # make the labels in um
+        num_x_ticks = 5
+        x_ticks_px = np.linspace(0,x_max,num_x_ticks)
+        
+        x_ticks_um = np.array(np.round(x_ticks_px * microns_per_pixel,-1), dtype = 'int')
+        
+        x_ticks_px = x_ticks_um / microns_per_pixel
+        
+        ax_raw.set_xticks(x_ticks_px)
+        ax_raw.set_xticklabels(x_ticks_um)
+        
+        ax_raw.set_yticks([y_min,y_max])
+        ax_raw.set_yticklabels([int(y_min_um),int(y_max_um)])
+
+        ax_traj.set_xticks(x_ticks_px)
+        ax_traj.set_xticklabels(x_ticks_um)
+        
+        ax_traj.set_yticks([y_min,y_max])
+        ax_traj.set_yticklabels([int(y_min_um),int(y_max_um)])
+        
+        ax_eval.set_xticks(x_ticks_px)
+        ax_eval.set_xticklabels(x_ticks_um)
+        
+        ax_eval.set_yticks([y_min,y_max])
+        ax_eval.set_yticklabels([int(y_min_um),int(y_max_um)])
+        
+
+        ## DIAMETER PDF FROM PREVIOUS POINTS
+        sizes_df_lin_before_frame = sizes_df_lin_frame[i > sizes_df_lin_frame["first frame"] + settings["Link"]["Min_tracking_frames"]]
+        
+        histogramm_min = diam_min
+        histogramm_max = diam_max
+        
+        
+        diam_grid = np.linspace(histogramm_min,histogramm_max,100)
+        diam_grid_inv = 1/diam_grid
+        
+        inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin_before_frame, settings)
+        
+        prob_inv_diam = np.zeros_like(diam_grid_inv)
+        
+#        if ('prob_inv_diam_sum' in locals()) == False:
+#            global prob_inv_diam_sum
+#            print("create cum sum varialbe")
+#            prob_inv_diam_sum = np.zeros_like(diam_grid_inv)
+       
+        
+        for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
+#            print("mean_diam_part = ", 1 / loop_mean)
+    
+            my_pdf = scipy.stats.norm(loop_mean,loop_std).pdf(diam_grid_inv)
+    
+            my_pdf = my_pdf / np.sum(my_pdf)
+            
+            prob_inv_diam = prob_inv_diam + my_pdf    
+            
+            # accumulate        
+        prob_inv_diam_sum = prob_inv_diam_sum + prob_inv_diam
+        
+        ax_hist.plot(diam_grid, prob_inv_diam)
+        
+        ax_hist.set_xlim([histogramm_min, histogramm_max])
+        ax_hist.set_ylim([0, 1.1*np.max(prob_inv_diam)+0.01])
+ 
+        ax_hist.set_xlabel('Diameter [nm]', fontsize = my_font_size)    
+        ax_hist.set_ylabel('Occurance', fontsize = my_font_size)
+        ax_hist.set_title("Live Histogram", fontsize = my_font_size_title)
+        ax_hist.set_yticks([])
+ 
+
+        ## ACCUMULATED DIAMETER PDF 
+        ax_hist_cum.plot(diam_grid, prob_inv_diam_sum)
+        
+        ax_hist_cum.set_xlim([histogramm_min, histogramm_max])
+        ax_hist_cum.set_ylim([0, 1.1*np.max(prob_inv_diam_sum)+0.01])
+ 
+        ax_hist_cum.set_xlabel('Diameter [nm]', fontsize = my_font_size)    
+        ax_hist_cum.set_ylabel('Occurance', fontsize = my_font_size)
+        ax_hist_cum.set_title("Cummulated Histogram", fontsize = my_font_size_title)
+        ax_hist_cum.set_yticks([])
+
+        ax_hist_cum.tick_params(direction = 'out')
+        ax_hist.tick_params(direction = 'out')
+        
+        if 1 == 0:
+            # print limits
+            print("ax_raw:", ax_raw.get_xlim())
+            print("ax_traj:", ax_traj.get_xlim())
+            print("ax_eval:", ax_eval.get_xlim())
+
+
+
+        return raw_image
+    
+    
+#    anim = animation.FuncAnimation(fig, animate, init_func=init, frames = 100, interval=100, blit=True, repeat=False)
+    
+#    anim = animation.FuncAnimation(fig, animate, frames = 1000, interval = 10, repeat = False)
+    
+    frames_tot = 500
+    show_frames = np.linspace(0,999,frames_tot , dtype = 'int')
+    
+##    anim = animation.FuncAnimation(fig, animate, frames = [1,10,50,100,200,300,400,500,600,700,800,900], init_func=init, interval = 500, repeat = True)
+    
+    Do_Save = True
+    
+    if Do_Save == True:
+        anim = animation.FuncAnimation(fig, animate, frames = show_frames, init_func=init, interval = 5, repeat = False)
+        anim.save('200204_2.html', writer = 'html', fps=1)
+    
+    else:
+        anim = animation.FuncAnimation(fig, animate, frames = show_frames, init_func=init, interval = 5, repeat = True)
+    
+    return anim
+
+
+
+
+
+
+
+
+
+
+def AnimateDiameterAndRawData_temporal(rawframes_rot, sizes_df_lin_rolling):
     
     
     fig, (ax0, ax5) = plt.subplots(2, sharex=True, sharey=True)
@@ -1145,7 +1549,7 @@ def DriftTimeDevelopment():
     plt.xlabel('Time frame')
     
     
-def DriftFalseColorMapFlow():
+def DriftFalseColorMapFlow(calc_drift, number_blocks, y_range):
     
     # show false colour map from flow
     # https://matplotlib.org/gallery/images_contours_and_fields/pcolormesh_levels.html

@@ -314,23 +314,23 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
             # Do some plotting of the drift stuff
             
             
-        if PlotDriftAvgSpeed == True:
-            nd.visualize.DriftAvgSpeed()
-           
-        if PlotDriftTimeDevelopment == True:
-            nd.visualize.DriftTimeDevelopment()  
-    
-        if PlotDriftFalseColorMapFlow == True:
-            nd.visualize.DriftFalseColorMapFlow()
+            if PlotDriftAvgSpeed == True:
+                nd.visualize.DriftAvgSpeed()
+               
+            if PlotDriftTimeDevelopment == True:
+                nd.visualize.DriftTimeDevelopment()  
         
-        if PlotDriftVectors == True:
-            nd.visualize.DriftVectors()
-    
-        if PlotDriftFalseColorMapSpeed == True:
-            nd.visualize.DriftFalseColorMapSpeed()
-    
-        if PlotDriftCorrectedTraj == True:
-            nd.visualize.DriftCorrectedTraj()
+            if PlotDriftFalseColorMapFlow == True:
+                nd.visualize.DriftFalseColorMapFlow(calc_drift, number_blocks, y_range)
+            
+            if PlotDriftVectors == True:
+                nd.visualize.DriftVectors()
+        
+            if PlotDriftFalseColorMapSpeed == True:
+                nd.visualize.DriftFalseColorMapSpeed()
+        
+            if PlotDriftCorrectedTraj == True:
+                nd.visualize.DriftCorrectedTraj()
         
         print('drift correction --> finished')
         

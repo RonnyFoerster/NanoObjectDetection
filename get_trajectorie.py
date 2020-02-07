@@ -290,7 +290,7 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
     if settings["StationaryObjects"]["Analyze fixed spots"] == 1:
         #required minimum distance in pixels between moving and stationary particles
         min_distance = settings["StationaryObjects"]["Min distance to stationary object"]
-
+        print("min_distance to stationary object: ", min_distance)
         stationary_particles = t2_long_fix.groupby("particle").mean()
 
         # loop through all stationary objects (contains position (x,y) and time of existent (frame))

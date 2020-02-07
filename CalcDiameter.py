@@ -14,6 +14,7 @@ import NanoObjectDetection as nd
 from pdb import set_trace as bp #debugger
 import matplotlib.pyplot as plt # Libraries for plotting
 import sys
+import scipy
 
 
 def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None,
@@ -39,7 +40,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
 
     #%% read the parameters
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-  
+
     microns_per_pixel = settings["MSD"]["effective_Microns_per_pixel"]
     frames_per_second = settings["MSD"]["effective_fps"]
     temp_water = settings["Exp"]["Temperature"]
@@ -117,7 +118,6 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     
     any_successful_check = False
 
-
     # go through the particles
     num_loop_elements = len(particle_list_value)
     for i,particleid in enumerate(particle_list_value): # iteratig over all particles
@@ -175,14 +175,14 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                 lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
                 AvgMsdRolling(nan_tm_sq, frames_per_second, DoRolling = False, lagtimes_min = lagtimes_min)
                 
-                diff_direct_lin = \
+                diff_direct_lin, diff_std = \
                 FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
                            PlotMsdOverLagtime = MSD_fit_Show, DoRolling = False)
                     
                 if do_rolling == True:
                     lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
                     AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = my_rolling, DoRolling = True, lagtimes_min = lagtimes_min)
-                    
+                    bp()
                     diff_direct_lin_rolling = \
                     FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
                                PlotMsdOverLagtime = MSD_fit_Show, my_rolling = my_rolling, DoRolling = True)
@@ -209,7 +209,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
             red_ep = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
             
             # get the fit error if switches on (and working)
-            rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
+#            rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
             
             diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water)
             
@@ -375,6 +375,8 @@ def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = Fa
             
             # 2. Calculate mean msd for the sublocks
             mean_displ_direct[column] = nan_indi_means.mean(axis=0)
+#            mean_displ_direct[column] = nan_indi_means.median(axis=0)
+            
             
             # 3. Check how many independent measurements are present (this number is used for filtering later. 
             # Also the iteration is limited to anaylzing
@@ -440,9 +442,7 @@ def FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma
         fit_values= np.polyfit(lagt_direct, mean_displ_direct, 1, w = 1/mean_displ_sigma_direct) 
 #        fit_cov = []
     
-    
-    diff_direct_lin = fit_values[0]/2
-        
+     
     if PlotMsdOverLagtime == True:
 
         mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values[0])+ fit_values[1]
@@ -450,7 +450,7 @@ def FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma
         # fit results into non-log-space again
         nd.visualize.MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin)
     
-    return diff_direct_lin
+    return diff_direct_lin, std_diff_direct_lin
 
 
 
@@ -466,18 +466,61 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
 #    else:
 #        bp()
 
-    if (len(lagt_direct) >= 5):
-        [fit_values, fit_cov]= np.polyfit(lagt_direct, mean_displ_direct.T, 1, w = 1/mean_displ_sigma_direct, cov=True) 
-    else:
-        try:
-            fit_values= np.polyfit(lagt_direct, mean_displ_direct.T, 1, w = 1/mean_displ_sigma_direct) 
-        except:
-            bp()
+    if 1 == 0:
+        #old method
+        if (len(lagt_direct) >= 5):
+            [fit_values, fit_cov]= np.polyfit(lagt_direct, mean_displ_direct.T, 1, w = 1/mean_displ_sigma_direct, cov=True) 
+    
+        else:
+            try:
+                fit_values= np.polyfit(lagt_direct, mean_displ_direct.T, 1, w = 1/mean_displ_sigma_direct) 
+            except:
+                print("not good!")
 
-    diff_direct_lin = fit_values[0]/2
-    diff_direct_lin = np.squeeze(diff_direct_lin)
+#    diff_direct_lin = fit_values[0]/2
+#    diff_direct_lin = np.squeeze(diff_direct_lin)
+    
 
-        
+    # new method
+    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html
+    def lin_func(x,m,n):
+        y = m * x + n
+        return y
+    
+    [fit_values, fit_cov]= scipy.optimize.curve_fit(lin_func, lagt_direct, mean_displ_direct, sigma = mean_displ_sigma_direct)
+    
+    diff_direct_lin = np.squeeze(fit_values[0]/2)
+    var_diff_direct_lin = np.squeeze(fit_cov[0,0]/4)
+    std_diff_direct_lin = np.sqrt(var_diff_direct_lin)
+    
+#    def lin_func_flow(x,m,n,V):
+#        y = m * x + n + V * (x**2)
+#        return y
+# 
+#    [fit_values_flow, fit_cov_flow]= scipy.optimize.curve_fit(lin_func_flow, lagt_direct, mean_displ_direct, sigma = mean_displ_sigma_direct)
+    
+
+#    [fit_values, fit_cov]= scipy.optimize.curve_fit(lin_func, lagt_direct, mean_displ_direct, sigma = mean_displ_sigma_direct)
+      
+#    fit_values = fit_values_flow
+#    fit_cov = fit_cov_flow
+    
+#    print("flow= ", np.abs(fit_values_flow[2]))
+#    
+#    if (fit_values_flow[0] < 0) | (np.abs(fit_values_flow[2]) > 20):
+#        diff_direct_lin = 1000
+#        std_diff_direct_lin = 0
+#    
+##    [fit_values, fit_cov]= np.polyfit(lagt_direct, mean_displ_direct, 1, w = 1/mean_displ_sigma_direct, cov=True) 
+#    else:
+#        [fit_values, fit_cov]= scipy.optimize.curve_fit(lin_func, lagt_direct, mean_displ_direct, sigma = mean_displ_sigma_direct)
+#        
+#        diff_direct_lin = np.squeeze(fit_values[0]/2)
+#        var_diff_direct_lin = np.squeeze(fit_cov[0,0]/4)
+#        std_diff_direct_lin = np.sqrt(var_diff_direct_lin)
+
+   
+       
     if PlotMsdOverLagtime == True:
         
         if DoRolling == True:
@@ -492,7 +535,7 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
     
     
     
-    return diff_direct_lin
+    return diff_direct_lin, std_diff_direct_lin
 
 
 
@@ -858,14 +901,14 @@ def InvDiameter(sizes_df_lin, settings):
     inv_diam = 1/sizes_df_lin["diameter"]
     
     t_max = settings["MSD"]["lagtimes_max"]
-    print("t_max = ", t_max)
+#    print("t_max = ", t_max)
     
     f = sizes_df_lin["traj length"]
-    print("f = ", f)
+#    print("f = ", f)
     
 #    rel_error = sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]
     rel_error = np.sqrt((2*t_max)/(3*(f-t_max)))
-    print("rel_error = ", rel_error)
+#    print("rel_error = ", rel_error)
     inv_diam_std = inv_diam * rel_error
     
     return inv_diam,inv_diam_std
@@ -881,27 +924,26 @@ def StatisticOneParticle(sizes_df_lin):
     return diam_inv_mean, diam_inv_std
     
     
+
+def FitMeanDiameter(sizes_df_lin, settings):    
+    inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
     
+    diff = inv_diam
+    diff_std = inv_diam_std
+    diff_weight = 1/(diff_std**2)
     
+    mean_diff = np.average(diff, weights = diff_weight)
     
-    #    
-#def MSD_Var_f(diff, lagt_direct, ep, traj_length):
-#    """
-#    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3055791/
-#    Appendix D 15
-#    """
-#    N = traj_length
-#    K = N - n
-#    x = (ep**2) / (diff * lagt_direct)
-#    if n <= K:
-#        f = n / (6*(K**2)) * (4*(n**2)*K  + 2*K - n**3 + n) \
-#            + 1/K * (2*n*x + (1 + 1/2*(1-n/K)) * (x**2))
-#    else:
-#        f = 1 / (6*K) * (6*(n**2)*K - 4*n*(K**2) + 4*n + K**3 - K) \
-#            + 1/K * (2*n*x + (x**2))
-#            
-#    
-#    return
+#    https://en.wikipedia.org/wiki/Weighted_arithmetic_mean    
+    mean_diff_std = np.sqrt(1/np.sum(diff_weight))
+
+    snr = mean_diff / mean_diff_std
+    
+    diam = 1/mean_diff
+    
+    diam_std = diam / snr
+    
+    return diam, diam_std
     
     
     
