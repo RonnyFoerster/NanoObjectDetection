@@ -10,6 +10,7 @@ import NanoObjectDetection as nd
 import numpy as np
 import matplotlib.pyplot as plt
 from pdb import set_trace as bp #debugger
+from scipy import ndimage
 
 # In[]
 def Main(rawframes_np, ParameterJsonFile):
@@ -44,7 +45,7 @@ def Main(rawframes_np, ParameterJsonFile):
             
         if settings["PreProcessing"]["RollingPercentilFilter"] == 1:
             print('Rolling percentil filter: applied')
-            rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings, settings)
+            rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings)
         else:
             print('Rolling percentil filter: not applied')
         
@@ -54,6 +55,12 @@ def Main(rawframes_np, ParameterJsonFile):
             rawframes_np[rawframes_np < 0] = 0
         else:
             print('Negative values: kept')
+            
+        if settings["PreProcessing"]["EnhanceSNR"] == 1:
+            print('Convolve rawframe by PSF to enhance SNR')
+            rawframes_np = nd.PreProcessing.ConvolveWithPSF(rawframes_np, settings)
+        else:
+            print('Image SNR not enhanced by a gaussian average')
             
          
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
@@ -155,5 +162,23 @@ def RollingPercentilFilter(rawframes_np, settings):
         rawframes_np[i:i+rolling_step] = rawframes_np[i:i+rolling_step] - my_percentil_value
 
     return rawframes_np
+
+
+def ConvolveWithPSF(rawframes_np, settings):  
+    
+    if settings["PreProcessing"]["KernelSize"] == 'auto':
+        diameter_partice = settings["Find"]['Estimated particle size'][0]
+        gauss_kernel_rad = 0.68 * diameter_partice / 2
+    else:
+        gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
+        
+    print("Gauss Kernel in px:", gauss_kernel_rad)
+    
+    rawframes_filtered = np.real(np.fft.ifftn(ndimage.fourier_gaussian(np.fft.fftn(rawframes_np, axes = (1,2)), sigma=[0,gauss_kernel_rad  ,gauss_kernel_rad]), axes = (1,2)))
+    
+
+    return rawframes_filtered
+
+
 
 

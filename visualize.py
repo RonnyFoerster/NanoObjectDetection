@@ -1644,6 +1644,8 @@ def PlotGlobalDrift(d):
     
 def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, collect_data = None, alpha_values = 0.5, alpha_fit = 0.3):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
+
+        
     plt.plot(lagt_direct, mean_displ_direct,'k.', alpha = alpha_values) # plotting msd-lag-time-tracks for all particles
     plt.plot(lagt_direct, mean_displ_fit_direct_lin, 'r-', alpha = alpha_fit) # plotting the lin fits
     #ax.annotate(particleid, xy=(lagt_direct.max(), mean_displ_fit_direct_lin.max()))

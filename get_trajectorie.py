@@ -132,7 +132,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             print("Diameter = ", diameter)
             print("Max iterations = ", max_iterations)
             plt.imshow(frames_np[0,:,:])
-            output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations)
+            output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, processes = 'auto')
                    
             if output.empty:
                 print("Image is empty - reduce Minimal bead brightness")
@@ -237,7 +237,11 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
 
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
         # stationry particles
-        min_tracking_frames = settings["Link"]["Dwell time stationary objects"]
+#        min_tracking_frames = settings["Link"]["Dwell time stationary objects"]
+        # in the old method, fixed particles might not long enough, so they join the drift correction.
+        # This is not ideal.
+        print("New method here.")
+        min_tracking_frames = settings["Link"]["Min tracking frames before drift"]
         
     elif (FixedParticles == False) and (BeforeDriftCorrection == True):
         # moving particle before drift correction

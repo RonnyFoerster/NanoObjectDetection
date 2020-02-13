@@ -123,7 +123,7 @@ def FindSpot(rawframes_ROI, ParameterJsonFile):
     
     while UserSatisfied == False:
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        obj_first = nd.get_trajectorie.FindSpots(rawframes_ROI[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.3)
+        obj_first = nd.get_trajectorie.FindSpots(rawframes_ROI[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.8)
             
         if FirstRun == True:
             FirstRun = False

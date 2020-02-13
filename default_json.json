@@ -7,8 +7,8 @@
           "Microns_per_pixel": 0.477,
           "gain": "unknown",
           "Temperature": 295.0,
-          "Viscocity": 9.5e-16,
-          "Viscocity_auto": 0,
+          "Viscosity": 9.5e-16,
+          "Viscosity_auto": 0,
           "solvent": "water",
           "const_Boltz": 1.38e-23
      },
@@ -69,7 +69,9 @@
           "RollingPercentilFilter_percentile_filter": 80,
           "ClipNegativeValue": 0,
           "Do_or_apply_data_rotation": 0,
-          "rot_angle": 0.3
+          "rot_angle": 0.3,
+          "EnhanceSNR": 0,
+          "KernelSize": "auto"
      },
      "Help": {
           "ROI": 0,
@@ -114,7 +116,7 @@
           "Amount summands": 30,
           "Amount lagtimes auto": 0,
           "lagtimes_min": 1,
-          "lagtimes_max": 5,
+          "lagtimes_max": 4,
           "effective_fps": 0,
           "effective_Microns_per_pixel": 0,
           "EstimateHindranceFactor": 0,
