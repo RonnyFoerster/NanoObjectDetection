@@ -9,6 +9,11 @@ Created on Fri Jun 21 13:39:56 2019
 from __future__ import division, unicode_literals, print_function # For compatibility with Python 2 and 3
 from importlib import reload # only used for debugging --> reload(package_name)
 
+# for easy debugging
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
 #import sys
 #sys.path.insert(0,r'C:\Users\foersterronny\AppData\Local\Continuum\anaconda3\lib\site-packages')
 

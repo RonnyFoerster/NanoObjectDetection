@@ -14,6 +14,7 @@ from . import Drift
 from . import get_trajectorie
 from . import handle_data
 from . import mpl_style
+from . import ParameterEstimation
 from . import PlotProperties
 from . import PreProcessing
 from . import Simulation

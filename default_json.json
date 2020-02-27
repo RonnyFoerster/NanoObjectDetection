@@ -69,7 +69,7 @@
           "RollingPercentilFilter_percentile_filter": 80,
           "ClipNegativeValue": 0,
           "Do_or_apply_data_rotation": 0,
-          "rot_angle": 0.3,
+          "rot_angle": 0,
           "EnhanceSNR": 0,
           "KernelSize": "auto"
      },

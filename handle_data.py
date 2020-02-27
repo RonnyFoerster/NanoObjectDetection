@@ -442,6 +442,9 @@ def UseROI(image, ParameterJsonFile, x_min = None, x_max = None, y_min = None, y
             SaveROIToTiffStack(image_ROI, data_folder_name)
 
         
+        print("Size rawdata (frames, height, length):", image.shape)
+        print("Size ROI (frames, height, length):", image_ROI.shape)
+        
     WriteJson(ParameterJsonFile, settings)
     
     return image_ROI

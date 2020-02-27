@@ -112,6 +112,26 @@ def AskIfUserSatisfied(QuestionForUser):
 
 
 def FindSpot(rawframes_ROI, ParameterJsonFile):
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    if (settings["Help"]["Bead brightness"] == "manual") or (settings["Help"]["Bead brightness"] == 1):
+        obj_first, settings = FindSpot_manual(rawframes_ROI, ParameterJsonFile)
+        
+    elif settings["Help"]["Bead brightness"] == "auto":
+        minmass = nd.ParameterEstimation.EstimateMinmassMain(img1, settings)
+        settings["Find"]["Minimal bead brightness"] = diameter
+        nd.handle_data.WriteJson(ParameterJsonFile, settings)
+        
+    else:
+        print("Bead size not adjusted. Use 'manuel' or 'auto' for that ")
+
+    
+    
+    
+  
+    
+def FindSpot_manual(rawframes_ROI, ParameterJsonFile):    
     """
     Main function to optimize the parameters for particle identification
     It runs the bead finding routine and ask the user what problem he has
@@ -169,13 +189,39 @@ def FindSpot(rawframes_ROI, ParameterJsonFile):
     return obj_first, settings
     
 
-
 def SpotSize(rawframes_rot, ParameterJsonFile):
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    
+    if (settings["Help"]["Bead size"] == "manual") or (settings["Help"]["Bead size"] == 1):
+        settings["Find"]["Estimated particle size"] = SpotSize_manual(rawframes_rot, settings)
+        
+    elif settings["Help"]["Bead size"] == "auto":
+        settings["Find"]["Estimated particle size"] = SpotSize_auto(rawframes_rot, settings)
+        
+    else:
+        print("Bead size not adjusted. Use 'manuel' or 'auto' for that ")
+
+
+    
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)  
+    
+
+
+def SpotSize_auto(rawframes_rot, settings):
+    
+    ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
+    diameter = nd.ParameterEstimation.EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF)
+      
+    return diameter
+
+
+def SpotSize_manual(rawframes_rot, settings):
     """
     Optimize the diameter of the Particles
     """
     
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+
     
     separation = settings["Find"]["Separation data"]
     minmass    = settings["Find"]["Minimal bead brightness"]
@@ -210,13 +256,15 @@ def SpotSize(rawframes_rot, ParameterJsonFile):
             
 
     
-    settings["Find"]["Estimated particle size"] = try_diameter
+#    settings["Find"]["Estimated particle size"] = try_diameter
     
-    nd.handle_data.WriteJson(ParameterJsonFile, settings)  
+#    nd.handle_data.WriteJson(ParameterJsonFile, settings)  
     
     print('Your diameter should be:', np.asarray(try_diameter))
     
-    return
+    print("WARNING: IF YOUR BEADSIZE CHANGED YOU MIGHT HAVE TO UPDATE YOUR MINIMAL BRIGHTNESS!")
+    
+    return try_diameter
     
 
 def FindROI(rawframes_np):

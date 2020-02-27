@@ -7,7 +7,8 @@ Created on Mon Mar  4 15:17:36 2019
 import math
 import numpy as np
 import pandas as pd
-import matplotlib
+import matplotlib.pyplot as plt
+
 # False since deprecated from version 3.0
 #matplotlib.rcParams['text.usetex'] = False
 #matplotlib.rcParams['text.latex.unicode'] = False
@@ -18,6 +19,13 @@ import NanoObjectDetection as nd
 
 from pdb import set_trace as bp #debugger
 
+from scipy.constants import speed_of_light as c
+from numpy import pi
+from scipy.constants import Boltzmann as k_b
+
+import time
+from joblib import Parallel, delayed
+import multiprocessing
 
 # In[]
 def PrepareRandomWalk(ParameterJsonFile):
@@ -253,4 +261,304 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     return sim_part_tm
 
 
+def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold"):    
+#    https://reader.elsevier.com/reader/sd/pii/0030401895007539?token=48F2795599992EB11281DD1C2A50B58FC6C5F2614C90590B9700CD737B0B9C8E94F2BB8A17F74D0E6087FF3B7EF5EF49
+    #https://github.com/scottprahl/miepython/blob/master/doc/01_basics.ipynb
+    lambda_um = lambda_nm / 1000
+    lambda_m  = lambda_nm / 1e9
+    k = 2*pi/lambda_m
+    
+    #particle radius
+    r_nm = d_nm / 2
+    r_m  = r_nm / 1e9
+    
+    I = P_W/A_sqm
+    
+    if material == "Gold":
+        au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
+        #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
+        #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Werner.txt', delimiter='\t')
+    else:
+        print("material unknown")
+        
+    # data is stacked so need to rearrange
+    N = len(au)//2
+    mylambda = au[1:N,0]
+    n_real = au[1:N,1]
+    n_imag = au[N+1:,1]
+    
+    n_part_real = np.interp(lambda_um, mylambda, n_real)
+    n_part_imag = np.interp(lambda_um, mylambda, n_imag)
+    n_part = n_part_real + 1j * n_part_imag
+    
+    n_media = 1.333
+    
+    m = n_part / n_media
+    
+    print("not sure if this is right")
+    m = np.abs(m)
+    n_part = np.abs(n_part)
+    
+    F_scat = 8*pi*n_part*np.power(k,4)*np.power(r_m,6)/(3*c) * ((m**2-1)/(m**2+1)) * I
+    
+    print(F_scat)
 
+    return F_scat
+
+
+def MassOfNP(d_nm,rho):
+    
+    r_m = (d_nm/1E9) / 2
+    V = 4/3*pi*np.power(r_m,2)
+    
+    m = V*rho
+    
+    
+    return m
+
+
+def E_Kin_Radiation_Force(F,m,t):
+    E_kin = np.power(F*t,2)/(2*m)
+    
+    print(E_kin)
+    
+    return E_kin
+
+
+
+
+
+#%%
+def ConcentrationVsNN():
+    x_size = 100
+    y_size = 30    
+    num_particles = 50
+    # experimental parameters    
+    diameter = 100
+    frames = 100
+    frames_per_second = 100
+    microns_per_pixel = 1
+    temp_water = 295
+    visc_water = 9.5e-16
+    max_displacement = 0.8
+    resolution = 1
+    
+    t = SimulateTrajectories(x_size, y_size, num_particles, diameter, frames, frames_per_second, microns_per_pixel, temp_water, visc_water, max_displacement)
+    
+    eval_t1 = CalcNearestNeighbor(t)
+    
+    eval_t1["link_possible"] = eval_t1["dr"] < max_displacement
+    eval_t1["resolved"] = eval_t1["nn"] > resolution 
+    eval_t1["link_same_particle"] = eval_t1["nn"] > eval_t1["dr"]
+    
+    
+    eval_t1["valid"] = eval_t1["link_possible"] & eval_t1["resolved"] & eval_t1["link_same_particle"]
+
+    eval_t2 = SplitTrajectory(eval_t1.copy())
+
+    
+    return t, eval_t1, eval_t2
+    
+
+
+def SimulateTrajectories(x_size, y_size, num_particles, diameter, frames, frames_per_second, microns_per_pixel, temp_water, visc_water, max_displacement):
+
+    start_pos = np.random.rand(num_particles,2)
+    start_pos[0,:] = 0.5 # particle under investigation is in the middle
+    start_pos[:,0] = start_pos[:,0] * x_size
+    start_pos[:,1] = start_pos[:,1] * y_size
+    
+    #central particle
+    tm = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, microns_per_pixel = microns_per_pixel, temp_water = temp_water, visc_water = visc_water)
+    
+    t = tm[["x","y","frame","particle"]].copy()
+    
+    # move by starting position
+    for loop_particles in range(num_particles):
+        t.loc[(t.particle == loop_particles),["x","y"]] = t.loc[(t.particle == loop_particles),["x","y"]] + start_pos[loop_particles,:]
+    
+    
+       
+    t["dr"] =  np.sqrt(np.square(t.x.diff(1)) + np.square(t.y.diff(1)))
+    
+    new_part = t.particle.diff(1) != 0
+    t.loc[new_part,"dr"] = np.nan
+
+    return t
+
+
+# get neareast neighbor
+def CalcNearestNeighbor(t, seq = False):
+    frames = len(t[t.particle == 0])
+    num_particles = len(t.groupby("particle"))
+    
+    if seq == True:
+        print("Do it seriel")
+        tic = time.time()
+        
+        for loop_frame in range(frames):
+            eval_t_frame = t[t.frame == loop_frame]
+            for loop_particles in range(num_particles):
+            #loop_particles = 0    
+                pos_part = eval_t_frame[eval_t_frame.particle == loop_particles][["x","y"]].values.tolist()[0]
+                test_part = eval_t_frame[eval_t_frame.particle != loop_particles][["x","y"]]
+                diff_part = test_part-pos_part
+                
+                dist_nn = np.min(np.sqrt(diff_part.x**2+diff_part.y**2))
+
+                t.loc[(t.particle == loop_particles) & (t.frame == loop_frame),"nn"] = dist_nn
+        #
+        toc = time.time()
+        print('\nElapsed time computing the average of couple of slices {:.2f} s'.format(toc - tic))
+
+
+
+    else:
+        print("do it parallel")
+        def CalcNearestNeighbour(eval_t_frame, num_particles):
+            print(num_particles)
+            for loop_particles in range(num_particles):
+                print(loop_particles)
+                pos_part = eval_t_frame[eval_t_frame.particle == loop_particles][["x","y"]].values.tolist()[0]
+                test_part = eval_t_frame[eval_t_frame.particle != loop_particles][["x","y"]]
+                diff_part = test_part-pos_part
+                
+                dist_nn = np.min(np.sqrt(diff_part.x**2+diff_part.y**2))
+
+                eval_t_frame.loc[eval_t_frame.particle == loop_particles,"nn"] = dist_nn
+                print(eval_t_frame)
+            return eval_t_frame
+        
+        tic = time.time()
+        
+        
+        #for loop_frame in range(frames):
+        ##loop_particles = 0
+        #    eval_t = CalcNearestNeighbour(eval_t, num_particles)
+        
+        num_cores = multiprocessing.cpu_count()
+        
+        inputs = range(frames)
+        print(inputs)
+        eval_t1 = Parallel(n_jobs=num_cores)(delayed(CalcNearestNeighbour)(t[t.frame == loop_frame].copy(), num_particles) for loop_frame in inputs)
+
+        eval_t1 = pd.concat(eval_t1)
+        eval_t1 = eval_t1[eval_t1.frame > 0]
+        eval_t1 = eval_t1.reset_index(drop = True)
+    
+        #
+        toc = time.time()
+        print('\nElapsed time computing the average of couple of slices {:.2f} s'.format(toc - tic))   
+    
+    return eval_t1
+
+
+
+
+def SplitTrajectory(eval_t2):
+    num_particles = len(eval_t2.groupby("particle"))    
+    #particle id next new particle gets
+    free_part_id = num_particles
+    
+    eval_t2["true_particle"] = eval_t2["particle"]
+
+    
+    for loop_particles in range (0,num_particles):
+        #select data for current particle
+        valid_link = eval_t2[eval_t2.particle == loop_particles]["valid"]
+        
+        #check where the linking failed because the particle move more than the allowed maximal displacement
+        linking_failed = (valid_link == False)
+        
+        #get frame where linking failed and new trajectory must start
+        frames_new_traj = list(np.where(linking_failed))[0]
+        
+        first_change = True
+        
+        for frame_split_traj in frames_new_traj:
+            if first_change == True:
+                eval_t2.loc[(eval_t2.particle == loop_particles) & (eval_t2.frame > frame_split_traj),"particle"] = free_part_id
+                first_change = False
+            else:
+                eval_t2.loc[(eval_t2.particle == free_part_id-1) & (eval_t2.frame > frame_split_traj),"particle"] = free_part_id
+                
+            free_part_id += 1
+        
+        #get frame length of trajectory
+   
+    return eval_t2
+
+
+#def Blabla():
+#    track_length = eval_t2[["particle", "frame"]].groupby("particle").count()
+#    
+#    track_length.rename(columns={'frame':'traj_length'}, inplace=True)
+#    
+#    min_traj_length = 50
+#    measured_particles = track_length[track_length["traj_length"] > min_traj_length]
+#    
+#    LUT_particles = eval_t2[["particle", "true_particle"]].drop_duplicates().set_index("particle")
+
+
+#def CheckSuccessfullLink(eval_t2, max_displacement):
+#    num_particles = len(eval_t2.groupby("particle"))    
+#    #particle id next new particle gets
+#    free_part_id = num_particles
+#
+#    
+#    for loop_particles in range (0,num_particles):
+#        #select data for current particle
+#        loop_eval_t = eval_t2[eval_t2.particle == loop_particles]
+#        
+#        #check where the linking failed because the particle move more than the allowed maximal displacement
+#        linking_failed = loop_eval_t["dr"] > max_displacement
+#        
+#        #get frame where linking failed and new trajectory must start
+#        frames_new_traj = list(np.where(linking_failed))[0]
+#        
+#        for frame_split_traj in frames_new_traj:
+#            eval_t2.loc[(eval_t2.particle == loop_particles) & (eval_t2.frame > frame_split_traj),"particle"] = free_part_id
+#            free_part_id += 1
+#        
+#        #get frame length of trajectory
+#   
+#    return eval_t2
+#
+#
+#
+#def CheckLinkPossible(eval_t2, max_displacement):
+#    eval_t2["link_possible"] = eval_t2["dr"] < max_displacement
+#
+#    return eval_t2["link_possible"]
+#
+#
+#def CheckUnresolved(eval_t3, resolution):
+#    eval_t3["resolved"] = eval_t3["nn"] > resolution  
+#    
+#    return eval_t3
+#
+#
+#def CheckCorrectLink(eval_t4):
+#    eval_t4["link_correct"] = eval_t4["nn"] > eval_t4["dr"]
+#    
+#    return eval_t4
+
+
+
+
+
+
+
+#result_mean = eval_t.groupby("frame")[["dr","nn"]].mean()
+#result_min = eval_t.groupby("frame")[["dr","nn"]].min()
+#result_std = eval_t.groupby("frame")[["dr","nn"]].std()
+#
+#fig = plt.figure()
+#frames = result_mean.index
+#plt.plot(frames,result_mean.nn)
+#plt.plot(frames,result_mean.dr)
+#plt.plot(frames,result_min.nn)
+#
+#fig = plt.figure()
+#plt.scatter(t["x"],t["y"])
+    

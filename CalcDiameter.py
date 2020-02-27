@@ -44,6 +44,10 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     microns_per_pixel = settings["MSD"]["effective_Microns_per_pixel"]
     frames_per_second = settings["MSD"]["effective_fps"]
     temp_water = settings["Exp"]["Temperature"]
+    
+    if temp_water < 250:
+        raise Exception("Temperature is below 250K! Check if the temperature is inserted in K not in C!")
+    
     solvent = settings["Exp"]["solvent"]
     
     #required since Viscosity_auto has old typo
@@ -92,6 +96,12 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     amount_summands = settings["MSD"]["Amount summands"]
     amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
  
+    if amount_lagtimes_auto == 1:
+        if settings["Exp"]["gain"] == "unknown":
+            raise ValueError("Number of considered lagtimes cant be estimated automatically, if gain is unknown. Measure gain, or change 'Amount lagtime _auto' values to 0.")
+        
+        
+    
     do_rolling = settings["Time"]["DoRolling"]
     my_rolling = settings["Time"]["Frames"]
                 
@@ -227,7 +237,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     #            rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
                 
                 diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water)
-                
+
                 sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter, \
                                        particleid, traj_length, amount_frames_lagt1, start_frame, \
                                        mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
@@ -250,10 +260,19 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                     
                 else:
                     sizes_df_lin_rolling = -1
-        
+
         else:
             print("Localization precision to low for MSD fit")
-            
+        
+    # get the axis from the msd plot right
+    ax_msd = plt.gca()
+
+    #get maximum value of lagtime and msd
+    y_min, y_max, x_min, x_max = GetLimitOfPlottedLineData(ax_msd)
+    
+    ax_msd.set_xlim([0, 1.1*x_max])
+    ax_msd.set_ylim([0, 1.1*y_max])
+    
     sizes_df_lin = sizes_df_lin.set_index('particle')
 
     if do_rolling == True:
@@ -270,7 +289,33 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     return sizes_df_lin, sizes_df_lin_rolling, any_successful_check
 
  
+def GetLimitOfPlottedLineData(ax):
+    
+    x_min = np.inf
+    x_max = -np.inf
 
+    y_min = np.inf
+    y_max = -np.inf
+    
+    
+    for counter, ax_line in enumerate(ax.lines):
+         x_min_test = np.min(ax_line.get_xdata())
+         if x_min_test < x_min:
+             x_min = x_min_test
+             
+         x_max_test = np.max(ax_line.get_xdata())
+         if x_max_test > x_max:
+             x_max = x_max_test
+
+         y_min_test = np.min(ax_line.get_ydata())
+         if y_min_test < y_min:
+             y_min = y_min_test
+             
+         y_max_test = np.max(ax_line.get_ydata())
+         if y_max_test > y_max:
+             y_max = y_max_test
+             
+    return y_min, y_max, x_min, x_max
 
 
 def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, lagtimes_min = 1, lagtimes_max = 2):
@@ -501,7 +546,6 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
 #        mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values[0]+ fit_values[1])
         mean_displ_fit_direct_lin = lagt_direct *fit_values[0]+ fit_values[1]
     
-        
         nd.visualize.MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin)
     
     
@@ -564,8 +608,9 @@ def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None
     
     diameter = (2*const_Boltz*temp_water/(6*math.pi *visc_water)*1e9) /diffusion # diameter of each particle
 
+
     if UseHindranceFac == True:
-        if np.max(diameter) < fibre_diameter_nm:
+        if diameter < fibre_diameter_nm:
             if DoRolling == False:
                 diamter_corr = EstimateHindranceFactor(diameter, fibre_diameter_nm, DoPrint = True)
             else:
@@ -574,13 +619,15 @@ def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None
                     diamter_corr[counter] = EstimateHindranceFactor(diameter_rolling, fibre_diameter_nm, DoPrint = False)
                 
         else:
-            sys.exit("Here is something wrong: The diameter is calculated to be larger than the core diameter. \
-                     Possible Reasons: \
-                     \n 1 - drift correctes motion instead of drift because to few particles inside. \
-                     \n 2 - stationary particle remains, which seems very big because it diffuses to little. ")
-            
+            diamter_corr = diameter
+            print("WARNING: STATIONARY PARTICLE STILL INSIDE")
+#            sys.exit("Here is something wrong: The diameter is calculated to be larger than the core diameter. \
+#                     Possible Reasons: \
+#                     \n 1 - drift correctes motion instead of drift because to few particles inside. \
+#                     \n 2 - stationary particle remains, which seems very big because it diffuses to little. ")
+#            
     else:
-#        print("WARNING: hindrance factor ignored. You just need to have the fiber diameter!")   
+        print("WARNING: hindrance factor ignored. You just need to have the fiber diameter!")   
         diamter_corr = diameter
     
     return diamter_corr
@@ -710,7 +757,7 @@ def OptimalMSDPoints(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
     red_x = ReducedLocalPrecision(settings, raw_mass, diffusivity)
     
     f_b = 2
-    
+    bp()
     if type(red_x) != type('abc'): # exclude that red_x is a string ("unknown")
         if red_x >= 0:
             f_b = 2 + 1.35 * np.power(red_x,0.6)

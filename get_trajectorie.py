@@ -131,7 +131,12 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             print("Separation = ", separation)
             print("Diameter = ", diameter)
             print("Max iterations = ", max_iterations)
-            plt.imshow(frames_np[0,:,:])
+            
+            if frames_np.ndim == 3:
+                plt.imshow(frames_np[0,:,:])
+            else:
+                plt.imshow(frames_np[:,:])
+                
             output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, processes = 'auto')
                    
             if output.empty:
