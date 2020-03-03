@@ -520,6 +520,7 @@ def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = N
     Do_rotation = settings["PreProcessing"]["Do_or_apply_data_rotation"]
     
     if Do_rotation == True:
+        print('Rotation of rawdata: start removing')
         rot_angle = settings["PreProcessing"]["rot_angle"]
 
     

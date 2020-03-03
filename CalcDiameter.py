@@ -263,15 +263,16 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
 
         else:
             print("Localization precision to low for MSD fit")
-        
-    # get the axis from the msd plot right
-    ax_msd = plt.gca()
-
-    #get maximum value of lagtime and msd
-    y_min, y_max, x_min, x_max = GetLimitOfPlottedLineData(ax_msd)
     
-    ax_msd.set_xlim([0, 1.1*x_max])
-    ax_msd.set_ylim([0, 1.1*y_max])
+    if MSD_fit_Show == True:    
+        # get the axis from the msd plot right
+        ax_msd = plt.gca()
+    
+        #get maximum value of lagtime and msd
+        y_min, y_max, x_min, x_max = GetLimitOfPlottedLineData(ax_msd)
+        
+        ax_msd.set_xlim([0, 1.1*x_max])
+        ax_msd.set_ylim([0, 1.1*y_max])
     
     sizes_df_lin = sizes_df_lin.set_index('particle')
 
@@ -598,6 +599,7 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
 
 #    diff_direct_lin = fit_values[0]/2
 #    diff_direct_lin = np.squeeze(diff_direct_lin)   
+
 
 
 

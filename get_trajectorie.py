@@ -90,8 +90,7 @@ from pdb import set_trace as bp #debugger
 
 
 
-def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None,
-                    max_iterations=10, SaveFig = False, gamma = 0.8):
+def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None, max_iterations = 10, SaveFig = False, gamma = 0.8):
     """
     Defines the paramter for the trackpy routine tp.batch, which spots particles, out of the json file
     
@@ -112,7 +111,8 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
 #        
 #        if UseLog == True:
 #            frames_np = nd.handle_data.LogData(frames_np)
-        
+        ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
+        DoPreProcessing = (ImgConvolvedWithPSF == False)
         
         separation = settings["Find"]["Separation data"]
         minmass    = settings["Find"]["Minimal bead brightness"]
@@ -131,13 +131,17 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             print("Separation = ", separation)
             print("Diameter = ", diameter)
             print("Max iterations = ", max_iterations)
+            print("PreProcessing of Trackpy = ", DoPreProcessing)
             
             if frames_np.ndim == 3:
                 plt.imshow(frames_np[0,:,:])
             else:
                 plt.imshow(frames_np[:,:])
                 
-            output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, processes = 'auto')
+
+            
+                
+            output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, processes = 'auto')
                    
             if output.empty:
                 print("Image is empty - reduce Minimal bead brightness")

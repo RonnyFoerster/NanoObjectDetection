@@ -7,7 +7,6 @@ Created on Fri Feb 15 16:41:17 2019
 This module tries to hell the user finding the correct parameters for the analysis
 """
 
-# In[] Importing neccessary libraries
 
 import NanoObjectDetection as nd
 
@@ -17,7 +16,7 @@ import matplotlib.pyplot as plt # Libraries for plotting
 
 from pdb import set_trace as bp #debugger
 
-# In[]
+
 def GetIntegerInput(MessageOnScreen):
     """
     Ask for an INTERGER input on the console.
@@ -111,27 +110,52 @@ def AskIfUserSatisfied(QuestionForUser):
     return UserSatisfied
 
 
-def FindSpot(rawframes_ROI, ParameterJsonFile):
+
+def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    beadsize_auto = (settings["Help"]["Bead size"] == "auto")
+    
+    # if beadsize is not auto - the minmass needs to be guess first, in order to identifiy particles whose diameter can than be optimized
+    
+    if beadsize_auto == False:
+        nd.AdjustSettings.FindSpot(rawframes_pre, ParameterJsonFile)
+        
+    # optimize PSF diameter
+    nd.AdjustSettings.SpotSize(rawframes_pre, ParameterJsonFile)  
+    
+    # optimize minmass to identify particle
+    nd.AdjustSettings.FindSpot(rawframes_pre, ParameterJsonFile)
+       
+    if settings["Help"]["Separation"] == "auto":
+        nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)
+    
+    
+    
+
+
+def FindSpot(rawframes_pre, ParameterJsonFile):
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     if (settings["Help"]["Bead brightness"] == "manual") or (settings["Help"]["Bead brightness"] == 1):
-        obj_first, settings = FindSpot_manual(rawframes_ROI, ParameterJsonFile)
+        obj_first, settings = FindSpot_manual(rawframes_pre, ParameterJsonFile)
         
     elif settings["Help"]["Bead brightness"] == "auto":
-        minmass = nd.ParameterEstimation.EstimateMinmassMain(img1, settings)
-        settings["Find"]["Minimal bead brightness"] = diameter
+        minmass = nd.ParameterEstimation.EstimateMinmassMain(rawframes_pre, settings)
+        settings["Find"]["Minimal bead brightness"] = minmass
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
     else:
-        print("Bead size not adjusted. Use 'manuel' or 'auto' for that ")
+        print("Bead size not adjusted. Use 'manuel' or 'auto' if you want to do it.")
 
     
     
     
   
     
-def FindSpot_manual(rawframes_ROI, ParameterJsonFile):    
+def FindSpot_manual(rawframes_pre, ParameterJsonFile):    
     """
     Main function to optimize the parameters for particle identification
     It runs the bead finding routine and ask the user what problem he has
@@ -143,7 +167,7 @@ def FindSpot_manual(rawframes_ROI, ParameterJsonFile):
     
     while UserSatisfied == False:
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        obj_first = nd.get_trajectorie.FindSpots(rawframes_ROI[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.8)
+        obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.8)
             
         if FirstRun == True:
             FirstRun = False
@@ -189,18 +213,19 @@ def FindSpot_manual(rawframes_ROI, ParameterJsonFile):
     return obj_first, settings
     
 
-def SpotSize(rawframes_rot, ParameterJsonFile):
+
+def SpotSize(rawframes_pre, ParameterJsonFile):
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     
     if (settings["Help"]["Bead size"] == "manual") or (settings["Help"]["Bead size"] == 1):
-        settings["Find"]["Estimated particle size"] = SpotSize_manual(rawframes_rot, settings)
+        settings["Find"]["Estimated particle size"] = SpotSize_manual(rawframes_pre, settings)
         
     elif settings["Help"]["Bead size"] == "auto":
-        settings["Find"]["Estimated particle size"] = SpotSize_auto(rawframes_rot, settings)
+        settings["Find"]["Estimated particle size"] = SpotSize_auto(settings)
         
     else:
-        print("Bead size not adjusted. Use 'manuel' or 'auto' for that ")
+        print("Bead size not adjusted. Use 'manuel' or 'auto' if you want to do it.")
 
 
     
@@ -208,7 +233,7 @@ def SpotSize(rawframes_rot, ParameterJsonFile):
     
 
 
-def SpotSize_auto(rawframes_rot, settings):
+def SpotSize_auto(settings):
     
     ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
     diameter = nd.ParameterEstimation.EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF)
@@ -216,28 +241,27 @@ def SpotSize_auto(rawframes_rot, settings):
     return diameter
 
 
-def SpotSize_manual(rawframes_rot, settings):
+
+def SpotSize_manual(rawframes_pre, settings):
     """
     Optimize the diameter of the Particles
     """
-    
-
-    
+        
     separation = settings["Find"]["Separation data"]
     minmass    = settings["Find"]["Minimal bead brightness"]
 
     UserSatisfied = False
     try_diameter = [3.0 ,3.0]
     
-    if len(rawframes_rot) > 100:
-        rawframes_rot = rawframes_rot[0:100,:,:]
+    if len(rawframes_pre) > 100:
+        rawframes_pre = rawframes_pre[0:100,:,:]
     
     
     while UserSatisfied == False:
         print('UserSatisfied? : ', UserSatisfied)
         print('Try diameter:' , np.asarray(try_diameter))
 #        obj_all = nd.get_trajectorie.batch_np(rawframes_rot, ParameterJsonFile, UseLog = False, diameter = try_diameter)
-        obj_all = tp.batch(rawframes_rot, diameter = try_diameter, minmass = minmass, separation = separation)
+        obj_all = tp.batch(rawframes_pre, diameter = try_diameter, minmass = minmass, separation = separation)
               
 
         if obj_all.empty == True:
@@ -265,6 +289,7 @@ def SpotSize_manual(rawframes_rot, settings):
     print("WARNING: IF YOUR BEADSIZE CHANGED YOU MIGHT HAVE TO UPDATE YOUR MINIMAL BRIGHTNESS!")
     
     return try_diameter
+ 
     
 
 def FindROI(rawframes_np):
@@ -280,4 +305,8 @@ def FindROI(rawframes_np):
                              title = title, xlabel = xlabel, ylabel = ylabel)
 
     print('Chose the ROI of x and y for min and max value accoring your interest. Insert the values in your json file.')
+
+
+
+
 

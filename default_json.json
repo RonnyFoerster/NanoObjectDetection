@@ -9,8 +9,7 @@
           "Temperature": 295.0,
           "Viscosity": 9.5e-16,
           "Viscosity_auto": 0,
-          "solvent": "water",
-          "const_Boltz": 1.38e-23
+          "solvent": "water"
      },
      "Fiber": {
           "Shape": "round",
@@ -22,7 +21,7 @@
                0,
                0
           ],
-          "CalcTubeDiameterOutOfSidelength": 1,
+          "CalcTubeDiameterOutOfSidelength": 0,
           "TubeDiameter_nm": 1000.0
      },
      "File": {
@@ -62,7 +61,7 @@
      "PreProcessing": {
           "Remove_CameraOffset": 1,
           "Remove_Laserfluctuation": 0,
-          "Remove_StaticBackground": 0,
+          "Remove_StaticBackground": 1,
           "RollingPercentilFilter": 0,
           "RollingPercentilFilter_rolling_step": 10,
           "RollingPercentilFilter_rolling_length": 200,
@@ -70,30 +69,29 @@
           "ClipNegativeValue": 0,
           "Do_or_apply_data_rotation": 0,
           "rot_angle": 0,
-          "EnhanceSNR": 0,
+          "EnhanceSNR": 1,
           "KernelSize": "auto"
      },
      "Help": {
           "ROI": 0,
-          "Bead brightness": 0,
-          "Bead size": 0
+          "Bead brightness": "auto",
+          "Bead size": "auto",
+          "Separation": "auto",
+          "GuessLowestDiameter_nm": 50
      },
      "Find": {
-          "Estimated particle size": [
-               9.0,
-               9.0
-          ],
+          "Estimated particle size": 13,
           "Minimal bead brightness": 500.0,
           "SaturatedPixelValue": 65000,
           "Separation data": 15
      },
      "Link": {
-          "Dark time": 5,
+          "Dark time": 3,
           "Dwell time stationary objects": 100,
           "Max displacement": 3,
           "Max displacement fix": 0.3,
-          "Min tracking frames before drift": 100.0,
-          "Min_tracking_frames": 500.0
+          "Min tracking frames before drift": 30.0,
+          "Min_tracking_frames": 150.0
      },
      "StationaryObjects": {
           "Analyze fixed spots": 1,
@@ -108,18 +106,18 @@
      "Drift": {
           "Apply": 1,
           "Do transversal drift correction": 0,
-          "Drift smoothing frames": 20,
+          "Drift smoothing frames": 50,
           "Drift rolling window size": 5,
           "Min particle per block": 40.0
      },
      "MSD": {
-          "Amount summands": 30,
+          "Amount summands": 10,
           "Amount lagtimes auto": 0,
           "lagtimes_min": 1,
-          "lagtimes_max": 4,
+          "lagtimes_max": 3,
           "effective_fps": 0,
           "effective_Microns_per_pixel": 0,
-          "EstimateHindranceFactor": 0,
+          "EstimateHindranceFactor": 1,
           "Calculate Error": 0,
           "Min rel Error": 0,
           "EvalOnlyLongestTraj": 0
@@ -146,8 +144,8 @@
           "Histogramm_min_max_auto": 1,
           "Histogramm_min": 0.0,
           "Histogramm_max": 1000.0,
-          "DiameterPDF_Show": 0,
-          "DiameterPDF_Save": 0,
+          "DiameterPDF_Show": 1,
+          "DiameterPDF_Save": 1,
           "PDF_min": 0.0,
           "PDF_max": 1000.0,
           "DiamOverTraj_Show": 0,

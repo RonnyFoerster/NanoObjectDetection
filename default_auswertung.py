@@ -47,30 +47,23 @@ rawframes_ROI = nd.handle_data.UseROI(rawframes_np, ParameterJsonFile)
 # supersampling  
 rawframes_super = nd.handle_data.UseSuperSampling(rawframes_ROI, ParameterJsonFile)
 
+del rawframes_ROI
+
 
 #%% standard image preprocessing
 rawframes_pre = nd.PreProcessing.Main(rawframes_super, ParameterJsonFile)
 
-
-#%% rotate the images if necessary 
-# Check if rotated data shall be used or not
-rawframes_rot = nd.handle_data.RotImages(rawframes_pre, ParameterJsonFile)
-   
-del rawframes_ROI, rawframes_super, rawframes_pre
+del rawframes_super
 
 
 #%% help with the parameters for finding objects 
 settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-if settings["Help"]["Bead brightness"] == 1:
-    obj_first = nd.AdjustSettings.FindSpot(rawframes_rot, ParameterJsonFile)
-
-if settings["Help"]["Bead size"] == 1:
-    nd.AdjustSettings.SpotSize(rawframes_rot, ParameterJsonFile)   
+nd.AdjustSettings.AdjustSettings_Main(rawframes_pre, ParameterJsonFile)
     
 
 #%% find the objects
-obj_all = nd.get_trajectorie.FindSpots(rawframes_rot, ParameterJsonFile)
+obj_all = nd.get_trajectorie.FindSpots(rawframes_pre, ParameterJsonFile)
 
 
 #%% identify static objects
@@ -87,7 +80,7 @@ obj_moving = nd.get_trajectorie.RemoveSpotsInNoGoAreas(obj_all, t2_stationary, P
 
 
 #%% remove overexposed objects
-obj_moving = nd.get_trajectorie.RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot)
+obj_moving = nd.get_trajectorie.RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_pre)
   
 
 

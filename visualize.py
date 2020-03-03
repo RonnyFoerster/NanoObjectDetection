@@ -625,6 +625,8 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
         
         prob_inv_diam = prob_inv_diam + my_pdf    
 
+    # normalize
+    prob_inv_diam = prob_inv_diam / np.sum(prob_inv_diam)
       
     title = settings["Plot"]["Title"]
     xlabel = "Diameter [nm]"
@@ -636,7 +638,10 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
     
     Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0])
 
-    
+    print("\n\n mean diameter: ", np.round(np.mean(GetCI_Interval(prob_inv_diam, diam_grid, 0.001)),1))
+    print("68CI Intervall: ", np.round(GetCI_Interval(prob_inv_diam, diam_grid, 0.68),1),"\n\n")
+
+
     
 #    prob_diam_inv = scipy.stats.norm(diam_inv_mean,diam_inv_std).pdf(diam_grid_inv)
 #    prob_diam_inv = prob_diam_inv / prob_diam_inv.max() * max_hist
@@ -654,6 +659,20 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
 
+
+def GetCI_Interval(probability, value, ratio_in_ci):
+    cum_sum = np.cumsum(probability)
+
+    cum_min = 0.5 - (ratio_in_ci/2)
+    cum_max = 0.5 + (ratio_in_ci/2)
+    
+    pos_min = np.int(np.where(cum_sum > cum_min)[0][0])
+    pos_max = np.int(np.where(cum_sum > cum_max)[0][0])
+    
+    value_min = value[pos_min]
+    value_max = value[pos_max]
+        
+    return value_min,value_max
 
 def GetMeanStdMedian(data):
     my_mean   = np.mean(data)

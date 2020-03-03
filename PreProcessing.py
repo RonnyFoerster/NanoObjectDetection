@@ -64,8 +64,14 @@ def Main(rawframes_np, ParameterJsonFile):
             rawframes_np = nd.PreProcessing.ConvolveWithPSF(rawframes_np, settings)            
         else:
             print('Image SNR not enhanced by a gaussian average')
+        
+        
+        if settings["PreProcessing"]["Do_or_apply_data_rotation"] == 1:
+            rawframes_np = nd.handle_data.RotImages(rawframes_np, ParameterJsonFile)
+        else:
+            print('Image Rotation: not applied')
             
-         
+            
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
     return rawframes_np
