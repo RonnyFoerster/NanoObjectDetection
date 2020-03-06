@@ -92,6 +92,8 @@ def SubtractCameraOffset(rawframes_np, settings):
     # Whenever there is a change in intensity, e.g. by fluctuations in incoupling,the lightsource etc., this affects mututally background and signal
     rawframes_np=rawframes_np-offsetCount
     
+    print("Camera offset is: ", offsetCount)
+    
     print('Constant camera background: removed')  
     
     return rawframes_np
@@ -182,34 +184,9 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     rawframes_np_no_bg = rawframes_np - static_background # Now, I'm subtracting a background, in case there shall be        
 
 
-    if 1 == 0:
-        #do it seriel
-        print("remove median")
-    #    static_background_max = np.percentile(rawframes_np,50, axis = 0)
-        static_background_max = np.median(rawframes_np, axis = 0)
-        #assumes that each pixel is at least in 50% of the time specimen free and shows bg only
+    if Background_Show == True:
+        plt.imshow(static_background)
         
-        num_frames = rawframes_np.shape[0]
-        
-        #repmat 
-        static_background_max = np.dstack([static_background_max]*num_frames)
-        
-        #transpose so that 0dim is time again
-        static_background_max = np.transpose(static_background_max, (2, 0, 1))    
-        
-        # select the values that are bg only
-        mask_background = rawframes_np > static_background_max
-        
-        # https://docs.scipy.org/doc/numpy/reference/generated/numpy.ma.mean.html
-        a = np.ma.array(rawframes_np, mask=mask_background)
-        
-        static_background = a.mean(axis = 0)
-        
-        # average them
-    #    static_background = np.mean(static_background, axis = 0)
-        
-        
-        rawframes_np_no_bg = rawframes_np - static_background # Now, I'm subtracting a background, in case there shall be anything left
     
     if Background_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "CameraBackground", settings)

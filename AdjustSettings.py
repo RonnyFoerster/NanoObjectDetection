@@ -114,23 +114,26 @@ def AskIfUserSatisfied(QuestionForUser):
 def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-    
-    beadsize_auto = (settings["Help"]["Bead size"] == "auto")
-    
-    # if beadsize is not auto - the minmass needs to be guess first, in order to identifiy particles whose diameter can than be optimized
-    
-    if beadsize_auto == False:
+
+       
+    # optimized the distance a particle can move between two frames and how close to beads can be without risk of wrong assignment
+    if settings["Help"]["Separation"] == "auto":
+        nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        
+
+    # if beadsize is not auto - the minmass needs to be guess first, in order to identifiy particles whose diameter can than be optimized   
+    if settings["Help"]["Bead size"] != "auto":
         nd.AdjustSettings.FindSpot(rawframes_pre, ParameterJsonFile)
         
     # optimize PSF diameter
     nd.AdjustSettings.SpotSize(rawframes_pre, ParameterJsonFile)  
     
     # optimize minmass to identify particle
-    nd.AdjustSettings.FindSpot(rawframes_pre, ParameterJsonFile)
-       
-    if settings["Help"]["Separation"] == "auto":
-        nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)
-    
+    num_particles_trackpy = nd.AdjustSettings.FindSpot(rawframes_pre, ParameterJsonFile)
+
+ 
+    # maybe do this right before the drift correction
+    if settings["Help"]["Drift"] == "auto":
+        nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_trackpy)
     
     
 
@@ -140,16 +143,17 @@ def FindSpot(rawframes_pre, ParameterJsonFile):
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     if (settings["Help"]["Bead brightness"] == "manual") or (settings["Help"]["Bead brightness"] == 1):
-        obj_first, settings = FindSpot_manual(rawframes_pre, ParameterJsonFile)
+        obj_first, settings, num_particles_trackpy = FindSpot_manual(rawframes_pre, ParameterJsonFile)
         
     elif settings["Help"]["Bead brightness"] == "auto":
-        minmass = nd.ParameterEstimation.EstimateMinmassMain(rawframes_pre, settings)
+        minmass, num_particles_trackpy = nd.ParameterEstimation.EstimateMinmassMain(rawframes_pre, settings)
         settings["Find"]["Minimal bead brightness"] = minmass
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
     else:
         print("Bead size not adjusted. Use 'manuel' or 'auto' if you want to do it.")
 
+    return num_particles_trackpy
     
     
     
@@ -210,7 +214,10 @@ def FindSpot_manual(rawframes_pre, ParameterJsonFile):
             
             nd.handle_data.WriteJson(ParameterJsonFile, settings)  
     
-    return obj_first, settings
+    #get number of located particles by trackpy
+    num_particles_trackpy = len(obj_first)
+    
+    return obj_first, settings, num_particles_trackpy
     
 
 

@@ -73,7 +73,7 @@ def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None, settings = No
 
 
 
-def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':', x_lim = None, y_lim = None, y_ticks = None):
+def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':', x_lim = None, y_lim = None, y_ticks = None, semilogx = False):
     """ plot 2D-data in standardized format as line plot """
     
     from NanoObjectDetection.PlotProperties import axis_font, title_font, params
@@ -82,7 +82,16 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
     plt.style.use(params)
     
     plt.figure()
-    plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
+    if semilogx == False:
+        plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
+    else:
+        plt.semilogx(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
+        import matplotlib.ticker
+
+        ax = plt.gca()
+        ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax.get_xaxis().set_minor_formatter(matplotlib.ticker.ScalarFormatter())
+        
     plt.title(title, **title_font)
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
@@ -627,16 +636,37 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
 
     # normalize
     prob_inv_diam = prob_inv_diam / np.sum(prob_inv_diam)
-      
-    title = settings["Plot"]["Title"]
+
+    diam_mean = np.mean(GetCI_Interval(prob_inv_diam, diam_grid, 0.001))
+    
+    lim_68CI = GetCI_Interval(prob_inv_diam, diam_grid, 0.68)
+    diam_68CI = lim_68CI[1] - lim_68CI[0]
+    
+    lim_95CI = GetCI_Interval(prob_inv_diam, diam_grid, 0.95)
+    diam_95CI = lim_95CI[1] - lim_95CI[0]
+    
+    num_trajectories = len(sizes_df_lin) 
+
+    Histogramm_min_max_auto = settings["Plot"]["DiameterPDF_min_max_auto"]
+    
+    if Histogramm_min_max_auto == 1:
+        histogramm_min, histogramm_max = GetCI_Interval(prob_inv_diam, diam_grid, 0.999)
+        histogramm_min = 0
+    else:
+        histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(PDF_min, settings, "Plot", "Histogramm_min")
+        histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(PDF_max, settings, "Plot", "Histogramm_max")
+        
+
+    title = str("Median: {:2.3g} nm; Trajectories{:3.0f}; \n CI68: [{:2.3g} : {:2.3g}] nm;  CI95: [{:2.3g} : {:2.3g}] nm".format(diam_mean, num_trajectories, lim_68CI[0], lim_68CI[1],lim_95CI[0], lim_95CI[1]))
     xlabel = "Diameter [nm]"
     ylabel = "Probability"
     x_lim = [histogramm_min, histogramm_max]
+#    x_lim = [1, 1000]
     y_lim = [0, 1.1*np.max(prob_inv_diam)]
 #    sns.reset_orig()
+
     
-    
-    Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0])
+    Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0], semilogx = False)
 
     print("\n\n mean diameter: ", np.round(np.mean(GetCI_Interval(prob_inv_diam, diam_grid, 0.001)),1))
     print("68CI Intervall: ", np.round(GetCI_Interval(prob_inv_diam, diam_grid, 0.68),1),"\n\n")

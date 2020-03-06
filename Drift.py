@@ -50,6 +50,12 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
         
     else:
         
+        if settings["Help"]["Drift"] == "auto":
+            num_particles_per_frame = t_drift.groupby("frame")["particle"].count().mean()
+            nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_per_frame)
+
+        
+        
         Do_transversal_drift_correction = settings["Drift"]["Do transversal drift correction"]    
         drift_smoothing_frames          = settings["Drift"]["Drift smoothing frames"]    
         rolling_window_size             = settings["Drift"]["Drift rolling window size"]    

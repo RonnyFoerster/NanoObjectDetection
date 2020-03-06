@@ -142,7 +142,10 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             
                 
             output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, processes = 'auto')
-                   
+            
+            print("Set all NaN in estimation precision to 0")
+            output.loc[np.isnan(output.ep), "ep"] = 0
+            
             if output.empty:
                 print("Image is empty - reduce Minimal bead brightness")
                 minmass = minmass / 10
@@ -524,14 +527,14 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    dark_time = settings["Link"]["Dark time"]
+    filter_time = 2*settings["Link"]["Dark time"] + 1
     
     # MEDIAN FILTER OF MASS
     # CALCULATE RELATIVE STEP HEIGHTS OVER TIME
     
     # apply rolling median filter on data sorted by particleID
     # NOT VERY ACCURATE BUT DOES IT FOR THE MOMENT.
-    rolling_median_filter = t1_gapless.groupby('particle')['mass'].rolling(2*dark_time, center=True).median()
+    rolling_median_filter = t1_gapless.groupby('particle')['mass'].rolling(2*filter_time, center=True).median()
     
     # get it back to old format
     rolling_median_filter = rolling_median_filter.to_frame() # convert to DataFrame

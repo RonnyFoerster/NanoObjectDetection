@@ -126,6 +126,7 @@ def NewEvaluation():
         settings["Help"]["Bead brightness"] = 0
         settings["Help"]["Bead size"] = 0
         settings["Help"]["Separation"] = 0
+        settings["Help"]["Drift"] = 0
         
     elif help_options == 1:
         print("switch recommended help functions on.")
@@ -133,6 +134,7 @@ def NewEvaluation():
         settings["Help"]["Bead brightness"] = "auto"
         settings["Help"]["Bead size"] = "auto"
         settings["Help"]["Separation"] = "auto"
+        settings["Help"]["Drift"] = "auto"
 
     else:        
         print("Choose the help functions on your own.")
@@ -150,10 +152,13 @@ def NewEvaluation():
                 \n manuel - manuel setting the value with help \
                 \n auto - fully automized parameter estimation \n"))
         
-        settings["Help"]["Separation"]        = str(input("Do you want help with the maximum allowed movement of a particle between two frames >Max Displacement< ? \
+        settings["Help"]["Separation"]        = str(input("Do you want help with the maximum allowed movement of a particle between two frames >Max Displacement< and the minimal distance to beads must have >Separation Data<? \
                 \n 0 = no \
                 \n auto - fully automized parameter estimation \n"))
-    
+ 
+        settings["Help"]["Drift"]        = str(input("Do you want help how many frames are used to average the drift out of the system >Drift smoothing frames<? \
+                \n 0 = no \
+                \n auto - fully automized parameter estimation \n"))
 
 
     settings["File"]["json"] = mypath.replace("/","\\")

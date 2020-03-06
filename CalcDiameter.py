@@ -13,12 +13,12 @@ import warnings
 import NanoObjectDetection as nd
 from pdb import set_trace as bp #debugger
 import matplotlib.pyplot as plt # Libraries for plotting
-import sys
+#import sys
 import scipy
 import scipy.constants
 
-def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None,
-         amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, EvalOnlyLongestTraj = 0, Max_traj_length = None):
+
+def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None, amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, EvalOnlyLongestTraj = 0, Max_traj_length = None):
     """ calculate diameters of individual particles via mean squared displacement analysis
     
     Procedure:
@@ -38,241 +38,94 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     # binning = 25 # Amount of bins used in histogram
     """
 
-    #%% read the parameters
+    # read the parameters
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-    microns_per_pixel = settings["MSD"]["effective_Microns_per_pixel"]
-    frames_per_second = settings["MSD"]["effective_fps"]
-    temp_water = settings["Exp"]["Temperature"]
-    
-    if temp_water < 250:
-        raise Exception("Temperature is below 250K! Check if the temperature is inserted in K not in C!")
-    
-    solvent = settings["Exp"]["solvent"]
-    
-    #required since Viscosity_auto has old typo
-    try:
-        visc_auto = settings["Exp"]["Viscosity_auto"]
-    except:
-        visc_auto = settings["Exp"]["Viscocity_auto"]
-        
-    
-    if visc_auto == 1:
-        settings["Exp"]["Viscosity"] = nd.handle_data.GetViscosity(temperature = temp_water, solvent = solvent)
-    
-    
-    #required since Viscosity has old typo
-    try:
-        visc_water = settings["Exp"]["Viscosity"]
-    except:
-        visc_water = settings["Exp"]["Viscocity"]
+    # get parameters
+    temp_water, amount_lagtimes_auto, MSD_fit_Show, MSD_fit_Save, do_rolling = GetSettingsParameters(settings)
 
-        
-    
-    min_rel_error = settings["MSD"]["Min rel Error"]
-    
-    # check if only the longest trajectory shall be evaluated
-    EvalOnlyLongestTraj = settings["MSD"]["EvalOnlyLongestTraj"]
-    
-    if EvalOnlyLongestTraj == 1:
-        longest_particle, longest_traj = nd.handle_data.GetTrajLengthAndParticleNumber(t6_final)
-    
-        settings["Split"]["ParticleWithLongestTrajBeforeSplit"] = longest_particle
-    
-        t6_final_use = t6_final[t6_final["particle"] == longest_particle].copy()
-    else:
-        t6_final_use = t6_final.copy()
-    
-
-    Max_traj_length = int(settings["Split"]["Max_traj_length"])
-    Min_traj_length = int(settings["Link"]["Min_tracking_frames"])
-    
-    if Max_traj_length is None:
-        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings)
-    else:
-        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings, Min_traj_length, Max_traj_length)
+    # preprocess trajectories (only use longest, split to long trajectories
+    t6_final_use, settings = SelectTrajectories(t6_final, settings)
 
     
-    amount_summands = settings["MSD"]["Amount summands"]
-    amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
- 
-    if amount_lagtimes_auto == 1:
-        if settings["Exp"]["gain"] == "unknown":
-            raise ValueError("Number of considered lagtimes cant be estimated automatically, if gain is unknown. Measure gain, or change 'Amount lagtime _auto' values to 0.")
-        
-        
-    
-    do_rolling = settings["Time"]["DoRolling"]
-    my_rolling = settings["Time"]["Frames"]
-                
-    
-    # insert hindrance factor parameters
-    UseHindranceFac =  settings["MSD"]["EstimateHindranceFactor"]
-    
-    if UseHindranceFac == True:
-        # fiber diameter is needed
-        if settings["Fiber"]["Shape"] == "round":
-            fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
-            
-        if settings["Fiber"]["Shape"] == "hex":
-            #calc out of hex diameters if wanted
-            if settings["Fiber"]["CalcTubeDiameterOutOfSidelength"] == 0:
-                fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
-            else:
-                side_length_um = settings["Fiber"]["ARHCF_hex_sidelength_um"]
-                diameter_inner_um, diameter_outer_um = nd.handle_data.ARHCF_HexToDiameter(side_length_um)
-                diameter_inner_nm = np.round(1000 * diameter_inner_um,0)
-                fibre_diameter_nm, settings = nd.handle_data.SpecificValueOrSettings(diameter_inner_nm, settings, "Fiber", "TubeDiameter_nm")
-    else:
-        fibre_diameter_nm = None
-    
-    MSD_fit_Show = settings["Plot"]['MSD_fit_Show']
-    MSD_fit_Save = settings["Plot"]['MSD_fit_Save']
-        
-    if MSD_fit_Save == True:
-        MSD_fit_Show = True
-    
-    particle_list_value=list(t6_final_use.particle.drop_duplicates())
+    particle_list_value = list(t6_final_use.particle.drop_duplicates())
 
+    #setup return variable
     sizes_df_lin=pd.DataFrame(columns={'diameter','particle'})       
     sizes_df_lin_rolling = pd.DataFrame()   
     
+    #boolean for plotting stuff
     any_successful_check = False
 
-    # go through the particles
-    num_loop_elements = len(particle_list_value)
-    for i,particleid in enumerate(particle_list_value): # iteratig over all particles
+    # LOOP THROUGH ALL THE PARTICLES
+    for i,particleid in enumerate(particle_list_value):
         print("\n Particle number: ",  round(particleid))
 
-#        nd.visualize.update_progress("Analyze Particles", (i+1)/num_loop_elements)
-#        print("Particle Id: ", particleid)
         # select track to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
-        start_frame = int(eval_tm.iloc[0].frame)
 
-        mean_mass = eval_tm["mass"].mean()
-        mean_size = eval_tm["size"].mean()
-        mean_ecc = eval_tm["ecc"].mean()
-        mean_signal = eval_tm["signal"].mean()
-        mean_raw_mass = eval_tm["raw_mass"].mean()
-        mean_ep = eval_tm["ep"].mean()
-        max_step = eval_tm["rel_step"].max()
-        true_particle = eval_tm["true_particle"].max()
+        #get area where the MSD fit is applied to the data
+        lagtimes_min, lagtimes_max, max_counter = MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm)
         
-        # defines how many lagtimes are considered for the fit
-        if amount_lagtimes_auto == 1:
-            max_counter = 10
-            #maximum value of the min lagtimes, sotaht the minimum number of summands can be achieved for the first lagtime, given the trajectory length of the particle
-            length = len(eval_tm)
-            
-            lagtimes_min_max = np.int(np.floor(length/settings["MSD"]["Amount summands"]))
-            lagtimes_min = CalculateLagtimes_min(eval_tm, lagtimes_min_max)
-            p_min_old = 2
-            lagtimes_max = lagtimes_min + p_min_old - 1
-        else:
-            max_counter = 1
-            lagtimes_min = settings["MSD"]["lagtimes_min"]
-            lagtimes_max = settings["MSD"]["lagtimes_max"]
+        # boolean to leave optimization counter of the loop    
+        leave_optimization = False
+        counter = 0
         
-        if lagtimes_min > 0:
-            stable_num_lagtimes = False
-            counter = 0
-    
-                # iterate msd fit till it converges
-            while ((stable_num_lagtimes == False) and (counter < max_counter)):
-                counter = counter + 1 
-                # Calc MSD
-    
-                nan_tm_sq, amount_frames_lagt1, enough_values, traj_length = \
-                CalcMSD(eval_tm, microns_per_pixel, amount_summands, lagtimes_min = lagtimes_min, lagtimes_max = lagtimes_max)
-    
-    #            print("enough values:  ",enough_values)
-    
-                if enough_values == True:  
-                    if any_successful_check == False:
-                        any_successful_check = True
-                        if MSD_fit_Show == True:
-                            plt.figure()
-                            
-                    #iterative to find optimal number of lagtimes in the fit    
-                    # Average MSD (several (independent) values for each lagtime)
-    
-                    lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
-                    AvgMsdRolling(nan_tm_sq, frames_per_second, DoRolling = False, lagtimes_min = lagtimes_min, lagtimes_max = lagtimes_max)
-    
+        # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
+        while ((leave_optimization == False) and (counter < max_counter)):
+            counter = counter + 1 
+
+            # Calc MSD
+            nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
+            CalcMSD(eval_tm, settings, lagtimes_min = lagtimes_min, lagtimes_max = lagtimes_max)
+
+            # just continue if there are enough data points
+            if enough_values == False:  
+                print("Localization precision to low for MSD fit")                
+            else:
+                # open a window to plot MSD into
+                any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
+
+                # check if datapoints in first lagtime are normal distributed
+                traj_has_error, stat_sign, dx = CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1)
+                
+                # only continue if trajectory is good. Otherwise plot the error
+                if traj_has_error == True:
+                    leave_optimization = True
+                    print("Trajectory has error. Particle ID: ", particleid)
+                    
+                else:    
+                    # calc MSD and Fit linear function through it
                     diff_direct_lin, diff_std = \
-                    FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
-                               PlotMsdOverLagtime = MSD_fit_Show, DoRolling = False)
-                        
+                    AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = False)
+                            
+                    # recalculate fitting range p_min
+                    if amount_lagtimes_auto == 1:
+                        lagtimes_max, leave_optimization = UpdateP_Min(settings, eval_tm, diff_direct_lin, amount_frames_lagt1, lagtimes_max)
+
+                    # do it time resolved                    
                     if do_rolling == True:
-                        lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
-                        AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = my_rolling, DoRolling = True, lagtimes_min = lagtimes_min)
                         bp()
                         diff_direct_lin_rolling = \
-                        FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
-                                   PlotMsdOverLagtime = MSD_fit_Show, my_rolling = my_rolling, DoRolling = True)
-    
-    
-                    if amount_lagtimes_auto == 1:
-                        # calculate theoretical best number of considered lagtimes
-                        p_min = OptimalMSDPoints(settings, mean_ep, mean_raw_mass, diff_direct_lin, amount_frames_lagt1)
-    
-                        if p_min == p_min_old:
-                            stable_num_lagtimes = True 
-                        else:
-                            lagtimes_max = lagtimes_min + p_min - 1
-                            print("p_min_before = ",p_min_old)
-                            print("p_min_after  = ",p_min)
-                            
-                            p_min_old = p_min
-                            
-                            # drop last line, because it is done again
-    #                        sizes_df_lin = sizes_df_lin[:-1]                   
-    
-    
-            if enough_values == True: 
-                red_ep = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
-                
-                # get the fit error if switches on (and working)
-    #            rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
-                
-                diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water)
+                        AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = True)                        
 
-                sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter, \
-                                       particleid, traj_length, amount_frames_lagt1, start_frame, \
-                                       mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
-                                       red_ep, max_step, true_particle)
-                
-                if do_rolling == True:
-                    red_ep_rolling = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin_rolling)
-               
-                    # get the fit error if switches on (and working)
-                    rel_error_diff_rolling, diff_std_rolling = \
-                    DiffusionError(traj_length, red_ep_rolling, diff_direct_lin_rolling, min_rel_error)
-                    
-                    diameter_rolling = DiffusionToDiameter(diff_direct_lin_rolling, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water, DoRolling = True)
-                    
-                    sizes_df_lin_rolling = ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, \
-                                           diff_std_rolling, diameter_rolling, \
-                                           particleid, traj_length, amount_frames_lagt1, start_frame, \
-                                           mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
-                                           red_ep, max_step)
-                    
-                else:
-                    sizes_df_lin_rolling = -1
 
-        else:
-            print("Localization precision to low for MSD fit")
-    
-    if MSD_fit_Show == True:    
-        # get the axis from the msd plot right
-        ax_msd = plt.gca()
-    
-        #get maximum value of lagtime and msd
-        y_min, y_max, x_min, x_max = GetLimitOfPlottedLineData(ax_msd)
+        # after the optimization is done -save the result in a large panda
+        # summarize
+        sizes_df_lin = ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, DoRolling = False)
+
+                   
+        # do it time resolved                    
+        if do_rolling == True:
+            bp()                        
+            sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, DoRolling = True)
+
+
+    # plot msd if wanted
+    if MSD_fit_Show == True:
+        AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = False, MSD_fit_Show = MSD_fit_Show)
         
-        ax_msd.set_xlim([0, 1.1*x_max])
-        ax_msd.set_ylim([0, 1.1*y_max])
+        AdjustMSDPlot(MSD_fit_Show)
     
     sizes_df_lin = sizes_df_lin.set_index('particle')
 
@@ -288,6 +141,190 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
 
     
     return sizes_df_lin, sizes_df_lin_rolling, any_successful_check
+
+
+
+
+
+
+
+def GetSettingsParameters(settings):
+    # get required parameters out of the settings
+    temp_water = settings["Exp"]["Temperature"]
+    amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
+    MSD_fit_Show = settings["Plot"]['MSD_fit_Show']
+    MSD_fit_Save = settings["Plot"]['MSD_fit_Save']
+    do_rolling = settings["Time"]["DoRolling"]
+ 
+    # sanity checks    
+    if MSD_fit_Save == True:
+        MSD_fit_Show = True
+        
+    if amount_lagtimes_auto == 1:
+        if settings["Exp"]["gain"] == "unknown":
+            raise ValueError("Number of considered lagtimes cant be estimated automatically, if gain is unknown. Measure gain, or change 'Amount lagtime _auto' values to 0.")
+
+    if temp_water < 250:
+        raise Exception("Temperature is below 250K! Check if the temperature is inserted in K not in C!")
+   
+  
+    return temp_water, amount_lagtimes_auto, MSD_fit_Show, MSD_fit_Save, do_rolling
+
+
+
+def GetFiberDiameter(settings):
+    # fiber diameter is needed
+    if settings["Fiber"]["Shape"] == "round":
+        fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
+        
+    elif settings["Fiber"]["Shape"] == "hex":
+        #calc out of hex diameters if wanted
+        if settings["Fiber"]["CalcTubeDiameterOutOfSidelength"] == 0:
+            fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
+        else:
+            side_length_um = settings["Fiber"]["ARHCF_hex_sidelength_um"]
+            diameter_inner_um, diameter_outer_um = nd.handle_data.ARHCF_HexToDiameter(side_length_um)
+            diameter_inner_nm = np.round(1000 * diameter_inner_um,0)
+            fibre_diameter_nm, settings = nd.handle_data.SpecificValueOrSettings(diameter_inner_nm, settings, "Fiber", "TubeDiameter_nm")
+    else:
+        fibre_diameter_nm = None
+        
+    return fibre_diameter_nm
+
+
+
+def GetVisc(settings):
+    
+    temp_water = settings["Exp"]["Temperature"]
+    solvent = settings["Exp"]["solvent"]
+    
+    try:
+        visc_auto = settings["Exp"]["Viscosity_auto"]
+    except:
+        visc_auto = settings["Exp"]["Viscocity_auto"]          
+    
+    if visc_auto == 1:
+        settings["Exp"]["Viscosity"] = nd.handle_data.GetViscosity(temperature = temp_water, solvent = solvent)
+    
+    #required since Viscosity has old typo
+    try:
+        visc_water = settings["Exp"]["Viscosity"]
+    except:
+        visc_water = settings["Exp"]["Viscocity"]
+        
+    return settings, visc_water
+
+
+
+def SelectTrajectories(t6_final, settings):
+    # select only the longest trajectory for evaluation
+    
+    EvalOnlyLongestTraj = settings["MSD"]["EvalOnlyLongestTraj"]
+    Min_traj_length = settings["Link"]["Min_tracking_frames"]
+    Max_traj_length = settings["Split"]["Max_traj_length"]
+    
+    if EvalOnlyLongestTraj == 1:
+        longest_particle, longest_traj = nd.handle_data.GetTrajLengthAndParticleNumber(t6_final)
+    
+        settings["Split"]["ParticleWithLongestTrajBeforeSplit"] = longest_particle
+    
+        t6_final_use = t6_final[t6_final["particle"] == longest_particle].copy()
+    else:
+        t6_final_use = t6_final.copy()
+        
+    # split to long trajectories
+    if Max_traj_length is None:
+        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings)
+    else:
+        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings, Min_traj_length, Max_traj_length)
+        
+
+    return t6_final_use, settings
+
+
+
+def GetParameterOfTraj(eval_tm):
+    start_frame = int(eval_tm.iloc[0].frame)
+    mean_mass = eval_tm["mass"].mean()
+    mean_size = eval_tm["size"].mean()
+    mean_ecc = eval_tm["ecc"].mean()
+    mean_signal = eval_tm["signal"].mean()
+    mean_raw_mass = eval_tm["raw_mass"].mean()
+    mean_ep = eval_tm["ep"].mean()
+    max_step = eval_tm["rel_step"].max()
+    true_particle = eval_tm["true_particle"].max()
+    
+    return start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle
+
+
+
+def CreateNewMSDPlot(any_successful_check, MSD_fit_Show):
+    if any_successful_check == False:
+        any_successful_check = True
+        if MSD_fit_Show == True:
+            plt.figure()
+
+    return any_successful_check
+
+def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
+    # defines how many lagtimes are considered for the fit
+    if amount_lagtimes_auto == 1:            
+        # maximum iteration
+        max_counter = 10
+       
+        # the lower lagtimes are always considered no matter how noise they are (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3055791/)
+        lagtimes_min = 1
+        lagtimes_max = np.int(len(eval_tm)/10)
+                
+    else:
+        max_counter = 1
+        lagtimes_min = settings["MSD"]["lagtimes_min"]
+        lagtimes_max = settings["MSD"]["lagtimes_max"]
+
+    return lagtimes_min, lagtimes_max, max_counter
+
+
+
+def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1):
+    # get movement between two CONSECUTIVE frames
+    dx = nan_tm[1][np.isnan(nan_tm[1]) == False]
+
+    # fit the normal distribution
+    mu, std = scipy.stats.norm.fit(dx)
+    
+    # perform Kolmogorow-Smirnow-Test if data can be represented by best normal fit
+    [D_Kolmogorow, _] = scipy.stats.kstest(dx, 'norm', args=(mu, std))
+
+    # calculate statistical significance out of it
+    # https://de.wikipedia.org/wiki/Kolmogorow-Smirnow-Test
+    stat_sign = 2*np.power(np.e,-2*traj_length*(D_Kolmogorow**2))
+
+    # stat_sign says how likely it is, that this trajectory has not normal distribute movements
+    traj_has_error = stat_sign < MinSignificance 
+    
+    return traj_has_error, stat_sign, dx
+
+
+
+def UpdateP_Min(settings, eval_tm, diff_direct_lin, amount_frames_lagt1, lagtimes_max):
+    # calculate theoretical best number of considered lagtimes
+    
+    mean_ep = eval_tm["ep"].mean() 
+    mean_raw_mass = eval_tm["raw_mass"].mean()
+    
+    p_min = OptimalMSDPoints(settings, mean_ep, mean_raw_mass, diff_direct_lin, amount_frames_lagt1)
+
+    if p_min == lagtimes_max:
+        print("p_min final = ", p_min)
+        leave_optimization = True 
+    else:
+        print("p_min before = ", lagtimes_max)
+        print("p_min after  = ", p_min)        
+        lagtimes_max = p_min
+        leave_optimization = False
+       
+    return p_min, leave_optimization
+
 
  
 def GetLimitOfPlottedLineData(ax):
@@ -319,8 +356,35 @@ def GetLimitOfPlottedLineData(ax):
     return y_min, y_max, x_min, x_max
 
 
-def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, lagtimes_min = 1, lagtimes_max = 2):
 
+def AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = False, MSD_fit_Show = False):
+    frames_per_second = settings["Exp"]["fps"]
+    
+    # calc the MSD per lagtime
+    lagt_direct, mean_displ_direct, mean_displ_sigma_direct = \
+    AvgMsdRolling(nan_tm_sq, frames_per_second, DoRolling = False, lagtimes_min = lagtimes_min, lagtimes_max = lagtimes_max)
+
+    # Fit a linear function through it
+    diff_direct_lin, diff_std = \
+    FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, \
+           PlotMsdOverLagtime = MSD_fit_Show, DoRolling = False)                    
+
+    return diff_direct_lin, diff_std
+
+
+
+def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5, lagtimes_min = 1, lagtimes_max = 2):
+    
+    if settings != None:
+        microns_per_pixel = settings["Exp"]["Microns_per_pixel"]
+        
+        if settings["MSD"]["Amount lagtimes auto"] == 1:
+            amount_summands = 0
+        else:
+            amount_summands = settings["MSD"]["Amount summands"]
+       
+    
+    nan_tm = 0
     nan_tm_sq = 0
     amount_frames_lagt1 = 0
 #    nd.visualize  
@@ -340,7 +404,7 @@ def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, lagtimes_min = 
     
     # Checking already here, if particle-track is long enough:
     length_indexer = max_frame - min_frame + 1
-    traj_length = length_indexer
+    traj_length = int(length_indexer)
 
     if length_indexer < (lagtimes_max + amount_summands * lagtimes_max):
         enough_values = False
@@ -386,7 +450,7 @@ def CalcMSD(eval_tm, microns_per_pixel = 1, amount_summands = 5, lagtimes_min = 
             enough_values = True    
             nan_tm_sq=nan_tm**2 # Squaring displacement    
      
-    return nan_tm_sq, amount_frames_lagt1, enough_values, traj_length
+    return nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm
     
 
 
@@ -429,7 +493,6 @@ def AvgMsd(nan_tm_sq, frames_per_second):
 def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = False, lagtimes_min = 1, lagtimes_max = 2):
     
     num_cols = len(nan_tm_sq.columns) - 1  
-    
     lagt_direct = np.linspace(lagtimes_min,lagtimes_max ,num_cols) /frames_per_second # converting frames into physical time: 
     # first entry always starts with 1/frames_per_second
     
@@ -470,6 +533,7 @@ def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = Fa
             mean_displ_variance_direct[column] = mean_displ_variance_direct_loop
 
     else:   
+        bp()
         mean_displ_direct = pd.DataFrame(index = nan_tm_sq.index, columns = nan_tm_sq.columns.tolist()[1:])
         mean_displ_variance_direct = mean_displ_direct.copy()    
 
@@ -610,7 +674,6 @@ def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None
     
     diameter = (2*const_Boltz*temp_water/(6*math.pi *visc_water)*1e9) /diffusion # diameter of each particle
 
-
     if UseHindranceFac == True:
         if diameter < fibre_diameter_nm:
             if DoRolling == False:
@@ -671,29 +734,46 @@ def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm, DoPrint = True):
 
 
 
+def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, DoRolling = False):
+    #write all the valuable parameters in one large pandas
+    
+    mean_raw_mass = eval_tm["raw_mass"].mean()
+    min_rel_error = settings["MSD"]["Min rel Error"]
+    UseHindranceFac = settings["MSD"]["EstimateHindranceFactor"]
+    temp_water = settings["Exp"]["Temperature"]
+    
+    settings, visc_water = GetVisc(settings)
+    fibre_diameter_nm = GetFiberDiameter(settings)
+    # get parameters of the to analyze trajectory
+    start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle = GetParameterOfTraj(eval_tm)
+    
+    particleid = eval_tm.particle.unique()
+    
+    red_ep = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
+                    
+#     get the fit error if switches on (and working)
+    rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
+
+    diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water, DoRolling = DoRolling)
+
+    if DoRolling = False:
+        sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter, \
+                           particleid, traj_length, amount_frames_lagt1, start_frame, \
+                           mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
+                           red_ep, max_step, true_particle, stat_sign = stat_sign)
+    else:
+        bp()
+
+    return sizes_df_lin
+
+
+
 def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                     particleid, traj_length, amount_frames_lagt1, start_frame,
                     mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
-                    red_ep, max_step, true_particle):
+                    red_ep, max_step, true_particle, stat_sign = None):
 
-    # Storing results in df:
-#    sizes_df_lin = sizes_df_lin.append(pd.DataFrame(data={'particle': [particleid],
-#                                                          'diffusion': [diff_direct_lin],
-#                                                          'diffusion std': [diff_std],
-#                                                          'diameter': [diameter],
-#                                                          'ep': [mean_ep],
-#                                                          'redep' : [red_ep], 
-#                                                          'signal': [mean_signal],
-#                                                          'mass': [mean_mass],
-#                                                          'rawmass': [mean_raw_mass],
-#                                                          'max step': [max_step],
-#                                                          'first frame': [start_frame],
-#                                                          'traj length': [traj_length],
-#                                                          'valid frames':[amount_frames_lagt1],
-#                                                          'size': [mean_size],
-#                                                          'ecc': [mean_ecc],
-#                                                          'true_particle': [true_particle]}),sort=False)
-    
+    # Storing results in df:   
     sizes_df_lin = sizes_df_lin.append(pd.DataFrame(data={'particle': [particleid],
                                                           'diffusion': [diff_direct_lin],
                                                           'diffusion std': [diff_std],
@@ -709,6 +789,7 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                                                           'valid frames':[amount_frames_lagt1],
                                                           'size': [mean_size],
                                                           'ecc': [mean_ecc],
+                                                          'stat_sign': [stat_sign],
                                                           'true_particle': [true_particle]}), sort=False)
     
     
@@ -750,6 +831,18 @@ def ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, diff_s
 
 
 
+def AdjustMSDPlot(MSD_fit_Show):
+    if MSD_fit_Show == True:    
+        # get the axis from the msd plot right
+        ax_msd = plt.gca()
+    
+        #get maximum value of lagtime and msd
+        y_min, y_max, x_min, x_max = GetLimitOfPlottedLineData(ax_msd)
+        
+        ax_msd.set_xlim([0, 1.1*x_max])
+        ax_msd.set_ylim([0, 1.1*y_max])
+
+
 def OptimalMSDPoints(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
     """
     
@@ -758,11 +851,11 @@ def OptimalMSDPoints(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
     """
     red_x = ReducedLocalPrecision(settings, raw_mass, diffusivity)
     
-    f_b = 2
-    bp()
-    if type(red_x) != type('abc'): # exclude that red_x is a string ("unknown")
-        if red_x >= 0:
-            f_b = 2 + 1.35 * np.power(red_x,0.6)
+    
+    if type(red_x) == "gain missing":
+        f_b = 2
+    else:
+        f_b = 2 + 1.35 * np.power(red_x,0.6)
     
     L_b = 0.8 + 0.564 * amount_frames_lagt1
     
@@ -775,7 +868,7 @@ def OptimalMSDPoints(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
     
     
     
-def ReducedLocalPrecision(settings, mass, diffusion, DoRolling = False):
+def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
     """ calculate reduced square localization error from experimental parameters
     
     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD13
@@ -797,12 +890,12 @@ def ReducedLocalPrecision(settings, mass, diffusion, DoRolling = False):
     # 2* because it is coherent
     # not sure here
     if gain == "unknown":
-        red_x = "unknown"
+        red_x = "gain missing"
         
     else:
-        num_photons = mass / gain
+        num_photons = raw_mass / gain
         static_local_precision_um = rayleigh_um / np.power(num_photons ,1/2)
-        
+
         # Eq. 13:
         red_x = np.power(static_local_precision_um,2) / (diffusion * lagtime_s) \
         * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
@@ -815,6 +908,7 @@ def ReducedLocalPrecision(settings, mass, diffusion, DoRolling = False):
         if red_x < 0:
             red_x = 0
     
+    
     return red_x
     
 
@@ -826,22 +920,27 @@ def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, D
         https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD7
         Eq 7
         """
-        if DoRolling == False:
-            delta = DeltaErrorEstimation(red_x,traj_length)
-        else:
+#        if DoRolling == False:
+#            delta = DeltaErrorEstimation(red_x,traj_length)
+#        else:
+#            bp()
+#            
+#        if np.isnan(delta) == True:
+#            rel_error = min_rel_error
+#        else:
+#            rel_error = np.power(2/(traj_length-1) * (1+delta**2),1/2)
+        
+        if DoRolling == True:
             bp()
-            
-        if np.isnan(delta) == True:
-            rel_error = min_rel_error
-        else:
-            rel_error = np.power(2/(traj_length-1) * (1+delta**2),1/2)
+           
+        # Eq. 12
+        d = 1
+        rel_error = np.sqrt(2/(d*(traj_length-1))) * np.sqrt(1+2*np.sqrt(1+2*red_x))
     
     else:
         #Foerster2019 ARHCF-paper
         rel_error = np.sqrt((2*lagtimes_max) / (3*(traj_length-lagtimes_max)))
-
-
-    
+  
     diffusion_std = diffusion * rel_error
     
     "Min rel Error"
@@ -852,28 +951,8 @@ def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, D
 
 
 
-def DeltaErrorEstimation(red_x,traj_length):
-    """
-    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#APP1
-    Eq A5 - A8
-    """
 
-    # old red_x**2 is wrong
-#    y1 = 1 / np.power(1 + 2*red_x**2 , 1/2)
-#    y2 = (1+red_x) / np.power(1 + 2*red_x**2 , 3/2)
-
-    y1 = 1 / np.sqrt(1 + 2*red_x)
-    y2 = (1+red_x) / np.power(1 + 2*red_x , 3/2)
-    
-    
-    delta = (1-y1) / np.sqrt(y2 - y1**2)
-
-    
-    return delta
-
-
-def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None,
-         amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, EvalOnlyLongestTraj = 0):
+def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None, amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, EvalOnlyLongestTraj = 0):
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -962,42 +1041,6 @@ def ContinousIndexingTrajectory(t):
 
 
 
-def CalculateLagtimes_min(eval_tm, lagtimes_min_max = 10, min_snr = 10):
-    """ calculate the minimum lagtime for the MSD fit
-    
-    If the framerate is to high or the localization precision to bad, small lagtimes contain only noise
-    The function searches the first lagtime which has a msd which is at least 10 times beyond the noise floor
-    """
-        
-    eval_tm = ContinousIndexingTrajectory(eval_tm)
-    msd_offset = np.square(eval_tm.ep).mean()
-    
-    valid_lagtimes_min = False
-    lagtimes_min = 1
-    
-    # this function needs and abort-criteria too
-    # for 
-    
-    while valid_lagtimes_min == False:
-        msd = np.square(eval_tm.x.diff(lagtimes_min)).mean()
-        
-        # check if SNR of MSD is better the minimum SNR
-        current_snr = msd/msd_offset
-        if current_snr > min_snr:
-            valid_lagtimes_min = True
-        else:
-            print("msd offset is: ", msd_offset)
-            print("msd (at first lagtime = {:d}) is: {:f}".format(lagtimes_min,msd))
-
-            lagtimes_min = lagtimes_min + 1
-            if lagtimes_min > lagtimes_min_max:
-                lagtimes_min = -1
-                
-                valid_lagtimes_min = True
-    
-    return lagtimes_min
-
-
 
 def InvDiameter(sizes_df_lin, settings):
     
@@ -1071,4 +1114,56 @@ def FitMeanDiameter(sizes_df_lin, settings):
 #    return diff_direct_lin, std_diff_direct_lin
     
     
-    
+
+#def CalculateLagtimes_min(eval_tm, lagtimes_min_max = 10, min_snr = 10):
+#    """RF200306 - The idead of this function is nice. However publications show that the noise should be considered too, because it contains the best information though
+#    
+#    calculate the minimum lagtime for the MSD fit
+#    
+#    If the framerate is to high or the localization precision to bad, small lagtimes contain only noise
+#    The function searches the first lagtime which has a msd which is at least 10 times beyond the noise floor
+#    """
+#        
+#    eval_tm = ContinousIndexingTrajectory(eval_tm)
+#    msd_offset = np.square(eval_tm.ep).mean()
+#    
+#    valid_lagtimes_min = False
+#    lagtimes_min = 1
+#    
+#    # this function needs and abort-criteria too
+#    # for 
+#    
+#    while valid_lagtimes_min == False:
+#        msd = np.square(eval_tm.x.diff(lagtimes_min)).mean()
+#        
+#        # check if SNR of MSD is better the minimum SNR
+#        current_snr = msd/msd_offset
+#        if current_snr > min_snr:
+#            valid_lagtimes_min = True
+#        else:
+#            print("msd offset is: ", msd_offset)
+#            print("msd (at first lagtime = {:d}) is: {:f}".format(lagtimes_min,msd))
+#
+#            lagtimes_min = lagtimes_min + 1
+#            if lagtimes_min > lagtimes_min_max:
+#                lagtimes_min = -1
+#                
+#                valid_lagtimes_min = True
+#    
+#    return lagtimes_min
+#    
+#
+#def DeltaErrorEstimation(red_x,traj_length):
+#    """
+#    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#APP1
+#    Eq A5 - A8
+#    """
+#
+#    #  
+#    # old red_x**2 is wrong
+#    y1 = 1 / np.power(1 + 2*red_x**2 , 1/2)
+#    y2 = (1+red_x) / np.power(1 + 2*red_x**2 , 3/2)
+#    delta = (1-y1) / np.sqrt(y2 - y1**2)
+#
+#    
+#    return delta

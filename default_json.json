@@ -46,11 +46,11 @@
           "Apply": 0,
           "Save": 0,
           "x_min": 0,
-          "x_max": 55,
+          "x_max": 100000,
           "y_min": 0,
-          "y_max": 1300,
+          "y_max": 100000,
           "frame_min": 0,
-          "frame_max": 2000
+          "frame_max": 100000
      },
      "Subsampling": {
           "Apply": 0,
@@ -77,7 +77,8 @@
           "Bead brightness": "auto",
           "Bead size": "auto",
           "Separation": "auto",
-          "GuessLowestDiameter_nm": 50
+          "GuessLowestDiameter_nm": 50,
+          "Drift": "auto"
      },
      "Find": {
           "Estimated particle size": 13,
@@ -146,10 +147,11 @@
           "Histogramm_max": 1000.0,
           "DiameterPDF_Show": 1,
           "DiameterPDF_Save": 1,
+          "DiameterPDF_min_max_auto": 1,
           "PDF_min": 0.0,
           "PDF_max": 1000.0,
-          "DiamOverTraj_Show": 0,
-          "DiamOverTraj_Save": 0,
+          "DiamOverTraj_Show": 1,
+          "DiamOverTraj_Save": 1,
           "Correlation_Show": 0,
           "Correlation_Save": 0,
           "Pearson_Show": 0,
