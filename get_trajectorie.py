@@ -116,6 +116,8 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
         
         separation = settings["Find"]["Separation data"]
         minmass    = settings["Find"]["Minimal bead brightness"]
+        percentile = settings["Find"]["PercentileThreshold"]
+        
         
         if diameter == None:
             if UseLog == False:
@@ -138,10 +140,11 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             else:
                 plt.imshow(frames_np[:,:])
                 
-
-            
+            # Make image uint16 otherwise trackpy makes min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
+            frames_np[frames_np < 0] = 0
+            frames_np = np.uint16(frames_np)
                 
-            output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, processes = 'auto')
+            output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, processes = 'auto', percentile = percentile)
             
             print("Set all NaN in estimation precision to 0")
             output.loc[np.isnan(output.ep), "ep"] = 0
@@ -590,7 +593,12 @@ def split_traj(t2_long, t3_gapless, ParameterJsonFile):
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
-    return t4_cutted
+    # close gaps to have a continous trajectory
+    t4_cutted_no_gaps = nd.get_trajectorie.close_gaps(t4_cutted)   
+
+    
+
+    return t4_cutted, t4_cutted_no_gaps
 
 
 
@@ -668,7 +676,7 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
 
 
 def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_intensity_step = None,
-                             min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = True, NumParticles2Plot = 3,
+                             min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = False, NumParticles2Plot = 3,
                              PlotAnimationFiltering = False, rawframes_ROI = -1):
     """ split the trajectory at high intensity jumps
     

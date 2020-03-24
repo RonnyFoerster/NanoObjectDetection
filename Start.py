@@ -116,7 +116,7 @@ def NewEvaluation():
             \n 1 - auto \
             \n 2 - select myself \n"))
     
-    if help_options in [0,1,2]:
+    if (help_options in [0,1,2]) == False:
         print("invalid input. Apply auto.")
         help_options = 1
     

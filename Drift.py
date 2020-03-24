@@ -16,10 +16,7 @@ import NanoObjectDetection as nd
 from pdb import set_trace as bp #debugger
 
 #%%
-def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None,
-                    min_particle_per_block = None, min_tracking_frames = None, PlotGlobalDrift = False, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, 
-                    PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False,
-                    PlotDriftCorrectedTraj = False):
+def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None, min_particle_per_block = None, min_tracking_frames = None, PlotGlobalDrift = False, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False):
     
     """
     Calculate and remove overall drift from trajectories
@@ -52,6 +49,7 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
         
         if settings["Help"]["Drift"] == "auto":
             num_particles_per_frame = t_drift.groupby("frame")["particle"].count().mean()
+
             nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_per_frame)
 
         

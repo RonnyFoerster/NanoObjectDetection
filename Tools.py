@@ -22,6 +22,7 @@ from pdb import set_trace as bp #debugger
 
 #%%
 def CameraCalibration(folder_dark,folder_bright,subsampling = 0):
+    print("THIS IS UNDER CONSTRUCTION. USE CAL_READNOISE FROM RAINER INSTEAD")
     """
     Calculates the camera properties gain and readout noise
     Plots the variance over the intensity

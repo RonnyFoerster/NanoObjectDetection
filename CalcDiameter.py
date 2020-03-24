@@ -56,6 +56,10 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
     
     #boolean for plotting stuff
     any_successful_check = False
+    
+    #boolean output if msd evaluation contributes to final result
+    successfull_fit = []
+    
 
     # LOOP THROUGH ALL THE PARTICLES
     for i,particleid in enumerate(particle_list_value):
@@ -68,64 +72,76 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
         lagtimes_min, lagtimes_max, max_counter = MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm)
         
         # boolean to leave optimization counter of the loop    
-        leave_optimization = False
+        OptimizingStatus = "Continue"
         counter = 0
         
         # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
-        while ((leave_optimization == False) and (counter < max_counter)):
-            counter = counter + 1 
-
-            # Calc MSD
-            nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
-            CalcMSD(eval_tm, settings, lagtimes_min = lagtimes_min, lagtimes_max = lagtimes_max)
-
-            # just continue if there are enough data points
-            if enough_values == False:  
-                print("Localization precision to low for MSD fit")                
-            else:
-                # open a window to plot MSD into
-                any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
-
-                # check if datapoints in first lagtime are normal distributed
-                traj_has_error, stat_sign, dx = CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1)
+        while OptimizingStatus == "Continue":
+            if max_counter == 1:
+                # dont do optimization
+                OptimizingStatus = "Successful"
+            
+            if counter > max_counter:
+                print("Does not converge")
+                OptimizingStatus = "Abort"
                 
-                # only continue if trajectory is good. Otherwise plot the error
-                if traj_has_error == True:
-                    leave_optimization = True
-                    print("Trajectory has error. Particle ID: ", particleid)
-                    
-                else:    
-                    # calc MSD and Fit linear function through it
-                    diff_direct_lin, diff_std = \
-                    AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = False)
-                            
-                    # recalculate fitting range p_min
-                    if amount_lagtimes_auto == 1:
-                        lagtimes_max, leave_optimization = UpdateP_Min(settings, eval_tm, diff_direct_lin, amount_frames_lagt1, lagtimes_max)
-
-                    # do it time resolved                    
-                    if do_rolling == True:
-                        bp()
-                        diff_direct_lin_rolling = \
-                        AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = True)                        
-
-
-        # after the optimization is done -save the result in a large panda
-        # summarize
-        sizes_df_lin = ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, DoRolling = False)
-
-                   
-        # do it time resolved                    
-        if do_rolling == True:
-            bp()                        
-            sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, DoRolling = True)
-
-
-    # plot msd if wanted
-    if MSD_fit_Show == True:
-        AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = False, MSD_fit_Show = MSD_fit_Show)
+            else:
+                counter = counter + 1
         
-        AdjustMSDPlot(MSD_fit_Show)
+                # Calc MSD
+                nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
+                CalcMSD(eval_tm, settings, lagtimes_min = lagtimes_min, lagtimes_max = lagtimes_max)
+    
+                # just continue if there are enough data points
+                if enough_values in ["ToShortTraj", "ToManyHoles"]:
+                    OptimizingStatus = "Abort"
+                    
+                else:
+                    # open a window to plot MSD into
+                    any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
+    
+                    # check if datapoints in first lagtime are normal distributed
+                    traj_has_error, stat_sign, dx = CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1)
+                    
+                    # only continue if trajectory is good. Otherwise plot the error
+                    if traj_has_error == True:
+                        OptimizingStatus = "Abort"
+                        print("Trajectory has error. Particle ID: ", particleid)
+                        
+                    else:    
+                        # calc MSD and Fit linear function through it
+                        diff_direct_lin, diff_std = \
+                        AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = False)
+                                
+                        # recalculate fitting range p_min
+                        if amount_lagtimes_auto == 1:
+                            lagtimes_max, OptimizingStatus = UpdateP_Min(settings, eval_tm, diff_direct_lin, amount_frames_lagt1, lagtimes_max)
+    
+                        # do it time resolved                    
+                        if do_rolling == True:
+                            bp()
+                            diff_direct_lin_rolling = \
+                            AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = True)                        
+
+
+        if OptimizingStatus == "Successful":
+            # after the optimization is done -save the result in a large panda
+            # summarize
+            sizes_df_lin = ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, DoRolling = False)
+    
+            # plot msd if wanted
+            if MSD_fit_Show == True:
+                AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = False, MSD_fit_Show = True)
+                       
+            # do it time resolved                    
+            if do_rolling == True:
+                bp()                        
+                sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, DoRolling = True)
+
+
+
+        
+    AdjustMSDPlot(MSD_fit_Show)
     
     sizes_df_lin = sizes_df_lin.set_index('particle')
 
@@ -316,14 +332,14 @@ def UpdateP_Min(settings, eval_tm, diff_direct_lin, amount_frames_lagt1, lagtime
 
     if p_min == lagtimes_max:
         print("p_min final = ", p_min)
-        leave_optimization = True 
+        OptimizingStatus = "Successful"
     else:
         print("p_min before = ", lagtimes_max)
         print("p_min after  = ", p_min)        
         lagtimes_max = p_min
-        leave_optimization = False
+        OptimizingStatus = "Continue"
        
-    return p_min, leave_optimization
+    return p_min, OptimizingStatus
 
 
  
@@ -407,7 +423,7 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
     traj_length = int(length_indexer)
 
     if length_indexer < (lagtimes_max + amount_summands * lagtimes_max):
-        enough_values = False
+        enough_values = "ToShortTraj"
         print("Trajectory is to short to have enough data points. \n Trajectorie length must be larger than (amount_summands * lagtimes_max). \n Consider optimizing parameters Min_tracking_frames, amount_summands, lagtimes_max.")
     
     else:
@@ -443,7 +459,7 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
 #        amount_frames_lagt_max = 
 
         if amount_frames_lagt_max < (lagtimes_max + 1 + amount_summands * lagtimes_max):
-            enough_values = False
+            enough_values = "ToManyHoles"
             print("To many holes in trajectory to have enough data points. \n Number of data points must be larger than (amount_summands * lagtimes_max). \n Consider optimizing parameters Dark tim, Min_tracking_frames, amount_summands, lagtimes_max")
 
         else:
@@ -610,7 +626,6 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
             
 #        mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values[0]+ fit_values[1])
         mean_displ_fit_direct_lin = lagt_direct *fit_values[0]+ fit_values[1]
-    
         nd.visualize.MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin)
     
     
@@ -756,7 +771,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
 
     diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water, DoRolling = DoRolling)
 
-    if DoRolling = False:
+    if DoRolling == False:
         sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter, \
                            particleid, traj_length, amount_frames_lagt1, start_frame, \
                            mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
@@ -915,7 +930,7 @@ def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
 
 def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, DoRolling = False):
     
-    if red_x != "unknown":
+    if red_x != "gain missing":
         """
         https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD7
         Eq 7
@@ -935,6 +950,7 @@ def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, D
            
         # Eq. 12
         d = 1
+
         rel_error = np.sqrt(2/(d*(traj_length-1))) * np.sqrt(1+2*np.sqrt(1+2*red_x))
     
     else:

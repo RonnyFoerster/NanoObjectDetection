@@ -47,11 +47,9 @@ rawframes_ROI = nd.handle_data.UseROI(rawframes_np, ParameterJsonFile)
 # supersampling  
 rawframes_super = nd.handle_data.UseSuperSampling(rawframes_ROI, ParameterJsonFile)
 
-del rawframes_ROI
-
 
 #%% standard image preprocessing
-rawframes_pre = nd.PreProcessing.Main(rawframes_super, ParameterJsonFile)
+rawframes_pre, static_background = nd.PreProcessing.Main(rawframes_super, ParameterJsonFile)
 
 del rawframes_super
 
@@ -105,7 +103,7 @@ t3_gapless = nd.get_trajectorie.calc_intensity_fluctuations(t3_gapless, Paramete
 
 
 #%% split trajectories if necessary (e.g. to large intensity jumps)
-t4_cutted = nd.get_trajectorie.split_traj(t2_long, t3_gapless, ParameterJsonFile)
+t4_cutted, t4_cutted_no_gaps = nd.get_trajectorie.split_traj(t2_long, t3_gapless, ParameterJsonFile)
 
 
 #%% drift correction
@@ -125,3 +123,4 @@ sizes_df_lin, sizes_df_lin_rolling , any_successful_check = nd.CalcDiameter.Main
 nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check)
 
 
+nd.visualize.AnimateDiameterAndRawData_Big2(rawframes_ROI, static_background, rawframes_pre, sizes_df_lin, t4_cutted_no_gaps, ParameterJsonFile)

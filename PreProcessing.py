@@ -42,6 +42,7 @@ def Main(rawframes_np, ParameterJsonFile):
         if settings["PreProcessing"]["Remove_StaticBackground"] == 1:            
             rawframes_np, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings)            
         else:
+            static_background = "NotDone"
             print('Static background: not removed')
       
         
@@ -74,7 +75,7 @@ def Main(rawframes_np, ParameterJsonFile):
             
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
-    return rawframes_np
+    return rawframes_np, static_background
 
 
 
@@ -161,8 +162,8 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
             static_background = a.mean(axis = 0)
             
         else:
-            min_percentile = int(0.2*rawframes_np_loop.shape[0])
-            max_percentile = int(0.8*rawframes_np_loop.shape[0])
+            min_percentile = int(0.3*rawframes_np_loop.shape[0])
+            max_percentile = int(0.7*rawframes_np_loop.shape[0])
             
             static_background = np.mean(np.sort(rawframes_np_loop,axis = 0)[min_percentile:max_percentile,:],axis = 0)
 
@@ -309,6 +310,8 @@ def ConvolveWithPSF(rawframes_np, settings):
     print('Convolve rawframe by PSF to enhance SNR: removed')
 
     return rawframes_filtered
+
+
 
 
 

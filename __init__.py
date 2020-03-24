@@ -23,6 +23,8 @@ from . import wlsice
 from . import visualize
 from . import particleStats
 
+from . import sandbox
+
 
 from . import Tutorial
 from . import default_json
