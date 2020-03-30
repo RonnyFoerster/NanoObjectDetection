@@ -296,7 +296,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     return sim_part_tm
 
 
-def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold"):   
+def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None):   
     """ calculate the radiation force onto a scattering sphere
     
     https://reader.elsevier.com/reader/sd/pii/0030401895007539?token=48F2795599992EB11281DD1C2A50B58FC6C5F2614C90590B9700CD737B0B9C8E94F2BB8A17F74D0E6087FF3B7EF5EF49
@@ -318,25 +318,39 @@ def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold"):
     r_m  = r_nm / 1e9
     
     I = P_W/A_sqm
-    
-    if material == "Gold":
-        au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
-        #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
-        #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Werner.txt', delimiter='\t')
-    else:
-        print("material unknown")
+
+    if e_part == None:    
+        if material == "Gold":
+            au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
+            #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
+            #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Werner.txt', delimiter='\t')
+        else:
+            print("material unknown")
+            
+        # data is stacked so need to rearrange
+        N = len(au)//2
+        mylambda = au[1:N,0]
+        n_real = au[1:N,1]
+        n_imag = au[N+1:,1]
         
-    # data is stacked so need to rearrange
-    N = len(au)//2
-    mylambda = au[1:N,0]
-    n_real = au[1:N,1]
-    n_imag = au[N+1:,1]
+        n_part_real = np.interp(lambda_um, mylambda, n_real)
+        n_part_imag = np.interp(lambda_um, mylambda, n_imag)
+        n_part = n_part_real + 1j * n_part_imag    
+
+        e_part_real = n_part_real**2 - n_part_imag**2
+        e_part_imag = 2*n_part_real*n_part_imag
+        e_part = e_part_real + 1j * e_part_imag
     
-    n_part_real = np.interp(lambda_um, mylambda, n_real)
-    n_part_imag = np.interp(lambda_um, mylambda, n_imag)
-    n_part = n_part_real + 1j * n_part_imag
+    else:
+        if isinstance(e_part, complex) == False:
+            raise TypeError("number must be complex, like 1+1j")
+        else:
+            e_part_real = np.real(e_part)
+            e_part_imag = np.imag(e_part)
+            n_part = np.sqrt((e_part_real+e_part_real)/2)
     
     n_media = 1.333
+    e_media = n_media**2
     
     m = n_part / n_media
     
@@ -344,9 +358,17 @@ def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold"):
     m = np.abs(m)
     n_part = np.abs(n_part)
     
-    F_scat = 8*pi*n_part*np.power(k,4)*np.power(r_m,6)/(3*c) * ((m**2-1)/(m**2+1)) * I
+    C_scat = 8/3*pi*np.power(k,4)*np.power(r_m,6) * ((m**2-1)/(m**2+1))
     
-    print(F_scat)
+    V = 4/3*pi*np.power(r_m,3)
+    C_abs = k * np.imag(3 * V * (e_part - e_media)/(e_part + 2*e_media))
+    
+    #Eq 11 in Eq 10
+    F_scat = C_scat * n_media/c * I
+    F_abs = C_abs * n_media/c * I
+    
+    print("F_scat = ", F_scat)
+    print("F_abs = ", F_abs)
 
     return F_scat
 
@@ -375,14 +397,15 @@ def E_Kin_Radiation_Force(F,m,t):
 
 #%%
 def LoopSimulation():
-    if 1 == 0:
+    # Makes several run of the random walk for several particle numbers and frames to get a good statistic
+    if 1 == 1:
         frames = 1000
-        iterations = 5
-        num_particles = [10,30,100,200,500,1000]
+        iterations = 3
+        num_particles = [5, 10, 25, 50, 100, 200, 400, 800]
     else:
         frames = 1000
-        iterations = 2
-        num_particles = [10,100, 500]                
+        iterations = 1
+        num_particles = [200]                
         
     num_diff_particles = len(num_particles)
 
@@ -393,23 +416,26 @@ def LoopSimulation():
         print("number of particles", loop_num_particles)
         for loop_iter in range(iterations):
             print("num iteration: ", loop_iter)
-            num_eval_particles[loop_iter,loop_num,:], num_eval_particles_per_frame[loop_iter,loop_num,:], t_unconf, t_conf, eval_t1, eval_t2 = ConcentrationVsNN(frames, loop_num_particles)
+            num_eval_particles[loop_iter,loop_num,:], num_eval_particles_per_frame[loop_iter,loop_num,:], volume_nl, t_unconf, t_conf, eval_t1, eval_t2 = ConcentrationVsNN(frames, loop_num_particles)
     
     print("done")
     
-    PlotSimulationResults(num_particles, frames, num_eval_particles, num_eval_particles_per_frame)
+    conc_per_nl = list(np.round(np.asarray(num_particles)/volume_nl, 0).astype("int"))
+    
+    PlotSimulationResults(num_particles, conc_per_nl, frames, num_eval_particles, num_eval_particles_per_frame)
     
     return num_eval_particles, num_eval_particles_per_frame, t_unconf, t_conf, eval_t1, eval_t2
 
 
 
-def PlotSimulationResults(num_particles, frames, num_eval_particles, num_eval_particles_per_frame):
+def PlotSimulationResults(num_particles, conc_per_nl, frames, num_eval_particles, num_eval_particles_per_frame, RelDrop = False):
     # Plot it all
-    PlotNumberParticlesPerFrame(num_particles, frames, num_eval_particles_per_frame)
-    PlotNumberDifferentParticle(num_particles, frames, num_eval_particles)
+    
+    PlotNumberParticlesPerFrame(num_particles, conc_per_nl, frames, num_eval_particles_per_frame, RelDrop)
+    PlotNumberDifferentParticle(num_particles, conc_per_nl, frames, num_eval_particles, RelDrop)
     
     
-def PlotNumberParticlesPerFrame(num_particles, frames, num_eval_particles_per_frame):
+def PlotNumberParticlesPerFrame(num_particles, conc_per_nl, frames, num_eval_particles_per_frame, RelDrop = False):
     # Plot the Number of Particles that can be evaluated in average in a frame
     eval_part_mean = np.mean(num_eval_particles_per_frame, axis = 0)
     eval_part_std = np.std(num_eval_particles_per_frame, axis = 0)
@@ -432,27 +458,38 @@ def PlotNumberParticlesPerFrame(num_particles, frames, num_eval_particles_per_fr
 #        plt.plot(min_traj, eval_part_mean[loop_num,:])
         show_mean = eval_part_mean[loop_num,:]
         show_std = eval_part_std[loop_num,:]
-        ax1.errorbar(min_traj, show_mean, show_std, label= str(loop_num_particles))    
+        show_rel_mean = show_mean / show_mean[0] * 100
+        if RelDrop == False:
+            ax1.plot(min_traj, show_mean, label= str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num])) 
+        else:
+            ax1.plot(min_traj, show_rel_mean, label= str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num])) 
+#        ax1.errorbar(min_traj, show_mean, show_std, label= str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num]))    
 
 
     ax1.set_title("Number of evaluable particles in a frame", fontsize = 16)
-    ax1.set_xlim([0,frames])
+    ax1.set_xlim([0,1.4*frames])
     ax1.set_xlabel("Minium Trajectory length", fontsize = 14)
-        
-    ax1.set_ylim([0,np.max(num_particles)*1.1])
-    ax1.set_ylabel("Number of evaluated particles", fontsize = 14)
+      
+    if RelDrop == False:
+        ax1.set_ylim([0,np.max(num_particles)*1.1])
+        ax1.set_ylabel("Number of evaluated particles", fontsize = 14)
+    else:
+        ax1.set_ylim([0,105])
+        ax1.set_ylabel("Relative number of evaluated particles [%]", fontsize = 14)
     
-    ax1.legend(title = 'Particles: number | c')
+    ax1.grid()
+    
+    ax1.legend(title = 'N | c [N/nl]', title_fontsize = 14)#, bbox_to_anchor=(0.5, -0.05), shadow=True, ncol=2)
 
     # make second axis with rel. error
     ax2 = ax1.twiny()
     ax2.set_xticks(ax2_value_pos)
     ax2.set_xticklabels(list((np.asarray(disp_rel_array)*100).astype("int")))
-    ax2.set_xlim([0,frames])
+    ax2.set_xlim([0,1.4*frames])
     ax2.set_xlabel("Minimum rel. error [%]", fontsize = 14)
     
     
-def PlotNumberDifferentParticle(num_particles, frames, num_eval_particles):
+def PlotNumberDifferentParticle(num_particles, conc_per_nl, frames, num_eval_particles, RelDrop = False):
     # Plot the Number of Particles that can be evaluated out of an entire ensemble
     avg_part_mean = np.mean(num_eval_particles, axis = 0)
     avg_part_std = np.std(num_eval_particles, axis = 0)    
@@ -470,32 +507,104 @@ def PlotNumberDifferentParticle(num_particles, frames, num_eval_particles):
 
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
+    
     for loop_num, loop_num_particles in enumerate(num_particles):        
         show_mean = avg_part_mean[loop_num,:]
         show_std = avg_part_std[loop_num,:]
-        ax1.errorbar(min_traj, show_mean, show_std, label= str(loop_num_particles))
+        show_rel_mean = show_mean / show_mean[0] * 100        
+        if RelDrop == False:
+            ax1.plot(min_traj, show_mean, label= str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num])) 
+        else:
+            ax1.plot(min_traj, show_rel_mean, label = str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num]))
+        
+#        ax1.fill_between(min_traj, show_mean - show_std, show_mean + show_std)
+#        ax1.errorbar(min_traj, show_mean, show_std, label= str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num]))
 #        plt.loglog(min_traj, show_mean, label= str(loop_num_particles))
     
     ax1.set_title("Number of DIFFERENT evaluable particles", fontsize = 16)
         
-    ax1.set_xlim([0,frames])
+    ax1.set_xlim([0,1.4*frames])
     ax1.set_xlabel("Minium Trajectory length", fontsize = 14)
         
-    ax1.set_ylim([0,np.max(num_particles)*1.1])
-    ax1.set_ylabel("Number of evaluated particles", fontsize = 14)
+
+          
+    if RelDrop == False:
+        ax1.set_ylim([0,np.max(num_particles)*1.1])
+        ax1.set_ylabel("Number of evaluated particles", fontsize = 14)
+    else:
+        ax1.set_ylim([0,105])
+        ax1.set_ylabel("Relative number of evaluated particles [%]", fontsize = 14)
+        
+#    ax1.set_ylim([1, 1000])
     
-    ax1.legend()
+
+    ax1.grid()
+
+    ax1.legend(title = 'N | c [N/nl]', title_fontsize = 14)
+
 
     # make second axis with rel. error
     ax2 = ax1.twiny()
     ax2.set_xticks(ax2_value_pos)
     ax2.set_xticklabels(list((np.asarray(disp_rel_array)*100).astype("int")))
-    ax2.set_xlim([0,frames])
+    ax2.set_xlim([0,1.4*frames])
     ax2.set_xlabel("Minimum rel. error [%]", fontsize = 14)
     
+
+
+def BestConcentration(eval_particles, conc_per_nl, frames):
+    #Plot the concentration with the hightes number of evaluated particle
+    num_eval = np.mean(eval_particles,0)
     
+    best_c = np.zeros_like(num_eval[0,:])
+    
+    for loop_id,loop_c in enumerate(best_c):
+        best_c_pos = np.where(num_eval[:,loop_id] == np.max(num_eval[:,loop_id]))[0][0]
+        best_c[loop_id] = conc_per_nl[best_c_pos]
+        
+    #find edges
+    edges = np.where((best_c[1:] - best_c[0:-1]) != 0)[0][:]
+        
+    min_traj = np.arange(0,frames)
+
+    min_traj = np.arange(0,frames)
+    rel_error = nd.CalcDiameter.DiffusionError(min_traj, "gain missing", 0, 0, 2)[0]
+    
+    #get position of rel error
+    disp_rel_array = [0.20, 0.10, 0.08, 0.06, 0.05, 0.04]
+    
+    ax2_value_pos = np.zeros_like(disp_rel_array)
+    
+    for loop_index, loop_disp_rel_array in enumerate(disp_rel_array):
+        ax2_value_pos[loop_index] = np.where(rel_error < loop_disp_rel_array)[0][0]
+    
+    min_traj_grid = (edges[1:] + edges[:-1])/2
+    best_c_grid = best_c[edges[:-1]+1]
+    
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.plot(min_traj_grid,best_c_grid, 'x')
+    
+    ax1.set_xlabel("Minium Traj", fontsize = 14)
+    ax1.set_ylabel("Ideal concentraion [N/nl]", fontsize = 14)
+    
+    ax1.set_xlim([0, frames])
+    ax1.set_ylim([0, 1.1*np.max(conc_per_nl)])
+    ax1.grid()
+    
+    # make second axis with rel. error
+    ax2 = ax1.twiny()
+    ax2.set_xticks(ax2_value_pos)
+    ax2.set_xticklabels(list((np.asarray(disp_rel_array)*100).astype("int")))
+    ax2.set_xlim([0,1.4*frames])
+    ax2.set_xlabel("Minimum rel. error [%]", fontsize = 14)
+    
+    return 
+    
+
     
 def ConcentrationVsNN(frames, num_particles):
+    # Main Function to find out the relation between concentration and evaluatable particles
     import scipy
     
     kb = scipy.constants.k
@@ -504,6 +613,9 @@ def ConcentrationVsNN(frames, num_particles):
     # numerical grid
     x_size = 630
     y_size = 35    
+    
+    #volume like a cylinder
+    volume_nl = pi * ((y_size*1e-5/2)**2) * x_size*1e-5 *1e9
     
     # experimental parameters    
     diameter = 40 #nm    
@@ -606,11 +718,12 @@ def ConcentrationVsNN(frames, num_particles):
         num_eval_particles_per_frame[min_traj_length_loop] = traj_length.loc[eval_particles_loc].sum() / frames
         
     
-    return num_eval_particles, num_eval_particles_per_frame, t_unconf, t_conf, eval_t1, eval_t2
+    return num_eval_particles, num_eval_particles_per_frame, volume_nl, t_unconf, t_conf, eval_t1, eval_t2
 
 
 
 def CheckTrajLeavesConfinement(t_part, x_min, x_max, y_min, y_max):
+    # mirror trajectories if confinment is left
     out_left = t_part["x"] < x_min
     out_right = t_part["x"] > x_max
     out_bottom = t_part["y"] < y_min
@@ -640,8 +753,7 @@ def CheckTrajLeavesConfinement(t_part, x_min, x_max, y_min, y_max):
 
 def SimulateTrajectories(x_size, y_size, num_particles, diameter, frames, frames_per_second, 
                          microns_per_pixel, temp_water, visc_water, max_displacement, PrintParameter = True):
-    """ ...
-    """
+    # simulate the random walk
 
     start_pos = np.random.rand(num_particles,2)
     start_pos[0,:] = 0.5 # particle under investigation is in the middle
@@ -698,74 +810,6 @@ def SimulateTrajectories(x_size, y_size, num_particles, diameter, frames, frames
     return t, t_conf
 
 
-
-# get nearest neighbor
-def CalcNearestNeighbor(t, seq = False):
-    frames = len(t[t.particle == 0])
-    num_particles = len(t.groupby("particle"))
-    
-    if seq == True:
-        print("Do it seriel")
-        tic = time.time()
-        
-        for loop_frame in range(frames):
-            eval_t_frame = t[t.frame == loop_frame]
-            for loop_particles in range(num_particles):
-            #loop_particles = 0    
-                pos_part = eval_t_frame[eval_t_frame.particle == loop_particles][["x","y"]].values.tolist()[0]
-                test_part = eval_t_frame[eval_t_frame.particle != loop_particles][["x","y"]]
-                diff_part = test_part-pos_part
-                dist_nn = np.min(np.sqrt(diff_part.x**2+diff_part.y**2))
-
-                t.loc[(t.particle == loop_particles) & (t.frame == loop_frame),"nn"] = dist_nn
-        #
-        toc = time.time()
-        print('\nElapsed time computing the average of couple of slices {:.2f} s'.format(toc - tic))
-
-        eval_t1 = t
-
-    else:
-        print("Do it parallel")
-        
-        def CalcNearestNeighbour(eval_t_frame, num_particles):
-            print(num_particles)
-            for loop_particles in range(num_particles):
-                print(loop_particles)
-                pos_part = eval_t_frame[eval_t_frame.particle == loop_particles][["x","y"]].values.tolist()[0]
-                test_part = eval_t_frame[eval_t_frame.particle != loop_particles][["x","y"]]
-                diff_part = test_part-pos_part
-                
-                dist_nn = np.min(np.sqrt(diff_part.x**2+diff_part.y**2))
-
-                eval_t_frame.loc[eval_t_frame.particle == loop_particles,"nn"] = dist_nn
-                print(eval_t_frame)
-            return eval_t_frame
-        
-        tic = time.time()
-        
-        
-        #for loop_frame in range(frames):
-        ##loop_particles = 0
-        #    eval_t = CalcNearestNeighbour(eval_t, num_particles)
-        
-        num_cores = multiprocessing.cpu_count()
-        
-        inputs = range(frames)
-        print(inputs)
-        eval_t1 = Parallel(n_jobs=num_cores)(delayed(CalcNearestNeighbour)(t[t.frame == loop_frame].copy(), num_particles) for loop_frame in inputs)
-
-        eval_t1 = pd.concat(eval_t1)
-        eval_t1 = eval_t1[eval_t1.frame > 0]
-        eval_t1 = eval_t1.reset_index(drop = True)
-    
-        #
-        toc = time.time()
-        print('\nElapsed time computing the average of couple of slices {:.2f} s'.format(toc - tic))   
-    
-    return eval_t1
-
-
-
 def SplitTrajectory(eval_t2):
     # splits trajectory if linkind failed
     
@@ -803,6 +847,76 @@ def SplitTrajectory(eval_t2):
     return eval_t2
 
 
+
+
+
+
+
+## get nearest neighbor
+#def CalcNearestNeighbor(t, seq = False):
+#    frames = len(t[t.particle == 0])
+#    num_particles = len(t.groupby("particle"))
+#    
+#    if seq == True:
+#        print("Do it seriel")
+#        tic = time.time()
+#        
+#        for loop_frame in range(frames):
+#            eval_t_frame = t[t.frame == loop_frame]
+#            for loop_particles in range(num_particles):
+#            #loop_particles = 0    
+#                pos_part = eval_t_frame[eval_t_frame.particle == loop_particles][["x","y"]].values.tolist()[0]
+#                test_part = eval_t_frame[eval_t_frame.particle != loop_particles][["x","y"]]
+#                diff_part = test_part-pos_part
+#                dist_nn = np.min(np.sqrt(diff_part.x**2+diff_part.y**2))
+#
+#                t.loc[(t.particle == loop_particles) & (t.frame == loop_frame),"nn"] = dist_nn
+#        #
+#        toc = time.time()
+#        print('\nElapsed time computing the average of couple of slices {:.2f} s'.format(toc - tic))
+#
+#        eval_t1 = t
+#
+#    else:
+#        print("Do it parallel")
+#        
+#        def CalcNearestNeighbour(eval_t_frame, num_particles):
+#            print(num_particles)
+#            for loop_particles in range(num_particles):
+#                print(loop_particles)
+#                pos_part = eval_t_frame[eval_t_frame.particle == loop_particles][["x","y"]].values.tolist()[0]
+#                test_part = eval_t_frame[eval_t_frame.particle != loop_particles][["x","y"]]
+#                diff_part = test_part-pos_part
+#                
+#                dist_nn = np.min(np.sqrt(diff_part.x**2+diff_part.y**2))
+#
+#                eval_t_frame.loc[eval_t_frame.particle == loop_particles,"nn"] = dist_nn
+#                print(eval_t_frame)
+#            return eval_t_frame
+#        
+#        tic = time.time()
+#        
+#        
+#        #for loop_frame in range(frames):
+#        ##loop_particles = 0
+#        #    eval_t = CalcNearestNeighbour(eval_t, num_particles)
+#        
+#        num_cores = multiprocessing.cpu_count()
+#        
+#        inputs = range(frames)
+#        print(inputs)
+#        eval_t1 = Parallel(n_jobs=num_cores)(delayed(CalcNearestNeighbour)(t[t.frame == loop_frame].copy(), num_particles) for loop_frame in inputs)
+#
+#        eval_t1 = pd.concat(eval_t1)
+#        eval_t1 = eval_t1[eval_t1.frame > 0]
+#        eval_t1 = eval_t1.reset_index(drop = True)
+#    
+#        #
+#        toc = time.time()
+#        print('\nElapsed time computing the average of couple of slices {:.2f} s'.format(toc - tic))   
+#    
+#    return eval_t1
+    
 #def Blabla():
 #    track_length = eval_t2[["particle", "frame"]].groupby("particle").count()
 #    

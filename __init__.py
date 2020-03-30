@@ -22,6 +22,7 @@ from . import Tools
 from . import wlsice
 from . import visualize
 from . import particleStats
+from . import teaching
 
 from . import sandbox
 

@@ -530,19 +530,23 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile):
     Max_displacement = 5 * sigma_px
 
     # trackpy require integer
-    Max_displacement  = int(np.ceil(Max_displacement))
+    Max_displacement = int(np.ceil(Max_displacement))
 
     # one is added because a bit of drift is always in
     Max_displacement = Max_displacement + 1
+
+    # 7sigma leads to 1 in a million of mixing up two particle by nearest neighbor linking
+    Min_Separation = 7 * sigma_px
+    Min_Separation = int(np.ceil(Min_Separation))
+    # one is added because a bit of drift is always in
+    Min_Separation = Min_Separation + 1
+    
 
 
     print("\n The distance a particle can maximal move (and identified as the same one) >Max displacement< is set to: ", Max_displacement)
     settings["Link"]["Max displacement"] = Max_displacement 
 
-
-    # if a particle does not leave the area five_sigma with high probability. two particles with distance 2*five_sigma_px are very unlikely to cross each other
-    Min_Separation = Max_displacement * 2
-    
+   
     print("\n The minium distances between to located particles >Separation data< is set to: ", Min_Separation )
     settings["Find"]["Separation data"] = Min_Separation 
 

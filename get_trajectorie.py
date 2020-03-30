@@ -473,7 +473,6 @@ def close_gaps(t1):
     # NECESSARY FOR FOLLOWING FILTERING WHERE AGAIN A NEAREST NEIGHBOUR IS APPLIED
     # OTHERWISE THE MEDIAN FILL WILL JUST IGNORE MISSING TIME POINTS
     """
-
     valid_particle_number = t1['particle'].unique(); #particlue numbers that fulfill all previous requirements
     amount_valid_particles = len(valid_particle_number);
 
@@ -486,7 +485,7 @@ def close_gaps(t1):
     #t1_search_gap.head()
     
     #fill the gaps now - get the header
-    t1_gapless = pd.DataFrame(columns = t1_search_gap.columns)           
+#    t1_gapless = pd.DataFrame(columns = t1_search_gap.columns, dtype = t1_search_gap.dtypes)           
      
     #for loop_particle in range(0,int(num_last_particles)):
     for i, loop_particle in enumerate(valid_particle_number):
@@ -516,8 +515,11 @@ def close_gaps(t1):
                 
                 t1_loop = t1_loop.interpolate('nearest')
                 
-            # cat not data frame together
-            t1_gapless = pd.concat([t1_gapless, t1_loop])
+            # cat data frame together
+            if i == 0:
+                t1_gapless = t1_loop
+            else:
+                t1_gapless = pd.concat([t1_gapless, t1_loop])
             
             
     return t1_gapless
@@ -731,7 +733,6 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
         # select right particle with following frames
         # the ".at" is necessary to change the value not on a copy but on t1 itself
         # https://stackoverflow.com/questions/13842088/set-value-for-particular-cell-in-pandas-dataframe-using-index
-    
         t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame < first_new_frame)),'particle'] = \
         num_last_particle + 1 
 

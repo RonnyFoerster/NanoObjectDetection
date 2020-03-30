@@ -141,7 +141,6 @@ def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
 def FindSpot(rawframes_pre, ParameterJsonFile):
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-    
     if (settings["Help"]["Bead brightness"] == "manual") or (settings["Help"]["Bead brightness"] == 1):
         obj_first, settings, num_particles_trackpy = FindSpot_manual(rawframes_pre, ParameterJsonFile)
         

@@ -1645,7 +1645,8 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre, 
 
 
     # get particle id of TRAJECTORIES in the roi
-    particle_id_traj = traj[(traj.x > 800) & (traj.x < 1800)].particle.unique()
+#    particle_id_traj = traj[(traj.x > 800) & (traj.x < 1800)].particle.unique()
+    particle_id_traj = traj.particle.unique()
 
     #get traj in ROI
     traj_roi = traj[np.isin(traj.particle, particle_id_traj)]
@@ -1779,7 +1780,6 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre, 
     
     def animate(frame, x_min, x_max, y_min, y_max, UpdateFrame):
         global ColorbarDone
-         
         print("\nframe", frame)
         print("x_min", x_min)
         print("x_max", x_max)
@@ -1835,7 +1835,6 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre, 
 
         fig.suptitle('frame: ' + str(frame) + '; time: ' + str(time_ms) + ' ms', fontsize = my_font_size_title)
 
-
         ax_scatter_traj.set_offsets(np.transpose(np.asarray([traj_roi_history.x.values, traj_roi_history.y.values])))
         ax_scatter_traj.set_array(traj_roi_history.particle)
 
@@ -1867,9 +1866,15 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre, 
             prob_inv_diam = prob_inv_diam + my_pdf    
                     
         #normalized to 1
-        prob_inv_diam_show = prob_inv_diam / np.max(prob_inv_diam)
+        if np.max(prob_inv_diam) > 0:
+            prob_inv_diam_show = prob_inv_diam / np.max(prob_inv_diam)
+        else:
+            prob_inv_diam_show = prob_inv_diam 
 
         line_diam_frame.set_ydata(prob_inv_diam_show)
+        
+        
+        
 #        
 #    
 #
@@ -1879,6 +1884,7 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre, 
 #
 #        line_diam_sum.set_ydata(prob_inv_diam_sum_show)
 
+        print("Animation updated")
 
         return raw_image
     
