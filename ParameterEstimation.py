@@ -514,6 +514,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile):
     # Estimate max diffusion
     MaxDiffusion_squm = DiameterToDiffusion(temp_water,visc_water,GuessLowestDiameter_m)
     
+    print("Maximum expected diffusion in squm per second:", np.round(MaxDiffusion_squm,2))
     
     MaxDiffusion_sqpx = MaxDiffusion_squm / (settings["Exp"]["Microns_per_pixel"]**2)
     # Think about sigma of the diffusion probability is sqrt(2Dt)
@@ -524,7 +525,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile):
     t_max = t * (1+Dark_frame)
     
     sigma_px = np.sqrt(2*MaxDiffusion_sqpx*t_max )
-    
+
     # look into Förster2020
     # 5 sigma is 1 in 1.74 million (or sth like this) that particle does not leave this area
     Max_displacement = 5 * sigma_px

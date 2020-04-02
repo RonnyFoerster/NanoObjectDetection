@@ -23,6 +23,7 @@ from . import wlsice
 from . import visualize
 from . import particleStats
 from . import teaching
+from . import gui
 
 from . import sandbox
 

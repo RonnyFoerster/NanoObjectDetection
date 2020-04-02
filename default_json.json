@@ -88,7 +88,7 @@
           "PercentileThreshold": 20
      },
      "Link": {
-          "Dark time": 3,
+          "Dark time": 1,
           "Dwell time stationary objects": 100,
           "Max displacement": 3,
           "Max displacement fix": 0.3,

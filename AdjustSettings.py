@@ -170,7 +170,7 @@ def FindSpot_manual(rawframes_pre, ParameterJsonFile):
     
     while UserSatisfied == False:
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.8)
+        obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.4)
             
         if FirstRun == True:
             FirstRun = False
