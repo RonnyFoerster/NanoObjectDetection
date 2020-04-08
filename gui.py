@@ -496,8 +496,6 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre, 
     
 #    return anim
 
-    print("animation loaded")
-
     return
 
 

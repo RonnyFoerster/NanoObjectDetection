@@ -265,13 +265,19 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
     else:
         # moving particle after drift correction
         min_tracking_frames = settings["Link"]["Min_tracking_frames"]
-        
+ 
     print("Minimum trajectorie length: ", min_tracking_frames)
     traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
     
+    
     # RF 190408 remove Frames because the are doupled and panda does not like it
-#    traj_min_length = traj_min_length.drop(columns="frame")
-#    traj_min_length = traj_min_length.reset_index()
+    index_unequal_frame = traj_min_length[traj_min_length.index != traj_min_length.frame]
+    if len(index_unequal_frame) > 0:
+        raise ValueError("TrackPy does something stupid. The index value (which should be the frame) is unequal to the frame")
+    else:
+        traj_min_length = traj_min_length.drop(columns="frame")
+        traj_min_length = traj_min_length.reset_index()
+
 
     particle_number = traj_all['particle'].unique(); #particlue numbers that fulfill all previous requirements
     amount_particles = len(particle_number); #total number of valid particles
@@ -498,15 +504,24 @@ def close_gaps(t1):
         # check if particle is not empty
         if num_catched_frames > 0:
             # calculate possible number of frames
+            
+            #frame is index
+#            start_frame = t1_loop.index.min()
+#            end_frame = t1_loop.index.max()
+            # frame is column
+
             start_frame = t1_loop.frame.min()
             end_frame = t1_loop.frame.max()
     #        start_frame = t1_loop.frame_as_column.min()
     #        end_frame = t1_loop.frame_as_column.max()
+    
             num_frames = end_frame - start_frame + 1
             # check if frames are missing
             if num_catched_frames < num_frames:
                 # insert missing indicies by nearest neighbur
                 index_frames = np.linspace(start_frame, end_frame, num_frames, dtype='int')
+                
+                t1_loop = t1_loop.set_index("frame")
                 t1_loop = t1_loop.reindex(index_frames)
 
                 t1_loop.loc[t1_loop["RealData"] != True, "RealData"] = False
@@ -514,6 +529,8 @@ def close_gaps(t1):
 #                t1_loop.loc[np.isnan(t1_loop["particle"]), "measured"] = False
                 
                 t1_loop = t1_loop.interpolate('nearest')
+                
+                t1_loop = t1_loop.reset_index()
                 
             # cat data frame together
             if i == 0:
@@ -696,7 +713,7 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     # check if threshold is exceeded
     split_particle_at = t3_gapless[t3_gapless['rel_step'] > max_rel_median_intensity_step]
     
-    # get frame and particle number where threshold is broken
+    # get frame and particle number where threshold is broken   
     split_particle_at = split_particle_at[['frame','particle']]
     #split_particle_at = split_particle_at[['frame_as_column','particle']]
     
@@ -733,11 +750,18 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
         # select right particle with following frames
         # the ".at" is necessary to change the value not on a copy but on t1 itself
         # https://stackoverflow.com/questions/13842088/set-value-for-particular-cell-in-pandas-dataframe-using-index
-        t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame < first_new_frame)),'particle'] = \
+
+        t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.index < first_new_frame)),'particle'] = \
         num_last_particle + 1 
+        
+        # old: when frame was still a column and not the index
+#        t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame < first_new_frame)),'particle'] = \
+#        num_last_particle + 1 
 
         # to remove the step which is now not here anymore
-        t4_cutted.loc[(t4_cutted.particle == particle_to_split) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
+        t4_cutted.loc[(t4_cutted.particle == particle_to_split) & (t4_cutted.index == first_new_frame),"rel_step"] = 0
+        # old: when frame was still a column and not the index
+#        t4_cutted.loc[(t4_cutted.particle == particle_to_split) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
         
         # num_last_particle ++
         num_last_particle = num_last_particle + 1;
@@ -753,7 +777,10 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     
     # get rid of too short tracks - again because some have been splitted    
     #t1=t1.rename(columns={'frame_as_column':'frame'})
+
     t4_cutted = tp.filter_stubs(t4_cutted, min_tracking_frames_before_drift) # filtering out of artifacts that are seen for a short time only
+    t4_cutted = t4_cutted.drop(columns="frame")
+    t4_cutted = t4_cutted.reset_index()
     # the second argument is the maximum amount of frames that a particle is supposed not to be seen in order
     # not to be filtered out.
     #t1=t1.rename(columns={'frame':'frame_as_column'})

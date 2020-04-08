@@ -77,13 +77,16 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
             in the next frame with a particle. So a small workaround here
             """
 
-#            full_index = t_drift.frame.unique()
-            full_index = t_drift.sort_values("frame").frame.unique()
+            full_index = t_drift.frame.sort_values().unique()
+#            full_index = t_drift.index.unique()
+            # oldfull_index = t_drift.sort_values("frame").frame.unique()
+
             my_drift = my_drift.reindex(full_index)
             my_drift = my_drift.interpolate(method = 'linear')          
 
             t_no_drift = tp.subtract_drift(t_drift.copy(), my_drift) # subtract overall drift from trajectories (creates new dataset)
 
+            t_no_drift = t_no_drift.drop(columns = "frame").reset_index()
                 
 #            my_a = t_drift[t_drift.particle==103].x
 #            my_b = t_no_drift[t_no_drift.particle==103].x
