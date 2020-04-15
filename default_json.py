@@ -1,8 +1,8 @@
 """
 IMPORTANT:
-All the experimental parameters are find in a json file.
+All the experimental parameters can be found in a json file.
 The json datatype is quite strict with the format. The last entry of a key should not end whith a " , " . Booleans are written as 0 and 1.
-A path does not except " \ " instead you have to use " \\ "
+A path does not accept " \ " instead you have to use " \\ ".
 
 ########################################################################################################################
 
@@ -90,7 +90,7 @@ Here are all the fiber parameters
        
 File
 
-Here are alle the file locations of the input
+Here are all the file locations of the input.
  
 | key: data_file_name
 | description: Complete path of the first image
@@ -123,7 +123,7 @@ Here are alle the file locations of the input
     
 Simulation
 
-In case the data is simulated and not acquired physically the parameters can be found here
+In case the data is simulated and not acquired physically the parameters can be found here.
 
 | key: SimulateData
 | description: Boolean if the data shall be simulated
@@ -156,7 +156,7 @@ In case the data is simulated and not acquired physically the parameters can be 
 | unit: !!! TODO !!!
 
 | key: Max_traj_length
-| description: Maximum trajectory length. Longer trajectories are cutted and treates as independent particles at different time points
+| description: Maximum trajectory length. Longer trajectories are cut and treated as independent particles at different time points.
 | example: 300
 | unit: frames
     
