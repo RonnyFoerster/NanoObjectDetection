@@ -726,8 +726,9 @@ def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm, DoPrint = True):
         
 #        corr_visc = 1 + 2.105 * (diam_direct_lin_corr / fibre_diameter_nm)
 #        hindrance = hindrance_fac(fibre_diameter_nm,diam_direct_lin_corr)
-        hindrance = hindrance_fac(fibre_diameter_nm,diam_direct_lin_corr)
-        corr_visc = 1 / hindrance
+        H,Kd = hindrance_fac(fibre_diameter_nm,diam_direct_lin_corr)
+
+        corr_visc = 1 / Kd
         diam_direct_lin_corr = diam_direct_lin / corr_visc # diameter of each particle
         
         # this steps helps converging. Otherwise it might jump from 1/10 to 10 to 1/10 ...
@@ -1041,8 +1042,25 @@ def hindrance_fac(diam_channel,diam_particle):
     + 1.101150 * np.power(l,6) \
     - 0.435933 * np.power(l,7)
     
-    return H
+    # calculate the required local hindrance factor
+    Kd = local_hindrance_fac(H, l)
+    
+    
+    return H, Kd
 
+
+def local_hindrance_fac(H, my_lambda):
+    """ calculate the hindrance factor for diffusion from particle and channel dimensions
+    according to eq. 16 from "Hindrance Factors for Diffusion and Convection in Pores", 
+    Dechadilok and Deen (2006)
+    """
+    #Eq. 9
+    Phi = (1-my_lambda)**2
+    Kd = H / Phi
+
+    
+    return Kd
+    
 
 
 def ContinousIndexingTrajectory(t):

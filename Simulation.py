@@ -95,30 +95,7 @@ def PrepareRandomWalk(ParameterJsonFile):
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
     return output
-
-
-
-def StokesVelocity(rho_particle, rho_fluid, diameter, visc_water):
-    #https://en.wikipedia.org/wiki/Stokes%27_law
-    
-    #g is the gravitational field strength (N/kg)
-    g = 9.81
-    
-    #R is the radius of the spherical particle (m)
-    R = diameter*1e-9 / 2
-    
-    #rho_particle is the mass density of the particles (kg/m3)
-    
-    #rho_fluid is the mass density of the fluid (kg/m3)
-    
-    #visc_water is the dynamic viscosity (Ns/m^2).
-    
-    #v_sedi sedimentation velocity (m/s)
-    
-    v_sedi = 2/9 * (rho_particle - rho_fluid) * g * R**2 / visc_water
-    
-    return v_sedi
-    
+   
 
 
 def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, RatioDroppedFrames = 0, ep = 0, mass = 1, microns_per_pixel = 0.477, temp_water = 295, visc_water = 9.5e-16, PrintParameter = True, start_pos = None):
@@ -296,6 +273,16 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     return sim_part_tm
 
 
+
+def VelocityByExternalForce(F_ext, radius, visc_water):
+    #visc_water is the dynamic viscosity (Ns/m^2).
+    
+    v = F_ext / (6 * pi * radius * visc_water)
+    
+    return v
+
+
+
 def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None):   
     """ calculate the radiation force onto a scattering sphere
     
@@ -318,6 +305,10 @@ def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None
     r_m  = r_nm / 1e9
     
     I = P_W/A_sqm
+    I_squm = P_W*1e6 / (A_sqm*1e12)
+
+    print("I [W/sqm] = ", I)
+    print("I [uW/squm] = ", I_squm)
 
     if e_part == None:    
         if material == "Gold":
@@ -371,6 +362,7 @@ def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None
     print("F_abs = ", F_abs)
 
     return F_scat
+
 
 
 def MassOfNP(d_nm,rho):
