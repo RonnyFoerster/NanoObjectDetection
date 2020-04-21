@@ -8,11 +8,12 @@ import sys
 import platform
 import trackpy as tp
 import pandas as pd
-from pdb import set_trace as bp #debugger
+#from pdb import set_trace as bp #debugger
 from distutils.spawn import find_executable
 import NanoObjectDetection as nd
 import shutil
 import os
+from packaging import version
 
 
 # In[] check python version
@@ -35,12 +36,12 @@ def CheckPython():
     python_minimum_versions = '3.6.4'
     python_version = platform.python_version()
     
-    if python_version >= python_minimum_versions:
+    if version.parse(python_version) >= version.parse(python_minimum_versions):
         print("Python version valid: ", python_version)
     else:
-        print("Python minimum versions: ", python_minimum_versions)
-        print("Your python versions: ", python_version)
-        sys.exit("Change your python version accoringly, or insert your python version in python_allowed_versions")
+        print("Python minimum version: ", python_minimum_versions)
+        print("Your python version: ", python_version)
+        sys.exit("Change your python version accordingly, or insert your python version in python_allowed_versions")
     
 
 def CheckTrackpy():
@@ -51,7 +52,7 @@ def CheckTrackpy():
     tp_minimum_versions = '0.4'
     tp_version = tp.__version__
     
-    if tp_version >= tp_minimum_versions:
+    if version.parse(tp_version) >= version.parse(tp_minimum_versions):
         print("Trackpy version valid: ", tp_version)
     else:
         print("Trackpy minimum versions: ", tp_minimum_versions)
@@ -68,7 +69,7 @@ def CheckPanda():
     pd_maximum_versions = '0.23.4'
     pd_version = pd.__version__
     
-    if pd_version <= pd_maximum_versions:
+    if version.parse(pd_version) <= version.parse(pd_maximum_versions):
         print("Pandas version valid: ", pd_version)
     else:
         print("Pandas maximum versions: ", pd_maximum_versions)

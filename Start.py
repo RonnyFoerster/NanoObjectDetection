@@ -7,11 +7,10 @@ Created on Fri Sep 13 15:20:48 2019
 Setup everything from scratch to evaluate new experimental data
 """
 
-from pdb import set_trace as bp #debugger
 import NanoObjectDetection as nd
 import shutil
 import os
-from pdb import set_trace as bp #debugger
+#from pdb import set_trace as bp #debugger
 import json
 from tkinter import filedialog
 
@@ -63,13 +62,18 @@ def NewEvaluation():
     
     pre_select = int(input("Please select a number: \n The following setups are implemented \
           \n 1 - new \
-          \n 2 - 5x Objective on Zeiss Micrscope with Basler cam \
+          \n 2 - 5x Objective on Zeiss Microscope with Basler cam \
+          \n 3 - 10x Objective on Zeiss Microscope with Basler cam \
           \n\n"))
     
-    if pre_select == 2:
-        print("load: 5x Objective on Zeiss Micrscope with Basler cam")
-        path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_5x_zeiss_cam_basler.json"
-        
+    if pre_select in [2,3]:
+        if pre_select == 2:
+            print("Load: 5x Objective on Zeiss Microscope with Basler cam")
+            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_5x_zeiss_cam_basler.json"
+        else:
+            print("Load: 10x Objective on Zeiss Microscope with Basler cam")
+            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_10x_zeiss_cam_basler.json"
+
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)
         
@@ -78,9 +82,8 @@ def NewEvaluation():
         settings["Exp"]["gain"]              = pre_settings["Exp"]["gain"] 
         settings["Exp"]["Temperature"]       = pre_settings["Exp"]["Temperature"]
         
-        
     else:
-        print("please insert setup parameters: \n")
+        print("Please insert setup parameters: \n")
         settings["Exp"]["NA"]                = float(input("NA = "))
         settings["Exp"]["Microns_per_pixel"] = float(input("Microns per pixel [um/px] = "))
         settings["Exp"]["gain"]              = float(input("gain (if unknown type 0) = "))
@@ -88,7 +91,7 @@ def NewEvaluation():
         if settings["Exp"]["gain"] == 0:
             settings["Exp"]["gain"]           = "unknown"
      
-    print("please insert experimental parameters: \n")
+    print("Please insert experimental parameters: \n")
     settings["Exp"]["lambda"]            = float(input("lambda [nm] = "))
     settings["Exp"]["fps"]               = float(input("fps = "))
     settings["Exp"]["ExposureTime"]      = float(input("Exposure Time [ms] = ")) / 1000
@@ -97,9 +100,9 @@ def NewEvaluation():
 
     
     
-    print("viscocity not inserted yet")
-#    settings["Exp"]["Viscocity"] = float(input(: 9.5e-16,
-#    settings["Exp"]["Viscocity_auto"] = float(input(: 0,
+    print("Viscosity not inserted yet.")
+#    settings["Exp"]["Viscosity"] = float(input(: 9.5e-16,
+#    settings["Exp"]["Viscosity_auto"] = float(input(: 0,
 #    settings["Exp"]["solvent"] = input(: "water",
 
 
@@ -117,11 +120,11 @@ def NewEvaluation():
             \n 2 - select myself \n"))
     
     if (help_options in [0,1,2]) == False:
-        print("invalid input. Apply auto.")
+        print("Invalid input. Apply auto.")
         help_options = 1
     
     if help_options == 0:
-        print("switch all help functions off.")
+        print("Switch all help functions off.")
         settings["Help"]["ROI"] = 0
         settings["Help"]["Bead brightness"] = 0
         settings["Help"]["Bead size"] = 0
@@ -129,7 +132,7 @@ def NewEvaluation():
         settings["Help"]["Drift"] = 0
         
     elif help_options == 1:
-        print("switch recommended help functions on.")
+        print("Switch recommended help functions on.")
         settings["Help"]["ROI"] = 0
         settings["Help"]["Bead brightness"] = "auto"
         settings["Help"]["Bead size"] = "auto"
