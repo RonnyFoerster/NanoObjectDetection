@@ -115,7 +115,6 @@ def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-       
     # optimized the distance a particle can move between two frames and how close to beads can be without risk of wrong assignment
     if settings["Help"]["Separation"] == "auto":
         nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        

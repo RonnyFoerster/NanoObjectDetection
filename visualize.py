@@ -1819,7 +1819,8 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre, 
     def animate(frame, x_min, x_max, y_min, y_max, UpdateFrame):
         global ColorbarDone
         
-        print("\nframe", frame)
+        print("\n\n New Frame")
+        print("frame", frame)
         print("x_min", x_min)
         print("x_max", x_max)
         print("y_min", y_min)
