@@ -23,10 +23,10 @@ def GaussianKernel(sigma, fac = 6, x_size = None,y_size = None):
 
     # get the size of the kernel if not given
     if x_size == None:
-        x_size = np.ceil(fac*2*sigma)
+        x_size = int(np.ceil(fac*2*sigma))
     
     if y_size == None:
-        y_size = np.ceil(fac*2*sigma)
+        y_size = int(np.ceil(fac*2*sigma))
     
     #kernel must be odd for symmetrie
     if np.mod(x_size,2) == 0:
@@ -37,8 +37,8 @@ def GaussianKernel(sigma, fac = 6, x_size = None,y_size = None):
         y_size = y_size + 1
       
     # radius of the kernel in px
-    x_lim = (x_size-1)/2
-    y_lim = (y_size-1)/2
+    x_lim = int((x_size-1)/2)
+    y_lim = int((y_size-1)/2)
         
     # calculate the normal distribution
     x, y = np.meshgrid(np.linspace(-x_lim, x_lim, x_size), np.linspace(-y_lim, y_lim, y_size))

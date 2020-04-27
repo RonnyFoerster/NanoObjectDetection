@@ -380,7 +380,7 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         else:
             saturated_psf = False
      
-    print("Deleted overexposed particles...")       
+    print("Deleted overexposed particles!")       
     
     obj_moving = sort_obj_moving
     
