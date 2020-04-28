@@ -145,7 +145,6 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     sim_part_frame_list=sim_part_frame*num_particles
     
        
-
     #create emply dataframe of correct size
     num_elements = num_particles * frames
     sim_part = pd.DataFrame(columns = ["particle", "dx", "x", "dy", "y"], index = range(0,num_elements))
