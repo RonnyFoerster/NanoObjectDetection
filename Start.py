@@ -147,12 +147,12 @@ def NewEvaluation():
         
         settings["Help"]["Bead brightness"]  = str(input("Do you want help with the >minimal bead brightness< ? \
                 \n 0 - no \
-                \n manuel - manuel setting the value with help \
+                \n manual - manual setting the value with help \
                 \n auto - fully automized parameter estimation \n"))
         
         settings["Help"]["Bead size"]        = str(input("Do you want help with the >bead size< ? \
                 \n 0 = no \
-                \n manuel - manuel setting the value with help \
+                \n manual - manual setting the value with help \
                 \n auto - fully automized parameter estimation \n"))
         
         settings["Help"]["Separation"]        = str(input("Do you want help with the maximum allowed movement of a particle between two frames >Max Displacement< and the minimal distance to beads must have >Separation Data<? \

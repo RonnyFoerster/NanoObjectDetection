@@ -33,25 +33,27 @@ def Main(rawframes_np, ParameterJsonFile):
         else:
             print('Laser fluctuations: not removed')
 
+
         # check if constant background shall be removed
         if settings["PreProcessing"]["Remove_CameraOffset"] == 1:
             rawframes_np = nd.PreProcessing.SubtractCameraOffset(rawframes_np, settings)
         else:
             print('Constant camera background: not removed')
-        
+      
+
         if settings["PreProcessing"]["Remove_StaticBackground"] == 1:            
             rawframes_np, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings)            
         else:
             static_background = "NotDone"
             print('Static background: not removed')
-      
-        
+    
+
         if settings["PreProcessing"]["RollingPercentilFilter"] == 1:            
             rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings)            
         else:
             print('Rolling percentil filter: not applied')
-        
-        
+      
+
         if settings["PreProcessing"]["ClipNegativeValue"] == 1:
             print('Negative values: start removing')
             print("Ronny does not love clipping.")
@@ -59,14 +61,14 @@ def Main(rawframes_np, ParameterJsonFile):
             print('Negative values: removed')
         else:
             print('Negative values: kept')
-            
-            
+      
+ 
         if settings["PreProcessing"]["EnhanceSNR"] == 1:            
             rawframes_np = nd.PreProcessing.ConvolveWithPSF(rawframes_np, settings)            
         else:
             print('Image SNR not enhanced by a gaussian average')
-        
-        
+ 
+
         if settings["PreProcessing"]["Do_or_apply_data_rotation"] == 1:
             rawframes_np = nd.handle_data.RotImages(rawframes_np, ParameterJsonFile)
         else:
@@ -186,7 +188,9 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
 
 
     if Background_Show == True:
-        plt.imshow(static_background)
+        #plt.imshow(static_background)
+        nd.visualize.Plot2DImage(static_background,title = "Background image", \
+                                 xlabel = "[Px]", ylabel = "[Px]")
         
     
     if Background_Save == True:
@@ -242,7 +246,7 @@ def EstimageSigmaPSF(settings):
     return sigma_px
 
 
-def ConvolveWithPSF(rawframes_np, settings):  
+def ConvolveWithPSF(rawframes_np, settings, ShowFirstFrame = False):  
     print('Convolve rawframe by PSF to enhance SNR: start removing')
     
     if settings["PreProcessing"]["KernelSize"] == 'auto':        
@@ -298,7 +302,13 @@ def ConvolveWithPSF(rawframes_np, settings):
         else:
             rawframes_filtered = ApplyPSFKernelParallel(rawframes_np, gauss_kernel_rad)
         
-    
+    if ShowFirstFrame == True:
+        if rawframes_filtered.ndim == 2:
+            disp_data = rawframes_filtered
+        else:
+            disp_data = rawframes_filtered[0,:,:]
+            
+        nd.visualize.Plot2DImage(disp_data,title = "Filtered image", xlabel = "[Px]", ylabel = "[Px]")
 
     
 #    rawframes_filtered = np.real(np.fft.ifftn(ndimage.fourier_gaussian(np.fft.fftn(rawframes_np, axes = (1,2)), sigma=[0,gauss_kernel_rad  ,gauss_kernel_rad]), axes = (1,2)))

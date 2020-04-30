@@ -97,6 +97,11 @@ def PrepareRandomWalk(ParameterJsonFile):
     return output
    
 
+def CalcDiffusionCoefficent(radius_m, temp_water = 293, visc_water = 0.001):
+    diffusion = (k_b*temp_water)/(6*math.pi *visc_water * radius_m) # [um^2/s]
+    
+    return diffusion
+
 
 def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, RatioDroppedFrames = 0, ep = 0, mass = 1, microns_per_pixel = 0.477, temp_water = 295, visc_water = 9.5e-16, PrintParameter = True, start_pos = None):
     """ simulate a random walk of Brownian diffusion and return it as Pandas.DataFrame

@@ -222,7 +222,7 @@ def FindSpot_manual(rawframes_pre, ParameterJsonFile):
 def SpotSize(rawframes_pre, ParameterJsonFile):
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    
+    print("mode: ",settings["Help"]["Bead size"])
     if (settings["Help"]["Bead size"] == "manual") or (settings["Help"]["Bead size"] == 1):
         settings["Find"]["Estimated particle size"] = SpotSize_manual(rawframes_pre, settings)
         
@@ -230,7 +230,7 @@ def SpotSize(rawframes_pre, ParameterJsonFile):
         settings["Find"]["Estimated particle size"] = SpotSize_auto(settings)
         
     else:
-        print("Bead size not adjusted. Use 'manuel' or 'auto' if you want to do it.")
+        print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
 
 
     
