@@ -157,7 +157,7 @@ def FindSpot(rawframes_pre, ParameterJsonFile):
     
   
     
-def FindSpot_manual(rawframes_pre, ParameterJsonFile):    
+def FindSpot_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = False):    
     """
     Main function to optimize the parameters for particle identification
     It runs the bead finding routine and ask the user what problem he has
@@ -169,48 +169,53 @@ def FindSpot_manual(rawframes_pre, ParameterJsonFile):
     
     while UserSatisfied == False:
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.4)
-            
-        if FirstRun == True:
-            FirstRun = False
-            DoItAgain = False
-        else:
-            DoItAgain = AskDoItAgain()
-            
-        if DoItAgain == False:
-            # user happy?
-            my_question = "New image in: {}. Open it! Are you satisfied?".format(settings["Plot"]["SaveFolder"])
-            UserSatisfied = AskIfUserSatisfied(my_question)
-               
-            if UserSatisfied == True:
-                print("Happy user =)")
-            else:
-                # Find out what is wrong
-                method = AskMethodToImprove()
         
-        if UserSatisfied == False:              
-            print("method:", method)
-            if method == 1:
-                settings["Find"]["Minimal bead brightness"] = \
-                GetIntegerInput("Reduce >Minimal bead brightness< from %d to (must be integer): "\
-                                  %settings["Find"]["Minimal bead brightness"])
-    
-            elif method == 2:
-                settings["Find"]["Minimal bead brightness"] = \
-                GetIntegerInput("Enhance >Minimal bead brightness< from %d to (must be integer): "\
-                                  %settings["Find"]["Minimal bead brightness"])
-    
-            elif method == 3:
-                settings["Find"]["Separation data"] = \
-                GetNumericalInput("Reduce >Separation data< from %d to (must be integer): "\
-                                  %settings["Find"]["Separation data"])
-                
-            else:
-                settings["Find"]["Separation data"] = \
-                GetNumericalInput("Enhance >Separation data< from %d to (must be integer): "\
-                                  %settings["Find"]["Separation data"])
+        if ExternalSlider == True:
+            obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.4, ExternalSlider = True)
+            UserSatisfied = True
             
-            nd.handle_data.WriteJson(ParameterJsonFile, settings)  
+        else:
+            obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.4)
+            if FirstRun == True:
+                FirstRun = False
+                DoItAgain = False
+            else:
+                DoItAgain = AskDoItAgain()
+                
+            if DoItAgain == False:
+                # user happy?
+                my_question = "New image in: {}. Open it! Are you satisfied?".format(settings["Plot"]["SaveFolder"])
+                UserSatisfied = AskIfUserSatisfied(my_question)
+                   
+                if UserSatisfied == True:
+                    print("Happy user =)")
+                else:
+                    # Find out what is wrong
+                    method = AskMethodToImprove()
+            
+            if UserSatisfied == False:              
+                print("method:", method)
+                if method == 1:
+                    settings["Find"]["Minimal bead brightness"] = \
+                    GetIntegerInput("Reduce >Minimal bead brightness< from %d to (must be integer): "\
+                                      %settings["Find"]["Minimal bead brightness"])
+        
+                elif method == 2:
+                    settings["Find"]["Minimal bead brightness"] = \
+                    GetIntegerInput("Enhance >Minimal bead brightness< from %d to (must be integer): "\
+                                      %settings["Find"]["Minimal bead brightness"])
+        
+                elif method == 3:
+                    settings["Find"]["Separation data"] = \
+                    GetNumericalInput("Reduce >Separation data< from %d to (must be integer): "\
+                                      %settings["Find"]["Separation data"])
+                    
+                else:
+                    settings["Find"]["Separation data"] = \
+                    GetNumericalInput("Enhance >Separation data< from %d to (must be integer): "\
+                                      %settings["Find"]["Separation data"])
+                
+                nd.handle_data.WriteJson(ParameterJsonFile, settings)  
     
     #get number of located particles by trackpy
     num_particles_trackpy = len(obj_first)
@@ -222,7 +227,6 @@ def FindSpot_manual(rawframes_pre, ParameterJsonFile):
 def SpotSize(rawframes_pre, ParameterJsonFile):
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    print("mode: ",settings["Help"]["Bead size"])
     if (settings["Help"]["Bead size"] == "manual") or (settings["Help"]["Bead size"] == 1):
         settings["Find"]["Estimated particle size"] = SpotSize_manual(rawframes_pre, settings)
         
@@ -247,7 +251,7 @@ def SpotSize_auto(settings):
 
 
 
-def SpotSize_manual(rawframes_pre, settings):
+def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
     """
     Optimize the diameter of the Particles
     """
@@ -256,7 +260,11 @@ def SpotSize_manual(rawframes_pre, settings):
     minmass    = settings["Find"]["Minimal bead brightness"]
 
     UserSatisfied = False
-    try_diameter = [3.0 ,3.0]
+    
+    if AutoIteration == True:
+        try_diameter = [3.0 ,3.0]
+    else:
+        try_diameter = settings["Find"]["Estimated particle size"]
     
     if len(rawframes_pre) > 100:
         rawframes_pre = rawframes_pre[0:100,:,:]
@@ -276,9 +284,17 @@ def SpotSize_manual(rawframes_pre, settings):
 
             plt.draw()
             plt.show()
-            plt.pause(3)
-            UserSatisfied = AskIfUserSatisfied('The histogramm should be flat. They should not have a dip in the middle! \
+            
+            if AutoIteration == True:
+                plt.pause(3)
+                UserSatisfied = AskIfUserSatisfied('The histogramm should be flat. \
+                                                   They should not have a dip in the middle! \
                                                Particles should be detected. Are you satisfied?')
+                
+            else:
+                UserSatisfied = True
+                print("\n >>> The histogramm should be flat. They should not have a dip in the middle! <<< \n")
+
             
         if UserSatisfied == False:
             try_diameter = list(np.asarray(try_diameter) + 2)
@@ -289,7 +305,8 @@ def SpotSize_manual(rawframes_pre, settings):
     
 #    nd.handle_data.WriteJson(ParameterJsonFile, settings)  
     
-    print('Your diameter should be:', np.asarray(try_diameter))
+    if AutoIteration == True:
+        print('Your diameter should be:', np.asarray(try_diameter))
     
     print("WARNING: IF YOUR BEADSIZE CHANGED YOU MIGHT HAVE TO UPDATE YOUR MINIMAL BRIGHTNESS!")
     

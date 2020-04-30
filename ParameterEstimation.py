@@ -554,6 +554,8 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile):
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
+    return Min_Separation, Max_displacement
+
     
 def DiameterToDiffusion(temp_water,visc_water,diameter):
     

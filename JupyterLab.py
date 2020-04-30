@@ -4,7 +4,7 @@ Created on Mon Apr 27 15:17:55 2020
 
 @author: foersterronny
 """
-from ipywidgets import IntSlider, IntRangeSlider, FloatSlider, Dropdown
+from ipywidgets import IntSlider, IntRangeSlider, FloatSlider, Dropdown, FloatLogSlider
 from ipywidgets import interact, interactive
 
 
@@ -232,76 +232,105 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
     #read in settings
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-    # Separation distance
-    # select if help is required
-    help_sep_distance = Dropdown(
-            options=['0', 'manual', 'auto'],
-            value=settings["Help"]["Bead brightness"],
-            description='Help separation distance')
-
-
-    def ChooseSepDistance(mode):
-        print(mode)
-#        settings = nd.handle_data.ReadJson(ParameterJsonFile)
-#        settings["PreProcessing"]["Remove_Laserfluctuation"] = process_laser_fluctuations
+#    # SEPARATION DISTANCE
+#    # select if help is required
+#    help_sep_distance = Dropdown(
+#            options=['0', 'auto'],
+#            value=settings["Help"]["Separation"],
+#            description='Help separation distance')
 #
-#        if help_sep_distance == 0:
-#            print("Laser Fluctuations not corrected")
+#
+#    Min_Separation_slider = FloatSlider(min = 0, max = 100, step = 0.5, \
+#                         value = settings["Find"]["Separation data"],\
+#                         description = "Separation distance [Px]")    
+#    
+#    Max_displacementt_slider = FloatSlider(min = 0, max = 50, step = 0.5, \
+#                         value = settings["Link"]["Max displacement"],\
+#                         description = "Maximal Displacement [Px]") 
+#
+#    def ChooseSepDistance(mode, Min_Separation, Max_displacement):
+#        print(mode)
+#        
+#        if mode == "auto":
+#            Min_Separation, Max_displacement = nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)               
+#            
+#        settings["Find"]["Separation data"] = Min_Separation
+#        settings["Link"]["Max displacement"] = Max_displacement
+#        
+#        nd.handle_data.WriteJson(ParameterJsonFile, settings)
+#
+#    interact(ChooseSepDistance, mode = help_sep_distance, \
+#             Min_Separation = Min_Separation_slider, Max_displacement = Max_displacementt_slider)
+#
+#
+#
+#    # BEAD DIAMETER
+#    # select if help is required
+#    help_diameter = Dropdown(
+#            options=['0', 'manual', 'auto'],
+#            value=settings["Help"]["Bead size"],
+#            description='Help bead diameter')
+#
+#    diameter_slider = IntSlider(min = 1, max = 31, step = 2, \
+#                         value = settings["Find"]["Estimated particle size"],\
+#                         description = "Diameter of bead [Px]")      
+#    
+#    def OptimizeBeamDiameter(mode, diameter):
+#
+#        settings = nd.handle_data.ReadJson(ParameterJsonFile)
+#        settings["Find"]["Estimated particle size"] = diameter
+#        settings["Help"]["Bead size"] = mode
+#                
+#        if mode  == "manual":
+#            settings["Find"]["Estimated particle size"] = \
+#            nd.AdjustSettings.SpotSize_manual(rawframes_pre, settings, AutoIteration = False)
+#            
+#        elif settings["Help"]["Bead size"] == "auto":
+#            settings["Find"]["Estimated particle size"] = nd.AdjustSettings.SpotSize_auto(settings)
+#            
 #        else:
-#            settings["Plot"]['Laserfluctuation_Show'] = True
-#            nd.PreProcessing.RemoveLaserfluctuation(rawframes_np, settings)    
+#            print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
 #
 #        nd.handle_data.WriteJson(ParameterJsonFile, settings)
+#
+#    interact(OptimizeBeamDiameter, mode = help_diameter, diameter = diameter_slider)
+#
 
-    interact(ChooseSepDistance, mode = help_sep_distance)
 
-
-
-    # BEAD DIAMETER
-    # select if help is required
-    help_diameter = Dropdown(
-            options=['0', 'manual', 'auto'],
-            value=settings["Help"]["Bead size"],
-            description='Help bead diameter')
-
-    diameter_slider = IntSlider(min = 1, max = 31, step = 2, \
-                         value = settings["Find"]["Estimated particle size"],\
-                         description = "Diameter of bead [Px]")      
+    # MINMASS
+    # optimize minmass to identify particle
+    help_minmass = Dropdown(
+        options=['0', 'manual', 'auto'],
+        value=settings["Help"]["Bead brightness"],
+        description='Help bead minmass')
     
-    def OptimizeBeamDiameter(mode, diameter):
-        print(diameter)
+
+    minmass_slider = FloatLogSlider(min = 1, max = 4, step = 0.1, \
+                         value = settings["Find"]["Minimal bead brightness"],\
+                         description = "Minimal bead brightness")      
+    
+    def OptimizeMinmass(mode, minmass):
+
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        settings["Find"]["Estimated particle size"] = diameter
-        settings["Help"]["Bead size"] = mode
+        settings["Find"]["Minimal bead brightness"] = minmass
+        settings["Help"]["Bead brightness"] = mode
                 
+        if mode  == "manual":
+            nd.AdjustSettings.FindSpot_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = True)
+            
+        elif settings["Help"]["Bead size"] == "auto":
+            minmass, num_particles_trackpy = nd.ParameterEstimation.EstimateMinmassMain(rawframes_pre, settings)
+            settings["Find"]["Minimal bead brightness"] = minmass
+            
+        else:
+            print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
+
+        
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
-        nd.AdjustSettings.SpotSize(rawframes_pre, ParameterJsonFile) 
-
-
-    interact(OptimizeBeamDiameter, mode = help_diameter, diameter = diameter_slider)
-
-
-
-
-
-
-
-#        settings["Help"]["Bead brightness"]  = str(input("Do you want help with the >minimal bead brightness< ? \
-#                \n 0 - no \
-#                \n manuel - manuel setting the value with help \
-#                \n auto - fully automized parameter estimation \n"))
-        
-#        settings["Help"]["Bead size"]        = str(input("Do you want help with the >bead size< ? \
-#                \n 0 = no \
-#                \n manuel - manuel setting the value with help \
-#                \n auto - fully automized parameter estimation \n"))
-#        
-#        settings["Help"]["Separation"]        = str(input("Do you want help with the maximum allowed movement of a particle between two frames >Max Displacement< and the minimal distance to beads must have >Separation Data<? \
-#                \n 0 = no \
-#                \n auto - fully automized parameter estimation \n"))
-
-
+    interact(OptimizeMinmass, mode = help_minmass, minmass = minmass_slider)
+    
+    
 
 
 

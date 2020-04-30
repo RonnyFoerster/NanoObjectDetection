@@ -90,7 +90,7 @@ from pdb import set_trace as bp #debugger
 
 
 
-def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None, max_iterations = 10, SaveFig = False, gamma = 0.8):
+def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None, max_iterations = 10, SaveFig = False, gamma = 0.8, ExternalSlider = False):
     """
     Defines the paramter for the trackpy routine tp.batch, which spots particles, out of the json file
     
@@ -161,8 +161,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
  
     
         nd.handle_data.WriteJson(ParameterJsonFile, settings) 
-    
-    
+
         if SaveFig == True:
             from NanoObjectDetection.PlotProperties import axis_font, title_font
             
@@ -179,7 +178,10 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             save_folder_name = settings["Plot"]["SaveFolder"]
             save_image_name = 'Optimize_First_Frame'
     
-            settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
+            if ExternalSlider == False:
+                settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
+            else:
+                print("No save in external slider mode")
         
             plt.close(fig)
     
