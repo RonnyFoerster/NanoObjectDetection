@@ -20,6 +20,7 @@ from pdb import set_trace as bp #debugger
 
 from scipy.constants import speed_of_light as c
 from numpy import pi
+import scipy
 from scipy.constants import Boltzmann as k_b
 
 import time
@@ -287,6 +288,240 @@ def VelocityByExternalForce(F_ext, radius, visc_water):
 
 
 
+def MaximumNAByFocusDepth(dof, lambda_nm, n):
+    '''
+    dof - depth of focus
+    n - refractive index immersion oil
+    '''
+    NA = np.sqrt((2*lambda_nm*n) / dof)
+    
+    return NA
+#https://www.microscopyu.com/microscopy-basics/depth-of-field-and-depth-of-focus
+
+
+def DetectionEfficency(NA,n):
+    alpha = np.arcsin(NA/n) #opening angle
+    ster = 2*np.pi*(1-np.cos(alpha)) # steradiant
+    DE = ster / (4*np.pi)# Detection efficency    
+    
+    return DE
+
+
+
+
+def MinimalDiameter(d_channel, lambda_nm, P_illu = 0.001, d_nm_min = 1, d_nm_max = 100, n = 1, T = 293, visc_water = 0.001, readout_s = None, N_required = 200):
+    '''
+    d_channel - diameter of the channel [nm]
+    P_illu - power of laser INSIDE the fiber [W]
+    n - refractive index immersion oil
+    N_required - Intended number of photons of a scatterer per frame
+    '''
+    NA = MaximumNAByFocusDepth(d_channel, lambda_nm, n) # maximum NA
+    
+#    DE = DetectionEfficency(NA,n) # maximum 
+
+    lambda_um = lambda_nm / 1000
+    res_um = 1.22 * lambda_um / NA # resolution of PSF
+    
+#    A_max = np.pi * res_um**2 #maximal circle the particle should not leave in order to not blur (=D * t)
+    
+    # try several particle sizes
+    d_m = np.logspace(np.log10(d_nm_min),np.log10(d_nm_max),50) * 1E-9
+    
+
+    w_illu = d_channel /1E9 /2
+    
+    #number of photons
+    N_max = np.zeros_like(d_m)
+    
+    #max framerate
+    t_min = np.zeros_like(d_m)
+    
+    for index, loop_d_m in enumerate(d_m):
+        r_m = loop_d_m / 2
+    
+        # calc corresponding diffusion constant
+        D_sqm = (scipy.constants.k * T)/(6*np.pi *visc_water * r_m)
+        
+        # maximum exposure time before blurr happens
+        t_max = (res_um/1e6)**2 / D_sqm
+#        t_max = A_max/(1e6**2) / D_sqm
+        
+        N_maximum = EstimateScatteringIntensity(P_illu, w_illu, lambda_nm, loop_d_m, t_max, NA, n, PrintSteps=False)
+    
+        if N_maximum > N_required:
+            t_min[index] = N_required / N_maximum * t_max
+        else:
+            t_min[index] = t_max
+        N_max[index] = N_maximum
+    
+    plt.figure()
+    plt.loglog(d_m * 1E9, N_max, '.')
+    plt.ylabel("Maximum number of photons", fontsize = 14)
+    plt.xlabel("Diameter in [nm]", fontsize = 14)
+    plt.grid(linewidth = 1, which='major')
+    plt.grid(linewidth = 0.2, which='minor')
+    plt.show() 
+    
+    
+    plt.figure()
+    plt.loglog(d_m * 1E9, t_min, '.')
+    plt.ylabel("Minimum exposure time", fontsize = 14)
+    plt.xlabel("Diameter in [nm]", fontsize = 14)
+    plt.grid(linewidth = 1, which='major')
+    plt.grid(linewidth = 0.2, which='minor')
+    plt.show() 
+
+    
+    if readout_s != None:
+        f_max = 1/(t_min+readout_s )
+        plt.figure()
+        plt.loglog(d_m * 1E9, f_max, '.')
+        plt.ylabel("Max Framerate [Hz]", fontsize = 14)
+        plt.xlabel("Diameter in [nm]", fontsize = 14)
+        plt.grid(linewidth = 1, which='major')
+        plt.grid(linewidth = 0.2, which='minor')
+        plt.show() 
+        
+    
+    print("\nParameters:")
+    print("Channel diamter [um]: ", d_channel/1000)
+    print("Maximum NA: ", np.round(NA,3))
+    print("Detection efficency: ", np.round(DetectionEfficency(NA,n),3))
+    print("Resolution [um]: ", np.round(res_um,2))
+    print("Beam radius (waste) [um]: ", w_illu * 1e6)
+    print("P_illu [W]: ", P_illu)
+    print("Wavelength [nm]: ", lambda_nm)
+    print("N required: ", N_required)
+    
+    return
+    
+    
+
+def EstimateScatteringIntensity(P_illu, w_illu, lambda_illu, d, exposure_time, NA, n, PrintSteps = True):
+    '''
+    P_illu - Power of illumination beam [W]
+    w_illu - Beam waiste (radius) in m
+    lambda_illu - illumination wavelength in nm
+    d - diameter of particle in m
+    exposure_time - exposure_time in s
+    NA - considering air
+    n - refractive index of immersion media
+    '''
+    #Assume gaussian beam
+
+    # peak intensity of gaussian beam
+    I_illu = 2*P_illu/(np.pi*w_illu**2)
+    
+    # assume it is gold
+    # crosssection in sq nm
+    C_scat = CalcCrossSection(d, lambda_illu)
+#    print("Scattering cross-section [sqnm]: ", C_scat)
+    
+    C_scat = C_scat / 1E9**2 # transform in sqm
+    
+    P_scat = I_illu * C_scat
+
+    
+    E_one_photon = scipy.constants.c * scipy.constants.h / (lambda_illu*1E-9) # In Joule
+    
+    N_scat_per_s = P_scat / E_one_photon #Number of scattered photons per second
+    
+    DE = DetectionEfficency(NA,n)# Detection efficency
+    
+    N_det = np.round(N_scat_per_s * DE * exposure_time)
+    
+    if PrintSteps == True:
+        print("Illumination intensity [W/sqm]: ", I_illu)    
+        print("Scattering power [W]: ", P_scat)
+        print("Scattered photons [1/s]: ", N_scat_per_s)
+        print("Detection efficency: ", DE)  
+        print("Number of detected photons: ", N_det)
+
+    
+    return N_det
+
+
+
+def CalcCrossSection(d, at_lambda_nm = None):
+    '''
+    d - particle diameter in m
+    
+    https://miepython.readthedocs.io/en/latest/02_efficiencies.html?highlight=scattering%20cross%20section
+    https://opensky.ucar.edu/islandora/object/technotes%3A232/datastream/PDF/view
+    '''
+    
+    import miepython as mp
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # import the Johnson and Christy data for silver
+    au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
+#    au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
+
+    n_media = 1.333
+
+    # data is stacked so need to rearrange
+    N = len(au)//2
+    lambda_um = au[1:N,0]
+#    lambda_um = lambda_um / n_media
+
+    m_real = au[1:N,1]
+    m_imag = au[N+1:,1]
+    
+    lambda_um = lambda_um[30:35]
+    m_real = m_real[30:35]
+    m_imag = m_imag[30:35]
+    
+#    print("lambda_um: ", lambda_um)
+#    print("m_real: ", m_real)
+#    print("m_imag: ", m_imag)
+    
+
+    r_um = d*1e6/2 #radius in microns
+    r_nm = r_um * 1000
+    
+#    print("particle radius in nm: ", r_nm)
+    
+    x = n_media*2*np.pi*r_um/lambda_um;
+    m = (m_real - 1.0j * m_imag) / n_media
+    
+    qext, qsca, qback, g = mp.mie(m,x)
+    qabs = (qext - qsca)
+    absorb  = qabs * np.pi * r_nm**2
+    scatt   = qsca * np.pi * r_nm**2
+    extinct = qext* np.pi * r_nm**2
+    
+    lambda_nm = 1000 * lambda_um
+
+    if at_lambda_nm  == None:
+#        plt.plot(lambda_nm,qext,'g.-')   
+#        plt.plot(lambda_nm,qext - qsca,'r.-')   
+        plt.plot(lambda_nm,qsca,'k.-')   
+        plt.xlabel("Wavelength (nm)")
+        plt.ylabel("Efficency")
+        plt.title("Efficency for %.1f nm Spheres" % (r_nm*2))
+        plt.xlim([400, 800])
+        
+        plt.figure()
+        plt.plot(lambda_nm,scatt,'r.-')   
+        plt.xlabel("Wavelength (nm)")
+        plt.ylabel("Cross Section (1/$nm^2$)")
+        plt.title("Cross Sections for %.1f nm Spheres" % (r_nm*2))
+        
+        plt.xlim(300,800)
+        plt.show()
+        
+        C_Scatt = scatt
+        
+    else:
+        C_Scatt = np.interp(at_lambda_nm, lambda_nm, scatt)
+#        print("Size parameter: ", np.interp(at_lambda_nm, lambda_nm, x))
+#        print("Scatterung efficency: ", np.interp(at_lambda_nm, lambda_nm, qsca))
+#        print("Scattering cross-section [nm²]: ", C_Scatt)
+    
+    return C_Scatt
+
 def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None):   
     """ calculate the radiation force onto a scattering sphere
     
@@ -300,63 +535,7 @@ def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None
     material:   sphere's material
     """
     
-    lambda_um = lambda_nm / 1000
-    lambda_m  = lambda_nm / 1e9
-    k = 2*pi/lambda_m
-    
-    #particle radius
-    r_nm = d_nm / 2
-    r_m  = r_nm / 1e9
-    
-    I = P_W/A_sqm
-    I_squm = P_W*1e6 / (A_sqm*1e12)
-
-    print("I [W/sqm] = ", I)
-    print("I [uW/squm] = ", I_squm)
-
-    if e_part == None:    
-        if material == "Gold":
-            au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
-            #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
-            #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Werner.txt', delimiter='\t')
-        else:
-            print("material unknown")
-            
-        # data is stacked so need to rearrange
-        N = len(au)//2
-        mylambda = au[1:N,0]
-        n_real = au[1:N,1]
-        n_imag = au[N+1:,1]
-        
-        n_part_real = np.interp(lambda_um, mylambda, n_real)
-        n_part_imag = np.interp(lambda_um, mylambda, n_imag)
-        n_part = n_part_real + 1j * n_part_imag    
-
-        e_part_real = n_part_real**2 - n_part_imag**2
-        e_part_imag = 2*n_part_real*n_part_imag
-        e_part = e_part_real + 1j * e_part_imag
-    
-    else:
-        if isinstance(e_part, complex) == False:
-            raise TypeError("number must be complex, like 1+1j")
-        else:
-            e_part_real = np.real(e_part)
-            e_part_imag = np.imag(e_part)
-            n_part = np.sqrt((e_part_real+e_part_real)/2)
-    
-    n_media = 1.333
-    e_media = n_media**2
-    
-    m = n_part / n_media
-    
-    print("not sure if this is right")
-    m = np.abs(m)
-    n_part = np.abs(n_part)
-    
-    C_scat = 8/3*pi*np.power(k,4)*np.power(r_m,6) * ((m**2-1)/(m**2+1))
-    
-    V = 4/3*pi*np.power(r_m,3)
-    C_abs = k * np.imag(3 * V * (e_part - e_media)/(e_part + 2*e_media))
+    C_scat, C_abs = CalcCrossSection(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None)
     
     #Eq 11 in Eq 10
     F_scat = C_scat * n_media/c * I
@@ -844,6 +1023,79 @@ def SplitTrajectory(eval_t2):
 
 
 
+
+
+def CalcCrossSection_OLD(lambda_nm, d_nm, material = "Gold", e_part = None):
+    """ calculate the scattering crosssections of a scattering sphere
+    
+    https://reader.elsevier.com/reader/sd/pii/0030401895007539?token=48F2795599992EB11281DD1C2A50B58FC6C5F2614C90590B9700CD737B0B9C8E94F2BB8A17F74D0E6087FF3B7EF5EF49
+    https://github.com/scottprahl/miepython/blob/master/doc/01_basics.ipynb
+    
+    lambda_nm:  wavelength of the incident light
+    d_nm:       sphere's diameter
+    P_W:        incident power
+    A_sqm:      beam/channel cross sectional area
+    material:   sphere's material
+    """
+    
+    lambda_um = lambda_nm / 1000
+    lambda_m  = lambda_nm / 1e9
+    k = 2*pi/lambda_m
+    
+    #particle radius
+    r_nm = d_nm / 2
+    r_m  = r_nm / 1e9
+    
+    if e_part == None:    
+        if material == "Gold":
+            au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
+            #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
+            #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Werner.txt', delimiter='\t')
+        else:
+            print("material unknown")
+            
+        # data is stacked so need to rearrange
+        N = len(au)//2
+        mylambda = au[1:N,0]
+        n_real = au[1:N,1]
+        n_imag = au[N+1:,1]
+        
+        n_part_real = np.interp(lambda_um, mylambda, n_real)
+        n_part_imag = np.interp(lambda_um, mylambda, n_imag)
+        n_part = n_part_real + 1j * n_part_imag    
+
+        e_part_real = n_part_real**2 - n_part_imag**2
+        e_part_imag = 2*n_part_real*n_part_imag
+        e_part = e_part_real + 1j * e_part_imag
+    
+    else:
+        if isinstance(e_part, complex) == False:
+            raise TypeError("number must be complex, like 1+1j")
+        else:
+            e_part_real = np.real(e_part)
+            e_part_imag = np.imag(e_part)
+            n_part = np.sqrt((e_part_real+e_part_real)/2)
+    
+    n_media = 1.333
+    e_media = n_media**2
+    
+    m = n_part / n_media
+    
+    print("not sure if this is right")
+    m = np.abs(m)
+    n_part = np.abs(n_part)
+    
+    C_scat = 8/3*pi*np.power(k,4)*np.power(r_m,6) * ((m**2-1)/(m**2+1))**2
+    
+    V = 4/3*pi*np.power(r_m,3)
+    C_abs = k * np.imag(3 * V * (e_part - e_media)/(e_part + 2*e_media))
+    
+    print("\nC_scat [sqm]: ", C_scat)
+    print("C_scat [sq nm]: ", C_scat / (1e-9**2))
+    print("\nC_abs [sqm]: ", C_abs)
+    print("C_abs [sq nm]: ", C_abs / (1e-9**2))
+    
+    return C_scat, C_abs
 
 
 
