@@ -497,14 +497,15 @@ def SaltAndPepperKernel(sigma, fac = 6, x_size = None,y_size = None):
     return g
 
 
-def FindMaxDisplacementTrackpy(ParameterJsonFile):
+def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None):
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     temp_water = settings["Exp"]["Temperature"]
     visc_water = settings["Exp"]["Viscosity"]
     Dark_frame  = settings["Link"]["Dark time"]
 
-    GuessLowestDiameter_nm = int(input("What is the lower limit of diameter (in nm) you expect?\n"))
+    if GuessLowestDiameter_nm == None:
+        GuessLowestDiameter_nm = int(input("What is the lower limit of diameter (in nm) you expect?\n"))
     
 
     

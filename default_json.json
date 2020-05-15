@@ -78,7 +78,8 @@
           "Bead size": "auto",
           "Separation": "auto",
           "GuessLowestDiameter_nm": 50,
-          "Drift": "auto"
+          "Drift": "auto",
+          "Debugger": 1
      },
      "Find": {
           "Estimated particle size": 13,

@@ -172,6 +172,7 @@ def FindSpot_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = False):
         
         if ExternalSlider == True:
             obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.4, ExternalSlider = True)
+
             UserSatisfied = True
             
         else:

@@ -105,8 +105,10 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                     
                     # only continue if trajectory is good. Otherwise plot the error
                     if traj_has_error == True:
+#                        bp()
                         OptimizingStatus = "Abort"
                         print("Trajectory has error. Particle ID: ", particleid)
+                        print("Kolmogorow-Smirnow-Test: significance: ", stat_sign)
                         
                     else:    
                         # calc MSD and Fit linear function through it
@@ -138,22 +140,24 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                 bp()                        
                 sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, DoRolling = True)
 
-
-
+    
+    if len(sizes_df_lin) == 0:
+        print("No particle made it to the end!!!")
         
-    AdjustMSDPlot(MSD_fit_Show)
-    
-    sizes_df_lin = sizes_df_lin.set_index('particle')
-
-    if do_rolling == True:
-        sizes_df_lin_rolling = sizes_df_lin_rolling.set_index('frame')
     else:
-        sizes_df_lin_rolling = "Undone"
-
-    if MSD_fit_Save == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings)
+        AdjustMSDPlot(MSD_fit_Show)
+        
+        sizes_df_lin = sizes_df_lin.set_index('particle')
     
-    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+        if do_rolling == True:
+            sizes_df_lin_rolling = sizes_df_lin_rolling.set_index('frame')
+        else:
+            sizes_df_lin_rolling = "Undone"
+    
+        if MSD_fit_Save == True:
+            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings)
+        
+        nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
     
     return sizes_df_lin, sizes_df_lin_rolling, any_successful_check
@@ -178,7 +182,7 @@ def GetSettingsParameters(settings):
         
     if amount_lagtimes_auto == 1:
         if settings["Exp"]["gain"] == "unknown":
-            raise ValueError("Number of considered lagtimes cant be estimated automatically, if gain is unknown. Measure gain, or change 'Amount lagtime _auto' values to 0.")
+            raise ValueError("Number of considered lagtimes cant be estimated automatically, if gain is unknown. Measure gain, or change 'Amount lagtime auto' values to 0.")
 
     if temp_water < 250:
         raise Exception("Temperature is below 250K! Check if the temperature is inserted in K not in C!")
@@ -301,7 +305,11 @@ def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
 
 
 
-def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1):
+def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False):
+    
+#    print("REMOVE THIS LATER AGAIN !!!")
+#    MinSignificance = 0
+    
     # get movement between two CONSECUTIVE frames
     dx = nan_tm[1][np.isnan(nan_tm[1]) == False]
 
@@ -317,6 +325,25 @@ def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1):
 
     # stat_sign says how likely it is, that this trajectory has not normal distribute movements
     traj_has_error = stat_sign < MinSignificance 
+    
+    if PlotErrorIfTestFails == False:
+        if traj_has_error == True:
+            print("Error in Traj. This can be plotted, if code here is switched on.")
+            dx_exp = np.sort(dx)
+            N = len(dx_exp)
+            cdf_exp = np.array(range(N))/float(N)
+            
+            plt.figure()
+            plt.plot(dx_exp, cdf_exp, '.:', label = 'CDF - Data')
+            
+            #compare with theory
+            dx_theory = np.linspace(cdf_exp[0],dx_exp[-1],N)             
+            cdf_theory = scipy.stats.norm.cdf(dx_exp, loc = mu, scale = std)     
+            plt.plot(dx_exp, cdf_theory, '.:', label = 'CDF - Fit')
+            plt.legend()
+            plt.show()
+    
+    #        bp()
     
     return traj_has_error, stat_sign, dx
 
@@ -439,7 +466,7 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
         # columns: 0: initial position in respective frame
         # columns: all others: displacement from original position
         
-        
+        bp()
         nan_tm[0]=eval_tm.x*microns_per_pixel # filling column 0 with position of respective frame
 #        nan_tm[0]=eval_tm.y*microns_per_pixel # filling column 0 with position of respective frame
     

@@ -71,7 +71,7 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
             # It might be more appropriate to divide into subareas and correct for drift individually there
             # That's done if Do_transversal_drift_correction==1
             my_drift = tp.compute_drift(t_drift, drift_smoothing_frames) # calculate the overall drift (e.g. drift of setup or flow of particles)
-            
+            bp()
             """
             this is a bug in tracky. If there is no particle in a frame, it will sometimes not calculate the drift 
             in the next frame with a particle. So a small workaround here

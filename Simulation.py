@@ -29,7 +29,7 @@ import multiprocessing
 
 import trackpy as tp
 
-# In[]
+
 def PrepareRandomWalk(ParameterJsonFile):
     """ configure the parameters for a randowm walk out of a JSON file, and generate 
     it in a DataFrame
@@ -516,9 +516,9 @@ def CalcCrossSection(d, at_lambda_nm = None):
         
     else:
         C_Scatt = np.interp(at_lambda_nm, lambda_nm, scatt)
-#        print("Size parameter: ", np.interp(at_lambda_nm, lambda_nm, x))
-#        print("Scatterung efficency: ", np.interp(at_lambda_nm, lambda_nm, qsca))
-#        print("Scattering cross-section [nm²]: ", C_Scatt)
+        print("Size parameter: ", np.interp(at_lambda_nm, lambda_nm, x))
+        print("Scatterung efficency: ", np.interp(at_lambda_nm, lambda_nm, qsca))
+        print("Scattering cross-section [nm²]: ", C_Scatt)
     
     return C_Scatt
 
@@ -568,9 +568,6 @@ def E_Kin_Radiation_Force(F,m,t):
 
 
 
-
-
-#%%
 def LoopSimulation():
     # Makes several run of the random walk for several particle numbers and frames to get a good statistic
     if 1 == 1:

@@ -6,8 +6,6 @@ Created on Tue Feb  5 12:23:39 2019
 
 """
 
-
-# In[0]:
 # coding: utf-8
 """
 Analyzis of Gold-Particle data for ARHCF paper
@@ -41,52 +39,6 @@ from tqdm import tqdm# progress bar
 
 from pdb import set_trace as bp #debugger
 
-# In[]
-#def OptimizeParamFindSpots(rawframes_ROI, ParameterJsonFile, SaveFig, gamma = 0.8, diameter=None , minmass=None, separation=None):
-#    
-#    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-#    
-#    diameter = settings["Find"]["Estimated particle size"]
-#    minmass = settings["Find"]["Minimal bead brightness"]
-#    separation = settings["Find"]["Separation data"]
-#    
-#    obj = nd.get_trajectorie.batch_np(rawframes_ROI[0:1,:,:], ParameterJsonFile, diameter = diameter,
-#                                      minmass = minmass, separation = separation)
-#
-#    params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
-#    
-##    mpl.rcParams.update(params)
-#    
-#
-#
-#    fig = plt.figure()
-#
-#    plt.imshow(nd.handle_data.DispWithGamma(rawframes_ROI[0,:,:] ,gamma = gamma))
-#
-#    
-#    plt.scatter(obj["x"],obj["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
-#
-##    my_s = rawframes_ROI.shape[2] / 10
-##    my_linewidths = rawframes_ROI.shape[2] / 1000
-##    plt.scatter(obj["x"],obj["y"], s = my_s, facecolors='none', edgecolors='r', linewidths = my_linewidths)
-#  
-#
-#    plt.title("Identified Particles in first frame", **title_font)
-#    plt.xlabel("long. Position [Px]")
-#    plt.ylabel("trans. Position [Px]", **axis_font)
-#    
-#       
-#    if SaveFig == True:
-#        save_folder_name = settings["Plot"]["SaveFolder"]
-#        save_image_name = 'Optimize_First_Frame'
-#
-#        settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
-#        
-#        # close it because its reopened anyway
-##        plt.close(fig)
-#    
-#
-#    return obj, settings
 
 
 
@@ -129,22 +81,30 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
         output_empty = True
         
         while output_empty == True:
+            print("If you have problems with IOPUB data rate exceeded take a look here: https://www.youtube.com/watch?v=B_YlLf6fa5A")
+
             print("Minmass = ", minmass)
             print("Separation = ", separation)
             print("Diameter = ", diameter)
             print("Max iterations = ", max_iterations)
             print("PreProcessing of Trackpy = ", DoPreProcessing)
             
-            if frames_np.ndim == 3:
-                plt.imshow(frames_np[0,:,:])
-            else:
-                plt.imshow(frames_np[:,:])
+
+            
+            if SaveFig == True:
+                if frames_np.ndim == 3:
+                    plt.imshow(frames_np[0,:,:])
+                else:
+                    plt.imshow(frames_np[:,:])
                 
             # Make image uint16 otherwise trackpy makes min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
             frames_np[frames_np < 0] = 0
             frames_np = np.uint16(frames_np)
                 
-            output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, processes = 'auto', percentile = percentile)
+            if ExternalSlider == False:
+                output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, processes = 'auto', percentile = percentile)
+            else:
+                output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
             
             print("Set all NaN in estimation precision to 0")
             output.loc[np.isnan(output.ep), "ep"] = 0
@@ -162,14 +122,21 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
     
         nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
+
         if SaveFig == True:
             from NanoObjectDetection.PlotProperties import axis_font, title_font
             
 #            params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
-            fig = plt.figure()
+            if ExternalSlider == False:
+                fig = plt.figure()
 
             plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma), cmap = "gray")
-            plt.scatter(output["x"],output["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
+            
+            print("ExternalSlider: ", ExternalSlider)
+            if ExternalSlider == False:
+                plt.scatter(output["x"],output["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
+            else:
+                plt.scatter(output["x"],output["y"], s = 500, facecolors='none', edgecolors='r', linewidths=2)
  
         
             plt.title("Identified Particles in first frame", **title_font)
@@ -178,14 +145,29 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             save_folder_name = settings["Plot"]["SaveFolder"]
             save_image_name = 'Optimize_First_Frame'
     
+            
             if ExternalSlider == False:
                 settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
-            else:
-                print("No save in external slider mode")
-        
-            plt.close(fig)
-    
+                plt.close(fig)        
+            
     return output
+
+
+
+def QGridPandas(my_pandas):
+    #https://medium.com/@tobiaskrabel/how-to-fix-qgrid-in-jupyter-lab-error-displaying-widget-model-not-found-55a948b183a1
+    import qgrid
+    import time
+    
+    # 3 seconds sleep of sometimes retarted JupyterLab that does not plot anything for 3 seconds
+    time.sleep(3)
+
+    qgrid_widget = qgrid.show_grid(my_pandas, show_toolbar=True)
+
+
+    return qgrid_widget
+
+
 
 def AnalyzeMovingSpots(frames_np, ParameterJsonFile):
     """
@@ -231,8 +213,9 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
     t1_orig = tp.link_df(obj, max_displacement, memory=dark_time)
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
-    
-    
+
+
+
     return t1_orig
 
 
@@ -302,8 +285,28 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         print("Before: %d, After: %d, Removed: %d (%d%%)" 
               %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
 
+    if (FixedParticles == False) and (BeforeDriftCorrection == False):
+        #check if the histogramm of the misplacement of one particle is gaussian
+        
+        for i,particleid in enumerate(particle_number):
+            print("particleid: ", particleid)
+            eval_tm = traj_all[traj_all.particle==particleid]
+
+            nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
+            nd.CalcDiameter.CalcMSD(eval_tm, lagtimes_min = 1, lagtimes_max = 1)
+            
+            bp()
+            traj_has_error, stat_sign, dx = \
+            nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = True)
+            
+            if traj_has_error == True:
+                #remove if traj has error
+                bp()
+
+
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
+        
     return traj_min_length
 
 
@@ -816,4 +819,48 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     return t4_cutted, settings
 
 
-
+#def OptimizeParamFindSpots(rawframes_ROI, ParameterJsonFile, SaveFig, gamma = 0.8, diameter=None , minmass=None, separation=None):
+#    
+#    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+#    
+#    diameter = settings["Find"]["Estimated particle size"]
+#    minmass = settings["Find"]["Minimal bead brightness"]
+#    separation = settings["Find"]["Separation data"]
+#    
+#    obj = nd.get_trajectorie.batch_np(rawframes_ROI[0:1,:,:], ParameterJsonFile, diameter = diameter,
+#                                      minmass = minmass, separation = separation)
+#
+#    params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
+#    
+##    mpl.rcParams.update(params)
+#    
+#
+#
+#    fig = plt.figure()
+#
+#    plt.imshow(nd.handle_data.DispWithGamma(rawframes_ROI[0,:,:] ,gamma = gamma))
+#
+#    
+#    plt.scatter(obj["x"],obj["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
+#
+##    my_s = rawframes_ROI.shape[2] / 10
+##    my_linewidths = rawframes_ROI.shape[2] / 1000
+##    plt.scatter(obj["x"],obj["y"], s = my_s, facecolors='none', edgecolors='r', linewidths = my_linewidths)
+#  
+#
+#    plt.title("Identified Particles in first frame", **title_font)
+#    plt.xlabel("long. Position [Px]")
+#    plt.ylabel("trans. Position [Px]", **axis_font)
+#    
+#       
+#    if SaveFig == True:
+#        save_folder_name = settings["Plot"]["SaveFolder"]
+#        save_image_name = 'Optimize_First_Frame'
+#
+#        settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
+#        
+#        # close it because its reopened anyway
+##        plt.close(fig)
+#    
+#
+#    return obj, settings
