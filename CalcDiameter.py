@@ -326,8 +326,9 @@ def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotEr
     # stat_sign says how likely it is, that this trajectory has not normal distribute movements
     traj_has_error = stat_sign < MinSignificance 
     
-    if PlotErrorIfTestFails == False:
-        if traj_has_error == True:
+    
+    if traj_has_error == True:
+        if PlotErrorIfTestFails == True:
             print("Error in Traj. This can be plotted, if code here is switched on.")
             dx_exp = np.sort(dx)
             N = len(dx_exp)
@@ -448,11 +449,12 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
     # Checking already here, if particle-track is long enough:
     length_indexer = max_frame - min_frame + 1
     traj_length = int(length_indexer)
-
+    
     if length_indexer < (lagtimes_max + amount_summands * lagtimes_max):
         enough_values = "ToShortTraj"
         print("Trajectory is to short to have enough data points. \n Trajectorie length must be larger than (amount_summands * lagtimes_max). \n Consider optimizing parameters Min_tracking_frames, amount_summands, lagtimes_max.")
-    
+        bp()
+        
     else:
         # columns has two parts. The lagtimes:
         my_columns = range(lagtimes_min, lagtimes_max + 1)
@@ -466,7 +468,8 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
         # columns: 0: initial position in respective frame
         # columns: all others: displacement from original position
         
-        bp()
+        eval_tm = eval_tm.set_index("frame")
+        
         nan_tm[0]=eval_tm.x*microns_per_pixel # filling column 0 with position of respective frame
 #        nan_tm[0]=eval_tm.y*microns_per_pixel # filling column 0 with position of respective frame
     
@@ -488,6 +491,9 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
         if amount_frames_lagt_max < (lagtimes_max + 1 + amount_summands * lagtimes_max):
             enough_values = "ToManyHoles"
             print("To many holes in trajectory to have enough data points. \n Number of data points must be larger than (amount_summands * lagtimes_max). \n Consider optimizing parameters Dark tim, Min_tracking_frames, amount_summands, lagtimes_max")
+            print("amount_frames_lagt_max: ", amount_frames_lagt_max)
+            print("amount_summands: ", amount_summands)
+            print("lagtimes_max: ", lagtimes_max)
 
         else:
             enough_values = True    
@@ -631,7 +637,7 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
 
 #    CovCalculateable = (len(lagt_direct) >= 3)
 
-    [fit_values, fit_cov]= scipy.optimize.curve_fit(lin_func, lagt_direct, mean_displ_direct, sigma = mean_displ_sigma_direct, absolute_sigma=True , bounds = ([0,0],[np.inf, np.inf]))
+    [fit_values, fit_cov]= scipy.optimize.curve_fit(lin_func, lagt_direct, mean_displ_direct, sigma = mean_displ_sigma_direct, absolute_sigma=True , bounds = ([-10,-10],[np.inf, np.inf]))
     
     diff_direct_lin = np.squeeze(fit_values[0]/2)
     var_diff_direct_lin = np.squeeze(fit_cov[0,0]/4)
@@ -652,6 +658,8 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
             fit_values = np.median(fit_values,axis=1)    
             
 #        mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values[0]+ fit_values[1])
+        lagt_direct = np.append(lagt_direct, 0)
+
         mean_displ_fit_direct_lin = lagt_direct *fit_values[0]+ fit_values[1]
         nd.visualize.MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin)
     

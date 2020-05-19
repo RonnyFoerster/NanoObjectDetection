@@ -52,7 +52,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
     """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-    
+  
     DoSimulation = settings["Simulation"]["SimulateData"]
     if DoSimulation == 1:
         print("No data. A simulation is done instead")        
@@ -65,7 +65,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
 #            frames_np = nd.handle_data.LogData(frames_np)
         ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
         DoPreProcessing = (ImgConvolvedWithPSF == False)
-        
+
         separation = settings["Find"]["Separation data"]
         minmass    = settings["Find"]["Minimal bead brightness"]
         percentile = settings["Find"]["PercentileThreshold"]
@@ -88,14 +88,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             print("Diameter = ", diameter)
             print("Max iterations = ", max_iterations)
             print("PreProcessing of Trackpy = ", DoPreProcessing)
-            
 
-            
-            if SaveFig == True:
-                if frames_np.ndim == 3:
-                    plt.imshow(frames_np[0,:,:])
-                else:
-                    plt.imshow(frames_np[:,:])
                 
             # Make image uint16 otherwise trackpy makes min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
             frames_np[frames_np < 0] = 0
@@ -116,7 +109,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             else:
                 output_empty = False
                 
-        
+
         output['abstime'] = output['frame'] / settings["MSD"]["effective_fps"]
  
     
@@ -128,20 +121,27 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             
 #            params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
             if ExternalSlider == False:
+                if frames_np.ndim == 3:
+                    plt.imshow(frames_np[0,:,:])
+                else:
+                    plt.imshow(frames_np[:,:])
+                    
+            else:
                 fig = plt.figure()
-
-            plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma), cmap = "gray")
+                plt.figure(figsize = [20,20])
+                plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma), cmap = "gray")
             
-            print("ExternalSlider: ", ExternalSlider)
+
             if ExternalSlider == False:
                 plt.scatter(output["x"],output["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
             else:
+                
                 plt.scatter(output["x"],output["y"], s = 500, facecolors='none', edgecolors='r', linewidths=2)
  
         
             plt.title("Identified Particles in first frame", **title_font)
-            plt.xlabel("long. Position [Px]")
-            plt.ylabel("trans. Position [Px]", **axis_font)
+            plt.xlabel("long. Position [Px]", **axis_font)
+#            plt.ylabel("trans. Position [Px]", **axis_font)
             save_folder_name = settings["Plot"]["SaveFolder"]
             save_image_name = 'Optimize_First_Frame'
     
@@ -252,8 +252,8 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         min_tracking_frames = settings["Link"]["Min_tracking_frames"]
  
     print("Minimum trajectorie length: ", min_tracking_frames)
+
     traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
-    
     
     # RF 190408 remove Frames because the are doupled and panda does not like it
     index_unequal_frame = traj_min_length[traj_min_length.index != traj_min_length.frame]
@@ -264,8 +264,8 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         traj_min_length = traj_min_length.reset_index()
 
 
-    particle_number = traj_all['particle'].unique(); #particlue numbers that fulfill all previous requirements
-    amount_particles = len(particle_number); #total number of valid particles
+    particle_number = traj_all['particle'].unique(); #particlue numbers that are inserted
+    amount_particles = len(particle_number); #total number of all particles
     
     valid_particle_number = traj_min_length['particle'].unique(); #particlue numbers that fulfill all previous requirements
     amount_valid_particles = len(valid_particle_number); #total number of valid particles
@@ -287,21 +287,27 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
 
     if (FixedParticles == False) and (BeforeDriftCorrection == False):
         #check if the histogramm of the misplacement of one particle is gaussian
-        
-        for i,particleid in enumerate(particle_number):
-            print("particleid: ", particleid)
-            eval_tm = traj_all[traj_all.particle==particleid]
 
+        for i,particleid in enumerate(valid_particle_number):
+            print("particleid: ", particleid)
+            eval_tm = traj_min_length[traj_min_length.particle==particleid]
+            
+#            eval_tm = eval_tm.set_index("frame")
+            
             nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
             nd.CalcDiameter.CalcMSD(eval_tm, lagtimes_min = 1, lagtimes_max = 1)
             
-            bp()
+#            bp()
             traj_has_error, stat_sign, dx = \
             nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = True)
             
             if traj_has_error == True:
                 #remove if traj has error
-                bp()
+                print("Drop particleID (because of unbrownian trajectory): ", particleid)
+                
+                #drop particles with unbrownian trajectory
+                traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
+
 
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 

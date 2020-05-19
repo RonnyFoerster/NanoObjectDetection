@@ -40,8 +40,6 @@ def Show3dImage(image):
     y_range_slider = IntRangeSlider(value=[0, max_y], min=0, max=max_y, step = 1, description = "ROI - y")
     x_range_slider = IntRangeSlider(value=[0, max_x], min=0, max=max_x, step = 1, description = "ROI - x")
     gamma_slider = FloatSlider(min = 0.1, max = 2, step = 0.05, value = 0.5)  
-
-
         
     interact(ShowRawImage, frame = frame_slider, y_range = y_range_slider, x_range = x_range_slider, my_gamma = gamma_slider)
     
@@ -280,13 +278,9 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
             interact(ChooseSepDistance_Value, \
                      Min_Separation = Min_Separation_slider, Max_displacement = Max_displacement_slider)
 
-
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
-
     interact(ChooseSepDistance_Mode, mode = help_sep_distance)
-
-
 
 
 
@@ -330,29 +324,43 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
         value=settings["Help"]["Bead brightness"],
         description='Help bead minmass')
     
-
 #    minmass_slider = FloatLogSlider(min = 1, max = 4, step = 0.1, \
     minmass_slider = IntText(value = settings["Find"]["Minimal bead brightness"],\
                          description = "Minimal bead brightness", step = 50)      
     
-    frame_min = 1
-    frame_max = settings["ROI"]["frame_max"] - settings["ROI"]["frame_min"]
+    [max_f, max_y, max_x] = np.asarray(rawframes_pre.shape) - 1
+    
+#    frame_min = 1
+#    frame_max = settings["ROI"]["frame_max"] - settings["ROI"]["frame_min"]
     
     #IntText
-    frame_slider = IntText(value = 0,\
-                         description = "Frame", step = 1, \
-                         min = frame_min, max = frame_max)  
-    
-    def OptimizeMinmass(mode, minmass, frame):
+#    frame_slider = IntText(value = 0,\
+#                         description = "Frame", step = 1, \
+#                         min = frame_min, max = frame_max)     
+    frame_slider = IntSlider(min = 1, max = max_f, step = 1, description = "Frame")    
+    y_range_slider = IntRangeSlider(value=[0, max_y], min=0, max=max_y, step = 1, description = "y")
+    x_range_slider = IntRangeSlider(value=[0, max_x], min=0, max=max_x, step = 1, description = "x")
+    gamma_slider = FloatSlider(min = 0.1, max = 2, step = 0.05, value = 0.5)  
 
+
+    
+    
+    def OptimizeMinmass(mode, minmass, frame, y_range, x_range, gamma):
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
         settings["Find"]["Minimal bead brightness"] = minmass
         settings["Help"]["Bead brightness"] = mode
           
+        y_min = y_range[0]
+        y_max = y_range[1]+1
+        x_min = x_range[0]
+        x_max = x_range[1]+1
+        
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
         if mode  == "manual":
-            nd.AdjustSettings.FindSpot_manual(rawframes_pre[frame:frame+1,:,:], ParameterJsonFile, ExternalSlider = True)
+            nd.AdjustSettings.FindSpot_manual(rawframes_pre[frame:frame+1, y_min:y_max, x_min:x_max], ParameterJsonFile, \
+                                              ExternalSlider = True, gamma = gamma)
+            print("asdf")
             
         elif settings["Help"]["Bead size"] == "auto":
             minmass, num_particles_trackpy = nd.ParameterEstimation.EstimateMinmassMain(rawframes_pre, settings)
@@ -361,11 +369,12 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
         else:
             print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
 
-        
+
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
-    interact(OptimizeMinmass, mode = help_minmass, minmass = minmass_slider, frame = frame_slider)
-    
+
+    interact(OptimizeMinmass, mode = help_minmass, minmass = minmass_slider, \
+             frame = frame_slider, y_range = y_range_slider, x_range = x_range_slider, gamma = gamma_slider)
     
     
     

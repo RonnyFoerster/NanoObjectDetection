@@ -154,10 +154,9 @@ def FindSpot(rawframes_pre, ParameterJsonFile):
     return num_particles_trackpy
     
     
+      
     
-  
-    
-def FindSpot_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = False):    
+def FindSpot_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = False, gamma = 0.4):    
     """
     Main function to optimize the parameters for particle identification
     It runs the bead finding routine and ask the user what problem he has
@@ -169,14 +168,12 @@ def FindSpot_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = False):
     
     while UserSatisfied == False:
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        
         if ExternalSlider == True:
-            obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.4, ExternalSlider = True)
-
+            obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = gamma, ExternalSlider = True)
             UserSatisfied = True
             
         else:
-            obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = 0.4)
+            obj_first = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile, SaveFig = True, gamma = gamma)
             if FirstRun == True:
                 FirstRun = False
                 DoItAgain = False

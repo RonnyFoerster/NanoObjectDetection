@@ -15,7 +15,7 @@ import NanoObjectDetection as nd
 
 from pdb import set_trace as bp #debugger
 
-#%%
+
 def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None, min_particle_per_block = None, min_tracking_frames = None, PlotGlobalDrift = False, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False):
     
     """
@@ -59,9 +59,9 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
         rolling_window_size             = settings["Drift"]["Drift rolling window size"]    
         min_particle_per_block          = settings["Drift"]["Min particle per block"]    
         min_tracking_frames             = settings["Link"]["Min_tracking_frames"]
-        
-           
-    
+
+
+
         if Do_transversal_drift_correction == False:
             print('Mode: global drift correction')
             # That's not to be used if y-depending correction (next block) is performed!
@@ -71,7 +71,6 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
             # It might be more appropriate to divide into subareas and correct for drift individually there
             # That's done if Do_transversal_drift_correction==1
             my_drift = tp.compute_drift(t_drift, drift_smoothing_frames) # calculate the overall drift (e.g. drift of setup or flow of particles)
-            bp()
             """
             this is a bug in tracky. If there is no particle in a frame, it will sometimes not calculate the drift 
             in the next frame with a particle. So a small workaround here
