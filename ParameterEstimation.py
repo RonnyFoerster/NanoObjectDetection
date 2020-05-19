@@ -263,6 +263,7 @@ def FindParticles(img_zncc, correl_min):
         pos_particles[loop_particles-1,:] = [np.int(y_part_area.mean()), np.int(x_part_area.mean())]
     
     return pos_particles, num_features
+  
     
 
 def EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF = True):   
@@ -288,8 +289,7 @@ def EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF = True):
     print("\n Estimated diameter: ", diameter)
     
     return diameter
-    
-      
+          
     
 
 def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = True, percentile = 64):
