@@ -113,7 +113,6 @@ def ChooseROIParameters(rawframes_np, ParameterJsonFile):
 
 
 
-
 def ChoosePreProcessingParameters(rawframes_np, ParameterJsonFile):
     #read in settings
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -173,7 +172,7 @@ def ChoosePreProcessingParameters(rawframes_np, ParameterJsonFile):
             print("Static Background not corrected")
         else:
             settings["Plot"]['Background_Show'] = True
-            nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings)    
+            nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings, ShowColorBar = False)    
 
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
@@ -216,7 +215,7 @@ def ChoosePreProcessingParameters(rawframes_np, ParameterJsonFile):
             print("SNR not enhanced by a convolution with the PSF")
         else:
             settings["Plot"]['Background_Show'] = True
-            nd.PreProcessing.ConvolveWithPSF(rawframes_np[0,:,:], settings,  ShowFirstFrame = True)    
+            nd.PreProcessing.ConvolveWithPSF(rawframes_np[0,:,:], settings,  ShowFirstFrame = True, ShowColorBar = False)    
 
      
         nd.handle_data.WriteJson(ParameterJsonFile, settings)

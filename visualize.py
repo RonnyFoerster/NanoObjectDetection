@@ -131,7 +131,7 @@ def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha 
 
 
 
-def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None):
+def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None, ShowColorBar = True):
     """ plot image in standardized format """
     
     from NanoObjectDetection.PlotProperties import axis_font, title_font, params
@@ -139,7 +139,9 @@ def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None):
     
     plt.figure()
     plt.imshow(array_np, cmap='gray')
-    plt.colorbar()
+    
+    if ShowColorBar == True:
+        plt.colorbar()
     plt.title(title, **title_font)
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)

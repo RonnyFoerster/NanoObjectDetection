@@ -127,7 +127,7 @@ def RemoveLaserfluctuation(rawframes_np, settings):
     return rawframes_np
 
 
-def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False):
+def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False, ShowColorBar = True):
     print('Static background: start removing')
     Background_Show = settings["Plot"]['Background_Show']
     Background_Save = settings["Plot"]['Background_Save']
@@ -190,7 +190,7 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     if Background_Show == True:
         #plt.imshow(static_background)
         nd.visualize.Plot2DImage(static_background,title = "Background image", \
-                                 xlabel = "[Px]", ylabel = "[Px]")
+                                 xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
         
     
     if Background_Save == True:
@@ -246,7 +246,7 @@ def EstimageSigmaPSF(settings):
     return sigma_px
 
 
-def ConvolveWithPSF(rawframes_np, settings, ShowFirstFrame = False):  
+def ConvolveWithPSF(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True):  
     print('Convolve rawframe by PSF to enhance SNR: start removing')
     
     if settings["PreProcessing"]["KernelSize"] == 'auto':        
@@ -308,7 +308,7 @@ def ConvolveWithPSF(rawframes_np, settings, ShowFirstFrame = False):
         else:
             disp_data = rawframes_filtered[0,:,:]
             
-        nd.visualize.Plot2DImage(disp_data,title = "Filtered image", xlabel = "[Px]", ylabel = "[Px]")
+        nd.visualize.Plot2DImage(disp_data,title = "Filtered image", xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
 
     
 #    rawframes_filtered = np.real(np.fft.ifftn(ndimage.fourier_gaussian(np.fft.fftn(rawframes_np, axes = (1,2)), sigma=[0,gauss_kernel_rad  ,gauss_kernel_rad]), axes = (1,2)))
