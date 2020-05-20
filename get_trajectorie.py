@@ -93,11 +93,13 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             # Make image uint16 otherwise trackpy makes min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
             frames_np[frames_np < 0] = 0
             frames_np = np.uint16(frames_np)
-                
+              
             if ExternalSlider == False:
                 output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, processes = 'auto', percentile = percentile)
             else:
-                output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
+#                output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
+                print("WARNING UPDATE THIS!")
+                output = tp.batch(frames_np, diameter, minmass = minmass, separation = (diameter, separation), max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
             
             print("Set all NaN in estimation precision to 0")
             output.loc[np.isnan(output.ep), "ep"] = 0

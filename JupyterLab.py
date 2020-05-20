@@ -326,7 +326,7 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
     
 #    minmass_slider = FloatLogSlider(min = 1, max = 4, step = 0.1, \
     minmass_slider = IntText(value = settings["Find"]["Minimal bead brightness"],\
-                         description = "Minimal bead brightness", step = 50)      
+                         description = "Minimal bead brightness", min = 1, step = 10)      
     
     [max_f, max_y, max_x] = np.asarray(rawframes_pre.shape) - 1
     

@@ -1,6 +1,7 @@
 {
      "Exp": {
           "NA": 0.13,
+          "n_immersion": 1,
           "lambda": 532,
           "fps": 922,
           "ExposureTime": 0.001,
