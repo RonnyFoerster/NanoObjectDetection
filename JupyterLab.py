@@ -17,7 +17,39 @@ import NanoObjectDetection as nd
 from pdb import set_trace as bp #debugger
 # In[Functions]
 
-def Show3dImage(image):  
+def Show2dImage(image, title = '', ShowSlider = True, gamma = 1):  
+    [max_y, max_x] = np.asarray(image.shape) - 1
+    
+    def ShowImage(y_range, x_range, my_gamma):          
+        plt.figure(figsize=(15,10))
+        
+        y_min = y_range[0]
+        y_max = y_range[1]+1
+        x_min = x_range[0]
+        x_max = x_range[1]+1
+         
+        #plt.imshow(image[y_min:y_max, x_min:x_max], cmap = 'gray', norm=colors.PowerNorm(gamma=my_gamma))
+        plt.imshow(image, cmap = 'gray', norm=colors.PowerNorm(gamma=my_gamma))
+        plt.title(title)
+        plt.xlim([x_min, x_max])
+        plt.ylim([y_min, y_max])
+        plt.xlabel("x [Px]")
+        plt.ylabel("y [Px]")
+ 
+        plt.tight_layout()
+        
+        
+    y_range_slider = IntRangeSlider(value=[0, max_y], min=0, max=max_y, step = 5, description = "ROI - y")
+    x_range_slider = IntRangeSlider(value=[0, max_x], min=0, max=max_x, step = 5, description = "ROI - x")
+    gamma_slider = FloatSlider(min = 0.1, max = 2, step = 0.05, value = 0.5)  
+      
+    if ShowSlider == True:
+        interact(ShowImage, y_range = y_range_slider, x_range = x_range_slider, my_gamma = gamma_slider)
+    else:
+        ShowImage(y_range = [0, max_y], x_range = [0, max_x], my_gamma = gamma)
+
+
+def Show3dImage(image, title = ''):  
     [max_f, max_y, max_x] = np.asarray(image.shape) - 1
     
     def ShowRawImage(frame, y_range, x_range, my_gamma):          
@@ -28,17 +60,21 @@ def Show3dImage(image):
         x_min = x_range[0]
         x_max = x_range[1]+1
          
-        plt.imshow(image[frame,y_min:y_max, x_min:x_max], cmap = 'gray', norm=colors.PowerNorm(gamma=my_gamma))
-        plt.title("Raw Image")
+        plt.imshow(image[frame,:, :], cmap = 'gray', norm=colors.PowerNorm(gamma=my_gamma))
+#        plt.imshow(image[frame,y_min:y_max, x_min:x_max], cmap = 'gray', norm=colors.PowerNorm(gamma=my_gamma))
+        plt.title(title)
+        plt.xlim([x_min, x_max])
+        plt.ylim([y_min, y_max])
         plt.xlabel("x [Px]")
         plt.ylabel("y [Px]")
- 
+#        plt.colorbar()
+    
         plt.tight_layout()
         
         
     frame_slider = IntSlider(min = 1, max = max_f, step = 1, description = "Frame")    
-    y_range_slider = IntRangeSlider(value=[0, max_y], min=0, max=max_y, step = 1, description = "ROI - y")
-    x_range_slider = IntRangeSlider(value=[0, max_x], min=0, max=max_x, step = 1, description = "ROI - x")
+    y_range_slider = IntRangeSlider(value=[0, max_y], min=0, max=max_y, step = 5, description = "ROI - y")
+    x_range_slider = IntRangeSlider(value=[0, max_x], min=0, max=max_x, step = 5, description = "ROI - x")
     gamma_slider = FloatSlider(min = 0.1, max = 2, step = 0.05, value = 0.5)  
         
     interact(ShowRawImage, frame = frame_slider, y_range = y_range_slider, x_range = x_range_slider, my_gamma = gamma_slider)
@@ -159,36 +195,36 @@ def ChoosePreProcessingParameters(rawframes_np, ParameterJsonFile):
 
 
 
-    # STATIC BACKGROUND
-    process_static_background = IntSlider(min = 0, max = 1, \
-                         value = settings["PreProcessing"]["Remove_StaticBackground"],\
-                         description = "Correct static background (0 - no, 1 - yes)")  
-
-    def RemoveStaticBackground(process_static_background):
-        settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        settings["PreProcessing"]["Remove_CameraOffset"] = process_static_background
-
-        if process_static_background == 0:
-            print("Static Background not corrected")
-        else:
-            settings["Plot"]['Background_Show'] = True
-            nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings, ShowColorBar = False)    
-
-        nd.handle_data.WriteJson(ParameterJsonFile, settings)
-
-    interact(RemoveStaticBackground, process_static_background = process_static_background)
-
-
-
-    print("RollingPercentilFilter not inserted yet")
-
-
+#    # STATIC BACKGROUND
+#    process_static_background_slider = IntSlider(min = 0, max = 1, \
+#                         value = settings["PreProcessing"]["Remove_StaticBackground"],\
+#                         description = "Correct static background (0 - no, 1 - yes)")  
+#
+#    def RemoveStaticBackground(process_static_background):
+#        settings = nd.handle_data.ReadJson(ParameterJsonFile)
+#        settings["PreProcessing"]["Remove_CameraOffset"] = process_static_background
+#
+#        if process_static_background == 0:
+#            print("Static Background not corrected")
+#        else:
+#            settings["Plot"]['Background_Show'] = True
+#            rawframes_np_no_bg, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings, ShowColorBar = False, ExternalSlider = True)    
+#            Show2dImage(static_background, title = 'Background', ShowSlider = True)
+#
+#        nd.handle_data.WriteJson(ParameterJsonFile, settings)
+#
+#
+#
+#    interact(RemoveStaticBackground, process_static_background = process_static_background_slider)
+#
+#
     
-    print("Clipping negative values not inserted yet. Clipping is bad")
-
-
-
-    # ENHANCE SNR BY CONVOLVING WITH PSF
+    
+    # CALCULATE BACKGROUND AND ENHANCE SNR BY CONVOLVING WITH PSF
+    process_static_background_slider = IntSlider(min = 0, max = 1, \
+                     value = settings["PreProcessing"]["Remove_StaticBackground"],\
+                     description = "Correct static background (0 - no, 1 - yes)")  
+    
     EnhanceSNR_Slider = IntSlider(min = 0, max = 1, \
                          value = settings["PreProcessing"]["EnhanceSNR"],\
                          description = "Enhance SNR by convolving with the PSF (0 - no, 1 - yes)")  
@@ -201,8 +237,55 @@ def ChoosePreProcessingParameters(rawframes_np, ParameterJsonFile):
                      value = KernelSize,\
                      description = "Kernelsize (0 - auto)")  
 
+    [max_f, max_y, max_x] = np.asarray(rawframes_np.shape) - 1
+    frame_slider = IntSlider(min = 1, max = max_f, step = 1, description = "Frame")    
+    y_range_slider = IntRangeSlider(value=[0, max_y], min=0, max=max_y, step = 5, description = "ROI - y")
+    x_range_slider = IntRangeSlider(value=[0, max_x], min=0, max=max_x, step = 5, description = "ROI - x")
+    gamma_slider = FloatSlider(min = 0.1, max = 2, step = 0.05, value = 0.5)  
 
-    def ConvolveWithPSF(EnhanceSNR, KernelSize):
+
+    def ConvolveWithPSF(process_static_background, EnhanceSNR, KernelSize, frame, y_range, x_range, my_gamma):
+        settings = nd.handle_data.ReadJson(ParameterJsonFile)
+        settings["PreProcessing"]["Remove_CameraOffset"] = process_static_background
+
+        plt.figure(figsize=(15,10))
+        
+        y_min = y_range[0]
+        y_max = y_range[1]+1
+        x_min = x_range[0]
+        x_max = x_range[1]+1
+        
+        image_roi_bg = rawframes_np[:, y_min:y_max, x_min:x_max]
+        image_roi = rawframes_np[frame, y_min:y_max, x_min:x_max]
+
+        # Here comes the background
+        if process_static_background == 0:
+            print("Static Background not corrected")
+        else:
+            settings["Plot"]['Background_Show'] = True
+            image_roi_no_bg, static_background = nd.PreProcessing.Remove_StaticBackground(image_roi_bg, settings, ShowColorBar = False, ExternalSlider = True)    
+            Show2dImage(static_background, title = 'Background', ShowSlider = False)
+
+        
+        #switch the sliders on if they are required
+        if (EnhanceSNR == False) and (process_static_background == False):
+            KernelSize_Slider.layout.visibility = 'hidden'
+            frame_slider.layout.visibility = 'hidden'
+            y_range_slider.layout.visibility = 'hidden'
+            x_range_slider.layout.visibility = 'hidden'
+            gamma_slider.layout.visibility = 'hidden'
+        else:
+            KernelSize_Slider.layout.visibility = 'visible'
+            frame_slider.layout.visibility = 'visible'
+            y_range_slider.layout.visibility = 'visible'
+            x_range_slider.layout.visibility = 'visible'
+            gamma_slider.layout.visibility = 'visible'
+                
+#    def ConvolveWithPSF(EnhanceSNR, KernelSize, frame, my_gamma):
+
+        
+#        image_roi = rawframes_np[frame, :, :]
+        
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
         settings["PreProcessing"]["EnhanceSNR"] = EnhanceSNR
         
@@ -215,14 +298,27 @@ def ChoosePreProcessingParameters(rawframes_np, ParameterJsonFile):
             print("SNR not enhanced by a convolution with the PSF")
         else:
             settings["Plot"]['Background_Show'] = True
-            nd.PreProcessing.ConvolveWithPSF(rawframes_np[0,:,:], settings,  ShowFirstFrame = True, ShowColorBar = False)    
-
+            if process_static_background == 0:
+                rawframes_filtered = nd.PreProcessing.ConvolveWithPSF(image_roi, settings,  ShowFirstFrame = True, ShowColorBar = False, ExternalSlider = True)
+            else:
+                rawframes_filtered = nd.PreProcessing.ConvolveWithPSF(image_roi_no_bg[frame,:,:], settings,  ShowFirstFrame = True, ShowColorBar = False, ExternalSlider = True)   
+            
+            Show2dImage(rawframes_filtered, ShowSlider = False, gamma = my_gamma)
+            
      
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
+
+#    interact(ConvolveWithPSF, EnhanceSNR = EnhanceSNR_Slider, KernelSize = KernelSize_Slider\
+#             , frame = frame_slider, my_gamma = gamma_slider)
         
-    interact(ConvolveWithPSF, EnhanceSNR = EnhanceSNR_Slider, KernelSize = KernelSize_Slider)
+    interact(ConvolveWithPSF, process_static_background = process_static_background_slider, EnhanceSNR = EnhanceSNR_Slider, KernelSize = KernelSize_Slider, frame = frame_slider, y_range = y_range_slider, x_range = x_range_slider, my_gamma = gamma_slider)
 
 
+
+    # Rest is not implemented, yet
+    print("RollingPercentilFilter not inserted yet")
+    
+    print("Clipping negative values not inserted yet. Clipping is bad")
 
     print("Rotating the image is not inserted yet. Rotate your camera if that is a problem.")
     
@@ -242,10 +338,11 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
     def ChooseSepDistance_Mode(mode):
         
         settings["Help"]["Separation"] = mode
-        
+                
         if mode == "auto":
+            Low_Diam_slider_start = settings["Help"]["GuessLowestDiameter_nm"]
             Low_Diam_slider = IntSlider(min = 1, max = 100, step = 1, \
-                                                value = 10, 
+                                                value = Low_Diam_slider_start, 
                                                 description = "Guess lowest diameter [nm]")    
             
             def CalcSepDistance(Low_Diam):
@@ -254,6 +351,8 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
                 
                 settings["Find"]["Separation data"] = Min_Separation
                 settings["Link"]["Max displacement"] = Max_displacement
+                settings["Help"]["GuessLowestDiameter_nm"] = Low_Diam
+                
                 nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
             interact(CalcSepDistance, Low_Diam = Low_Diam_slider)
@@ -337,8 +436,8 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
 #                         description = "Frame", step = 1, \
 #                         min = frame_min, max = frame_max)     
     frame_slider = IntSlider(min = 1, max = max_f, step = 1, description = "Frame")    
-    y_range_slider = IntRangeSlider(value=[0, max_y], min=0, max=max_y, step = 1, description = "y")
-    x_range_slider = IntRangeSlider(value=[0, max_x], min=0, max=max_x, step = 1, description = "x")
+    y_range_slider = IntRangeSlider(value=[0, max_y], min=0, max=max_y, step = 5, description = "y")
+    x_range_slider = IntRangeSlider(value=[0, max_x], min=0, max=max_x, step = 5, description = "x")
     gamma_slider = FloatSlider(min = 0.1, max = 2, step = 0.05, value = 0.5)  
 
 
@@ -359,7 +458,6 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
         if mode  == "manual":
             nd.AdjustSettings.FindSpot_manual(rawframes_pre[frame:frame+1, y_min:y_max, x_min:x_max], ParameterJsonFile, \
                                               ExternalSlider = True, gamma = gamma)
-            print("asdf")
             
         elif settings["Help"]["Bead size"] == "auto":
             minmass, num_particles_trackpy = nd.ParameterEstimation.EstimateMinmassMain(rawframes_pre, settings)

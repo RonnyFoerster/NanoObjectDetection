@@ -28,7 +28,9 @@ def Main(rawframes_np, ParameterJsonFile):
                 
     else:
         if settings["PreProcessing"]["Remove_Laserfluctuation"] == 1:
-            rawframes_np = nd.PreProcessing.RemoveLaserfluctuation(rawframes_np, settings)    
+            rawframes_np = nd.PreProcessing.RemoveLaserfluctuation(rawframes_np, settings)
+            plt.figure()
+            plt.imshow(rawframes_np[0,:,0:350])
             # WARNING - this needs a roughly constant amount of particles in the object!
         else:
             print('Laser fluctuations: not removed')
@@ -37,19 +39,25 @@ def Main(rawframes_np, ParameterJsonFile):
         # check if constant background shall be removed
         if settings["PreProcessing"]["Remove_CameraOffset"] == 1:
             rawframes_np = nd.PreProcessing.SubtractCameraOffset(rawframes_np, settings)
+            plt.figure()
+            plt.imshow(rawframes_np[0,:,0:350])
         else:
             print('Constant camera background: not removed')
       
 
         if settings["PreProcessing"]["Remove_StaticBackground"] == 1:            
-            rawframes_np, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings)            
+            rawframes_np, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings)  
+            plt.figure()
+            plt.imshow(rawframes_np[0,:,0:350])
         else:
             static_background = "NotDone"
             print('Static background: not removed')
     
 
         if settings["PreProcessing"]["RollingPercentilFilter"] == 1:            
-            rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings)            
+            rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings)    
+            plt.figure()
+            plt.imshow(rawframes_np[0,:,0:350])
         else:
             print('Rolling percentil filter: not applied')
       
@@ -64,7 +72,9 @@ def Main(rawframes_np, ParameterJsonFile):
       
  
         if settings["PreProcessing"]["EnhanceSNR"] == 1:            
-            rawframes_np = nd.PreProcessing.ConvolveWithPSF(rawframes_np, settings)            
+            rawframes_np = nd.PreProcessing.ConvolveWithPSF(rawframes_np, settings)   
+            plt.figure()
+            plt.imshow(rawframes_np[0,:,0:350])
         else:
             print('Image SNR not enhanced by a gaussian average')
  
@@ -127,7 +137,7 @@ def RemoveLaserfluctuation(rawframes_np, settings):
     return rawframes_np
 
 
-def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False, ShowColorBar = True):
+def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False, ShowColorBar = True, ExternalSlider = False):
     print('Static background: start removing')
     Background_Show = settings["Plot"]['Background_Show']
     Background_Save = settings["Plot"]['Background_Save']
@@ -187,14 +197,15 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     rawframes_np_no_bg = rawframes_np - static_background # Now, I'm subtracting a background, in case there shall be        
 
 
-    if Background_Show == True:
-        #plt.imshow(static_background)
-        nd.visualize.Plot2DImage(static_background,title = "Background image", \
-                                 xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
+    if ExternalSlider == False:
+        if Background_Show == True:
+            #plt.imshow(static_background)
+            nd.visualize.Plot2DImage(static_background,title = "Background image", \
+                                     xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
+            
         
-    
-    if Background_Save == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "CameraBackground", settings)
+        if Background_Save == True:
+            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "CameraBackground", settings)
     
     
     print('Static background: removed')
@@ -246,7 +257,7 @@ def EstimageSigmaPSF(settings):
     return sigma_px
 
 
-def ConvolveWithPSF(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True):  
+def ConvolveWithPSF(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False):  
     print('Convolve rawframe by PSF to enhance SNR: start removing')
     
     if settings["PreProcessing"]["KernelSize"] == 'auto':        
@@ -301,14 +312,15 @@ def ConvolveWithPSF(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar
             
         else:
             rawframes_filtered = ApplyPSFKernelParallel(rawframes_np, gauss_kernel_rad)
-        
-    if ShowFirstFrame == True:
-        if rawframes_filtered.ndim == 2:
-            disp_data = rawframes_filtered
-        else:
-            disp_data = rawframes_filtered[0,:,:]
-            
-        nd.visualize.Plot2DImage(disp_data,title = "Filtered image", xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
+      
+    if ExternalSlider == False:
+        if ShowFirstFrame == True:
+            if rawframes_filtered.ndim == 2:
+                disp_data = rawframes_filtered
+            else:
+                disp_data = rawframes_filtered[0,:,:]
+                
+            nd.visualize.Plot2DImage(disp_data,title = "Filtered image", xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
 
     
 #    rawframes_filtered = np.real(np.fft.ifftn(ndimage.fourier_gaussian(np.fft.fftn(rawframes_np, axes = (1,2)), sigma=[0,gauss_kernel_rad  ,gauss_kernel_rad]), axes = (1,2)))

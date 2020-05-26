@@ -101,18 +101,22 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
                 print("WARNING UPDATE THIS!")
                 output = tp.batch(frames_np, diameter, minmass = minmass, separation = (diameter, separation), max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
             
-            print("Set all NaN in estimation precision to 0")
-            output.loc[np.isnan(output.ep), "ep"] = 0
             
-            if output.empty:
-                print("Image is empty - reduce Minimal bead brightness")
-                minmass = minmass / 10
-                settings["Find"]["Minimal bead brightness"] = minmass
-            else:
+            if ExternalSlider == True:
+                # leave without iteration, this is done outside by a slider
                 output_empty = False
                 
-
-        output['abstime'] = output['frame'] / settings["MSD"]["effective_fps"]
+            else:                
+                # check if any particle is found. If not reduce minmass
+                if output.empty:
+                    print("Image is empty - reduce Minimal bead brightness")
+                    minmass = minmass / 10
+                    settings["Find"]["Minimal bead brightness"] = minmass
+                else:
+                    output_empty = False
+                    print("Set all NaN in estimation precision to 0")
+                    output.loc[np.isnan(output.ep), "ep"] = 0
+                    output['abstime'] = output['frame'] / settings["MSD"]["effective_fps"]
  
     
         nd.handle_data.WriteJson(ParameterJsonFile, settings) 
