@@ -101,7 +101,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
                     any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
     
                     # check if datapoints in first lagtime are normal distributed
-                    traj_has_error, stat_sign, dx = CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1)
+                    traj_has_error, stat_sign, dx = CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 1E-10)
                     
                     # only continue if trajectory is good. Otherwise plot the error
                     if traj_has_error == True:
@@ -336,6 +336,8 @@ def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotEr
             
             plt.figure()
             plt.plot(dx_exp, cdf_exp, '.:', label = 'CDF - Data')
+            plt.xlabel("dx")
+            plt.ylabel("CDF")
             
             #compare with theory
             dx_theory = np.linspace(cdf_exp[0],dx_exp[-1],N)             
