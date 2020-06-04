@@ -24,6 +24,7 @@ from . import sandbox
 from . import Simulation
 from . import Start
 from . import teaching
+from . import Theory
 from . import Tools
 from . import Tutorial
 from . import wlsice

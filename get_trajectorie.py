@@ -305,11 +305,12 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
             
 #            bp()
             traj_has_error, stat_sign, dx = \
-            nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = True)
+            nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.01, PlotErrorIfTestFails = True)
             
             if traj_has_error == True:
                 #remove if traj has error
                 print("Drop particleID (because of unbrownian trajectory): ", particleid)
+                print("Significance: ", stat_sign)
                 
                 #drop particles with unbrownian trajectory
                 traj_min_length = traj_min_length[traj_min_length.particle!=particleid]

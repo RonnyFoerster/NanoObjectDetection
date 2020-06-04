@@ -234,7 +234,7 @@ def EstimageSigmaPSF(settings):
     #estimate best sigma
     #https://en.wikipedia.org/wiki/Numerical_aperture
     NA = settings["Exp"]["NA"]
-    n  = 1
+    n = settings["Exp"]["n_immersion"]
     
     # fnumber
     N = 1/(2*np.tan(np.arcsin(NA / n)))

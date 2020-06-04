@@ -398,7 +398,7 @@ def MinimalDiameter(d_channel, lambda_nm, P_illu = 0.001, d_nm_min = 1, d_nm_max
     
     
 
-def EstimateScatteringIntensity(P_illu, w_illu, lambda_illu, d, exposure_time, NA, n, PrintSteps = True):
+def EstimateScatteringIntensity(P_illu, w_illu, lambda_illu, d, exposure_time, NA, n, PrintSteps = True, Mode = 'Peak'):
     '''
     P_illu - Power of illumination beam [W]
     w_illu - Beam waiste (radius) in m
@@ -407,11 +407,17 @@ def EstimateScatteringIntensity(P_illu, w_illu, lambda_illu, d, exposure_time, N
     exposure_time - exposure_time in s
     NA - considering air
     n - refractive index of immersion media
+    Mode - calculate Intensity at the "Peak" or assume "FlatTop" Profile
     '''
     #Assume gaussian beam
 
-    # peak intensity of gaussian beam
-    I_illu = 2*P_illu/(np.pi*w_illu**2)
+    if Mode == 'Peak':
+        # peak intensity of gaussian beam
+        I_illu = 2*P_illu/(np.pi*w_illu**2)
+    elif Mode == 'FlatTop':
+        I_illu = P_illu/(np.pi*w_illu**2)
+    else:
+        print("Mode must be either >>Peak<< OR >>FlatTop<<")
     
     # assume it is gold
     # crosssection in sq nm
@@ -1093,6 +1099,8 @@ def CalcCrossSection_OLD(lambda_nm, d_nm, material = "Gold", e_part = None):
     print("C_abs [sq nm]: ", C_abs / (1e-9**2))
     
     return C_scat, C_abs
+
+
 
 
 
