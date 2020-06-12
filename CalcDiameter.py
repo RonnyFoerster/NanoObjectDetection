@@ -455,7 +455,7 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
     if length_indexer < (lagtimes_max + amount_summands * lagtimes_max):
         enough_values = "ToShortTraj"
         print("Trajectory is to short to have enough data points. \n Trajectorie length must be larger than (amount_summands * lagtimes_max). \n Consider optimizing parameters Min_tracking_frames, amount_summands, lagtimes_max.")
-        bp()
+#        bp()
         
     else:
         # columns has two parts. The lagtimes:
@@ -946,7 +946,9 @@ def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
         red_x = "gain missing"
         
     else:
-        num_photons = raw_mass / gain
+#        num_photons = raw_mass / gain
+        num_photons = raw_mass * gain #gain in photoelectron/ADU
+        
         static_local_precision_um = rayleigh_um / np.power(num_photons ,1/2)
 
         # Eq. 13:

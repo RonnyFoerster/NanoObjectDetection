@@ -1102,7 +1102,67 @@ def CalcCrossSection_OLD(lambda_nm, d_nm, material = "Gold", e_part = None):
 
 
 
+def DefocusCrossCorrelation(NA = 0.25, n=1 , sampling_z = None, shape_z = None, use_z = 0):
+    total_photons = 10000
+    
+    empsf, args = nd.Theory.PSF(NA,n)
+    print(args)
+    mypsf = nd.Theory.RFT2FT(empsf.slice(use_z))
+    mypsf = mypsf / np.sum(mypsf)
+    
+    num_det_photons = total_photons * nd.Simulation.DetectionEfficency(args["num_aperture"], args["refr_index"])
+    print("Number of detected photons: ", num_det_photons)
+    
+    obj = np.zeros_like(mypsf)
+    obj[args["shape"][1],args["shape"][1]] = 1
+    
+#    plt.figure()
+    plt.subplot(141)
+    plt.imshow(obj)
+    
+    #make image
+    import scipy
+    image_no_noise = np.real(scipy.signal.fftconvolve(obj, mypsf, mode = 'same'))
+    image_no_noise[image_no_noise<0] = 1E-10
+    image_no_noise = image_no_noise / np.sum(image_no_noise) * num_det_photons
+    plt.subplot(142)
+    plt.imshow(image_no_noise)
+    
+    #background
+    bg_no_noise = np.zeros_like(mypsf)
+    bg_no_noise[:,:] = 1
+    sigma_bg = 2.4 #Basler cam
+    
+    # simulated several noisy images to find out the localization accuracy of the center of mass approach
+    num_runs = 100
+    com = np.zeros([num_runs,2])
+    
+    for ii in range (num_runs):
+        image = np.random.poisson(image_no_noise)    
+        bg    = np.random.normal(0, sigma_bg, bg_no_noise.shape)
+        bg[bg<0] = 0
+        
+        image = image + bg
+        
+        correl = scipy.signal.correlate(image, mypsf, mode = 'same', method = 'fft')
+        
+        #center of mass
+        com[ii,:] = scipy.ndimage.center_of_mass(correl)
 
+    print("mean center of mass = ", np.mean(com,axis = 0))
+    print("std center of mass = ", np.std(com,axis = 0))
+    print("std center of mass total = ", np.std(com))
+
+    plt.subplot(143)
+    plt.imshow(image)
+    plt.subplot(144)
+    plt.imshow(correl)
+    
+    plt.show()
+#    rawframes_filtered[loop_frames,:,:] = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(rawframes_np[loop_frames,:,:]), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
+
+
+    return mypsf, image, correl
 
 
 ## get nearest neighbor

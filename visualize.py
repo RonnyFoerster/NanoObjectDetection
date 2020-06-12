@@ -628,7 +628,7 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
     
     prob_inv_diam = np.zeros_like(diam_grid_inv)
     for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
-        print("mean_diam_part = ", 1 / loop_mean)
+        #print("mean_diam_part = ", 1 / loop_mean)
 
         my_pdf = scipy.stats.norm(loop_mean,loop_std).pdf(diam_grid_inv)
 
