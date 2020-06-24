@@ -73,7 +73,8 @@ def getStandardDeviation(img, u, v, n):
 
 
 
-def zncc(img1, img2, u1, v1, n):
+# def zncc(img1, img2, u1, v1, n):
+def zncc(img1, img2):
     #https://martin-thoma.com/zero-mean-normalized-cross-correlation/
     img1_mean = np.mean(img1)
     img1_std  = np.sqrt(np.mean((img1 - img1_mean)**2))
@@ -207,7 +208,8 @@ def CorrelateImgAndPSF(img1, settings):
             x_max = loop_v + n
             img1_roi = img1_roi_y[:, x_min: x_max+1]
             
-            img_zncc_loop[loop_v] = zncc(img1_roi, kernel, loop_u, loop_v, n)
+            # img_zncc_loop[loop_v] = zncc(img1_roi, kernel, loop_u, loop_v, n)
+            img_zncc_loop[loop_v] = zncc(img1_roi, kernel)
             
         return img_zncc_loop
     

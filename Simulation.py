@@ -7,6 +7,7 @@ Created on Mon Mar  4 15:17:36 2019
 import math
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 # False since deprecated from version 3.0
@@ -21,6 +22,7 @@ from pdb import set_trace as bp #debugger
 from scipy.constants import speed_of_light as c
 from numpy import pi
 import scipy
+import scipy.signal
 from scipy.constants import Boltzmann as k_b
 
 import time
@@ -65,31 +67,31 @@ def PrepareRandomWalk(ParameterJsonFile):
                                               microns_per_pixel = microns_per_pixel, temp_water = temp_water, \
                                               visc_water = visc_water)
        
-    if 1 == 0:
-        #check if buoyancy shall be considered
-        DoBuoyancy = settings["Simulation"]["DoBuoyancy"]
-        if DoBuoyancy == 1:
-            # include Buoyancy
-            rho_particle = settings["Simulation"]["Density_Particle"]
-            rho_fluid    = settings["Simulation"]["Density_Fluid"]
+    # if 1 == 0:
+    #     #check if buoyancy shall be considered
+    #     DoBuoyancy = settings["Simulation"]["DoBuoyancy"]
+    #     if DoBuoyancy == 1:
+    #         # include Buoyancy
+    #         rho_particle = settings["Simulation"]["Density_Particle"]
+    #         rho_fluid    = settings["Simulation"]["Density_Fluid"]
             
-            visc_water_m_Pa_s = visc_water * 1e12
+    #         visc_water_m_Pa_s = visc_water * 1e12
             
-            v_sedi = StokesVelocity(rho_particle, rho_fluid, diameter, visc_water_m_Pa_s)
+    #         v_sedi = StokesVelocity(rho_particle, rho_fluid, diameter, visc_water_m_Pa_s)
             
-            # convert in px per second
-            v_sedi = v_sedi * 1e6 / microns_per_pixel 
+    #         # convert in px per second
+    #         v_sedi = v_sedi * 1e6 / microns_per_pixel 
             
-            # sedimentation per frame
-            delta_t = 1 / frames_per_second
-            delta_x_sedi = v_sedi * delta_t
+    #         # sedimentation per frame
+    #         delta_t = 1 / frames_per_second
+    #         delta_x_sedi = v_sedi * delta_t
                    
-            x_sedi = np.zeros([1,frames])
-            x_sedi[:] = delta_x_sedi
-            x_sedi = x_sedi.cumsum()
+    #         x_sedi = np.zeros([1,frames])
+    #         x_sedi[:] = delta_x_sedi
+    #         x_sedi = x_sedi.cumsum()
             
-            bp()
-            output.x = output.x + x_sedi
+    #         bp()
+    #         output.x = output.x + x_sedi
             
           
     
@@ -541,16 +543,16 @@ def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None
     material:   sphere's material
     """
     
-    C_scat, C_abs = CalcCrossSection(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None)
+    # C_scat, C_abs = CalcCrossSection(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None)
     
-    #Eq 11 in Eq 10
-    F_scat = C_scat * n_media/c * I
-    F_abs = C_abs * n_media/c * I
+    # #Eq 11 in Eq 10
+    # F_scat = C_scat * n_media/c * I
+    # F_abs = C_abs * n_media/c * I
     
-    print("F_scat = ", F_scat)
-    print("F_abs = ", F_abs)
+    # print("F_scat = ", F_scat)
+    # print("F_abs = ", F_abs)
 
-    return F_scat
+    # return F_scat
 
 
 
@@ -1101,32 +1103,75 @@ def CalcCrossSection_OLD(lambda_nm, d_nm, material = "Gold", e_part = None):
     return C_scat, C_abs
 
 
+def LocalAccuracyVsObjective():
 
-def DefocusCrossCorrelation(NA = 0.25, n=1 , sampling_z = None, shape_z = None, use_z = 0):
-    total_photons = 10000
+    objective = np.array([
+                 [0.1, 1],
+                 [0.25, 1],
+                 [0.5, 1],
+                 [0.75, 1],
+                 [1.3, 1.46]
+                 ])
     
-    empsf, args = nd.Theory.PSF(NA,n)
-    print(args)
+    num_z = 5
+#    my_z = np.arange(0,num_z)
+    my_z = np.linspace(0,8,num_z)
+    
+    loc_acu = np.zeros([num_z, np.shape(objective)[0]])
+    signal  = np.zeros_like(loc_acu)
+    
+    for ii,use_objective in enumerate(objective):
+        print("Iterate new objective")
+        
+        my_NA = use_objective[0]   
+        my_n = use_objective[1]   
+        for zz, loop_z in enumerate(my_z):
+            print("Iterate new focus")
+            mypsf, image, correl, loc_acu[zz, ii], signal[zz, ii] = DefocusCrossCorrelation(NA = my_NA, n=my_n, sampling_z = 1000, shape_z = 50, use_z = zz, ShowPlot = False)
+    
+    
+    plt.figure()
+    plt.subplot(211)
+    plt.semilogy(my_z, loc_acu, ':x')
+    plt.ylabel("loc accuracy [nm]", fontsize = 14)
+    plt.xlabel("z [um]", fontsize = 14)
+    plt.xlim([0, num_z+1])
+    plt.legend(objective[:,0], title = "NA", fontsize = 14, title_fontsize = 14)
+    
+    plt.subplot(212)
+    plt.semilogy(my_z, signal, ':x')
+    plt.ylabel("Signal [a. u.]", fontsize = 14)
+    plt.xlabel("z [um]", fontsize = 14)
+    plt.xlim([0, num_z+1])
+    plt.legend(objective[:,0], title = "NA", fontsize = 14, title_fontsize = 14)
+    
+    
+    return loc_acu
+        
+
+
+def DefocusCrossCorrelation(NA = 0.25, n=1, sampling_z = None, shape_z = None, use_z = 0, ShowPlot = True):
+    mpl.rc('image', cmap = 'gray')
+    
+    total_photons = 20000
+    
+    empsf, arg_psf = nd.Theory.PSF(NA,n, sampling_z, shape_z)
+
+
     mypsf = nd.Theory.RFT2FT(empsf.slice(use_z))
     mypsf = mypsf / np.sum(mypsf)
     
-    num_det_photons = total_photons * nd.Simulation.DetectionEfficency(args["num_aperture"], args["refr_index"])
-    print("Number of detected photons: ", num_det_photons)
+    num_det_photons = total_photons * nd.Simulation.DetectionEfficency(arg_psf["num_aperture"], arg_psf["refr_index"])
     
     obj = np.zeros_like(mypsf)
-    obj[args["shape"][1],args["shape"][1]] = 1
+    obj[np.int(0.8*arg_psf["shape"][1]),np.int(1.1*arg_psf["shape"][1])] = 1
     
-#    plt.figure()
-    plt.subplot(141)
-    plt.imshow(obj)
     
     #make image
     import scipy
     image_no_noise = np.real(scipy.signal.fftconvolve(obj, mypsf, mode = 'same'))
     image_no_noise[image_no_noise<0] = 1E-10
     image_no_noise = image_no_noise / np.sum(image_no_noise) * num_det_photons
-    plt.subplot(142)
-    plt.imshow(image_no_noise)
     
     #background
     bg_no_noise = np.zeros_like(mypsf)
@@ -1134,35 +1179,100 @@ def DefocusCrossCorrelation(NA = 0.25, n=1 , sampling_z = None, shape_z = None, 
     sigma_bg = 2.4 #Basler cam
     
     # simulated several noisy images to find out the localization accuracy of the center of mass approach
-    num_runs = 100
+    num_runs = 5
     com = np.zeros([num_runs,2])
+    signal = np.zeros(num_runs)
     
     for ii in range (num_runs):
+#        print("argument PSF: ", arg_psf)
+#        print("Number of detected photons: ", num_det_photons)
+        
         image = np.random.poisson(image_no_noise)    
         bg    = np.random.normal(0, sigma_bg, bg_no_noise.shape)
         bg[bg<0] = 0
         
-        image = image + bg
+        image = np.round(image + bg)
+        image[image < 0] = 0
         
+        psf_zn = mypsf -np.mean(mypsf) #zero normalized psf
         correl = scipy.signal.correlate(image, mypsf, mode = 'same', method = 'fft')
+        correl_zn = scipy.signal.correlate(image - np.mean(image), psf_zn, mode = 'same', method = 'fft')
         
-        #center of mass
-        com[ii,:] = scipy.ndimage.center_of_mass(correl)
+        # find the particle
+        my_diam = 7
+        mylocate = tp.locate(correl, diameter = my_diam, separation = 50, preprocess = False, topn = 1)
 
-    print("mean center of mass = ", np.mean(com,axis = 0))
-    print("std center of mass = ", np.std(com,axis = 0))
-    print("std center of mass total = ", np.std(com))
+        com[ii,:] = mylocate[["y", "x"]].values
+        
+        #select brightes spot only
+#        print("numer of found particles: ", len(mylocate))
+        mylocate = mylocate.sort_values("mass").iloc[0]
+        
+        com[ii,:] = mylocate[["y", "x"]].values
 
-    plt.subplot(143)
-    plt.imshow(image)
-    plt.subplot(144)
-    plt.imshow(correl)
+        signal[ii] = mylocate["mass"] / (np.mean(correl) * np.pi * (my_diam/2)**2)
+            
+
+    #localization accuracy
+    loc_acu = np.std(com)
+    signal = np.mean(signal)
     
-    plt.show()
-#    rawframes_filtered[loop_frames,:,:] = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(rawframes_np[loop_frames,:,:]), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
+    #into nm
+
+    loc_acu = loc_acu * arg_psf["sampling"][1]
+
+    if ShowPlot == True:
+        print("mean center of mass = ", np.mean(com,axis = 0))
+        print("std center of mass = ", np.std(com,axis = 0))
+        print("std center of mass total = ", loc_acu )
+        
+        plt.figure(figsize=(3, 3))
+        fsize = 15
+        plt.subplot(231)
+        plt.imshow(obj)
+        plt.title("object", fontsize = fsize)
+
+        
+        plt.subplot(232)
+        plt.imshow(image_no_noise)
+        plt.title("image - without noise", fontsize = fsize)
+        
+        plt.subplot(233)
+        plt.imshow(image)
+        plt.title("image - with noise", fontsize = fsize)
+        
+        # plt.subplot(334)
+        # plt.imshow(mypsf)
+        # plt.title("correl - PSF")
+
+        plt.subplot(234)
+        plt.imshow(correl)
+        plt.title("image - SNR improved", fontsize = fsize)
+        plt.xlabel("[Px]", fontsize = fsize)
+        plt.ylabel("[Px]", fontsize = fsize)
+        
+        # plt.subplot(234)
+        # plt.imshow(psf_zn)
+        # plt.title("correl - PSF zn")
+        
+        plt.subplot(235)
+        plt.imshow(correl_zn)
+        plt.title("image - SNR improved 2", fontsize = fsize)
+        
+        plt.subplot(236)
+        rl_decon = nd.Theory.DeconRLTV(image, mypsf, 0.5, num_iterations = 20)
+        # rl_decon = nd.Theory.DeconRLTV(image, mypsf, 0.0, num_iterations = 20)
+        plt.imshow(rl_decon)
+        plt.title("Richardson-Lucy", fontsize = fsize)
+        
+        # plt.show()
+#        rawframes_filtered[loop_frames,:,:] = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(rawframes_np[loop_frames,:,:]), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
 
 
-    return mypsf, image, correl
+    return mypsf, image, correl, loc_acu, signal
+
+
+
 
 
 ## get nearest neighbor
