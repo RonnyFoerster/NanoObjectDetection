@@ -73,7 +73,7 @@ def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None, settings = No
 
 
 
-def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':', x_lim = None, y_lim = None, y_ticks = None, semilogx = False):
+def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':', x_lim = None, y_lim = None, y_ticks = None, semilogx = False, FillArea = False, Color = None):
     """ plot 2D-data in standardized format as line plot """
     
     from NanoObjectDetection.PlotProperties import axis_font, title_font, params
@@ -83,7 +83,13 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
     
     plt.figure()
     if semilogx == False:
-        plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
+        if Color == None:
+            plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
+        else:
+            plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha, color = Color)
+            
+        if FillArea == True:
+            plt.fill_between(x_np,y_np, y2 = 0, color = Color)
     else:
         plt.semilogx(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
         import matplotlib.ticker
@@ -639,18 +645,20 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
     # normalize
     prob_inv_diam = prob_inv_diam / np.sum(prob_inv_diam)
 
-    diam_mean = np.mean(GetCI_Interval(prob_inv_diam, diam_grid, 0.001))
+    diam_median = np.mean(GetCI_Interval(prob_inv_diam, diam_grid, 0.001))
     
+    diam_mean = np.average(diam_grid, weights = prob_inv_diam)
+       
     lim_68CI = GetCI_Interval(prob_inv_diam, diam_grid, 0.68)
-    diam_68CI = lim_68CI[1] - lim_68CI[0]
+#    diam_68CI = lim_68CI[1] - lim_68CI[0]
     
     lim_95CI = GetCI_Interval(prob_inv_diam, diam_grid, 0.95)
-    diam_95CI = lim_95CI[1] - lim_95CI[0]
+#    diam_95CI = lim_95CI[1] - lim_95CI[0]
     
     num_trajectories = len(sizes_df_lin) 
 
     Histogramm_min_max_auto = settings["Plot"]["DiameterPDF_min_max_auto"]
-    
+
     if Histogramm_min_max_auto == 1:
         histogramm_min, histogramm_max = GetCI_Interval(prob_inv_diam, diam_grid, 0.999)
         histogramm_min = 0
@@ -659,7 +667,7 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
         histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(PDF_max, settings, "Plot", "Histogramm_max")
         
 
-    title = str("Median: {:2.3g} nm; Trajectories{:3.0f}; \n CI68: [{:2.3g} : {:2.3g}] nm;  CI95: [{:2.3g} : {:2.3g}] nm".format(diam_mean, num_trajectories, lim_68CI[0], lim_68CI[1],lim_95CI[0], lim_95CI[1]))
+    title = str("Mean: {:2.3g} nm; Median: {:2.3g} nm; Trajectories{:3.0f}; \n CI68: [{:2.3g} : {:2.3g}] nm;  CI95: [{:2.3g} : {:2.3g}] nm".format(diam_mean, diam_median, num_trajectories, lim_68CI[0], lim_68CI[1],lim_95CI[0], lim_95CI[1]))
     xlabel = "Diameter [nm]"
     ylabel = "Probability"
     x_lim = [histogramm_min, histogramm_max]
@@ -668,7 +676,7 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
 #    sns.reset_orig()
 
     
-    Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0], semilogx = False)
+    Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0], semilogx = False, FillArea = True, Color = (0,0,1))
 
     print("\n\n mean diameter: ", np.round(np.mean(GetCI_Interval(prob_inv_diam, diam_grid, 0.001)),1))
     print("68CI Intervall: ", np.round(GetCI_Interval(prob_inv_diam, diam_grid, 0.68),1),"\n\n")
@@ -684,8 +692,13 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
 
     
     if DiameterPDF_Save == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Probability", settings,
+        save_folder_name = settings["Plot"]["SaveFolder"]
+        
+        settings = nd.visualize.export(save_folder_name, "Diameter Probability", settings,
                                        data = sizes_df_lin)
+        
+        data = np.transpose(np.asarray([diam_grid, prob_inv_diam]))
+        nd.visualize.save_plot_points(data, save_folder_name, 'Diameter Probability Data')
         
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
@@ -791,6 +804,34 @@ def GetPlotParameters(settings):
     return params, title_font, axis_font
     
 
+def CreateFileAndFolderName(folder_name, file_name, d_type = 'png'):
+    '''
+    make a folder of the current date (if required)
+    and file name (including data) to save stuff in there 
+    '''
+    
+    dir_name = '%s\\{date:%y%m%d}\\'.format( date=datetime.datetime.now()) %folder_name
+
+    try:
+        os.stat(dir_name)
+    except:
+        os.mkdir(dir_name) 
+    
+    time_string = '{date:%H_%M_%S}'.format( date=datetime.datetime.now())
+    
+#    file_name_image = '%s_%s.png'.format( date=datetime.datetime.now()) %(time_string, file_name)
+    file_name_image = '%s_%s'.format( date=datetime.datetime.now()) %(time_string, file_name)
+    file_name_image = file_name_image + '.' + d_type
+    
+    entire_path = dir_name +  file_name_image
+
+    return dir_name, entire_path, time_string
+
+
+def save_plot_points(data, save_folder_name, save_csv_name):
+    dir_name, entire_path, time_string = CreateFileAndFolderName(save_folder_name, save_csv_name, d_type = 'csv')
+    
+    np.savetxt(entire_path, data, delimiter = ',')
 
 
 def export(save_folder_name, save_image_name, settings = None, use_dpi = None, data = None, data_header = None):    
@@ -805,24 +846,13 @@ def export(save_folder_name, save_image_name, settings = None, use_dpi = None, d
         
     use_dpi = int(use_dpi)
     
-    my_dir_name = '%s\\{date:%y%m%d}\\'.format( date=datetime.datetime.now()) %save_folder_name
+    my_dir_name, entire_path_image, time_string = CreateFileAndFolderName(save_folder_name, save_image_name)
 
-    try:
-        os.stat(my_dir_name)
-    except:
-        os.mkdir(my_dir_name) 
-    
-    time_string = '{date:%H_%M_%S}'.format( date=datetime.datetime.now())
-    
-    file_name_image = '%s_%s.png'.format( date=datetime.datetime.now()) %(time_string, save_image_name)
-    
-    entire_path_image = my_dir_name +  file_name_image
     
     plt.savefig(entire_path_image, dpi= use_dpi, bbox_inches='tight')
     print('Figure saved at: {}'.format(my_dir_name))
 
 #    Image.open(entire_path_image).show()
-    
 
     #here comes the json parameter file 
     if save_json == 1:
