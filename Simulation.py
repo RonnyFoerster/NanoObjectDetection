@@ -399,6 +399,10 @@ def MinimalDiameter(d_channel, lambda_nm, P_illu = 0.001, d_nm_min = 1, d_nm_max
     return
     
     
+    
+
+    
+
 
 def EstimateScatteringIntensity(P_illu, w_illu, lambda_illu, d, exposure_time, NA, n, PrintSteps = True, Mode = 'Peak'):
     '''
@@ -413,14 +417,9 @@ def EstimateScatteringIntensity(P_illu, w_illu, lambda_illu, d, exposure_time, N
     '''
     #Assume gaussian beam
 
-    if Mode == 'Peak':
-        # peak intensity of gaussian beam
-        I_illu = 2*P_illu/(np.pi*w_illu**2)
-    elif Mode == 'FlatTop':
-        I_illu = P_illu/(np.pi*w_illu**2)
-    else:
-        print("Mode must be either >>Peak<< OR >>FlatTop<<")
-    
+    I_illu = nd.Theory.TheIntensityInFiber(P_illu, w_illu, Mode = Mode)
+
+        
     # assume it is gold
     # crosssection in sq nm
     C_scat = CalcCrossSection(d, lambda_illu)
@@ -451,7 +450,7 @@ def EstimateScatteringIntensity(P_illu, w_illu, lambda_illu, d, exposure_time, N
 
 
 
-def CalcCrossSection(d, at_lambda_nm = None):
+def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True):
     '''
     d - particle diameter in m
     
@@ -463,23 +462,37 @@ def CalcCrossSection(d, at_lambda_nm = None):
     import numpy as np
     import matplotlib.pyplot as plt
 
-    # import the Johnson and Christy data for silver
-    au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
-#    au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
+    # import the parameters from online library
+    if material == 'gold':
+        data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
+    if material == "silver":
+        data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Ag/Johnson.txt', delimiter='\t') 
+    if material == "polystyrene":
+        data = np.genfromtxt('https://refractiveindex.info/tmp/data/organic/C8H8%20-%20styrene/Sultanova.txt', delimiter='\t') 
+    if material == "DNA":
+        data = np.genfromtxt('https://refractiveindex.info/tmp/data/other/human%20body/DNA/Inagaki.txt', delimiter='\t') 
+
 
     n_media = 1.333
 
     # data is stacked so need to rearrange
-    N = len(au)//2
-    lambda_um = au[1:N,0]
+    N = len(data)//2
+    lambda_um = data[1:N,0]
 #    lambda_um = lambda_um / n_media
 
-    m_real = au[1:N,1]
-    m_imag = au[N+1:,1]
+    m_real = data[1:N,1]
     
-    lambda_um = lambda_um[30:35]
-    m_real = m_real[30:35]
-    m_imag = m_imag[30:35]
+    # some of the data do not have any complex part. than the reading in fails
+    
+    num_nan = len(data[np.isnan(data)])
+    if num_nan == 4:
+        m_imag = data[N+1:,1]
+    else:
+        m_imag = np.zeros_like(m_real)
+    
+    #lambda_um = lambda_um[30:35]
+    # m_real = m_real[30:35]
+    # m_imag = m_imag[30:35]
     
 #    print("lambda_um: ", lambda_um)
 #    print("m_real: ", m_real)
@@ -497,7 +510,7 @@ def CalcCrossSection(d, at_lambda_nm = None):
     qext, qsca, qback, g = mp.mie(m,x)
     qabs = (qext - qsca)
     absorb  = qabs * np.pi * r_nm**2
-    scatt   = qsca * np.pi * r_nm**2
+    scat   = qsca * np.pi * r_nm**2
     extinct = qext* np.pi * r_nm**2
     
     lambda_nm = 1000 * lambda_um
@@ -512,7 +525,7 @@ def CalcCrossSection(d, at_lambda_nm = None):
         plt.xlim([400, 800])
         
         plt.figure()
-        plt.plot(lambda_nm,scatt,'r.-')   
+        plt.plot(lambda_nm,scat,'r.-')   
         plt.xlabel("Wavelength (nm)")
         plt.ylabel("Cross Section (1/$nm^2$)")
         plt.title("Cross Sections for %.1f nm Spheres" % (r_nm*2))
@@ -520,39 +533,20 @@ def CalcCrossSection(d, at_lambda_nm = None):
         plt.xlim(300,800)
         plt.show()
         
-        C_Scatt = scatt
+        C_Scat = scat
         
     else:
-        C_Scatt = np.interp(at_lambda_nm, lambda_nm, scatt)
-        print("Size parameter: ", np.interp(at_lambda_nm, lambda_nm, x))
-        print("Scatterung efficency: ", np.interp(at_lambda_nm, lambda_nm, qsca))
-        print("Scattering cross-section [nm²]: ", C_Scatt)
+        C_Scat = np.interp(at_lambda_nm, lambda_nm, scat)
+        C_Abs   = np.interp(at_lambda_nm, lambda_nm, absorb)
+        if do_print == True:
+            print("Size parameter: ", np.interp(at_lambda_nm, lambda_nm, x))
+            print("Scatterung efficency: ", np.interp(at_lambda_nm, lambda_nm, qsca))
+            print("Scattering cross-section [nm²]: ", C_Scat)
     
-    return C_Scatt
+    return C_Scat, C_Abs
 
-def RadiationForce(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None):   
-    """ calculate the radiation force onto a scattering sphere
-    
-    https://reader.elsevier.com/reader/sd/pii/0030401895007539?token=48F2795599992EB11281DD1C2A50B58FC6C5F2614C90590B9700CD737B0B9C8E94F2BB8A17F74D0E6087FF3B7EF5EF49
-    https://github.com/scottprahl/miepython/blob/master/doc/01_basics.ipynb
-    
-    lambda_nm:  wavelength of the incident light
-    d_nm:       sphere's diameter
-    P_W:        incident power
-    A_sqm:      beam/channel cross sectional area
-    material:   sphere's material
-    """
-    
-    # C_scat, C_abs = CalcCrossSection(lambda_nm, d_nm, P_W, A_sqm, material = "Gold", e_part = None)
-    
-    # #Eq 11 in Eq 10
-    # F_scat = C_scat * n_media/c * I
-    # F_abs = C_abs * n_media/c * I
-    
-    # print("F_scat = ", F_scat)
-    # print("F_abs = ", F_abs)
 
-    # return F_scat
+
 
 
 
@@ -1226,8 +1220,13 @@ def DefocusCrossCorrelation(NA = 0.25, n=1, sampling_z = None, shape_z = None, u
         print("std center of mass = ", np.std(com,axis = 0))
         print("std center of mass total = ", loc_acu )
         
-        plt.figure(figsize=(3, 3))
-        fsize = 15
+        import matplotlib.pyplot as plt
+        # plt.rcParams['figure.figsize'] = [100, 5]
+        plt.figure(figsize=(15, 10))
+        # plt.rcParams['figure.figsize'] = [100, 5]
+
+    
+        fsize = 20
         plt.subplot(231)
         plt.imshow(obj)
         plt.title("object", fontsize = fsize)
@@ -1260,16 +1259,16 @@ def DefocusCrossCorrelation(NA = 0.25, n=1, sampling_z = None, shape_z = None, u
         plt.title("image - SNR improved 2", fontsize = fsize)
         
         plt.subplot(236)
-        rl_decon = nd.Theory.DeconRLTV(image, mypsf, 0.5, num_iterations = 20)
+        rl_decon = nd.Theory.DeconRLTV(image, mypsf, 0.01, num_iterations = 100)
         # rl_decon = nd.Theory.DeconRLTV(image, mypsf, 0.0, num_iterations = 20)
         plt.imshow(rl_decon)
         plt.title("Richardson-Lucy", fontsize = fsize)
         
-        # plt.show()
+        plt.show()
 #        rawframes_filtered[loop_frames,:,:] = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(rawframes_np[loop_frames,:,:]), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
 
 
-    return mypsf, image, correl, loc_acu, signal
+    return mypsf, image, correl, loc_acu, signal, empsf
 
 
 

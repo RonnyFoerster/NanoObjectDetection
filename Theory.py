@@ -13,6 +13,9 @@ import multiprocessing
 import NanoObjectDetection as nd
 from joblib import Parallel, delayed
 
+
+from scipy.constants import speed_of_light as c
+
 # HERE ARE ALL STANDARD EQUATIONS IN PHYSICS LIKE CONVERSIONS ETC.
 
 def PulseEnergy2CW(E_pulse, rep_rate):
@@ -198,14 +201,14 @@ def DeconRLTV(image, psf, lambda_tv = 0, num_iterations = 10):
         rl_2 = MyFftConvolve(rl_1, psf)
         
         if lambda_tv != 0:
-            nabla_result = np.gradient(image)
-            abs_nabla_result = np.hypot(nabla_result[0], nabla_result[1])
+            # nabla_result = np.gradient(image)
+            # abs_nabla_result = np.hypot(nabla_result[0], nabla_result[1])
         
-            nabla_result[0] = nabla_result[0] / abs_nabla_result
-            nabla_result[1] = nabla_result[1] / abs_nabla_result
+            # nabla_result[0] = nabla_result[0] / abs_nabla_result
+            # nabla_result[1] = nabla_result[1] / abs_nabla_result
         
-            div_result = np.gradient(nabla_result[0], axis = 0) + \
-                np.gradient(nabla_result[1], axis = 1)
+            # div_result = np.gradient(nabla_result[0], axis = 0) + \
+            #     np.gradient(nabla_result[1], axis = 1)
                 
             
             div_result = (result == np.max(result))
@@ -231,6 +234,92 @@ def DeconRLTV(image, psf, lambda_tv = 0, num_iterations = 10):
     return result
 
 
+
+def IntensityInFiber(P, radius, Mode = 'Peak' ):
+    '''
+    P_illu - Power of illumination beam [W]
+    radius - radisu of channel in m
+    Mode - calculate Intensity at the "Peak" or assume "FlatTop" Profile
+    '''
+
+    A = np.pi * radius **2
+    if Mode == 'Peak':
+        # peak intensity of gaussian beam
+        I_illu = 2*P/A
+    elif Mode == 'FlatTop':
+        I_illu = P/A
+    else:
+        print("Mode must be either >>Peak<< OR >>FlatTop<<")
+        
+    return I_illu
+
+
+
+def DeconRL3D(image, psf3d, lambda_tv = 0, num_iterations = 10):
+    # from scipy.signal import fftconvolve as fft_conv
+    # import scipy
+    #https://www.weizmann.ac.il/mcb/ZviKam/Papers/72.%20MRT_Paris.pdf
+    
+    # image = plt.imshow(np.matlib.repmat(image,3,3))
+    
+    num_z = 9
+    psf3d = psf3d.slice()[0:num_z,:,:]
+    
+    result = np.zeros_like(image) + 1
+    
+    num_iter = 1
+    use_mode = 'valid'
+    
+    while num_iter <= num_iterations:
+        # print("number iteration: ", num_iter)
+        num_iter += 1
+
+        # rl_1 = image / (fft_conv(result, psf, mode = use_mode))
+        rl_1 = image / (MyFftConvolve(result, psf))
+        # np.real(np.fft.ifftn(np.fft.fftn(rl_1) * np.fft.fftn(psf)))
+        
+        # rl_2 = fft_conv(rl_1, psf, mode = use_mode)
+        rl_2 = MyFftConvolve(rl_1, psf)
+        
+        if lambda_tv != 0:
+            # nabla_result = np.gradient(image)
+            # abs_nabla_result = np.hypot(nabla_result[0], nabla_result[1])
+        
+            # nabla_result[0] = nabla_result[0] / abs_nabla_result
+            # nabla_result[1] = nabla_result[1] / abs_nabla_result
+        
+            # div_result = np.gradient(nabla_result[0], axis = 0) + \
+            #     np.gradient(nabla_result[1], axis = 1)
+                
+            
+            div_result = (result == np.max(result))
+            
+            tv = result / (1-lambda_tv*div_result)
+            
+            result = rl_2 * tv
+        
+        else:
+            result = rl_2 * result
+           
+    
+        result = np.abs(result)
+        
+        result[np.isnan(result)] = 0
+    
+    print("use other penalty???")
+    
+    final_pos = np.squeeze(np.asarray(np.where(result == np.max(result))))
+    
+    print("bead at: ", final_pos)
+    
+    return result
+
+
+
+
+
+
+
 def LensMakerEquation(R1,R2,d,n_media, n_glass):
     #https://de.wikipedia.org/wiki/Linsenschleiferformel
     D = (n_glass-n_media)/n_media * (1/R1 - 1/R2 + (n_glass-n_media)*d/(n_glass*R1*R2))
@@ -245,3 +334,30 @@ def LensEquation(f,g):
     
     return b
 
+
+def RadiationForce(I, C_scat, C_abs, n_media = 1.333):   
+    '''
+    calculate the radiation force onto a scattering sphere
+    
+    Literature:
+    
+    https://reader.elsevier.com/reader/sd/pii/0030401895007539?token=48F2795599992EB11281DD1C2A50B58FC6C5F2614C90590B9700CD737B0B9C8E94F2BB8A17F74D0E6087FF3B7EF5EF49
+    https://github.com/scottprahl/miepython/blob/master/doc/01_basics.ipynb
+    
+    lambda_nm:  wavelength of the incident light
+    d_nm:       sphere's diameter
+    P_W:        incident power
+    A_sqm:      beam/channel cross sectional area
+    material:   sphere's material
+    """
+    "Optical trapping of metallic Rayleigh particles"
+    "Radiation forces on a dielectric sphere in the Rayleigh scattering regime"
+    '''
+    
+    #Eq 11 in Eq 10
+    #not quite sure here
+    F_scat = C_scat * n_media/c * I
+    F_abs = C_abs * n_media/c * I
+
+
+    return F_scat
