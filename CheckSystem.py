@@ -25,7 +25,7 @@ def CheckAll(ParameterJsonFile):
     CheckPython()
     CheckTrackpy()
     CheckPanda()
-    CheckLatex()
+    # CheckLatex()
     CheckJson(ParameterJsonFile)
     
 def CheckPython():
@@ -58,8 +58,9 @@ def CheckTrackpy():
         print("Trackpy minimum versions: ", tp_minimum_versions)
         print("Your trackpy versions: ", tp_version)
         sys.exit("Change your trackpy version accoringly, or insert your trackpy version in tp_allowed_versions")
-        
-        
+       
+    CheckNumbda()
+         
         
 def CheckPanda():
     """
@@ -76,8 +77,7 @@ def CheckPanda():
         print("Your trackpy versions: ", pd_version)
         print("New panda versions do not work since https://github.com/soft-matter/trackpy/issues/529#issue-410397797")
         print("Try: Downgrading your system in Anaconda promt using >>> conda install pandas=0.23.4 <<<")
-        sys.exit("Change your pandas version accoringly, or insert your pandas version in pd_maximum_versions")
-        
+        sys.exit("Change your pandas version accoringly, or insert your pandas version in pd_maximum_versions")       
     
 
 def CheckLatex():
@@ -121,4 +121,5 @@ def CheckJson(ParameterJsonFile):
             print("Abort")
     
     
-    
+def CheckNumbda():
+    tp.diag.performance_report()
