@@ -74,7 +74,7 @@ def CheckPanda():
         print("Pandas version valid: ", pd_version)
     else:
         print("Pandas maximum versions: ", pd_maximum_versions)
-        print("Your trackpy versions: ", pd_version)
+        print("Your pandas versions: ", pd_version)
         print("New panda versions do not work since https://github.com/soft-matter/trackpy/issues/529#issue-410397797")
         print("Try: Downgrading your system in Anaconda promt using >>> conda install pandas=0.23.4 <<<")
         sys.exit("Change your pandas version accoringly, or insert your pandas version in pd_maximum_versions")       
