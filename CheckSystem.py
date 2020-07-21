@@ -122,4 +122,9 @@ def CheckJson(ParameterJsonFile):
     
     
 def CheckNumbda():
-    tp.diag.performance_report()
+    # http://soft-matter.github.io/trackpy/v0.4.2/tutorial/performance.html
+    
+    from trackpy.diag import performance_report
+    
+    print("Performance report: is numba working?")
+    performance_report()
