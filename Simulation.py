@@ -32,70 +32,42 @@ import multiprocessing
 import trackpy as tp
 
 
-def PrepareRandomWalk(ParameterJsonFile):
+def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 1, frames = 100, RatioDroppedFrames = 0, EstimationPrecision = 0, mass = 0, frames_per_second = 100, microns_per_pixel = 1, temp_water = 293, visc_water = 9.5e-16):
     """ configure the parameters for a randowm walk out of a JSON file, and generate 
     it in a DataFrame
     """
     
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)    
-    
-    diameter            = settings["Simulation"]["DiameterOfParticles"]
-    num_particles       = settings["Simulation"]["NumberOfParticles"]
-    frames              = settings["Simulation"]["NumberOfFrames"]
-    RatioDroppedFrames  = settings["Simulation"]["RatioDroppedFrames"]
-    EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
-    mass                = settings["Simulation"]["mass"]
-    
-    
-    frames_per_second   = settings["Exp"]["fps"]
-    microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
-    temp_water          = settings["Exp"]["Temperature"]
+    if ParameterJsonFile != None:
+        #read para file if existing
+        settings = nd.handle_data.ReadJson(ParameterJsonFile)    
+        
+        diameter            = settings["Simulation"]["DiameterOfParticles"]
+        num_particles       = settings["Simulation"]["NumberOfParticles"]
+        frames              = settings["Simulation"]["NumberOfFrames"]
+        RatioDroppedFrames  = settings["Simulation"]["RatioDroppedFrames"]
+        EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
+        mass                = settings["Simulation"]["mass"]        
+        
+        frames_per_second   = settings["Exp"]["fps"]
+        microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
+        temp_water          = settings["Exp"]["Temperature"]
 
 
-    solvent = settings["Exp"]["solvent"]
-    
-    if settings["Exp"]["Viscosity_auto"] == 1:
-        visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
-        bp()
-    else:
-        visc_water = settings["Exp"]["Viscosity"]
+        solvent = settings["Exp"]["solvent"]
+        
+        if settings["Exp"]["Viscosity_auto"] == 1:
+            visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
+            bp()
+        else:
+            visc_water = settings["Exp"]["Viscosity"]
 
     
-    output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, \
-                                              RatioDroppedFrames = RatioDroppedFrames, \
-                                              ep = EstimationPrecision, mass = mass, \
-                                              microns_per_pixel = microns_per_pixel, temp_water = temp_water, \
-                                              visc_water = visc_water)
-       
-    # if 1 == 0:
-    #     #check if buoyancy shall be considered
-    #     DoBuoyancy = settings["Simulation"]["DoBuoyancy"]
-    #     if DoBuoyancy == 1:
-    #         # include Buoyancy
-    #         rho_particle = settings["Simulation"]["Density_Particle"]
-    #         rho_fluid    = settings["Simulation"]["Density_Fluid"]
-            
-    #         visc_water_m_Pa_s = visc_water * 1e12
-            
-    #         v_sedi = StokesVelocity(rho_particle, rho_fluid, diameter, visc_water_m_Pa_s)
-            
-    #         # convert in px per second
-    #         v_sedi = v_sedi * 1e6 / microns_per_pixel 
-            
-    #         # sedimentation per frame
-    #         delta_t = 1 / frames_per_second
-    #         delta_x_sedi = v_sedi * delta_t
-                   
-    #         x_sedi = np.zeros([1,frames])
-    #         x_sedi[:] = delta_x_sedi
-    #         x_sedi = x_sedi.cumsum()
-            
-    #         bp()
-    #         output.x = output.x + x_sedi
+    output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, RatioDroppedFrames = RatioDroppedFrames, ep = EstimationPrecision, mass = mass,                                               microns_per_pixel = microns_per_pixel, temp_water = temp_water, visc_water = visc_water)
             
           
-    
-    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+    if ParameterJsonFile != None:
+        # write if para file is given
+        nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
     return output
    
@@ -140,6 +112,8 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, Ratio
     radius_m = diameter/2 * 1e-9 # in m
     # diffusion constant of the simulated particle (Stokes-Einstein eq.)
     sim_part_diff = (const_Boltz*temp_water)/(6*math.pi *visc_water * radius_m) # [um^2/s]
+
+    print("Diffusion coefficent: ", sim_part_diff)
 
     # [mum^2/s] x-diffusivity of simulated particle 
     sim_part_sigma_um = np.sqrt(2*sim_part_diff / frames_per_second)

@@ -12,11 +12,31 @@ import psf
 import multiprocessing
 import NanoObjectDetection as nd
 from joblib import Parallel, delayed
-
-
+from scipy.constants import Boltzmann as k_b
+from scipy.constants import pi as pi
 from scipy.constants import speed_of_light as c
 
 # HERE ARE ALL STANDARD EQUATIONS IN PHYSICS LIKE CONVERSIONS ETC.
+
+
+def StokesEinsteinEquation(diff = None, diam = None, temp_water = 295, visc_water = 9.5E-16):
+    
+    if (diff == None) and (diam == None):
+        raise ValueError('Either diffusion or diam must be >NONE<')
+    
+    if diff == None:
+        #calc diffusion
+        radius = diam / 2
+        my_return = (k_b*temp_water)/(6*pi*visc_water * radius) # [um^2/s]
+        
+    elif diam == None:
+        radius = (k_b*temp_water)/(6*pi *visc_water * diff) # [um^2/s]
+        my_return = radius * 2
+    else:
+        raise ValueError('Either diffusion or diam must be >NONE<')
+        
+    return my_return
+
 
 def PulseEnergy2CW(E_pulse, rep_rate):
     """
