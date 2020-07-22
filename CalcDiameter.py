@@ -639,6 +639,8 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
 
 #    CovCalculateable = (len(lagt_direct) >= 3)
 
+    print("WARNING RF: Check here if the weights are inserted correctly!")
+
     [fit_values, fit_cov]= scipy.optimize.curve_fit(lin_func, lagt_direct, mean_displ_direct, sigma = mean_displ_sigma_direct, absolute_sigma=True , bounds = ([1E-10,-np.inf],[np.inf, np.inf]))
     
     diff_direct_lin = np.squeeze(fit_values[0]/2)
