@@ -295,7 +295,7 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
               %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
         
         if amount_valid_particles == 0:
-            raise.ValueError("All particles removed!")
+            raise ValueError("All particles removed!")
 
     if (FixedParticles == False) and (BeforeDriftCorrection == False):
         #check if the histogramm of the misplacement of one particle is gaussian
