@@ -14,7 +14,7 @@ from . import Drift
 from . import get_trajectorie
 from . import gui
 from . import handle_data
-from  .import JupyterLab
+from . import JupyterLab
 from . import mpl_style
 from . import ParameterEstimation
 from . import particleStats

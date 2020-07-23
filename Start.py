@@ -65,9 +65,10 @@ def NewEvaluation():
           \n 2 - 5x Objective on Zeiss Microscope with Basler cam \
           \n 3 - 10x Objective on Zeiss Microscope with Basler cam \
           \n 4 - 10x (0.25) plan Objective at 'Olympus Corpus' with Basler cam \
-          \n\n"))
+          \n 5 - 20x (0.40) epiplan Objective at 'Olympus Corpus' with Basler cam \
+        \n\n"))
     
-    if pre_select in [2,3,4]:
+    if pre_select in [2,3,4,5]:
         if pre_select == 2:
             print("Load: 5x Objective on Zeiss Microscope with Basler cam")
             path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_5x_zeiss_cam_basler.json"
@@ -77,6 +78,9 @@ def NewEvaluation():
         elif pre_select == 4:
             print("Load: 10x (0.25) plan Objective at 'Olympus Corpus' with Basler cam")
             path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_objectiv_10x_025_plan_corpus_olympus_cam_basler.json"
+        elif pre_select == 5:
+            print("Load: 20x (0.40) epiplan Objective at 'Olympus Corpus' with Basler cam")
+            path_json_origin = os.path.dirname(nd.__file__) + "default_json_20x 0_40 epiplan Objective with Basler cam.json"
             
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)

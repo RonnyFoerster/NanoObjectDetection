@@ -18,11 +18,10 @@ import os
 from PIL import Image
 import fnmatch
 from skimage import io
-from pdb import set_trace as bp #debugger
 import NanoObjectDetection as nd
 
-# In[2]:
 
+# In[2]:
 def ReadJson(mypath, CreateNew = False):
     """ read the json parameter file into a dictionary
     
