@@ -293,6 +293,9 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         print("Too short trajectories removed!")
         print("Before: %d, After: %d, Removed: %d (%d%%)" 
               %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
+        
+        if amount_valid_particles == 0:
+            raise.ValueError("All particles removed!")
 
     if (FixedParticles == False) and (BeforeDriftCorrection == False):
         #check if the histogramm of the misplacement of one particle is gaussian
@@ -489,8 +492,6 @@ def RemoveNoGoAreasAroundOverexposedAreas():
             frame_sat_px_old = frame_sat_px
     
             loop_sat_pos_old = loop_sat_pos.copy()
-
-
 
 
 
