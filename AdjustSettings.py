@@ -140,6 +140,7 @@ def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
 def FindSpot(rawframes_pre, ParameterJsonFile):
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
     if (settings["Help"]["Bead brightness"] == "manual") or (settings["Help"]["Bead brightness"] == 1):
         obj_first, settings, num_particles_trackpy = FindSpot_manual(rawframes_pre, ParameterJsonFile)
         
@@ -149,6 +150,9 @@ def FindSpot(rawframes_pre, ParameterJsonFile):
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
     else:
+        obj_all = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile)
+        num_particles_trackpy = len(obj_all )
+        
         print("Bead size not adjusted. Use 'manuel' or 'auto' if you want to do it.")
 
     return num_particles_trackpy

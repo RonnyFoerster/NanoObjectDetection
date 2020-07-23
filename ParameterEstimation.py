@@ -15,7 +15,6 @@ from scipy.ndimage import label, generate_binary_structure
 import trackpy as tp
 import scipy.constants
 
-#%% modules
 
 def GaussianKernel(sigma, fac = 6, x_size = None,y_size = None):
     #https://martin-thoma.com/zero-mean-normalized-cross-correlation/
@@ -148,12 +147,12 @@ def EstimateMinmassMain(img1, settings):
     DoPreProcessing = (ImgConvolvedWithPSF == False)
     
     # optimize the minmass in trackpy, sothat the results of ncc and trackpy agree best
-    minmass = OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
+    minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
         
     # plot the stuff
     PlotImageProcessing(img1_in, img_zncc, pos_particles)
     
-    return minmass
+    return minmass, num_particles_trackpy
 
 
 

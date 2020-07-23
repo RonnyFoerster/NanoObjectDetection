@@ -155,7 +155,9 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             
             if ExternalSlider == False:
                 settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
-                plt.close(fig)        
+                
+                print("Ronny changed something here and did not had the time to check it")
+                #plt.close(fig)        
             
     return output
 
