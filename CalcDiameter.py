@@ -305,7 +305,7 @@ def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
 
 
 
-def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False):
+def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, ID='unknown'):
     
 #    print("REMOVE THIS LATER AGAIN !!!")
 #    MinSignificance = 0
@@ -329,7 +329,7 @@ def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotEr
     
     if traj_has_error == True:
         if PlotErrorIfTestFails == True:
-            print("Error in Traj. This can be plotted, if code here is switched on.")
+            #print("Error in Traj. This can be plotted, if code here is switched on.")
             dx_exp = np.sort(dx)
             N = len(dx_exp)
             cdf_exp = np.array(range(N))/float(N)
@@ -338,6 +338,9 @@ def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotEr
             plt.plot(dx_exp, cdf_exp, '.:', label = 'CDF - Data')
             plt.xlabel("dx")
             plt.ylabel("CDF")
+            
+            if type(ID)!=str:
+                plt.title('Particle ID = {}'.format(int(ID)) )
             
             #compare with theory
             dx_theory = np.linspace(cdf_exp[0],dx_exp[-1],N)             
