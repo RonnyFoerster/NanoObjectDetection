@@ -164,10 +164,6 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_
 
 
 
-
-
-
-
 def GetSettingsParameters(settings):
     # get required parameters out of the settings
     temp_water = settings["Exp"]["Temperature"]
@@ -338,9 +334,8 @@ def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotEr
         plt.plot(dx_exp, cdf_exp, '-g', label = 'CDF - Data')
         plt.xlabel("dx")
         plt.ylabel("CDF")
-		
-		if type(ID)!=str:
-			plt.title('Particle ID = {}'.format(int(ID)) )
+        if type(ID) != str :
+            plt.title('Particle ID = {}'.format(int(ID)) )
         
         #compare with theory
         dx_theory = np.linspace(cdf_exp[0],dx_exp[-1],N)             
@@ -432,7 +427,6 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
         else:
             amount_summands = settings["MSD"]["Amount summands"]
        
-    
     nan_tm = 0
     nan_tm_sq = 0
     amount_frames_lagt1 = 0
@@ -793,7 +787,8 @@ def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm, DoPrint = True):
 
 
 def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, DoRolling = False):
-    #write all the valuable parameters in one large pandas
+    """ write all the valuable parameters in one large pandas DataFrame
+    """
     
     mean_raw_mass = eval_tm["raw_mass"].mean()
     min_rel_error = settings["MSD"]["Min rel Error"]
@@ -831,7 +826,7 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                     mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
                     red_ep, max_step, true_particle, stat_sign = None):
 
-    # Storing results in df:   
+    # Storing results in DataFrame:   
     sizes_df_lin = sizes_df_lin.append(pd.DataFrame(data={'particle': [particleid],
                                                           'diffusion': [diff_direct_lin],
                                                           'diffusion std': [diff_std],
@@ -850,8 +845,6 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                                                           'stat_sign': [stat_sign],
                                                           'true_particle': [true_particle]}), sort=False)
     
-    
-    
     return sizes_df_lin
 
 
@@ -861,7 +854,6 @@ def ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, diff_s
                     mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
                     red_ep, max_step):
     
-
     # Storing results in df:
     new_panda = pd.DataFrame(data={'particle': particleid,
                                   'frame': np.arange(start_frame,start_frame + len(diff_direct_lin_rolling), dtype = int),
@@ -880,10 +872,7 @@ def ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, diff_s
                                   'size': mean_size,
                                   'ecc': mean_ecc})
 
-    
     sizes_df_lin_rolling = sizes_df_lin_rolling.append(new_panda, sort=False)
-    
-    
     
     return sizes_df_lin_rolling
 
@@ -1089,8 +1078,8 @@ def hindrance_fac(diam_channel,diam_particle):
     # calculate the required local hindrance factor
     Kd = local_hindrance_fac(H, l)
     
-    
     return H, Kd
+
 
 
 def local_hindrance_fac(H, my_lambda):
@@ -1116,7 +1105,6 @@ def ContinousIndexingTrajectory(t):
     t = t.reindex(index=new_index)
     
     return t
-
 
 
 
