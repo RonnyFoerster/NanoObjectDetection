@@ -297,7 +297,10 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     stop_optimizing = False
     
     # maximum distance between position of zncc and trackpy
-    max_distance = diameter[0] / 2 # assume that diameters for x and y direction are equal
+    if type(diameter)==int:
+        max_distance = diameter / 2 
+    else:
+        max_distance = diameter[0] / 2 # assume that diameters for x and y direction are equal
     
     # optimal value of wrong to right (the value to minimize) and the corresponding minmass
     wrong_to_right_optimum = np.inf

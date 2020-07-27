@@ -19,7 +19,7 @@ from pdb import set_trace as bp #debugger
 
 def GetIntegerInput(MessageOnScreen):
     """
-    Ask for an INTERGER input on the console.
+    Ask for an INTEGER input on the console.
     """
     bad_input = True
     while bad_input == True:
@@ -153,7 +153,7 @@ def FindSpot(rawframes_pre, ParameterJsonFile):
         obj_all = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile)
         num_particles_trackpy = len(obj_all )
         
-        print("Bead size not adjusted. Use 'manuel' or 'auto' if you want to do it.")
+        print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
 
     return num_particles_trackpy
     
@@ -285,6 +285,7 @@ def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
             tp.subpx_bias(obj_all)
 
             plt.draw()
+            plt.title("y, spot sizes = {}".format(try_diameter))
             plt.show()
             
             if AutoIteration == True:
