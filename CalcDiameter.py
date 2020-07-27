@@ -305,7 +305,7 @@ def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
 
 
 
-def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, ID='unknown'):
+def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, PlotAlways = False, ID='unknown'):
     
 #    print("REMOVE THIS LATER AGAIN !!!")
 #    MinSignificance = 0
@@ -327,27 +327,27 @@ def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotEr
     traj_has_error = stat_sign < MinSignificance 
     
     
-    if traj_has_error == True:
-        if PlotErrorIfTestFails == True:
-            #print("Error in Traj. This can be plotted, if code here is switched on.")
-            dx_exp = np.sort(dx)
-            N = len(dx_exp)
-            cdf_exp = np.array(range(N))/float(N)
-            
-            plt.figure()
-            plt.plot(dx_exp, cdf_exp, '.:', label = 'CDF - Data')
-            plt.xlabel("dx")
-            plt.ylabel("CDF")
-            
-            if type(ID)!=str:
-                plt.title('Particle ID = {}'.format(int(ID)) )
-            
-            #compare with theory
-            dx_theory = np.linspace(cdf_exp[0],dx_exp[-1],N)             
-            cdf_theory = scipy.stats.norm.cdf(dx_exp, loc = mu, scale = std)     
-            plt.plot(dx_exp, cdf_theory, '.:', label = 'CDF - Fit')
-            plt.legend()
-            plt.show()
+    if ((traj_has_error == True) and (PlotErrorIfTestFails == True)) or PlotAlways == True:
+        # if PlotErrorIfTestFails == True:
+        #print("Error in Traj. This can be plotted, if code here is switched on.")
+        dx_exp = np.sort(dx)
+        N = len(dx_exp)
+        cdf_exp = np.array(range(N))/float(N)
+        
+        plt.figure()
+        plt.plot(dx_exp, cdf_exp, '-g', label = 'CDF - Data')
+        plt.xlabel("dx")
+        plt.ylabel("CDF")
+		
+		if type(ID)!=str:
+			plt.title('Particle ID = {}'.format(int(ID)) )
+        
+        #compare with theory
+        dx_theory = np.linspace(cdf_exp[0],dx_exp[-1],N)             
+        cdf_theory = scipy.stats.norm.cdf(dx_exp, loc = mu, scale = std)     
+        plt.plot(dx_exp, cdf_theory, '--r', label = 'CDF - Fit')
+        plt.legend()
+        plt.show()
     
     #        bp()
     
@@ -458,7 +458,7 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
     if length_indexer < (lagtimes_max + amount_summands * lagtimes_max):
         enough_values = "ToShortTraj"
         print("Trajectory is to short to have enough data points. \n Trajectorie length must be larger than (amount_summands * lagtimes_max). \n Consider optimizing parameters Min_tracking_frames, amount_summands, lagtimes_max.")
-        bp()
+#        bp()
         
     else:
         # columns has two parts. The lagtimes:
@@ -641,6 +641,8 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
 
 
 #    CovCalculateable = (len(lagt_direct) >= 3)
+
+    print("WARNING RF: Check here if the weights are inserted correctly!")
 
     [fit_values, fit_cov]= scipy.optimize.curve_fit(lin_func, lagt_direct, mean_displ_direct, sigma = mean_displ_sigma_direct, absolute_sigma=True , bounds = ([1E-10,-np.inf],[np.inf, np.inf]))
     
@@ -949,7 +951,9 @@ def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
         red_x = "gain missing"
         
     else:
-        num_photons = raw_mass / gain
+#        num_photons = raw_mass / gain
+        num_photons = raw_mass * gain #gain in photoelectron/ADU
+        
         static_local_precision_um = rayleigh_um / np.power(num_photons ,1/2)
 
         # Eq. 13:
