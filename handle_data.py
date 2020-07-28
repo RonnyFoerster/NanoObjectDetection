@@ -355,6 +355,20 @@ def ReadData2Numpy(ParameterJsonFile):
         
         print('finishied reading in raw images =)')
         
+    #check if images are saved doubled
+    mydiff = rawframes_np[0:-1,:,:] - rawframes_np[1:,:,:]
+    
+    #pixel value that differs most
+    max_diff_value = np.max(np.abs(mydiff), axis = (1,2))
+    
+    # number of identical frames
+    num_identical_frames = len(max_diff_value[max_diff_value == 0])
+    
+    if num_identical_frames > 0:
+        raise ValueError("%d consecutive images are identical. Probably the camera did something stupid!" %num_identical_frames)
+    
+    
+        
     return rawframes_np
 
 
