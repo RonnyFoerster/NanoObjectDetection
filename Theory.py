@@ -3,6 +3,8 @@
 Created on Wed Jun  3 08:44:12 2020
 
 @author: foersterronny
+
+collection of standard equations of physics, unit conversions etc.
 """
 
 import matplotlib.pyplot as plt
@@ -16,13 +18,18 @@ from scipy.constants import Boltzmann as k_b
 from scipy.constants import pi as pi
 from scipy.constants import speed_of_light as c
 
-# HERE ARE ALL STANDARD EQUATIONS IN PHYSICS LIKE CONVERSIONS ETC.
 
 
 def StokesEinsteinEquation(diff = None, diam = None, temp_water = 295, visc_water = 9.5E-16):
+    """ solves the Stokes-Einstein equation either for the diffusion coefficient or the 
+    hydrodynamic diameter of a particle
+    
+    diff:   diffusion coefficient [um^2/s]
+    diam:   particle diameter [um]    
+    """
     
     if (diff == None) and (diam == None):
-        raise ValueError('Either diffusion or diam must be >NONE<')
+        raise ValueError('Either diffusion or diameter must be >NONE<')
     
     if diff == None:
         #calc diffusion
@@ -30,18 +37,19 @@ def StokesEinsteinEquation(diff = None, diam = None, temp_water = 295, visc_wate
         my_return = (k_b*temp_water)/(6*pi*visc_water * radius) # [um^2/s]
         
     elif diam == None:
-        radius = (k_b*temp_water)/(6*pi *visc_water * diff) # [um^2/s]
+        radius = (k_b*temp_water)/(6*pi *visc_water * diff) # [um]
         my_return = radius * 2
     else:
-        raise ValueError('Either diffusion or diam must be >NONE<')
+        raise ValueError('Either diffusion or diameter must be >NONE<')
         
     return my_return
 
 
+
 def PulseEnergy2CW(E_pulse, rep_rate):
     """
-    E_pulse: pulse power [W]
-    rep_rate: Repeatition rate [Hz]
+    E_pulse:    pulse power [W]
+    rep_rate:   Repeatition rate [Hz]
     
     https://www.thorlabs.com/images/tabimages/Laser_Pulses_Power_Energy_Equations.pdf
     """
@@ -52,7 +60,12 @@ def PulseEnergy2CW(E_pulse, rep_rate):
     return P_avg
     
 
+
 def zncc(image, kernel, size):
+    """ ZNCC = Zero Mean Normalized Cross-Correlation, ...??
+    
+    https://martin-thoma.com/zero-mean-normalized-cross-correlation/, 27.07.2020
+    """
     img_zncc = np.zeros_like(image, dtype = 'float32')
     
     mid_x = np.int((kernel.shape[0]-1)/2)
@@ -106,9 +119,10 @@ def zncc(image, kernel, size):
     return img_zncc
     
 
-def PSF(NA= 1.2, n = 1.46, sampling_z = None, shape_z = None):
 
-    # create an out of focus PSF
+def PSF(NA= 1.2, n = 1.46, sampling_z = None, shape_z = None):
+    """ create an out of focus PSF
+    """
     args = {
     'shape': (128, 128),  # number of samples in z and r direction
     'dims': (5.0, 5.0),   # size in z and r direction in micrometers
@@ -172,6 +186,8 @@ def PSF(NA= 1.2, n = 1.46, sampling_z = None, shape_z = None):
     
 
 def RFT2FT(image_in):
+    """ [insert description here]
+    """
     mirror_x = np.flip(image_in, axis = 0)
     mirror_x = mirror_x[:-1,:] #remove last line otherwise double
     
@@ -182,11 +198,13 @@ def RFT2FT(image_in):
     
     image_out = np.concatenate((mirror_y , image_1), axis = 1)
 
-    
     return image_out
  
 
+
 def MyFftConvolve(im1,im2):
+    """ [insert description here]
+    """
     from numpy.fft import fftn as fftn
     from numpy.fft import ifftn as ifftn
     
@@ -197,7 +215,10 @@ def MyFftConvolve(im1,im2):
     return convolved   
 
 
+
 def DeconRLTV(image, psf, lambda_tv = 0, num_iterations = 10):
+    """ [insert description here]
+    """
     # from scipy.signal import fftconvolve as fft_conv
     # import scipy
     #https://www.weizmann.ac.il/mcb/ZviKam/Papers/72.%20MRT_Paris.pdf
@@ -255,27 +276,9 @@ def DeconRLTV(image, psf, lambda_tv = 0, num_iterations = 10):
 
 
 
-def IntensityInFiber(P, radius, Mode = 'Peak' ):
-    '''
-    P_illu - Power of illumination beam [W]
-    radius - radisu of channel in m
-    Mode - calculate Intensity at the "Peak" or assume "FlatTop" Profile
-    '''
-
-    A = np.pi * radius **2
-    if Mode == 'Peak':
-        # peak intensity of gaussian beam
-        I_illu = 2*P/A
-    elif Mode == 'FlatTop':
-        I_illu = P/A
-    else:
-        print("Mode must be either >>Peak<< OR >>FlatTop<<")
-        
-    return I_illu
-
-
-
 def DeconRL3D(image, psf3d, lambda_tv = 0, num_iterations = 10):
+    """ [insert description here]
+    """
     # from scipy.signal import fftconvolve as fft_conv
     # import scipy
     #https://www.weizmann.ac.il/mcb/ZviKam/Papers/72.%20MRT_Paris.pdf
@@ -336,31 +339,56 @@ def DeconRL3D(image, psf3d, lambda_tv = 0, num_iterations = 10):
 
 
 
+def IntensityInFiber(P, radius, Mode = 'Peak' ):
+    """ calculate intensity profile inside a fiber channel with circular cross section
+    
+    P_illu      power of illumination beam [W]
+    radius      radius of channel [m]
+    Mode        calculate Intensity at the "Peak" or assume "FlatTop" Profile
+    """
+
+    A = np.pi * radius **2
+    if Mode == 'Peak':
+        # peak intensity of gaussian beam
+        I_illu = 2*P/A
+    elif Mode == 'FlatTop':
+        I_illu = P/A
+    else:
+        print("Mode must be either >>Peak<< OR >>FlatTop<<")
+        
+    return I_illu
 
 
 
-
-def LensMakerEquation(R1,R2,d,n_media, n_glass):
-    #https://de.wikipedia.org/wiki/Linsenschleiferformel
+def LensMakerEquation(R1,R2,d,n_media,n_glass):
+    """ calculate focal distance of a lens
+    https://de.wikipedia.org/wiki/Linsenschleiferformel, 27.07.2020
+    
+    R1, R2:     radii of curvature of the spherical surfaces
+    d:          thickness of the lens
+    n_*:        refr. index of lens material and surroundings
+    """
     D = (n_glass-n_media)/n_media * (1/R1 - 1/R2 + (n_glass-n_media)*d/(n_glass*R1*R2))
     f = 1/D
     
     return f
 
 
+
 def LensEquation(f,g):
+    """ calculate image distance from focal length and object distance ("thin lens formula")
+    """
     b_inv = 1/f - 1/g
     b = 1/b_inv
     
     return b
 
 
+
 def RadiationForce(I, C_scat, C_abs, n_media = 1.333):   
-    '''
-    calculate the radiation force onto a scattering sphere
+    """ calculate the radiation force onto a scattering sphere
     
     Literature:
-    
     https://reader.elsevier.com/reader/sd/pii/0030401895007539?token=48F2795599992EB11281DD1C2A50B58FC6C5F2614C90590B9700CD737B0B9C8E94F2BB8A17F74D0E6087FF3B7EF5EF49
     https://github.com/scottprahl/miepython/blob/master/doc/01_basics.ipynb
     
@@ -369,10 +397,10 @@ def RadiationForce(I, C_scat, C_abs, n_media = 1.333):
     P_W:        incident power
     A_sqm:      beam/channel cross sectional area
     material:   sphere's material
-    """
+    
     "Optical trapping of metallic Rayleigh particles"
     "Radiation forces on a dielectric sphere in the Rayleigh scattering regime"
-    '''
+    """
     
     #Eq 11 in Eq 10
     #not quite sure here

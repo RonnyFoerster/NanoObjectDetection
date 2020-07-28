@@ -42,6 +42,15 @@ def ParticleCount(obj_matrix,totalframe):
         obj_per_frame[fnum] = len(obj_matrix[obj_matrix.frame==fnum])
     
     return obj_per_frame
+
+
+
+def TrajCount(traj_matrix):
+    """ calculate the number of present particle trajectories (convenience function)
+    
+    traj_matrix: DataFrame as created by the nd.get_trajectorie.link_df function
+    """
+    return pd.unique(traj_matrix["particle"]).size # NB: traj_matrix.particle.unique() should do the same job
     
 
 

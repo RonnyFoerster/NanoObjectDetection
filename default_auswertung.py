@@ -119,8 +119,8 @@ sizes_df_lin, sizes_df_lin_rolling , any_successful_check = nd.CalcDiameter.Main
 
 #sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
 
-#%% visualiz results
+#%% visualize results
 nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check)
 
 
-nd.visualize.AnimateDiameterAndRawData_Big2(rawframes_ROI, static_background, rawframes_pre, sizes_df_lin, t4_cutted_no_gaps, ParameterJsonFile)
+#nd.visualize.AnimateDiameterAndRawData_Big2(rawframes_ROI, static_background, rawframes_pre, sizes_df_lin, t4_cutted_no_gaps, ParameterJsonFile)
