@@ -354,7 +354,7 @@ def ReadData2Numpy(ParameterJsonFile):
         
         print('finishied reading in raw images =)')
         
-
+    print("Do the sanity check with raw data")
     # little sanity check
     # check if camera has saved frames doubled
     CheckForRepeatedFrames(rawframes_np)
@@ -426,8 +426,11 @@ def CheckForSaturation(rawframes_np):
     ValidInput = False
     while ValidInput == False:
         IsSaturated = input("An intensity histogramm should be plotted. The highest intensity bin should not be a peak. If you see such a peak, you probably have saturation. Do you have saturation [y/n]?")
-        if IsSaturated == 'y':
-            raise ValueError("Check your rawimage to find out if the are saturated")
+        
+        if IsSaturated in ['y','n']:
+            ValidInput = True
+            if IsSaturated  == "y":
+                raise ValueError("Check your rawimage to find out if the are saturated")
         else:
             print("enter y or n!")
     
