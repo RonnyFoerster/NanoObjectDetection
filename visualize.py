@@ -5,8 +5,7 @@ Created on Tue Feb  5 12:23:39 2019
 @author: Ronny Förster, Stefan Weidlich, Mona Nissen
 """
 
-# In[0]:
-# coding: utf-8
+
 
 """
 collection of plotting functions for visualization
@@ -42,8 +41,6 @@ import NanoObjectDetection as nd
 #from matplotlib.animation import FuncAnimation
 
 
-
-# In[]
 def SetXYLim(x_min_max = None, y_min_max = None):
     """ set axes limits to fixed values """
     
@@ -2263,17 +2260,13 @@ def PlotGlobalDrift(d):
 def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, collect_data = None, alpha_values = 0.5, alpha_fit = 0.3):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
 
-#    bp()
+
     plt.plot(lagt_direct[:-1], mean_displ_direct,'k.', alpha = alpha_values) # plotting msd-lag-time-tracks for all particles
     plt.plot(lagt_direct, mean_displ_fit_direct_lin, 'r-', alpha = alpha_fit) # plotting the lin fits
     #ax.annotate(particleid, xy=(lagt_direct.max(), mean_displ_fit_direct_lin.max()))
     plt.title("MSD fit", **title_font)
     plt.ylabel("MSD $[\mu m^2]$", **axis_font)
     plt.xlabel("Lagtime [s]", **axis_font)
-
-    plt.xlim(0,np.max(lagt_direct) * 1.1)
-    plt.ylim(0,plt.ylim()[1])
-
 
     
     
