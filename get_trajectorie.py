@@ -394,8 +394,9 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         # get signal at maximum
         signal_at_max = rawframes_rot[frame,pos_y,pos_x]
         if signal_at_max >= SaturatedPixelValue:
-            sort_obj_moving = sort_obj_moving.iloc[:-2] # kick the overexposed object out
+            sort_obj_moving = sort_obj_moving.iloc[:-1] # kick the overexposed object out
             counter += 1
+            
             if not(frame in framelist):
                 framecount += 1
                 framelist.append(frame)
@@ -406,7 +407,7 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
     
     obj_moving = sort_obj_moving
     
-    return obj_moving 
+    return obj_moving
 
 
 def close_gaps(t1):

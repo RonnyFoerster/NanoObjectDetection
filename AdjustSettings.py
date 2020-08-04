@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt # Libraries for plotting
 from pdb import set_trace as bp #debugger
 
 
+
 def GetIntegerInput(MessageOnScreen):
     """ ask for an INTEGER input on the console
     """
@@ -31,6 +32,7 @@ def GetIntegerInput(MessageOnScreen):
     return myinput
 
 
+
 def GetNumericalInput(MessageOnScreen):
     """ ask for a FLOAT input on the console
     """
@@ -43,6 +45,7 @@ def GetNumericalInput(MessageOnScreen):
         except ValueError:
             print("This is not a number")
     return myinput
+
 
 
 def AskDoItAgain():
@@ -319,13 +322,13 @@ def FindROI(rawframes_np):
     """
     my_max = nd.handle_data.max_rawframes(rawframes_np)
     
-    title = "Maximum projection of raw data",
-    xlabel = "x [Px]",
+    title = "Maximum projection of raw data"
+    xlabel = "x [Px]"
     ylabel = "y [Px]"
-    nd.visualize.Plot2DImage(nd.handle_data.max_rawframes(rawframes_np),
-                             title = title, xlabel = xlabel, ylabel = ylabel)
+    nd.visualize.Plot2DImage(my_max, title = title, xlabel = xlabel, ylabel = ylabel)
 
-    print('Chose the ROI of x and y for min and max value accoring your interest. Insert the values in your json file.')
+    print('Choose the ROI of x and y for min and max value accoring your interest. '
+          'Insert the values in your json file.')
 
 
 
