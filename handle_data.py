@@ -302,7 +302,7 @@ def SpecificValueOrSettings(try_value,settings, key, entry):
 
 
 
-def ReadData2Numpy(ParameterJsonFile):
+def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
     """ read the images in
     
     distinguishes between:
@@ -326,7 +326,7 @@ def ReadData2Numpy(ParameterJsonFile):
         data_type        = nd.handle_data.GetVarOfSettings(settings,"File","data_type")
         data_folder_name = nd.handle_data.GetVarOfSettings(settings,"File","data_folder_name")
         data_file_name   = nd.handle_data.GetVarOfSettings(settings,"File","data_file_name")
-        use_num_frame   = nd.handle_data.GetVarOfSettings(settings,"File","use_num_frame")
+        use_num_frame    = nd.handle_data.GetVarOfSettings(settings,"File","use_num_frame")
     
         print('start reading in raw images. (That may take a while...)')
         if data_type == 'tif_series':
@@ -354,16 +354,15 @@ def ReadData2Numpy(ParameterJsonFile):
         
         print('finishied reading in raw images =)')
         
-    print("Do the sanity check with raw data")
-    # little sanity check
-    # check if camera has saved frames doubled
-    CheckForRepeatedFrames(rawframes_np)
-    
-    # check if camera is saturated
-    CheckForSaturation(rawframes_np)
-
-    
+    if PerformSanityCheck == True:
+        print("Perform a sanity check for the raw data...")
+        # little sanity check
+        # check if camera has saved frames doubled
+        CheckForRepeatedFrames(rawframes_np)
         
+        # check if camera is saturated
+        CheckForSaturation(rawframes_np)
+
     return rawframes_np
 
 
@@ -389,8 +388,8 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
         
 
 def CheckForSaturation(rawframes_np):
-    """
-    Check if saturation is presented in the raw data.
+    """ check if saturation is present in the raw data
+    
     Saturation is visible in the intensity histogramm as a peak in the highest intensity bin.
     """
     min_value = np.min(rawframes_np)

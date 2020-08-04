@@ -764,12 +764,15 @@ def PlotDiameterHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm
 
 
 def update_progress(job_title, progress):
+    """ display a progress bar for an ongoing task
+    """
     length = 50 # modify this to change the length
     block = int(round(length*progress))
     msg = "\r{0}: [{1}] {2}%".format(job_title, "#"*block + "-"*(length-block), round(progress*100))
     if progress >= 1: msg += " DONE\r\n"
     sys.stdout.write(msg)
     sys.stdout.flush()
+
 
 
 def GetPlotParameters(settings):

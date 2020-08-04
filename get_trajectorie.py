@@ -178,10 +178,8 @@ def QGridPandas(my_pandas):
 
 
 def AnalyzeMovingSpots(frames_np, ParameterJsonFile):
+    """ find moving spots by using a much larger diameter than for the slow moving (unsmeared) particles
     """
-    Find moving spots by using a much larger diameter than for the slow moving (unsmeared) particles
-    """
-    
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     diameter = settings["Find"]["Estimated moving particle size"]
@@ -198,12 +196,11 @@ def AnalyzeMovingSpots(frames_np, ParameterJsonFile):
 
 
 def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displacement = None, dark_time = None):
-    """
-    Defines the paramter for the trackpy routine tp.link, which forms trajectories
-    out of particle positions, out of the json file.
+    """ define the parameters for the trackpy routine tp.link, which forms trajectories
+    out of particle positions, out of the json file
     
     important parameters:
-    SearchFixedParticles = Defines weather fixed or moving particles are under current investigation
+    SearchFixedParticles = defines whether fixed or moving particles are under current investigation
     dark_time            = settings["Link"]["Dark time"] ... maximum number of frames a particle can disappear
     max_displacement     = ["Link"]["Max displacement"]   ...maximum displacement between two frames
 
@@ -211,7 +208,6 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     dark_time = settings["Link"]["Dark time"]
-    
     
     if SearchFixedParticles == False:
         max_displacement = settings["Link"]["Max displacement"]
@@ -222,16 +218,13 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
-
-
     return t1_orig
 
 
 
 def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
-    """
-    Defines the parameters for the trackpy routine tp.filter_stubs, which cuts too short trajectories,
-    out of the json file.
+    """ define the parameters for the trackpy routine tp.filter_stubs, which cuts too short trajectories,
+    out of the json file
     
     important parameters:
     FixedParticles        = defines whether fixed or moving particles are under current investigation
@@ -240,7 +233,6 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
     BeforeDriftCorrection = defines if the particles have been already drift corrected
     Before drift correction short trajectories are okay.
     """
-
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
@@ -324,31 +316,29 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
-        
     return traj_min_length
 
 
 
 def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = None):
-    """
-    In case of stationary/ fixed objects a moving particle should not come to close.
-    This is because stationary objects might be very bright clusters which overshine the image of the dim
-    moving particle. Thus a 'not-go-area' is defined
-    """
+    """ delete objects that were found in the close neighborhood of fixed particles
     
-    
+    In case of stationary/fixed objects a moving particle should not come too close.
+    This is because stationary objects might be very bright clusters which overshine 
+    the image of the dim moving particle. Thus a 'not-go-area' is defined.
+    """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     if settings["StationaryObjects"]["Analyze fixed spots"] == 1:
-        #required minimum distance in pixels between moving and stationary particles
+        # required minimum distance in pixels between moving and stationary particles
         min_distance = settings["StationaryObjects"]["Min distance to stationary object"]
-        print("min_distance to stationary object: ", min_distance)
-        stationary_particles = t2_long_fix.groupby("particle").mean()
+        print("Minimal distance to stationary object: ", min_distance)
+        stationary_particles = t2_long_fix.groupby("particle").mean() # average particle data
 
-        # loop through all stationary objects (contains position (x,y) and time of existent (frame))
+        # loop through all stationary objects (contains position (x,y) and time of existence (frame))
         num_loop_elements = len(stationary_particles)
         for loop_t2_long_fix in range(0,num_loop_elements):
-            nd.visualize.update_progress("Remove Spots In No Go Areas", (loop_t2_long_fix+1)/num_loop_elements)
+            nd.visualize.update_progress("Remove spots in no-go-areas", (loop_t2_long_fix+1)/num_loop_elements)
 
 #            print(loop_t2_long_fix)
             # stationary object to check if it disturbs other particles
@@ -374,18 +364,25 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
-        
     return obj
 
 
 
-
 def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
+    """ delete objects where the camera sensor was (over)saturated 
+    
+    Why is this necessary? Because the localization precision suffers if not.
+    """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     SaturatedPixelValue = settings["Find"]["SaturatedPixelValue"]
     
+    # bring objects in order of ascending intensity values ("mass")
     sort_obj_moving = obj_moving.sort_values("raw_mass")
+    
+    counter = 0
+    framecount = 0
+    framelist = []
     
     saturated_psf = True
     while saturated_psf:
@@ -393,17 +390,19 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         pos_x = np.int(sort_obj_moving.iloc[-1]["x"])
         pos_y = np.int(sort_obj_moving.iloc[-1]["y"])
         frame = np.int(sort_obj_moving.iloc[-1]["frame"])
-        number = np.int(sort_obj_moving.iloc[-1]["frame"])
             
-        # get signal at maxima
+        # get signal at maximum
         signal_at_max = rawframes_rot[frame,pos_y,pos_x]
         if signal_at_max >= SaturatedPixelValue:
-            sort_obj_moving = sort_obj_moving.iloc[:-2]
-    
+            sort_obj_moving = sort_obj_moving.iloc[:-2] # kick the overexposed object out
+            counter += 1
+            if not(frame in framelist):
+                framecount += 1
+                framelist.append(frame)
         else:
             saturated_psf = False
      
-    print("Deleted overexposed particles!")       
+    print("Deleted {} overexposed particle locations in {} frames!".format(counter,framecount))       
     
     obj_moving = sort_obj_moving
     

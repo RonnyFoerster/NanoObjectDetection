@@ -18,8 +18,7 @@ from pdb import set_trace as bp #debugger
 
 
 def GetIntegerInput(MessageOnScreen):
-    """
-    Ask for an INTEGER input on the console.
+    """ ask for an INTEGER input on the console
     """
     bad_input = True
     while bad_input == True:
@@ -33,8 +32,7 @@ def GetIntegerInput(MessageOnScreen):
 
 
 def GetNumericalInput(MessageOnScreen):
-    """
-    Ask for a FLOAT input on the console
+    """ ask for a FLOAT input on the console
     """
     bad_input = True
     while bad_input == True:
@@ -48,8 +46,7 @@ def GetNumericalInput(MessageOnScreen):
 
 
 def AskDoItAgain():
-    """
-    Ask if a step shall be repeated
+    """ ask if a step shall be repeated
     """
     valid_answer = False
     while valid_answer == False:
@@ -318,8 +315,7 @@ def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
     
 
 def FindROI(rawframes_np):
-    """
-    Show the max of all images to show where the ROI is.
+    """ show the maximum value of all images to reveal where the ROI is
     """
     my_max = nd.handle_data.max_rawframes(rawframes_np)
     
