@@ -93,8 +93,7 @@ def AskMethodToImprove():
 
 
 def AskIfUserSatisfied(QuestionForUser):
-    """
-    Ask if user is satisfied
+    """ ask if user is satisfied
     """
     valid_answer = False
     while valid_answer == False:
@@ -119,7 +118,7 @@ def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
     if settings["Help"]["Separation"] == "auto":
         nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        
 
-    # if beadsize is not auto - the minmass needs to be guess first, in order to identifiy particles whose diameter can than be optimized   
+    # if beadsize is not auto - the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
     if settings["Help"]["Bead size"] != "auto":
         nd.AdjustSettings.FindSpot(rawframes_pre, ParameterJsonFile)
         
@@ -133,7 +132,6 @@ def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
     # maybe do this right before the drift correction
     if settings["Help"]["Drift"] == "auto":
         nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_trackpy)
-    
     
 
 

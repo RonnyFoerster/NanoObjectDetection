@@ -223,7 +223,7 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
 
 
 def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
-    """ define the parameters for the trackpy routine tp.filter_stubs, which cuts too short trajectories,
+    """ define the parameters for the trackpy routine tp.filter_stubs, which filters out too short trajectories,
     out of the json file
     
     important parameters:
@@ -411,10 +411,12 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
 
 
 def close_gaps(t1):
-    """
-    # FILL GAPS IN THE TRAJECTORY BY NEAREST NEIGHBOUR
-    # NECESSARY FOR FOLLOWING FILTERING WHERE AGAIN A NEAREST NEIGHBOUR IS APPLIED
-    # OTHERWISE THE MEDIAN FILL WILL JUST IGNORE MISSING TIME POINTS
+    """ fill gaps in the trajectory by nearest neighbour
+    
+    necessary for following filtering where again a nearest neighbour is applied,
+    otherwise the median fill will just ignore missing time points
+    
+    note: "RealData" column is introduced here (to distinguish between real and artificial data points)
     """
     valid_particle_number = t1['particle'].unique(); #particlue numbers that fulfill all previous requirements
     amount_valid_particles = len(valid_particle_number);
@@ -429,7 +431,9 @@ def close_gaps(t1):
     
     #fill the gaps now - get the header
 #    t1_gapless = pd.DataFrame(columns = t1_search_gap.columns, dtype = t1_search_gap.dtypes)           
-     
+    
+    concerned_traj_count = 0
+    
     #for loop_particle in range(0,int(num_last_particles)):
     for i, loop_particle in enumerate(valid_particle_number):
         nd.visualize.update_progress("Close gaps in trajectories", (i+1) / amount_valid_particles)
@@ -451,11 +455,13 @@ def close_gaps(t1):
             end_frame = t1_loop.frame.max()
     #        start_frame = t1_loop.frame_as_column.min()
     #        end_frame = t1_loop.frame_as_column.max()
-    
             num_frames = end_frame - start_frame + 1
+            
             # check if frames are missing
             if num_catched_frames < num_frames:
-                # insert missing indicies by nearest neighbur
+                concerned_traj_count += 1
+                
+                # insert missing indicies by nearest neighbour
                 index_frames = np.linspace(start_frame, end_frame, num_frames, dtype='int')
                 
                 t1_loop = t1_loop.set_index("frame")
@@ -474,15 +480,19 @@ def close_gaps(t1):
                 t1_gapless = t1_loop
             else:
                 t1_gapless = pd.concat([t1_gapless, t1_loop])
-            
-            
+    
+    missing_traj_points_count = t1_gapless[t1_gapless.RealData==False].shape[0]            
+    print('Result: {} gaps in {} trajectories were closed.'.format(missing_traj_points_count,concerned_traj_count))            
+    
     return t1_gapless
 
 
 
-
 def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None, PlotIntMedianFit = False, PlotIntFlucPerBead = False):
-    """ calculate the intensity fluctuation of a particle along its trajectory """
+    """ calculate the intensity fluctuation of a particle along its trajectory 
+    
+    note: "mass_smooth" and "rel_step" columns are introduced here
+    """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -539,106 +549,32 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
 
 
 
-
 def split_traj(t2_long, t3_gapless, ParameterJsonFile):
-    """ define settings for split trajectory at high intensity jumps """
+    """ wrapper function for 'split_traj_at_high_steps' , returns both the original 
+    output and one without missing time points
+    """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     t4_cutted, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
-    
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
     # close gaps to have a continous trajectory
     t4_cutted_no_gaps = nd.get_trajectorie.close_gaps(t4_cutted)   
 
-    
 
     return t4_cutted, t4_cutted_no_gaps
-
-
-
-def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, Max_traj_length = None):
-    """ split trajectories if they are too long
-    
-    This might be usefull, to have sufficently long trajectories all at the same length.
-    Otherwise they have very different confidence intervalls
-    E.g: 2 particles: 1: 500 frames, 2: 2000 frames
-    particle 2 is splitted into 4 500frames
-    
-    Splitting of a particle is fine, because a particle can go out of focus and return later
-    and is assigned as new particle too.
-    
-    Important is to look at the temporal component, thus particle 2 never exists twice
-    """
-    keep_tail = settings["Split"]["Max_traj_length_keep_tail"]
-    
-    if Max_traj_length is None:
-        Max_traj_length = int(settings["Split"]["Max_traj_length"])
-     
-    if Min_traj_length is None:
-        Min_traj_length = int(settings["Link"]["Min_tracking_frames"])
-        
-    free_particle_id = np.max(t4_cutted["particle"]) + 1
-    
-#    Max_traj_length = 1000
-
-    t4_cutted["true_particle"] = t4_cutted["particle"]
-    
-    traj_length = t4_cutted.groupby(["particle"]).frame.max() - t4_cutted.groupby(["particle"]).frame.min()
-    
-    # split when two times longer required
-    split_particles = traj_length > Max_traj_length
-    
-    
-    particle_list = split_particles.index[split_particles]
-    
-    particle_list = np.asarray(particle_list.values,dtype = 'int')
-    
-    num_particle_list = len(particle_list)
-
-    for count, test_particle in enumerate(particle_list):
-        nd.visualize.update_progress("Split too long trajectories", (count+1) / num_particle_list)
-
-
-#        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
-#        end_frame   = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[-1]
-       
-        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
-#        end_frame   = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[-1]
-        
-        
-        traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
-        
-        
-        print("traj_length", traj_length)
-        while traj_length > Max_traj_length:
-            if (traj_length > 2*Max_traj_length) or (keep_tail == 0):
-                start_frame = t4_cutted[t4_cutted["particle"] == test_particle].iloc[Max_traj_length]["frame"]
-                t4_cutted.loc[(t4_cutted["particle"] == test_particle) & (t4_cutted["frame"] >= start_frame), "particle"] = free_particle_id
-    
-                test_particle = free_particle_id
-                free_particle_id = free_particle_id + 1
-                
-                traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
-            else:
-                break
-            
-    if keep_tail == 0:
-        t4_cutted = tp.filter_stubs(t4_cutted, Min_traj_length)
-
-    return t4_cutted
 
 
 
 def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_intensity_step = None,
                              min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = False, NumParticles2Plot = 3,
                              PlotAnimationFiltering = False, rawframes_ROI = -1):
-    """ split the trajectory at high intensity jumps
+    """ split trajectories at high intensity jumps
     
-    This is motivated by the idea, that an intensity jump is more likely to happen because of a wrong assignment in
-    the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6) or heavy
-    substructures/intensity holes in the laser mode
+    Assumption: An intensity jump is more likely to happen because of a wrong assignment in
+    the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6) 
+    or heavy substructures/intensity holes in the laser mode.
     """
     t4_cutted = t3_gapless.copy()
         
@@ -749,6 +685,80 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     t4_cutted = t4_cutted.drop(columns="RealData")
     
     return t4_cutted, settings
+
+
+
+def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, Max_traj_length = None):
+    """ split trajectories if they are too long
+    
+    This might be usefull, to have sufficently long trajectories all at the same length.
+    Otherwise they have very different confidence intervalls
+    E.g: 2 particles: 1: 500 frames, 2: 2000 frames
+    particle 2 is splitted into 4 500frames
+    
+    Splitting of a particle is fine, because a particle can go out of focus and return later
+    and is assigned as new particle too.
+    
+    Important is to look at the temporal component, thus particle 2 never exists twice
+    """
+    keep_tail = settings["Split"]["Max_traj_length_keep_tail"]
+    
+    if Max_traj_length is None:
+        Max_traj_length = int(settings["Split"]["Max_traj_length"])
+     
+    if Min_traj_length is None:
+        Min_traj_length = int(settings["Link"]["Min_tracking_frames"])
+        
+    free_particle_id = np.max(t4_cutted["particle"]) + 1
+    
+#    Max_traj_length = 1000
+
+    t4_cutted["true_particle"] = t4_cutted["particle"]
+    
+    traj_length = t4_cutted.groupby(["particle"]).frame.max() - t4_cutted.groupby(["particle"]).frame.min()
+    
+    # split when two times longer required
+    split_particles = traj_length > Max_traj_length
+    
+    
+    particle_list = split_particles.index[split_particles]
+    
+    particle_list = np.asarray(particle_list.values,dtype = 'int')
+    
+    num_particle_list = len(particle_list)
+
+    for count, test_particle in enumerate(particle_list):
+        nd.visualize.update_progress("Split too long trajectories", (count+1) / num_particle_list)
+
+
+#        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
+#        end_frame   = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[-1]
+       
+        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
+#        end_frame   = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[-1]
+        
+        
+        traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
+        
+        
+        print("traj_length", traj_length)
+        while traj_length > Max_traj_length:
+            if (traj_length > 2*Max_traj_length) or (keep_tail == 0):
+                start_frame = t4_cutted[t4_cutted["particle"] == test_particle].iloc[Max_traj_length]["frame"]
+                t4_cutted.loc[(t4_cutted["particle"] == test_particle) & (t4_cutted["frame"] >= start_frame), "particle"] = free_particle_id
+    
+                test_particle = free_particle_id
+                free_particle_id = free_particle_id + 1
+                
+                traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
+            else:
+                break
+            
+    if keep_tail == 0:
+        t4_cutted = tp.filter_stubs(t4_cutted, Min_traj_length)
+
+    return t4_cutted
+
 
 
 #def OptimizeParamFindSpots(rawframes_ROI, ParameterJsonFile, SaveFig, gamma = 0.8, diameter=None , minmass=None, separation=None):

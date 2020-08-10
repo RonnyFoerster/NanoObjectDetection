@@ -367,8 +367,13 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
 
 
 def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
-    """
-    Check if images appear several time. Check the pixel-wise difference and check if the maximum occuring difference is 0. Than the images are identical. Do not look only at neighbouring frames, but also in a wider distance (that happend already). diff_frames defines the distance between two analyzed frames.
+    """ check if images appear several times
+    
+    Check the pixel-wise difference and check if the maximum occuring difference is 0. 
+    Than the images are identical. Do not look only at neighbouring frames, but also 
+    in a wider distance (that happend already). 
+    
+    diff_frames:    distance between two analyzed frames
     """
     
     for ii in diff_frame:      
@@ -380,7 +385,6 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
         
         # number of identical frames
         num_identical_frames = len(max_diff_value[max_diff_value == 0])
-        
         
         if num_identical_frames > 0:
             raise ValueError("%d consecutive images are identical (frame difference is: %d). Probably the camera did something stupid!" %(num_identical_frames,ii))
@@ -424,20 +428,22 @@ def CheckForSaturation(rawframes_np):
     
     ValidInput = False
     while ValidInput == False:
-        IsSaturated = input("An intensity histogramm should be plotted. The highest intensity bin should not be a peak. If you see such a peak, you probably have saturation. Do you have saturation [y/n]?")
+        IsSaturated = input('An intensity histogramm should be plotted. '
+                            'The highest intensity bin should not be a peak. '
+                            'If you see such a peak, you probably have saturation. '
+                            'Do you have saturation [y/n]?')
         
         if IsSaturated in ['y','n']:
             ValidInput = True
             if IsSaturated  == "y":
-                raise ValueError("Check your rawimage to find out if the are saturated")
+                raise ValueError("Saturation detected. Check your rawimages to find out if the are saturated")
         else:
             print("enter y or n!")
     
     
 
-
 def ReadTiffStack2Numpy(data_file_name):
-    "Reads a tiff stack in"
+    """ read a tiff stack in """
 
     rawframes_np = io.imread(data_file_name)
         
@@ -487,7 +493,6 @@ def ReadFits2Numpy(data_file_name):
     
     open_fits = pyfits.open(data_file_name)
     rawframes_np = open_fits[0].data
-    
     
     return rawframes_np
 

@@ -458,6 +458,7 @@ def PlotImageProcessing(img, img_zncc, pos_particles):
     plt.gca().set_xlim([0,img_zncc.shape[1]])
 
 
+
 def SaltAndPepperKernel(sigma, fac = 6, x_size = None,y_size = None):
 #https://www.w3resource.com/python-exercises/numpy/python-numpy-exercise-79.php
     import numpy as np
@@ -487,6 +488,7 @@ def SaltAndPepperKernel(sigma, fac = 6, x_size = None,y_size = None):
     return g
 
 
+
 def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None):
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -497,7 +499,6 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     if GuessLowestDiameter_nm == None:
         GuessLowestDiameter_nm = int(input("What is the lower limit of diameter (in nm) you expect?\n"))
     
-
     
     settings["Help"]["GuessLowestDiameter_nm"] = GuessLowestDiameter_nm
     GuessLowestDiameter_m  = GuessLowestDiameter_nm / 1e9
@@ -534,7 +535,6 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     Min_Separation = Min_Separation + 1
     
 
-
     print("\n The distance a particle can maximal move (and identified as the same one) >Max displacement< is set to: ", Max_displacement)
     settings["Link"]["Max displacement"] = Max_displacement 
 
@@ -548,7 +548,10 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     return Min_Separation, Max_displacement
 
     
+
 def DiameterToDiffusion(temp_water,visc_water,diameter):
+    """ calculate diffusion coefficient of a sphere with given diameter
+    """
     
     const_Boltz = scipy.constants.Boltzmann
     pi = scipy.constants.pi
