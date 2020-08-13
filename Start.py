@@ -3,6 +3,8 @@
 Created on Fri Sep 13 15:20:48 2019
 
 @author: foersterronny
+@small author : Jisoo
+# We try new branch develope
 
 set up everything from scratch to evaluate new experimental data
 """
@@ -80,7 +82,7 @@ def NewEvaluation():
             path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_objectiv_10x_025_plan_corpus_olympus_cam_basler.json"
         elif pre_select == 5:
             print("Load: 20x (0.40) epiplan Objective at 'Olympus Corpus' with Basler cam")
-            path_json_origin = os.path.dirname(nd.__file__) + "default_json_20x 0_40 epiplan Objective with Basler cam.json"
+            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_20x 0_40 epiplan Objective with Basler cam.json"
             
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)

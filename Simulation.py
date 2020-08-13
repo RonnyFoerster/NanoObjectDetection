@@ -2,7 +2,7 @@
 """
 Created on Mon Mar  4 15:17:36 2019
 
-@author: Ronny Förster und Stefan Weidlich
+@author: Ronny Förster und Stefan Weidlich and Jisoo
 """
 import math
 import numpy as np
