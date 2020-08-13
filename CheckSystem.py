@@ -19,8 +19,7 @@ from packaging import version
 # In[] check python version
 
 def CheckAll(ParameterJsonFile):
-    """
-    Main Function
+    """ main function
     """
     CheckPython()
     CheckTrackpy()
@@ -28,9 +27,9 @@ def CheckAll(ParameterJsonFile):
     # CheckLatex()
     CheckJson(ParameterJsonFile)
     
+    
 def CheckPython():
-    """
-    Checks if the python version is right
+    """ check if the python version is right
     """
 #    python_minimum_versions = '3.6.5'
     python_minimum_versions = '3.6.4'
@@ -45,8 +44,7 @@ def CheckPython():
     
 
 def CheckTrackpy():
-    """
-    Checks if the trackpy version is right
+    """ check if the trackpy version is right
     """
     
     tp_minimum_versions = '0.4'
@@ -63,8 +61,7 @@ def CheckTrackpy():
          
         
 def CheckPanda():
-    """
-    Checks if the panda version is right
+    """ check if the pandas version is right
     """
     
     pd_maximum_versions = '0.23.4'
@@ -81,7 +78,7 @@ def CheckPanda():
     
 
 def CheckLatex():
-#    https://stackoverflow.com/questions/40894859/how-do-i-check-from-within-python-whether-latex-and-tex-live-are-installed-on-a
+    # https://stackoverflow.com/questions/40894859/how-do-i-check-from-within-python-whether-latex-and-tex-live-are-installed-on-a
     if find_executable('latex'):
         print("Latex installed")    
     else:
@@ -89,9 +86,7 @@ def CheckLatex():
         
 
 def CheckJson(ParameterJsonFile):
-    """
-    check if json file exists
-    otherwise create a default one
+    """ check if json file exists, otherwise create a default one
     """
     try:
 
@@ -115,7 +110,6 @@ def CheckJson(ParameterJsonFile):
             # write JsonPath into Json itself
             settings = nd.handle_data.ReadJson(ParameterJsonFile, CreateNew = True)
             
-            
             print("Done")
         else:
             print("Abort")
@@ -126,5 +120,6 @@ def CheckNumbda():
     
     from trackpy.diag import performance_report
     
-    print("Performance report: is numba working?")
+    print("Performance report: Is numba installed and working?")
     performance_report()
+    

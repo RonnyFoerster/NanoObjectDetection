@@ -6,11 +6,13 @@
           "ExposureTime": 0.001,
           "Microns_per_pixel": 0.477,
           "Temperature": 295.0,
-          "Viscocity": 9.5e-16,
+          "Viscosity": 9.5e-16,
           "const_Boltz": 1.38e-23,
           "gain": "unknown",
-          "Viscocity_auto": 0,
-          "solvent": "water"
+          "Viscosity_auto": 0,
+          "solvent": "water",
+          "Viscocity": 9.5e-16,
+          "Viscocity_auto": 0
      },
      "Fiber": {
           "Shape": "hex",
@@ -34,11 +36,12 @@
           ]
      },
      "File": {
-          "data_file_name": "",
-          "data_folder_name": "",
-          "data_type": "",
+          "data_file_name": "C:\\Users\\nissenmona.IPHT-JENA\\Documents\\GitHub\\NanoObjectDetection\\tutorial\\Randomwalk\\tutorial_60nm_randomwalk.json",
+          "data_folder_name": "C:\\Users\\nissenmona.IPHT-JENA\\Documents\\GitHub\\NanoObjectDetection\\tutorial\\Randomwalk",
+          "data_type": "json",
           "DefaultParameterJsonFile": "default",
-          "json": "C:\\ProgramData\\Anaconda3\\Lib\\site-packages\\NanoObjectDetection\\tutorial\\Randomwalk\\tutorial_60nm_randomwalk.json"
+          "json": "C:\\Users\\nissenmona.IPHT-JENA\\Documents\\GitHub\\NanoObjectDetection\\tutorial\\Randomwalk\\tutorial_60nm_randomwalk.json",
+          "use_num_frame": "all"
      },
      "Simulation": {
           "SimulateData": 1,
@@ -47,7 +50,7 @@
           "NumberOfFrames": 2000,
           "mass": 1000,
           "EstimationPrecision": 0.1,
-          "Max_traj_length": 200,
+          "Max_traj_length": 2000,
           "RatioDroppedFrames": 0.0
      },
      "ROI": {
@@ -76,12 +79,17 @@
           "RollingPercentilFilter_percentile_filter": 80,
           "ClipNegativeValue": 0,
           "Do_or_apply_data_rotation": 0,
-          "rot_angle": 0.3
+          "rot_angle": 0.3,
+          "EnhanceSNR": 1,
+          "KernelSize": "auto"
      },
      "Help": {
           "ROI": 0,
           "Bead brightness": 0,
-          "Bead size": 0
+          "Bead size": 0,
+          "Separation": "auto",
+          "GuessLowestDiameter_nm": 50,
+          "Drift": "auto"
      },
      "Find": {
           "Analyze in log": 0,
@@ -94,7 +102,9 @@
                7.0
           ],
           "Minimal bead brightness": 200.0,
-          "Separation data": 1.5
+          "Separation data": 1.5,
+          "SaturatedPixelValue": 65000,
+          "PercentileThreshold": 20
      },
      "Link": {
           "Dark time": 5,
@@ -109,7 +119,7 @@
           "Min distance to stationary object": 20
      },
      "Split": {
-          "Max_traj_length": 500.0,
+          "Max_traj_length": 2000.0,
           "Max_traj_length_keep_tail": 0,
           "Max rel median intensity step": 0.5,
           "ParticleWithLongestTrajBeforeSplit": 0
@@ -146,14 +156,14 @@
           "Histogramm_Bins_Auto": 1,
           "Histogramm_Bins": 1,
           "Histogramm_min_max_auto": 1,
-          "Histogramm_min": 50.0,
-          "Histogramm_max": 80.0,
+          "Histogramm_min": 60.0,
+          "Histogramm_max": 70.0,
           "DiamOverTraj_Show": 0,
           "DiamOverTraj_Save": 0,
           "fontsize": 14,
-          "SaveFolder": "C:\\Users\\foersterronny\\Desktop\\TryNanoObjectDetection\\RandomWalk",
+          "SaveFolder": "C:\\Users\\nissenmona.IPHT-JENA\\Desktop",
           "save_json": 0,
-          "SaveProperties": "C:\\Users\\foersterronny\\Desktop\\TryNanoObjectDetection\\RandomWalk\\190308\\13_41_46_Diameter Histogramm.json",
+          "SaveProperties": "C:\\Users\\nissenmona.IPHT-JENA\\Desktop",
           "dpi": 300,
           "save_data2csv": 0,
           "Histogramm_Fit_1_Particle": 1,
@@ -167,11 +177,25 @@
           "Correlation_Save": 0,
           "Pearson_Show": 0,
           "Pearson_Save": 0,
-          "Title": "Choose a title in the json file"
+          "Title": "Choose a title in the json file",
+          "DiameterPDF_min_max_auto": 1
      },
      "Old": {
           "Min displacement": 5,
           "Rolling window size": 5,
           "data_file_extension": "tif"
+     },
+     "Time": {
+          "DoRolling": 0,
+          "Frames": 100,
+          "skip_image_fac": 10
+     },
+     "Animation": {
+          "x_min": 800,
+          "x_max": 1200,
+          "y_min": 30,
+          "y_max": 120,
+          "gamma": 0.5,
+          "frames_tot": 5
      }
 }

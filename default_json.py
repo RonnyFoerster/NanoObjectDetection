@@ -43,12 +43,7 @@ Experimental parameters
 | key: Viscosity
 | description: Viscosity of the fluid
 | example: 9.5e-16
-| unit: Ns/(um^2) = 1E-12 * Ns(m^2) = 1E-15 * mPa * s
-
-| key: const_Boltz
-| description: Boltzmann constant for the diffusion
-| example: 1.38e-23
-| unit: m^2 * kg / (s^2 * K) = J / K
+| unit: Ns/(um^2) = 1E12 * Ns/(m^2) = 1E15 * mPa * s
 
 | key: solvent
 | description: the kind of liquid that surrounds the nanoobjects under investigation

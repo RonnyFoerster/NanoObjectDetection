@@ -51,30 +51,16 @@ def GaussianKernel(sigma, fac = 6, x_size = None,y_size = None):
     return g
 
 
-def getAverage(img, u, v, n):
-    #https://martin-thoma.com/zero-mean-normalized-cross-correlation/
-    """img as a square matrix of numbers"""
-    s = 0
-    for i in range(-n, n+1):
-        for j in range(-n, n+1):
-            s += img[u+i][v+j]
-    return float(s)/(2*n+1)**2
 
-
-def getStandardDeviation(img, u, v, n):
-    #https://martin-thoma.com/zero-mean-normalized-cross-correlation/
-    s = 0
-    avg = getAverage(img, u, v, n)
-    for i in range(-n, n+1):
-        for j in range(-n, n+1):
-            s += (img[u+i][v+j] - avg)**2
-    return (s**0.5)/(2*n+1)
-
-
-
-# def zncc(img1, img2, u1, v1, n):
 def zncc(img1, img2):
-    #https://martin-thoma.com/zero-mean-normalized-cross-correlation/
+    """ calculate Zero Mean Normalized Cross-Correlation 
+    as presented in 
+    https://martin-thoma.com/zero-mean-normalized-cross-correlation/, 27.07.2020
+    
+    img1, img2:     grayscale images (or any matrices) of the same size
+    """
+    # Zero Mean Normalized Cross-Correlation
+    # https://martin-thoma.com/zero-mean-normalized-cross-correlation/, 27.07.2020
     img1_mean = np.mean(img1)
     img1_std  = np.sqrt(np.mean((img1 - img1_mean)**2))
     
@@ -82,10 +68,10 @@ def zncc(img1, img2):
     img2_std  = np.sqrt(np.mean((img2 - img2_mean)**2))
     
     zncc = np.mean((img1 - img1_mean) * (img2 - img2_mean)) / (img1_std * img2_std)
-    
 #    zncc = np.mean((img1 - img1_mean) * (img2 - avg2))/(img1_std * stdDeviation2)
-
+    
     return zncc
+
 
 
 def EstimageSigmaPSF(settings):
@@ -311,7 +297,10 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     stop_optimizing = False
     
     # maximum distance between position of zncc and trackpy
-    max_distance = diameter / 2
+    if type(diameter)==int:
+        max_distance = diameter / 2 
+    else:
+        max_distance = diameter[0] / 2 # assume that diameters for x and y direction are equal
     
     # optimal value of wrong to right (the value to minimize) and the corresponding minmass
     wrong_to_right_optimum = np.inf
@@ -469,6 +458,7 @@ def PlotImageProcessing(img, img_zncc, pos_particles):
     plt.gca().set_xlim([0,img_zncc.shape[1]])
 
 
+
 def SaltAndPepperKernel(sigma, fac = 6, x_size = None,y_size = None):
 #https://www.w3resource.com/python-exercises/numpy/python-numpy-exercise-79.php
     import numpy as np
@@ -498,6 +488,7 @@ def SaltAndPepperKernel(sigma, fac = 6, x_size = None,y_size = None):
     return g
 
 
+
 def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None):
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -508,7 +499,6 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     if GuessLowestDiameter_nm == None:
         GuessLowestDiameter_nm = int(input("What is the lower limit of diameter (in nm) you expect?\n"))
     
-
     
     settings["Help"]["GuessLowestDiameter_nm"] = GuessLowestDiameter_nm
     GuessLowestDiameter_m  = GuessLowestDiameter_nm / 1e9
@@ -545,7 +535,6 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     Min_Separation = Min_Separation + 1
     
 
-
     print("\n The distance a particle can maximal move (and identified as the same one) >Max displacement< is set to: ", Max_displacement)
     settings["Link"]["Max displacement"] = Max_displacement 
 
@@ -559,7 +548,10 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     return Min_Separation, Max_displacement
 
     
+
 def DiameterToDiffusion(temp_water,visc_water,diameter):
+    """ calculate diffusion coefficient of a sphere with given diameter
+    """
     
     const_Boltz = scipy.constants.Boltzmann
     pi = scipy.constants.pi

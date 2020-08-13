@@ -2,15 +2,10 @@
 """
 Created on Fri Sep 13 15:20:48 2019
 
-<<<<<<< HEAD
-
-@author: foersterronny 
-:D:D:D
-=======
 @author: foersterronny
->>>>>>> parent of 71c6561... Update Start.py
+@small author : Jisoo
 
-Setup everything from scratch to evaluate new experimental data
+set up everything from scratch to evaluate new experimental data
 """
 
 import NanoObjectDetection as nd
@@ -23,10 +18,10 @@ from tkinter import filedialog
 
 # In[]
 def NewEvaluation():
-    #where is the data
+    # where is the data?
     good_answer = False
     while good_answer == False:
-        datatype = input("Is your data stored in : 1 - a single file (tif-stack) or 2 - multiple files (tif-series) (1 or 2)? ")
+        datatype = input("Is your data stored in : \n 1 - a single file (tif-stack) or \n 2 - multiple files (tif-series) ? \n")
         if datatype in ["1","2"]:
             # select the data
             data_file_name = filedialog.askopenfilename(title = "Please select the file", filetypes = (("*tif-files", "*.tif"),("*tiff-files", "*.tiff")))
@@ -44,17 +39,17 @@ def NewEvaluation():
     # get data folder
     data_folder_name = os.path.dirname(data_file_name)
 
-    #where should the evaluation go
+    # where shall the evaluation go?
     dir_results = filedialog.askdirectory(title = "Where should the evaluation scripts and results be saved?")
     
-    #copy default "auswertung.py" into that folder
+    # copy default "auswertung.py" into that folder
     path_aus_origin = os.path.dirname(nd.__file__) + "\\default_auswertung.py"
     path_aus_new = dir_results + "/auswertung.py"
     
     shutil.copy2(path_aus_origin, path_aus_new)
     
     
-    #copy default json into that folder
+    # copy default json into that folder
     path_json_origin = os.path.dirname(nd.__file__) + "\\default_json.json"
     mypath = dir_results + "/parameter.json"
     
@@ -62,7 +57,7 @@ def NewEvaluation():
 
 
 
-    #update default json with the knowledge you have
+    # update default json with the knowledge you have
     with open(mypath) as json_file:
         settings = json.load(json_file)
     
@@ -86,7 +81,7 @@ def NewEvaluation():
             path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_objectiv_10x_025_plan_corpus_olympus_cam_basler.json"
         elif pre_select == 5:
             print("Load: 20x (0.40) epiplan Objective at 'Olympus Corpus' with Basler cam")
-            path_json_origin = os.path.dirname(nd.__file__) + "default_json_20x 0_40 epiplan Objective with Basler cam.json"
+            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_20x 0_40 epiplan Objective with Basler cam.json"
             
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)

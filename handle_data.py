@@ -7,7 +7,7 @@ Created on Tue Feb  5 12:23:39 2019
 This module take care about reading, writing, changing and simple analysis of the rawdata
 """
 
-# In[0]: Importing neccessary libraries
+# Importing neccessary libraries
 
 import numpy as np # Library for array-manipulation
 import matplotlib.pyplot as plt # Libraries for plotting
@@ -21,7 +21,6 @@ from skimage import io
 import NanoObjectDetection as nd
 
 
-# In[2]:
 def ReadJson(mypath, CreateNew = False):
     """ read the json parameter file into a dictionary
     
@@ -303,7 +302,7 @@ def SpecificValueOrSettings(try_value,settings, key, entry):
 
 
 
-def ReadData2Numpy(ParameterJsonFile):
+def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
     """ read the images in
     
     distinguishes between:
@@ -327,7 +326,7 @@ def ReadData2Numpy(ParameterJsonFile):
         data_type        = nd.handle_data.GetVarOfSettings(settings,"File","data_type")
         data_folder_name = nd.handle_data.GetVarOfSettings(settings,"File","data_folder_name")
         data_file_name   = nd.handle_data.GetVarOfSettings(settings,"File","data_file_name")
-        use_num_frame   = nd.handle_data.GetVarOfSettings(settings,"File","use_num_frame")
+        use_num_frame    = nd.handle_data.GetVarOfSettings(settings,"File","use_num_frame")
     
         print('start reading in raw images. (That may take a while...)')
         if data_type == 'tif_series':
@@ -355,12 +354,96 @@ def ReadData2Numpy(ParameterJsonFile):
         
         print('finishied reading in raw images =)')
         
+    if PerformSanityCheck == True:
+        print("Perform a sanity check for the raw data...")
+        # little sanity check
+        # check if camera has saved frames doubled
+        CheckForRepeatedFrames(rawframes_np)
+        
+        # check if camera is saturated
+        CheckForSaturation(rawframes_np)
+
     return rawframes_np
 
 
+def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
+    """ check if images appear several times
+    
+    Check the pixel-wise difference and check if the maximum occuring difference is 0. 
+    Than the images are identical. Do not look only at neighbouring frames, but also 
+    in a wider distance (that happend already). 
+    
+    diff_frames:    distance between two analyzed frames
+    """
+    
+    for ii in diff_frame:      
+        #check if images are saved doubled
+        mydiff = rawframes_np[0:-ii,:,:] - rawframes_np[ii:,:,:]
+        
+        #pixel value that differs most
+        max_diff_value = np.max(np.abs(mydiff), axis = (1,2))
+        
+        # number of identical frames
+        num_identical_frames = len(max_diff_value[max_diff_value == 0])
+        
+        if num_identical_frames > 0:
+            raise ValueError("%d consecutive images are identical (frame difference is: %d). Probably the camera did something stupid!" %(num_identical_frames,ii))
+        
+        
+
+def CheckForSaturation(rawframes_np):
+    """ check if saturation is present in the raw data
+    
+    Saturation is visible in the intensity histogramm as a peak in the highest intensity bin.
+    """
+    min_value = np.min(rawframes_np)
+    max_value = np.max(rawframes_np)
+    
+    # find coordinates of maximum values
+    pos = np.where(rawframes_np == max_value)
+    
+    # frames where a pixel reaches the maximum
+    frames = pos[0]
+    
+    # have every frames only once
+    frames = np.unique(frames)
+    
+    # select first 100 frames, otherwise the following calcuation takes to long
+    if len(frames) > 10:
+        use_frames = frames[0:100]
+    else:
+        use_frames = frames
+    
+    # 8Bit image (works for 10 and 12 bits too)
+    num_bins = 2**8
+    
+    plt.figure()
+    plt.hist(np.ndarray.flatten(rawframes_np[use_frames,:,:]), bins = num_bins, log = True)
+    plt.title("Intensity histogramm of images with bright particles")
+    plt.xlabel("Intensity")
+    plt.ylabel("Counts")
+    
+    plt.show(block = False)
+    plt.pause(1)
+    
+    ValidInput = False
+    while ValidInput == False:
+        IsSaturated = input('An intensity histogramm should be plotted. '
+                            'The highest intensity bin should not be a peak. '
+                            'If you see such a peak, you probably have saturation. '
+                            'Do you have saturation [y/n]?')
+        
+        if IsSaturated in ['y','n']:
+            ValidInput = True
+            if IsSaturated  == "y":
+                raise ValueError("Saturation detected. Check your rawimages to find out if the are saturated")
+        else:
+            print("enter y or n!")
+    
+    
 
 def ReadTiffStack2Numpy(data_file_name):
-    "Reads a tiff stack in"
+    """ read a tiff stack in """
 
     rawframes_np = io.imread(data_file_name)
         
@@ -395,7 +478,10 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame):
     
     rawframes_np = np.asarray(rawframes_np) # shape = (60000,28,28)
     
-    print('Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
+    #Two hints for the use of tiff series
+    print('\n Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
+    
+    print('\n Tiff series need much longer to be read in than a 3D tiff stack, which can be generated out of the tif-series by ImageJ (FIJI) or similar programs.')
     
     
     return rawframes_np
@@ -407,7 +493,6 @@ def ReadFits2Numpy(data_file_name):
     
     open_fits = pyfits.open(data_file_name)
     rawframes_np = open_fits[0].data
-    
     
     return rawframes_np
 

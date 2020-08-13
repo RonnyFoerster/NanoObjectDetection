@@ -2,14 +2,14 @@
 """
 Created on Mon Feb 18 11:09:16 2019
 
-@author: Ronny Förster und Stefan Weidlich
+@author: Ronny Förster and Stefan Weidlich
 """
 
 # In[]
 import NanoObjectDetection as nd
 import numpy as np
 import matplotlib.pyplot as plt
-from pdb import set_trace as bp #debugger
+#from pdb import set_trace as bp #debugger
 from scipy import ndimage
 from joblib import Parallel, delayed
 import multiprocessing
@@ -112,6 +112,7 @@ def SubtractCameraOffset(rawframes_np, settings):
     return rawframes_np
 
 
+
 def RemoveLaserfluctuation(rawframes_np, settings):
     print('Laser fluctuations: start removing')
     
@@ -135,6 +136,7 @@ def RemoveLaserfluctuation(rawframes_np, settings):
     print('Laser fluctuations: removed')
         
     return rawframes_np
+
 
 
 def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False, ShowColorBar = True, ExternalSlider = False):
@@ -213,6 +215,7 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     return rawframes_np_no_bg, static_background
     
 
+
 def RollingPercentilFilter(rawframes_np, settings):
     print('Rolling percentil filter: start applying')
     
@@ -255,6 +258,7 @@ def EstimageSigmaPSF(settings):
 #        rayleigh_px = rayleigh_um / settings["Exp"]["Microns_per_pixel"]
     
     return sigma_px
+
 
 
 def ConvolveWithPSF(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False):  

@@ -5,8 +5,7 @@ Created on Tue Feb  5 12:23:39 2019
 @author: Ronny Förster, Stefan Weidlich, Mona Nissen
 """
 
-# In[0]:
-# coding: utf-8
+
 
 """
 collection of plotting functions for visualization
@@ -42,8 +41,6 @@ import NanoObjectDetection as nd
 #from matplotlib.animation import FuncAnimation
 
 
-
-# In[]
 def SetXYLim(x_min_max = None, y_min_max = None):
     """ set axes limits to fixed values """
     
@@ -176,7 +173,7 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
         
         show_diam_traj, save_diam_traj = settings["Plot"]["DiamOverTraj_Show"], settings["Plot"]["DiamOverTraj_Save"]
         if show_diam_traj or save_diam_traj:
-            DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_diam_traj, save_diam_traj)
+            DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_diam_traj, save_diam_traj)
 
 
         show_hist_time, save_hist_time = settings["Plot"]["Histogramm_time_Show"], settings["Plot"]["Histogramm_time_Save"]
@@ -293,7 +290,7 @@ def ShowAllCorrel(sizes_df_lin,min_correl = 0.4):
 
 
 
-def DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
+def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
     """ plot (and save) calculated particle diameters vs. the number of frames
     where the individual particle is visible (in standardized format) """
         
@@ -336,12 +333,11 @@ def DiamerterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, s
 
 
 
-
-
 def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None, histogramm_min = None, histogramm_max = None, 
                            Histogramm_min_max_auto = None, binning = None):
-    import NanoObjectDetection as nd
-
+    """ plot (and save) temporal evolution of the diameter histogram """
+    
+    #import NanoObjectDetection as nd
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
         
     Histogramm_Show = settings["Plot"]['Histogramm_time_Show']
@@ -380,30 +376,24 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
 
 def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm_max = 10000, 
                              title = '', xlabel = '', ylabel = ''):
-#    from NanoObjectDetection.PlotProperties import axis_font, title_font
-    
-#    import seaborn as sns
-#    import numpy as np
-
+    """ plot histogram evolution over time
+    """
     sns.set(style="darkgrid")
     
-#    tips = sns.load_dataset("tips")
-    
-    time_points = int(sizes_df_lin["traj length"].sum())
-    plot_data = np.zeros([time_points,2])
+    time_points = int(sizes_df_lin["traj length"].sum()) # ... for all trajectories
+    plot_data = np.zeros([time_points,2]) # create result matrix
    
-    num_eval_particles = sizes_df_lin.shape[0]
+    first_element = True # ?
     
-    first_element = True
+    # get rid of these strange array-type index values
+    sizes_df_lin = sizes_df_lin.set_index("true_particle")
     
-    for ii in range(0,num_eval_particles):
-        ii_save = sizes_df_lin.iloc[ii]
-        
-        ii_first_frame = int(ii_save["first frame"])
-        ii_traj_length = int(ii_save["traj length"])
+    # iterate over results' DataFrame (particle_data is pd.Series type)
+    for particle_index, particle_data in sizes_df_lin.iterrows():
+        ii_first_frame = int(particle_data["first frame"])
+        ii_traj_length = int(particle_data["traj length"])
         ii_last_frame = ii_first_frame + ii_traj_length - 1
-        ii_diameter = ii_save["diameter"]
-        
+        ii_diameter = particle_data["diameter"]
         
         add_data_plot = np.zeros([ii_traj_length,2])
         
@@ -416,28 +406,27 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogra
         else:
             plot_data = np.concatenate((plot_data,add_data_plot), axis = 0)
 
-
     from matplotlib.ticker import NullFormatter
     
-    # the random data
+    # the random data ??
     diam = plot_data[:,1] #x
     time = plot_data[:,0] #y
     
     diam_max = np.max(diam)
     diam_min = np.min(diam)
     
-    if 1==0:
-        lim_diam_start = 0
-        lim_diam_end = np.round(1.10*diam_max,-1)
-    else:
-        lim_diam_start = diam_min
-        lim_diam_end = diam_max
+    lim_diam_start = diam_min
+    lim_diam_end = diam_max
     
     lim_time_start = np.min(time)
     lim_time_end = np.max(time)+1
     
-    diam_bins_nm = 10
-    diam_bins = int((lim_diam_end - lim_diam_start)/diam_bins_nm)
+    if binning == None:
+        diam_bins_nm = 5
+        diam_bins = int((lim_diam_end - lim_diam_start)/diam_bins_nm)
+    else:
+        diam_bins = binning
+    
     time_bins = int(lim_time_end - lim_time_start + 0)
     
     nullfmt = NullFormatter()         # no labels
@@ -472,30 +461,24 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogra
     axScatter.set_ylim((lim_time_start, lim_time_end))
     
     axHistx.hist(diam, bins=diam_bins)
-    axHistx.set_ylabel("Occurrence [a.u.]")
+    axHistx.set_ylabel("Occurrence [counts]")
     
     time_hist = axHisty.hist(time, bins=time_bins, orientation='horizontal')
-    axHisty.set_xlabel("Analyzed Particles")
+    axHisty.set_xlabel("Analyzed particles")
     
     axHistx.set_xlim(axScatter.get_xlim())
     axHisty.set_ylim(axScatter.get_ylim())
     
     plt.show()      
 
-
-        
     
 #    my_x = sizes_df_lin["diameter"].values
 #    my_y = sizes_df_lin["traj length"].values
 #    g = sns.jointplot(x = plot_data[:,1], y = plot_data[:,0], kind='kde')
     
     
-    
 #    g = sns.jointplot(x = my_x, y = my_y, kind="reg",
 #                      xlim=(0, 60), ylim=(0, 12), color="m", height=7)
-    
-    
-    
     
     
 #    plt.figure()
@@ -535,8 +518,6 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogra
 ##    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 ##    ax.text(0.05, 0.95, title, transform=ax.transAxes, fontsize=14,
 ##            verticalalignment='top', bbox=props) 
-
-
 
 
 
@@ -783,12 +764,15 @@ def PlotDiameterHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm
 
 
 def update_progress(job_title, progress):
+    """ display a progress bar for an ongoing task
+    """
     length = 50 # modify this to change the length
     block = int(round(length*progress))
     msg = "\r{0}: [{1}] {2}%".format(job_title, "#"*block + "-"*(length-block), round(progress*100))
     if progress >= 1: msg += " DONE\r\n"
     sys.stdout.write(msg)
     sys.stdout.flush()
+
 
 
 def GetPlotParameters(settings):
@@ -2279,17 +2263,13 @@ def PlotGlobalDrift(d):
 def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, collect_data = None, alpha_values = 0.5, alpha_fit = 0.3):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
 
-#    bp()
+
     plt.plot(lagt_direct[:-1], mean_displ_direct,'k.', alpha = alpha_values) # plotting msd-lag-time-tracks for all particles
     plt.plot(lagt_direct, mean_displ_fit_direct_lin, 'r-', alpha = alpha_fit) # plotting the lin fits
     #ax.annotate(particleid, xy=(lagt_direct.max(), mean_displ_fit_direct_lin.max()))
     plt.title("MSD fit", **title_font)
     plt.ylabel("MSD $[\mu m^2]$", **axis_font)
     plt.xlabel("Lagtime [s]", **axis_font)
-
-    plt.xlim(0,np.max(lagt_direct) * 1.1)
-    plt.ylim(0,plt.ylim()[1])
-
 
     
     
@@ -2469,12 +2449,8 @@ def AnimateStationaryParticles(rawframes_np):
     
     
     
-    
-def HistogrammDiameterOverTime():
-    import seaborn as sns
+def HistogrammDiameterOverTime(sizes_df_lin,ParameterJsonFile):
     import matplotlib.cm as cm
-    import matplotlib.pyplot as plt
-    import numpy as np
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
  
@@ -2516,10 +2492,10 @@ def HistogrammDiameterOverTime():
     my_time = my_frame / effective_fps
     
 
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
-    import matplotlib
-    matplotlib.rcParams['text.usetex'] = True
-    matplotlib.rcParams['text.latex.unicode'] = True
+#    from NanoObjectDetection.PlotProperties import axis_font, title_font
+#    import matplotlib
+#    matplotlib.rcParams['text.usetex'] = True
+#    matplotlib.rcParams['text.latex.unicode'] = True
     f = plt.figure(figsize=(10,10))
      
 

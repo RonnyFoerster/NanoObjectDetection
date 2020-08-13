@@ -17,7 +17,7 @@ import pandas as pd
 #import sys
 #sys.path.insert(0,r'C:\Users\foersterronny\AppData\Local\Continuum\anaconda3\lib\site-packages')
 
-# Own Library
+# own Library
 import NanoObjectDetection as nd
 #import os
 
@@ -32,7 +32,7 @@ ParameterJsonFile = r'Insert Json Path here, like: Z:\Datenauswertung\Ronny_Foer
 nd.CheckSystem.CheckAll(ParameterJsonFile)
 
 
-#%% read in the raw data into numpy
+#%% read in the raw data to numpy
 rawframes_np = nd.handle_data.ReadData2Numpy(ParameterJsonFile)
 
 
@@ -68,41 +68,35 @@ obj_all = nd.get_trajectorie.FindSpots(rawframes_pre, ParameterJsonFile)
 # find trajectories of very slow diffusing (maybe stationary) objects
 t1_orig_slow_diff = nd.get_trajectorie.link_df(obj_all, ParameterJsonFile, SearchFixedParticles = True)
 
-# delete trajectories which are not long enough. stationary objects have long trajcetories and survive the test   
+# delete trajectories which are not long enough. Stationary objects have long trajcetories and survive the test   
 t2_stationary = nd.get_trajectorie.filter_stubs(t1_orig_slow_diff, ParameterJsonFile, FixedParticles = True, BeforeDriftCorrection = True)
 
 
-
-#%% cut trajectories when a moving particles comes to close to a stationary object
+#%% cut trajectories if a moving particles comes too close to a stationary object
 obj_moving = nd.get_trajectorie.RemoveSpotsInNoGoAreas(obj_all, t2_stationary, ParameterJsonFile)
 
 
 #%% remove overexposed objects
-obj_moving = nd.get_trajectorie.RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_pre)
+obj_moving = nd.get_trajectorie.RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_ROI)
   
-
 
 #%% form trajectories of valid particle positions
 t1_orig = nd.get_trajectorie.link_df(obj_moving, ParameterJsonFile, SearchFixedParticles = False) 
 
 
-
-#%% remove to short trajectories
+#%% remove too short trajectories
 t2_long = nd.get_trajectorie.filter_stubs(t1_orig, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = True)
    
 
-
-#%% identify and close gaps in the trajectory
+#%% identify and close gaps in the trajectories
 t3_gapless = nd.get_trajectorie.close_gaps(t2_long)
-
 
 
 #%% calculate intensity fluctuations as a sign of wrong assignment
 t3_gapless = nd.get_trajectorie.calc_intensity_fluctuations(t3_gapless, ParameterJsonFile)
 
 
-
-#%% split trajectories if necessary (e.g. to large intensity jumps)
+#%% split trajectories if necessary (e.g. too large intensity jumps)
 t4_cutted, t4_cutted_no_gaps = nd.get_trajectorie.split_traj(t2_long, t3_gapless, ParameterJsonFile)
 
 
@@ -110,17 +104,17 @@ t4_cutted, t4_cutted_no_gaps = nd.get_trajectorie.split_traj(t2_long, t3_gapless
 t5_no_drift = nd.Drift.DriftCorrection(t4_cutted, ParameterJsonFile, PlotGlobalDrift = False)
 
 
-#%% only long trajectories are used in the msd plort in order to get a good fit
+#%% only long trajectories are used in the MSD plot in order to get a good fit
 t6_final = nd.get_trajectorie.filter_stubs(t5_no_drift, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False)
 
 
-#%% calculate the msd and process to diffusion and diameter
+#%% calculate the MSD and process to diffusion and diameter
 sizes_df_lin, sizes_df_lin_rolling , any_successful_check = nd.CalcDiameter.Main(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
 
 #sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
 
-#%% visualiz results
+
+#%% visualize results
 nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check)
 
-
-nd.visualize.AnimateDiameterAndRawData_Big2(rawframes_ROI, static_background, rawframes_pre, sizes_df_lin, t4_cutted_no_gaps, ParameterJsonFile)
+#nd.visualize.AnimateDiameterAndRawData_Big2(rawframes_ROI, static_background, rawframes_pre, sizes_df_lin, t4_cutted_no_gaps, ParameterJsonFile)

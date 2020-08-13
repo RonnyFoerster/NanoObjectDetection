@@ -17,9 +17,9 @@ import matplotlib.pyplot as plt # Libraries for plotting
 from pdb import set_trace as bp #debugger
 
 
+
 def GetIntegerInput(MessageOnScreen):
-    """
-    Ask for an INTERGER input on the console.
+    """ ask for an INTEGER input on the console
     """
     bad_input = True
     while bad_input == True:
@@ -32,9 +32,9 @@ def GetIntegerInput(MessageOnScreen):
     return myinput
 
 
+
 def GetNumericalInput(MessageOnScreen):
-    """
-    Ask for a FLOAT input on the console
+    """ ask for a FLOAT input on the console
     """
     bad_input = True
     while bad_input == True:
@@ -47,9 +47,9 @@ def GetNumericalInput(MessageOnScreen):
     return myinput
 
 
+
 def AskDoItAgain():
-    """
-    Ask if a step shall be repeated
+    """ ask if a step shall be repeated
     """
     valid_answer = False
     while valid_answer == False:
@@ -93,8 +93,7 @@ def AskMethodToImprove():
 
 
 def AskIfUserSatisfied(QuestionForUser):
-    """
-    Ask if user is satisfied
+    """ ask if user is satisfied
     """
     valid_answer = False
     while valid_answer == False:
@@ -119,7 +118,7 @@ def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
     if settings["Help"]["Separation"] == "auto":
         nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        
 
-    # if beadsize is not auto - the minmass needs to be guess first, in order to identifiy particles whose diameter can than be optimized   
+    # if beadsize is not auto - the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
     if settings["Help"]["Bead size"] != "auto":
         nd.AdjustSettings.FindSpot(rawframes_pre, ParameterJsonFile)
         
@@ -133,7 +132,6 @@ def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
     # maybe do this right before the drift correction
     if settings["Help"]["Drift"] == "auto":
         nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_trackpy)
-    
     
 
 
@@ -153,7 +151,7 @@ def FindSpot(rawframes_pre, ParameterJsonFile):
         obj_all = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile)
         num_particles_trackpy = len(obj_all )
         
-        print("Bead size not adjusted. Use 'manuel' or 'auto' if you want to do it.")
+        print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
 
     return num_particles_trackpy
     
@@ -285,6 +283,7 @@ def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
             tp.subpx_bias(obj_all)
 
             plt.draw()
+            plt.title("y, spot sizes = {}".format(try_diameter))
             plt.show()
             
             if AutoIteration == True:
@@ -317,18 +316,17 @@ def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
     
 
 def FindROI(rawframes_np):
-    """
-    Show the max of all images to show where the ROI is.
+    """ show the maximum value of all images to reveal where the ROI is
     """
     my_max = nd.handle_data.max_rawframes(rawframes_np)
     
-    title = "Maximum projection of raw data",
-    xlabel = "x [Px]",
+    title = "Maximum projection of raw data"
+    xlabel = "x [Px]"
     ylabel = "y [Px]"
-    nd.visualize.Plot2DImage(nd.handle_data.max_rawframes(rawframes_np),
-                             title = title, xlabel = xlabel, ylabel = ylabel)
+    nd.visualize.Plot2DImage(my_max, title = title, xlabel = xlabel, ylabel = ylabel)
 
-    print('Chose the ROI of x and y for min and max value accoring your interest. Insert the values in your json file.')
+    print('Choose the ROI of x and y for min and max value accoring your interest. '
+          'Insert the values in your json file.')
 
 
 
