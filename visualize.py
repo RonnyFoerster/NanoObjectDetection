@@ -155,6 +155,13 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
     """ plot and/or save diameter histogram (or other statistics) for analyzed particles """
     
     import NanoObjectDetection as nd
+    
+    # check for NaN values in DataFrame
+    if pd.isna(sizes_df_lin).sum().sum() > 0:
+        # drop rows with missing values (e.g. from invalid diameter calculations)
+        sizes_df_lin = sizes_df_lin.dropna()
+        print('ATTENTION: NaN values were detected in sizes_df_lin. Please check it carefully.\n'
+              'In the following plots, rows with NaN values are ignored.\n\n')
 
     if any_successful_check == False:
         print("NO PARTICLE WAS MEASURED LONG ENOUGH FOR A GOOD STATISTIC !")
@@ -530,7 +537,8 @@ def NumberOfBinsAuto(mydata, average_heigt = 4):
 
 
 
-def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
+def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, 
+                       histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
     import NanoObjectDetection as nd
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -541,6 +549,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
     if settings["Plot"]["Histogramm_Bins_Auto"] == 1:
         settings["Plot"]["Histogramm_Bins"] = NumberOfBinsAuto(sizes_df_lin)
  
+    #binning = np.arange(settings["Plot"]["Histogramm_Bins"])
     binning = settings["Plot"]["Histogramm_Bins"]
     
     
@@ -589,7 +598,6 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
         
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
-
 
 
 
@@ -700,6 +708,8 @@ def GetCI_Interval(probability, value, ratio_in_ci):
         
     return value_min,value_max
 
+
+
 def GetMeanStdMedian(data):
     my_mean   = np.mean(data)
     my_std    = np.std(data)
@@ -707,6 +717,7 @@ def GetMeanStdMedian(data):
 
     return my_mean, my_std, my_median    
     
+
 
 def PlotDiameterHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm_max = 10000, title = '', xlabel = '', ylabel = ''):
     from NanoObjectDetection.PlotProperties import axis_font, title_font

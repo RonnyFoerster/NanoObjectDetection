@@ -7,43 +7,23 @@ Created on Tue Feb  5 12:23:39 2019
 """
 
 # coding: utf-8
-"""
-Analyzis of Gold-Particle data for ARHCF paper
-
-Created on 20181001 by Stefan Weidlich (SW)
-Based on previous skript of Ronny Förster (RF) and SW
-
-Target here: Implement only routines as they'll be used in paper
-
-Modifications:
-181020, SW: Cleaning up of code
-Amongst others: Python v3.5 implementation deleted. Now working with 3.6 and above only
-181025, SW: Adjustment of tracking-parameters and structuring of header
---> Realized that 32-bit parameters for tracking lead to unsufficient pixel-precision for 64 bit-version
-181026, SW: Taking out of log-tracking. --> Not needed
-
-******************************************************************************
-Importing neccessary libraries
-"""
-#from __future__ import division, unicode_literals, print_function # For compatibility with Python 2 and 3
-import numpy as np # Library for array-manipulation
-import pandas as pd # Library for DataFrame Handling
-import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
+#from __future__ import division, unicode_literals, print_function # for compatibility with Python 2 and 3
+import numpy as np
+import pandas as pd 
+import trackpy as tp 
 import warnings
 import sys
 
 import NanoObjectDetection as nd
 import matplotlib.pyplot as plt # Libraries for plotting
-import matplotlib as mpl # I import this entirely here, as it's needed to change colormaps
 from tqdm import tqdm# progress bar
 
 
 
-
-
-def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None, max_iterations = 10, SaveFig = False, gamma = 0.8, ExternalSlider = False):
-    """
-    Defines the paramter for the trackpy routine tp.batch, which spots particles, out of the json file
+def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, 
+              minmass=None, maxsize=None, separation=None, max_iterations = 10, 
+              SaveFig = False, gamma = 0.8, ExternalSlider = False):
+    """ wrapper for trackpy routine tp.batch, which spots particles
     
     important parameters:
     separation = settings["Find"]["Separation data"] ... minimum distance of spotes objects
@@ -54,7 +34,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
   
     DoSimulation = settings["Simulation"]["SimulateData"]
     if DoSimulation == 1:
-        print("No data. A simulation is done instead")        
+        print("No data present. A simulation is done instead.")        
         output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile)
 
     else:
@@ -80,7 +60,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
         output_empty = True
         
         while output_empty == True:
-            print("If you have problems with IOPUB data rate exceeded take a look here: https://www.youtube.com/watch?v=B_YlLf6fa5A")
+            print("If you have problems with IOPUB data rate exceeded, take a look here: https://www.youtube.com/watch?v=B_YlLf6fa5A")
 
             print("Minmass = ", minmass)
             print("Separation = ", separation)
@@ -89,7 +69,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
             print("PreProcessing of Trackpy = ", DoPreProcessing)
 
                 
-            # Make image uint16 otherwise trackpy makes min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
+            # convert image to uint16 otherwise trackpy performs a min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
             frames_np[frames_np < 0] = 0
             frames_np = np.uint16(frames_np)
               
@@ -130,21 +110,17 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, min
                 if frames_np.ndim == 3:
                     plt.imshow(frames_np[0,:,:])
                 else:
-                    plt.imshow(frames_np[:,:])
-                    
+                    plt.imshow(frames_np[:,:])    
             else:
                 fig = plt.figure()
                 plt.figure(figsize = [20,20])
                 plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma), cmap = "gray")
             
-
             if ExternalSlider == False:
                 plt.scatter(output["x"],output["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
             else:
-                
                 plt.scatter(output["x"],output["y"], s = 500, facecolors='none', edgecolors='r', linewidths=2)
  
-        
             plt.title("Identified Particles in first frame", **title_font)
             plt.xlabel("long. Position [Px]", **axis_font)
 #            plt.ylabel("trans. Position [Px]", **axis_font)
@@ -196,7 +172,7 @@ def AnalyzeMovingSpots(frames_np, ParameterJsonFile):
 
 
 def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displacement = None, dark_time = None):
-    """ define the parameters for the trackpy routine tp.link, which forms trajectories
+    """ wrapper for the trackpy routine tp.link, which forms trajectories
     out of particle positions, out of the json file
     
     important parameters:
@@ -222,9 +198,11 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
 
 
 
-def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, min_tracking_frames = None):
-    """ define the parameters for the trackpy routine tp.filter_stubs, which filters out too short trajectories,
-    out of the json file
+def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, 
+                 BeforeDriftCorrection = False, min_tracking_frames = None,
+                 PlotErrorCheck = True):
+    """ wrapper for tp.filter_stubs, which filters out too short trajectories, 
+    including a check whether a trajectory is close enough to random Brownian motion
     
     important parameters:
     FixedParticles        = defines whether fixed or moving particles are under current investigation
@@ -264,7 +242,7 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
         traj_min_length = traj_min_length.reset_index()
 
 
-    particle_number = traj_all['particle'].unique(); #particlue numbers that are inserted
+    particle_number = traj_all['particle'].unique(); #particle numbers that are inserted
     amount_particles = len(particle_number); #total number of all particles
     
     valid_particle_number = traj_min_length['particle'].unique(); #particlue numbers that fulfill all previous requirements
@@ -289,7 +267,8 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
             raise ValueError("All particles removed!")
 
     if (FixedParticles == False) and (BeforeDriftCorrection == False):
-        #check if the histogramm of the misplacement of one particle is gaussian
+        
+        #check if the histogram of the particle displacement is Gaussian shaped
 
         for i,particleid in enumerate(valid_particle_number):
             print("particleid: ", particleid)
@@ -311,8 +290,6 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, BeforeDrif
                 
                 #drop particles with unbrownian trajectory
                 traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
-
-
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
@@ -370,8 +347,6 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
 
 def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
     """ delete objects where the camera sensor was (over)saturated 
-    
-    Why is this necessary? Because the localization precision suffers if not.
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -408,6 +383,7 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
     obj_moving = sort_obj_moving
     
     return obj_moving
+
 
 
 def close_gaps(t1):
