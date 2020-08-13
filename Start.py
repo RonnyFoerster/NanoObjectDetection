@@ -2,11 +2,8 @@
 """
 Created on Fri Sep 13 15:20:48 2019
 
-<<<<<<< Updated upstream
-@author: foersterronny
-=======
-@author: foersterronny-:D TEST
->>>>>>> Stashed changes
+
+@author: foersterronny-
 
 Setup everything from scratch to evaluate new experimental data
 """
