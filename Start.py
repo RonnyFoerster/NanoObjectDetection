@@ -2,7 +2,8 @@
 """
 Created on Fri Sep 13 15:20:48 2019
 
-@author: foersterronny-:D TEST TEST
+@author: foersterronny
+@small author : Jisoo
 
 set up everything from scratch to evaluate new experimental data
 """
