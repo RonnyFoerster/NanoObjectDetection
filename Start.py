@@ -2,7 +2,7 @@
 """
 Created on Fri Sep 13 15:20:48 2019
 
-@author: foersterronny
+@author: foersterronny-:D
 
 set up everything from scratch to evaluate new experimental data
 """
