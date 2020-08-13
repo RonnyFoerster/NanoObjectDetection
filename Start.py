@@ -2,9 +2,13 @@
 """
 Created on Fri Sep 13 15:20:48 2019
 
+<<<<<<< HEAD
 
 @author: foersterronny 
 :D:D:D
+=======
+@author: foersterronny
+>>>>>>> parent of 71c6561... Update Start.py
 
 Setup everything from scratch to evaluate new experimental data
 """
