@@ -18,6 +18,8 @@ import os
 from PIL import Image
 import fnmatch
 from skimage import io
+import warnings
+
 import NanoObjectDetection as nd
 
 
@@ -436,8 +438,6 @@ def CheckForSaturation(rawframes_np):
         if IsSaturated in ['y','n']:
             ValidInput = True
             if IsSaturated  == "y":
-                raise ValueError("Saturation suspected. Check your rawimages to find out if the are saturated")
-                
                 #Plot the coordinates where saturation happens the first time
                 is_saturated = rawframes_np == max_value
                 
@@ -446,6 +446,8 @@ def CheckForSaturation(rawframes_np):
                 frame_saturated = np.sort(pos_saturated[0])
                 
                 print("First 10 frames where saturation occurs: ", frame_saturated[0:10])
+                
+                warnings.warn("Saturation suspected. Check your rawimages to find out if the are saturated")
                 
         else:
             print("enter y or n!")
