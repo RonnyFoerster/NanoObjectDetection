@@ -107,6 +107,8 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
             
 #            params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
             if ExternalSlider == False:
+                print("Warning, RF trys something here...")
+                fig = plt.figure()
                 if frames_np.ndim == 3:
                     plt.imshow(frames_np[0,:,:])
                 else:
