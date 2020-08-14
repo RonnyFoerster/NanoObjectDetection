@@ -445,9 +445,9 @@ def CheckForSaturation(rawframes_np):
                 
                 frame_saturated = np.sort(pos_saturated[0])
                 
-                print("First 10 frames where saturation occurs: ", frame_saturated[0:10])
+                print("\n\n First 10 frames where saturation occurs: ", frame_saturated[0:10])
                 
-                warnings.warn("Saturation suspected. Check your rawimages to find out if the are saturated")
+                warnings.warn("\n \n Saturation suspected. Check your rawimages to find out if the are saturated \n")
                 
         else:
             print("enter y or n!")
