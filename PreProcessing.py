@@ -39,8 +39,9 @@ def Main(rawframes_np, ParameterJsonFile):
         # check if constant background shall be removed
         if settings["PreProcessing"]["Remove_CameraOffset"] == 1:
             rawframes_np = nd.PreProcessing.SubtractCameraOffset(rawframes_np, settings)
-            plt.figure()
-            plt.imshow(rawframes_np[0,:,0:350])
+            
+            # show rawimage
+            nd.visualize.Plot2DImage(rawframes_np[0,:,0:350], title = "Raw Image", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
         else:
             print('Constant camera background: not removed')
       
