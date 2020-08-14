@@ -436,7 +436,17 @@ def CheckForSaturation(rawframes_np):
         if IsSaturated in ['y','n']:
             ValidInput = True
             if IsSaturated  == "y":
-                raise ValueError("Saturation detected. Check your rawimages to find out if the are saturated")
+                raise ValueError("Saturation suspected. Check your rawimages to find out if the are saturated")
+                
+                #Plot the coordinates where saturation happens the first time
+                is_saturated = rawframes_np == max_value
+                
+                pos_saturated = np.where(is_saturated)
+                
+                frame_saturated = np.sort(pos_saturated[0])
+                
+                print("First 10 frames where saturation occurs: ", frame_saturated[0:10])
+                
         else:
             print("enter y or n!")
     
