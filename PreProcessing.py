@@ -41,15 +41,16 @@ def Main(rawframes_np, ParameterJsonFile):
             rawframes_np = nd.PreProcessing.SubtractCameraOffset(rawframes_np, settings)
             
             # show rawimage
-            nd.visualize.Plot2DImage(rawframes_np[0,:,0:350], title = "Raw Image", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
+            nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
         else:
             print('Constant camera background: not removed')
       
 
         if settings["PreProcessing"]["Remove_StaticBackground"] == 1:            
             rawframes_np, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings)  
-            plt.figure()
-            plt.imshow(rawframes_np[0,:,0:350])
+            
+            nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (background subtracted) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
+                        
         else:
             static_background = "NotDone"
             print('Static background: not removed')
@@ -57,8 +58,8 @@ def Main(rawframes_np, ParameterJsonFile):
 
         if settings["PreProcessing"]["RollingPercentilFilter"] == 1:            
             rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings)    
-            plt.figure()
-            plt.imshow(rawframes_np[0,:,0:350])
+            
+            nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (rolling percentilce subtracted) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
         else:
             print('Rolling percentil filter: not applied')
       
@@ -74,8 +75,8 @@ def Main(rawframes_np, ParameterJsonFile):
  
         if settings["PreProcessing"]["EnhanceSNR"] == 1:            
             rawframes_np = nd.PreProcessing.ConvolveWithPSF(rawframes_np, settings)   
-            plt.figure()
-            plt.imshow(rawframes_np[0,:,0:350])
+            
+            nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
         else:
             print('Image SNR not enhanced by a gaussian average')
  
