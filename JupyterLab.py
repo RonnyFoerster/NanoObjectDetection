@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import NanoObjectDetection as nd
 
 from pdb import set_trace as bp #debugger
-# In[Functions]
+
 
 def Show2dImage(image, title = '', ShowSlider = True, gamma = 1):  
     [max_y, max_x] = np.asarray(image.shape) - 1
@@ -390,10 +390,11 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
             description='Help bead diameter')
 
     diameter_slider = IntSlider(min = 1, max = 31, step = 2, \
-                         value = settings["Find"]["Estimated particle size"],\
+                          value = settings["Find"]["Estimated particle size"],\
+                         # value = 15,\
                          description = "Diameter of bead [Px]")      
     
-    def OptimizeBeamDiameter(mode, diameter):
+    def OptimizeBeadDiameter(mode, diameter):
 
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
         settings["Find"]["Estimated particle size"] = diameter
@@ -409,9 +410,10 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
         else:
             print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
 
+
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
-    interact(OptimizeBeamDiameter, mode = help_diameter, diameter = diameter_slider)
+    interact(OptimizeBeadDiameter, mode = help_diameter, diameter = diameter_slider)
 
 
 
