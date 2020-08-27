@@ -424,7 +424,7 @@ def EstimateScatteringIntensity(P_illu, w_illu, lambda_illu, d, exposure_time, N
 
 
 
-def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True):
+def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True, n_media = 1.333):
     '''
     d - particle diameter in m
     
@@ -436,6 +436,9 @@ def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True)
     import numpy as np
     import matplotlib.pyplot as plt
 
+    if d > 1:
+        print("WARNING: d should be given in the unit of meters!")
+
     # import the parameters from online library
     if material == 'gold':
         data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
@@ -445,9 +448,9 @@ def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True)
         data = np.genfromtxt('https://refractiveindex.info/tmp/data/organic/C8H8%20-%20styrene/Sultanova.txt', delimiter='\t') 
     if material == "DNA":
         data = np.genfromtxt('https://refractiveindex.info/tmp/data/other/human%20body/DNA/Inagaki.txt', delimiter='\t') 
+    if material == "silica":
+        data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/SiO2/Malitson.txt', delimiter='\t') 
 
-
-    n_media = 1.333
 
     # data is stacked so need to rearrange
     N = len(data)//2
@@ -480,8 +483,16 @@ def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True)
     
     x = n_media*2*np.pi*r_um/lambda_um;
     m = (m_real - 1.0j * m_imag) / n_media
-    
+   
     qext, qsca, qback, g = mp.mie(m,x)
+
+    # print("lambda_um: ", lambda_um[34])
+    # print("m_re: ", m_real[34]) 
+    # print("m_im: ", m_imag[34]) 
+    # print("x: ", x[34]) 
+    # print("m: ", m[34]) 
+    # print(mp.mie(m[34],x[34])) 
+    
     qabs = (qext - qsca)
     absorb  = qabs * np.pi * r_nm**2
     scat   = qsca * np.pi * r_nm**2
@@ -507,6 +518,7 @@ def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True)
         plt.xlim(300,800)
         plt.show()
         
+        C_Abs = absorb
         C_Scat = scat
         
     else:
@@ -520,6 +532,77 @@ def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True)
     return C_Scat, C_Abs
 
 
+def CalcCrossSection_OLD(lambda_nm, d_nm, material = "Gold", e_part = None):
+    """ calculate the scattering crosssections of a scattering sphere
+    
+    https://reader.elsevier.com/reader/sd/pii/0030401895007539?token=48F2795599992EB11281DD1C2A50B58FC6C5F2614C90590B9700CD737B0B9C8E94F2BB8A17F74D0E6087FF3B7EF5EF49
+    https://github.com/scottprahl/miepython/blob/master/doc/01_basics.ipynb
+    
+    lambda_nm:  wavelength of the incident light
+    d_nm:       sphere's diameter
+    P_W:        incident power
+    A_sqm:      beam/channel cross sectional area
+    material:   sphere's material
+    """
+    
+    lambda_um = lambda_nm / 1000
+    lambda_m  = lambda_nm / 1e9
+    k = 2*pi/lambda_m
+    
+    #particle radius
+    r_nm = d_nm / 2
+    r_m  = r_nm / 1e9
+    
+    if e_part == None:    
+        if material == "Gold":
+            au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
+            #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
+            #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Werner.txt', delimiter='\t')
+        else:
+            print("material unknown")
+            
+        # data is stacked so need to rearrange
+        N = len(au)//2
+        mylambda = au[1:N,0]
+        n_real = au[1:N,1]
+        n_imag = au[N+1:,1]
+        
+        n_part_real = np.interp(lambda_um, mylambda, n_real)
+        n_part_imag = np.interp(lambda_um, mylambda, n_imag)
+        n_part = n_part_real + 1j * n_part_imag    
+
+        e_part_real = n_part_real**2 - n_part_imag**2
+        e_part_imag = 2*n_part_real*n_part_imag
+        e_part = e_part_real + 1j * e_part_imag
+    
+    else:
+        if isinstance(e_part, complex) == False:
+            raise TypeError("number must be complex, like 1+1j")
+        else:
+            e_part_real = np.real(e_part)
+            e_part_imag = np.imag(e_part)
+            n_part = np.sqrt((e_part_real+e_part_real)/2)
+    
+    n_media = 1.333
+    e_media = n_media**2
+    
+    m = n_part / n_media
+    
+    print("not sure if this is right")
+    m = np.abs(m)
+    n_part = np.abs(n_part)
+    
+    C_scat = 8/3*pi*np.power(k,4)*np.power(r_m,6) * ((m**2-1)/(m**2+1))**2
+    
+    V = 4/3*pi*np.power(r_m,3)
+    C_abs = k * np.imag(3 * V * (e_part - e_media)/(e_part + 2*e_media))
+    
+    print("\nC_scat [sqm]: ", C_scat)
+    print("C_scat [sq nm]: ", C_scat / (1e-9**2))
+    print("\nC_abs [sqm]: ", C_abs)
+    print("C_abs [sq nm]: ", C_abs / (1e-9**2))
+    
+    return C_scat, C_abs
 
 
 
@@ -998,77 +1081,6 @@ def SplitTrajectory(eval_t2):
 
 
 
-def CalcCrossSection_OLD(lambda_nm, d_nm, material = "Gold", e_part = None):
-    """ calculate the scattering crosssections of a scattering sphere
-    
-    https://reader.elsevier.com/reader/sd/pii/0030401895007539?token=48F2795599992EB11281DD1C2A50B58FC6C5F2614C90590B9700CD737B0B9C8E94F2BB8A17F74D0E6087FF3B7EF5EF49
-    https://github.com/scottprahl/miepython/blob/master/doc/01_basics.ipynb
-    
-    lambda_nm:  wavelength of the incident light
-    d_nm:       sphere's diameter
-    P_W:        incident power
-    A_sqm:      beam/channel cross sectional area
-    material:   sphere's material
-    """
-    
-    lambda_um = lambda_nm / 1000
-    lambda_m  = lambda_nm / 1e9
-    k = 2*pi/lambda_m
-    
-    #particle radius
-    r_nm = d_nm / 2
-    r_m  = r_nm / 1e9
-    
-    if e_part == None:    
-        if material == "Gold":
-            au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
-            #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
-            #au = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Werner.txt', delimiter='\t')
-        else:
-            print("material unknown")
-            
-        # data is stacked so need to rearrange
-        N = len(au)//2
-        mylambda = au[1:N,0]
-        n_real = au[1:N,1]
-        n_imag = au[N+1:,1]
-        
-        n_part_real = np.interp(lambda_um, mylambda, n_real)
-        n_part_imag = np.interp(lambda_um, mylambda, n_imag)
-        n_part = n_part_real + 1j * n_part_imag    
-
-        e_part_real = n_part_real**2 - n_part_imag**2
-        e_part_imag = 2*n_part_real*n_part_imag
-        e_part = e_part_real + 1j * e_part_imag
-    
-    else:
-        if isinstance(e_part, complex) == False:
-            raise TypeError("number must be complex, like 1+1j")
-        else:
-            e_part_real = np.real(e_part)
-            e_part_imag = np.imag(e_part)
-            n_part = np.sqrt((e_part_real+e_part_real)/2)
-    
-    n_media = 1.333
-    e_media = n_media**2
-    
-    m = n_part / n_media
-    
-    print("not sure if this is right")
-    m = np.abs(m)
-    n_part = np.abs(n_part)
-    
-    C_scat = 8/3*pi*np.power(k,4)*np.power(r_m,6) * ((m**2-1)/(m**2+1))**2
-    
-    V = 4/3*pi*np.power(r_m,3)
-    C_abs = k * np.imag(3 * V * (e_part - e_media)/(e_part + 2*e_media))
-    
-    print("\nC_scat [sqm]: ", C_scat)
-    print("C_scat [sq nm]: ", C_scat / (1e-9**2))
-    print("\nC_abs [sqm]: ", C_abs)
-    print("C_abs [sq nm]: ", C_abs / (1e-9**2))
-    
-    return C_scat, C_abs
 
 
 def LocalAccuracyVsObjective():
