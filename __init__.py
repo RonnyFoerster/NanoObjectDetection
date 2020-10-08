@@ -11,6 +11,7 @@ from . import CalcDiameter
 from . import CheckSystem
 from . import default_json
 from . import Drift
+from . import Experiment
 from . import get_trajectorie
 from . import gui
 from . import handle_data

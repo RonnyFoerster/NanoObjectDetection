@@ -5,7 +5,6 @@ Created on Thu Dec 19 14:39:16 2019
 @author: nissenmona
 """
 
-# In[0]:
 """
 particle statistics and concentration calculation
 
@@ -22,7 +21,7 @@ import NanoObjectDetection as nd
 #import trackpy as tp
 #import matplotlib.pyplot as plt
 
-#%% statistics on the found objects --> concentration estimation
+# statistics on the found objects --> concentration estimation
 
 #totalframenb = len(rawframes_rot[:,0,0]) # total number of frames in current video
 # length of current FoV in um:
