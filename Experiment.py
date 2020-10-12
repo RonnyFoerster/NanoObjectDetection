@@ -7,10 +7,13 @@ Created on Thu Oct  8 12:49:05 2020
 import numpy as np
 
 
-def Dilution(c_stock, d_channel, d_goal):
-    # c_stock NP/ml
+def Dilution(d_channel, d_goal, mode = "c_stock", c_stock = None):
     # d_channel diameter of the channel in m
-    # d_goal dinstance between two NP inside the fiber m/NP fiber length
+    # d_goal dinstance between two NP inside the fiber m
+    # mode: parameters given
+    #   "c_stock", NP/ml
+    #   ""
+    # c_stock NP/ml
     
     #channel crosssection
     A_channel = np.pi * d_channel**2 / 4
@@ -18,7 +21,10 @@ def Dilution(c_stock, d_channel, d_goal):
     #1ml = 10^-6 m^3
     
     # concentration in m^3
-    c_stock_m3 = c_stock * 1E6
+    if mode == 'c_stock'
+        c_stock_m3 = c_stock * 1E6
+    else:
+        print("any other mode not implemented yet")
     
     # concentration per m fiber
     c_stock_length = c_stock_m3 * A_channel
