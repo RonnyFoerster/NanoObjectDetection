@@ -17,7 +17,6 @@ import json
 from tkinter import filedialog
 
 
-# In[]
 def NewEvaluation():
     # where is the data?
     good_answer = False
@@ -64,25 +63,22 @@ def NewEvaluation():
     
     pre_select = int(input("Please select a number: \n The following setups are implemented \
           \n 1 - new \
-          \n 2 - 5x Objective on Zeiss Microscope with Basler cam \
-          \n 3 - 10x Objective on Zeiss Microscope with Basler cam \
-          \n 4 - 10x (0.25) plan Objective at 'Olympus Corpus' with Basler cam \
-          \n 5 - 20x (0.40) epiplan Objective at 'Olympus Corpus' with Basler cam \
+          \n 2 - Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera \
+          \n 3 - Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera \
+          \n 4 - Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera \
         \n\n"))
     
-    if pre_select in [2,3,4,5]:
+    if pre_select in [2,3,4]:
         if pre_select == 2:
-            print("Load: 5x Objective on Zeiss Microscope with Basler cam")
-            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_5x_zeiss_cam_basler.json"
+            print("Load: Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera")
+            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
         elif pre_select == 3:
-            print("Load: 10x Objective on Zeiss Microscope with Basler cam")
-            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_10x_zeiss_cam_basler.json"
+            print("Load: Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera")
+            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
         elif pre_select == 4:
-            print("Load: 10x (0.25) plan Objective at 'Olympus Corpus' with Basler cam")
-            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_objectiv_10x_025_plan_corpus_olympus_cam_basler.json"
-        elif pre_select == 5:
-            print("Load: 20x (0.40) epiplan Objective at 'Olympus Corpus' with Basler cam")
-            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json_20x 0_40 epiplan Objective with Basler cam.json"
+            print("Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera")
+            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera.json"
+
             
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)

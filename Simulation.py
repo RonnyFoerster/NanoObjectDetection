@@ -266,7 +266,8 @@ def VelocityByExternalForce(F_ext, radius, visc_water):
 
 def MaximumNAByFocusDepth(dof, lambda_nm, n):
     '''
-    dof - depth of focus
+    dof - depth of focus in nm
+    lambda_nm - wavelength in nm
     n - refractive index immersion oil
     '''
     NA = np.sqrt((2*lambda_nm*n) / dof)
