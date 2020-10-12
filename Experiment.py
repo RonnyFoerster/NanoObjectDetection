@@ -21,7 +21,7 @@ def Dilution(d_channel, d_goal, mode = "c_stock", c_stock = None):
     #1ml = 10^-6 m^3
     
     # concentration in m^3
-    if mode == 'c_stock'
+    if mode == 'c_stock':
         c_stock_m3 = c_stock * 1E6
     else:
         print("any other mode not implemented yet")
