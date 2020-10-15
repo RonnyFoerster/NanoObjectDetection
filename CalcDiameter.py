@@ -955,7 +955,8 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
 
 
 def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None, temp_water = 295, visc_water = 9.5e-16, DoRolling = False):
-    """ convert diffusion value to hydrodynamic diameter considering the hindrance factor
+    """ convert diffusion value to hydrodynamic diameter 
+    (optionally) with taking the hindrance factor into account
 
     Parameters
     ----------
@@ -977,7 +978,6 @@ def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None
     diameter_corr
 
     """
-    
     const_Boltz = scipy.constants.Boltzmann 
     
     diameter = (2*const_Boltz*temp_water/(6*math.pi *visc_water)*1e9) /diffusion # diameter of each particle
@@ -1064,7 +1064,8 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
 #     get the fit error if switches on (and working)
     rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
 
-    diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, temp_water, visc_water, DoRolling = DoRolling)
+    diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, 
+                                   temp_water, visc_water, DoRolling = DoRolling)
 
     if DoRolling == False:
         sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter, \

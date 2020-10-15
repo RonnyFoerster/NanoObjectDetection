@@ -202,7 +202,7 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
 
 def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False, 
                  BeforeDriftCorrection = False, min_tracking_frames = None,
-                 PlotErrorCheck = True):
+                 ErrorCheck = True, PlotErrorCheck = True):
     """ wrapper for tp.filter_stubs, which filters out too short trajectories, 
     including a check whether a trajectory is close enough to random Brownian motion
     
@@ -247,7 +247,7 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
     particle_number = traj_all['particle'].unique(); #particle numbers that are inserted
     amount_particles = len(particle_number); #total number of all particles
     
-    valid_particle_number = traj_min_length['particle'].unique(); #particlue numbers that fulfill all previous requirements
+    valid_particle_number = traj_min_length['particle'].unique(); #particle numbers that fulfill all previous requirements
     amount_valid_particles = len(valid_particle_number); #total number of valid particles
     
     amount_removed_traj = amount_particles - amount_valid_particles
@@ -268,10 +268,9 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
         if amount_valid_particles == 0:
             raise ValueError("All particles removed!")
 
-    if (FixedParticles == False) and (BeforeDriftCorrection == False):
+    if (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==True):
+        #check if the histogram of each particle displacement is Gaussian shaped
         
-        #check if the histogram of the particle displacement is Gaussian shaped
-
         for i,particleid in enumerate(valid_particle_number):
             print("particleid: ", particleid)
             eval_tm = traj_min_length[traj_min_length.particle==particleid]
@@ -283,7 +282,10 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
             
 #            bp()
             traj_has_error, stat_sign, dx = \
-            nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.01, PlotErrorIfTestFails = True, ID=particleid)
+            nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, 
+                                                      MinSignificance = 0.01, 
+                                                      PlotErrorIfTestFails = PlotErrorCheck, 
+                                                      ID=particleid)
             
             if traj_has_error == True:
                 #remove if traj has error
@@ -292,10 +294,16 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
                 
                 #drop particles with unbrownian trajectory
                 traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
+        
+        # update total number of valid particles
+        amount_valid_particles_after_check = len(traj_min_length['particle'].unique()); 
+        print('')
+        print('Number of particle trajectories that survived the test: {}'.format(amount_valid_particles_after_check))
+
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
-    return traj_min_length
+    return traj_min_length # trajectory DataFrame
 
 
 
