@@ -693,10 +693,25 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
     keep_tail = settings["Split"]["Max_traj_length_keep_tail"]
     
     if Max_traj_length is None:
-        Max_traj_length = int(settings["Split"]["Max_traj_length"])
-     
+        Max_traj_length = settings["Split"]["Max_traj_length"]
+
+    #check if int    
+    if isinstance(Max_traj_length, int) == False:
+        if (Max_traj_length - int(Max_traj_length)) == 0:
+            Max_traj_length = int(Max_traj_length)
+        else:
+            sys.exit("Max_traj_length must be integer")
+    
     if Min_traj_length is None:
-        Min_traj_length = int(settings["Link"]["Min_tracking_frames"])
+        Min_traj_length = settings["Link"]["Min_tracking_frames"]
+        
+    #check if int    
+    if isinstance(Min_traj_length, int) == False:
+        if (Min_traj_length - int(Min_traj_length)) == 0:
+            Min_traj_length = int(Min_traj_length)
+        else:
+            sys.exit("Min_traj_length must be integer")
+    
         
     free_particle_id = np.max(t4_cutted["particle"]) + 1
     
@@ -704,9 +719,10 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
 
     t4_cutted["true_particle"] = t4_cutted["particle"]
     
+    #traj length of each (true) particle
     traj_length = t4_cutted.groupby(["particle"]).frame.max() - t4_cutted.groupby(["particle"]).frame.min()
     
-    # split when two times longer required
+    # split when trajectory is longer than max value 
     split_particles = traj_length > Max_traj_length
     
     
@@ -723,7 +739,7 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
 #        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
 #        end_frame   = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[-1]
        
-        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
+        # start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
 #        end_frame   = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[-1]
         
         
@@ -733,12 +749,19 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
         print("traj_length", traj_length)
         while traj_length > Max_traj_length:
             if (traj_length > 2*Max_traj_length) or (keep_tail == 0):
+                # start_frame for new particle id
                 start_frame = t4_cutted[t4_cutted["particle"] == test_particle].iloc[Max_traj_length]["frame"]
+                
+                # every trajectory point above the start frame gets the new id
                 t4_cutted.loc[(t4_cutted["particle"] == test_particle) & (t4_cutted["frame"] >= start_frame), "particle"] = free_particle_id
     
+                #next particle to test is the new generated one (the tail)
                 test_particle = free_particle_id
+                
+                # new free particle id
                 free_particle_id = free_particle_id + 1
                 
+                #traj length of particle under investigation
                 traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
             else:
                 break
