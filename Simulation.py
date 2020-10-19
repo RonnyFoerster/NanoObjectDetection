@@ -276,6 +276,16 @@ def MaximumNAByFocusDepth(dof, lambda_nm, n):
 #https://www.microscopyu.com/microscopy-basics/depth-of-field-and-depth-of-focus
 
 
+def DepthOfField(NA, n, my_lambda):
+    # https://doi.org/10.1111/j.1365-2818.1988.tb04563.x
+    # Sheppard Depth of field in optical microscopy
+    # Eq 8
+    alpha = np.arcsin(NA/n)
+    dz = 1.77 * my_lambda / (4 * (np.sin(alpha/2))**2 * (1-1/3*(np.tan(alpha/2))**4))
+        
+    return dz
+    
+
 def DetectionEfficency(NA,n):
     alpha = np.arcsin(NA/n) #opening angle
     ster = 2*np.pi*(1-np.cos(alpha)) # steradiant
