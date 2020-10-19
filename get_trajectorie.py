@@ -459,6 +459,9 @@ def close_gaps(t1):
                 
                 t1_loop = t1_loop.interpolate('nearest')
                 
+                # make integeter particle id again (lost by filling with nan)
+                t1_loop.particle = t1_loop.particle.astype("int")
+                
                 t1_loop = t1_loop.reset_index()
                 
             # cat data frame together
