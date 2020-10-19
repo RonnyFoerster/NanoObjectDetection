@@ -57,7 +57,7 @@ def ReadJson(mypath, CreateNew = False):
     # check if some keys are missing.
     mypath_default = settings["File"]["DefaultParameterJsonFile"]
     if mypath_default == "default":
-        mypath_default = os.path.dirname(nd.__file__) + "\\default_json.json"
+        mypath_default = os.path.dirname(nd.__file__) + "\\default_json\\default_json.json"
     
     try:    
         with open(mypath_default) as json_file:

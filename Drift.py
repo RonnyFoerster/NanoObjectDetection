@@ -102,7 +102,7 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
         
         
         else:
-            print('Mode: transversal correction')
+            print('Mode: transversal drift correction')
             
             # Y-Depending drift-correction
             # RF: Creation of y-sub-zones and calculation of drift

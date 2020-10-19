@@ -538,8 +538,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     print("\n The distance a particle can maximal move (and identified as the same one) >Max displacement< is set to: ", Max_displacement)
     settings["Link"]["Max displacement"] = Max_displacement 
 
-   
-    print("\n The minium distances between to located particles >Separation data< is set to: ", Min_Separation )
+    print("\n The minimum distance between two located particles >Separation data< is set to: ", Min_Separation )
     settings["Find"]["Separation data"] = Min_Separation 
 
 

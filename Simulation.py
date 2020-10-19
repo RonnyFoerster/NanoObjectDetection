@@ -435,13 +435,39 @@ def EstimateScatteringIntensity(P_illu, w_illu, lambda_illu, d, exposure_time, N
 
 
 
-def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True, n_media = 1.333):
-    '''
-    d - particle diameter in m
+def n_water20(wl):
+    """ calculates refractive index of water at a given wavelength in um
+    
+    Daimon, Masumura 2007
+    https://refractiveindex.info/tmp/data/main/H2O/Daimon-20.0C.html
+    """
+    # analytical expression for the refr. index at 20°C
+    n_water = ( 1 + 5.684027565E-1/(1-5.101829712E-3/wl**2) +
+                1.726177391E-1/(1-1.821153936E-2/wl**2) +
+                2.086189578E-2/(1-2.620722293E-2/wl**2) +
+                1.130748688E-1/(1-1.069792721E1/wl**2) )**.5
+    return n_water
+
+
+
+def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True, n_medium = 1.333):
+    """ calculate the scattering and absorption crosssection of a spherical particle
     
     https://miepython.readthedocs.io/en/latest/02_efficiencies.html?highlight=scattering%20cross%20section
     https://opensky.ucar.edu/islandora/object/technotes%3A232/datastream/PDF/view
-    '''
+      
+    Parameters
+    ----------
+    d :             particle diameter in nm
+    material :      particle material (implemented: gold, silver, polystyrene, DNA, silica)
+    at_lambda_nm :  wavelength of the incident light, "None" creates a plot for the full VIS range
+    do_print :      print the results if TRUE
+    n_medium :      refr. index of surrounding medium, "None" uses Daimon2007 data for water at 20°C
+    
+    Returns
+    -------
+    C_Scat, C_Abs : scattering and absorption cross section in nm^2
+    """
     
     import miepython as mp
     import numpy as np
@@ -452,21 +478,27 @@ def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True,
 
     # import the parameters from online library
     if material == 'gold':
-        data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/Johnson.txt', delimiter='\t')
-    if material == "silver":
+        data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
+    elif material == "silver":
         data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Ag/Johnson.txt', delimiter='\t') 
-    if material == "polystyrene":
+    elif material == "polystyrene":
         data = np.genfromtxt('https://refractiveindex.info/tmp/data/organic/C8H8%20-%20styrene/Sultanova.txt', delimiter='\t') 
-    if material == "DNA":
+    elif material == "DNA":
         data = np.genfromtxt('https://refractiveindex.info/tmp/data/other/human%20body/DNA/Inagaki.txt', delimiter='\t') 
-    if material == "silica":
+    elif material == "silica":
         data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/SiO2/Malitson.txt', delimiter='\t') 
-
 
     # data is stacked so need to rearrange
     N = len(data)//2
     lambda_um = data[1:N,0]
-#    lambda_um = lambda_um / n_media
+    
+    if n_medium == None:
+        if at_lambda_nm == None:
+            n_medium = np.array([n_water20(lam) for lam in lambda_um])
+        else:
+            n_medium = n_water20(at_lambda_nm)
+
+#    lambda_um = lambda_um / n_medium
 
     m_real = data[1:N,1]
     
@@ -492,8 +524,8 @@ def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True,
     
 #    print("particle radius in nm: ", r_nm)
     
-    x = n_media*2*np.pi*r_um/lambda_um;
-    m = (m_real - 1.0j * m_imag) / n_media
+    x = n_medium*2*np.pi*r_um/lambda_um;
+    m = (m_real - 1.0j * m_imag) / n_medium
    
     qext, qsca, qback, g = mp.mie(m,x)
 
@@ -517,14 +549,14 @@ def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True,
         plt.plot(lambda_nm,qsca,'k.-')   
         plt.xlabel("Wavelength (nm)")
         plt.ylabel("Efficency")
-        plt.title("Efficency for %.1f nm Spheres" % (r_nm*2))
+        plt.title("Scattering efficency for %.1f nm %s spheres" % (r_nm*2,material))
         plt.xlim([400, 800])
         
         plt.figure()
         plt.plot(lambda_nm,scat,'r.-')   
         plt.xlabel("Wavelength (nm)")
-        plt.ylabel("Cross Section (1/$nm^2$)")
-        plt.title("Cross Sections for %.1f nm Spheres" % (r_nm*2))
+        plt.ylabel("Cross section ($nm^2$)")
+        plt.title("Scattering cross section for %.1f nm %s spheres" % (r_nm*2,material))
         
         plt.xlim(300,800)
         plt.show()
@@ -537,10 +569,11 @@ def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True,
         C_Abs   = np.interp(at_lambda_nm, lambda_nm, absorb)
         if do_print == True:
             print("Size parameter: ", np.interp(at_lambda_nm, lambda_nm, x))
-            print("Scatterung efficency: ", np.interp(at_lambda_nm, lambda_nm, qsca))
+            print("Scattering efficency: ", np.interp(at_lambda_nm, lambda_nm, qsca))
             print("Scattering cross-section [nm²]: ", C_Scat)
     
     return C_Scat, C_Abs
+
 
 
 def CalcCrossSection_OLD(lambda_nm, d_nm, material = "Gold", e_part = None):
@@ -617,7 +650,6 @@ def CalcCrossSection_OLD(lambda_nm, d_nm, material = "Gold", e_part = None):
 
 
 
-
 def MassOfNP(d_nm,rho):
     
     r_m = (d_nm/1E9) / 2
@@ -625,8 +657,8 @@ def MassOfNP(d_nm,rho):
     
     m = V*rho
     
-    
     return m
+
 
 
 def E_Kin_Radiation_Force(F,m,t):

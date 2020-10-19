@@ -50,7 +50,7 @@ def NewEvaluation():
     
     
     # copy default json into that folder
-    path_json_origin = os.path.dirname(nd.__file__) + "\\default_json.json"
+    path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\default_json.json"
     mypath = dir_results + "/parameter.json"
     
     shutil.copy2(path_json_origin, mypath)

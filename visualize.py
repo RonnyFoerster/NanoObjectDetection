@@ -1029,7 +1029,6 @@ def AnimateProcessedRawData(ParameterJsonFile, rawframes_rot, t4_cutted, t6_fina
     my_colbar.set_label("Diameter [nm]")
     
     
-    
     #do all the axes
     # scale them
     ax00.axis("scaled")
@@ -1123,8 +1122,6 @@ def AnimateProcessedRawData(ParameterJsonFile, rawframes_rot, t4_cutted, t6_fina
         return [raw_im, particles_detected_im, particles_analysed_im, particles_analysed_r_im, time_text]
     
     
-    
-    
     #    ani = animation.FuncAnimation(fig, animate, init_func=init, interval = 10, blit=True)
     print("start animating")
     ani = animation.FuncAnimation(fig, animate, interval = 1/effective_fps, frames = max_frame, repeat = 0, blit=True)  
@@ -1148,8 +1145,6 @@ def AnimateProcessedRawData(ParameterJsonFile, rawframes_rot, t4_cutted, t6_fina
     entire_path_image = my_dir_name +  file_name_image
     
     
-    
-    
     print("start saving")
 #    ani.save(entire_path_image, writer=PillowWriter(fps = fps))
     print("THIS IS NOT WORKING WITH PILLOW ANYMORE")
@@ -1160,8 +1155,6 @@ def AnimateProcessedRawData(ParameterJsonFile, rawframes_rot, t4_cutted, t6_fina
     
 
 
- 
-    
 def AnimateDiameterAndRawData(rawframes_rot, sizes_df_lin, t6_final, settings, DoScatter=True, DoText=False): 
     
     id_particle = sizes_df_lin.true_particle.unique()
@@ -1281,9 +1274,6 @@ def AnimateDiameterAndRawData(rawframes_rot, sizes_df_lin, t6_final, settings, D
 #    anim.save('the_movie_1.html', writer = 'html', fps=100)
     
     return anim
-
-
-
 
 
 
@@ -1554,7 +1544,6 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
 
 
 
-
 #def GetTrajOfFrame(frame, traj_roi, sizes_df_lin):
 #    print("UNUSED AND OLD")
 #    # get entire trajectory of particle which are in the current frame
@@ -1590,17 +1579,19 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
 
 
 def GetTrajHistory(frame, traj_roi):
-    # returns the entire history pf trajectories for particle which exist in the current frame
+    """ returns the entire history of trajectories for particles which exist in the current frame
+    """
     # get particles in the frame
     id_particle_frame = list(traj_roi[traj_roi.frame == frame].particle.values)
 
     # select those trajectories, which exist in the current frame
     traj_roi_frame = traj_roi[traj_roi.particle.isin(id_particle_frame)]
     
-    # select trajectores from the history
+    # select trajectories from the history
     traj_roi_history = traj_roi_frame[traj_roi_frame.frame <= frame]    
     
     return traj_roi_history
+
 
 
 def GetPosEvaluated(frame, traj_roi, sizes_df_lin):
@@ -1632,8 +1623,8 @@ def GetPosEvaluated(frame, traj_roi, sizes_df_lin):
 
 
 
-
-def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre, sizes_df_lin, traj, ParameterJsonFile): 
+def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre, 
+                                   sizes_df_lin, traj, ParameterJsonFile): 
     from matplotlib.gridspec import GridSpec
     import time
     

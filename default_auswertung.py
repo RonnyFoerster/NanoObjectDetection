@@ -36,7 +36,7 @@ nd.CheckSystem.CheckAll(ParameterJsonFile)
 rawframes_np = nd.handle_data.ReadData2Numpy(ParameterJsonFile)
 
 
-#%% choose ROI if wantend
+#%% choose ROI if wanted
 # ROI (includes a help how to find it)
 settings = nd.handle_data.ReadJson(ParameterJsonFile)
 if settings["Help"]["ROI"] == 1:
@@ -72,7 +72,7 @@ t1_orig_slow_diff = nd.get_trajectorie.link_df(obj_all, ParameterJsonFile, Searc
 t2_stationary = nd.get_trajectorie.filter_stubs(t1_orig_slow_diff, ParameterJsonFile, FixedParticles = True, BeforeDriftCorrection = True)
 
 
-#%% cut trajectories if a moving particles comes too close to a stationary object
+#%% cut trajectories if a moving particle comes too close to a stationary object
 obj_moving = nd.get_trajectorie.RemoveSpotsInNoGoAreas(obj_all, t2_stationary, ParameterJsonFile)
 
 
