@@ -220,7 +220,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
             sizes_df_lin_rolling = "Undone"
     
         if MSD_fit_Save == True:
-            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings)
+            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings, ShowPlot = settings["Plot"]["MSD_fit_Show"])
         
         nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 

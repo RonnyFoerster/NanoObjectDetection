@@ -331,12 +331,13 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     
     y_min_max = nd.handle_data.Get_min_max_round(plot_diameter,1)
     
-    Plot2DScatter(plot_traj_length, plot_diameter, title = my_title, xlabel = my_xlabel, ylabel = my_ylabel,
-                  myalpha = 0.6, x_min_max = x_min_max, y_min_max = y_min_max)
+    Plot2DScatter(plot_traj_length, plot_diameter, title = my_title, xlabel = my_xlabel, ylabel = my_ylabel, myalpha = 0.6, x_min_max = x_min_max, y_min_max = y_min_max)
+    
+
  
     if save_plot == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "DiameterOverTrajLength",
-                                       settings, data = sizes_df_lin)
+                                       settings, data = sizes_df_lin, ShowPlot = show_plot)
 
 
 
@@ -593,8 +594,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
 
     
     if Histogramm_Save == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings,
-                                       data = sizes_df_lin)
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
         
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
@@ -684,7 +684,7 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
         save_folder_name = settings["Plot"]["SaveFolder"]
         
         settings = nd.visualize.export(save_folder_name, "Diameter Probability", settings,
-                                       data = sizes_df_lin)
+                                       data = sizes_df_lin, ShowPlot = DiameterPDF_Show)
         
         data = np.transpose(np.asarray([diam_grid, prob_inv_diam]))
         nd.visualize.save_plot_points(data, save_folder_name, 'Diameter Probability Data')
@@ -829,7 +829,8 @@ def save_plot_points(data, save_folder_name, save_csv_name):
     np.savetxt(entire_path, data, delimiter = ',')
 
 
-def export(save_folder_name, save_image_name, settings = None, use_dpi = None, data = None, data_header = None):    
+
+def export(save_folder_name, save_image_name, settings = None, use_dpi = None, data = None, data_header = None, ShowPlot = -1):    
     import NanoObjectDetection as nd
     if settings is None:
         if use_dpi is None:
@@ -873,7 +874,15 @@ def export(save_folder_name, save_image_name, settings = None, use_dpi = None, d
                     np.savetxt(entire_path_csv, data, delimiter="," , fmt='%.10e', header = data_header)
                 else:
                     data.to_csv(entire_path_csv, index = False)
-            
+         
+     # if plot is only displayed in order save it, close it now
+    if ShowPlot == False:
+        print("Close plot since noone wants it")
+        plt.close(plt.gcf())   
+    elif ShowPlot == -1:
+        print("You can prevent the plot to be shown if you just wanna save it in the export function")
+        
+         
     return settings
 
 
