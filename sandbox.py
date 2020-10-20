@@ -196,7 +196,7 @@ def DiameterOverTrajLengthColored(ParameterJsonFile, sizes_df_lin,
 
 
 
-def myMPaniInklRaw(t2_long,rawframes_ROI,settings,frm_start=0):#, gamma=0.5):
+def AnimateTracksOnRawData(t2_long,rawframes_ROI,settings,frm_start=0):#, gamma=0.5):
     """ animate trajectories on top of raw data
     
     to do:
