@@ -222,6 +222,13 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
         if MSD_fit_Save == True:
             settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings, ShowPlot = settings["Plot"]["MSD_fit_Show"])
         
+        if settings["Plot"]["save_data2csv"] == True:
+            save_folder_name = settings["Plot"]["SaveFolder"]
+            save_file_name = "sizes_df_lin"
+            my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
+            sizes_df_lin.to_csv(entire_path_file)
+            print('Data stored in: {}'.format(my_dir_name))
+        
         nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
     
@@ -269,6 +276,10 @@ def GetFiberDiameter(settings):
     
     if settings["Fiber"]["Shape"] == "round":
         fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
+    
+    elif settings["Fiber"]["Shape"] == "square":
+        fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"] 
+        # in a first approximation at least...
         
     elif settings["Fiber"]["Shape"] == "hex":
         #calc out of hex diameters if wanted
@@ -1259,8 +1270,11 @@ def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, D
 
 
 
-def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None, amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, EvalOnlyLongestTraj = 0):
-    
+def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, 
+                       frames_per_second = None, amount_summands = None, amount_lagtimes = None, 
+                       amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, 
+                       EvalOnlyLongestTraj = 0):
+    """ ... """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     Max_traj_length = settings["Simulation"]["Max_traj_length"]

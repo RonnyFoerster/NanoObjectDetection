@@ -319,7 +319,7 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
     histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
     
-    my_title = "Particles diameter over its tracking time"
+    my_title = "Particle size over tracking time"
     my_ylabel = "Diameter [nm]"
     my_xlabel = "Trajectory length [frames]"
     
@@ -331,9 +331,9 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     
     y_min_max = nd.handle_data.Get_min_max_round(plot_diameter,1)
     
-    Plot2DScatter(plot_traj_length, plot_diameter, title = my_title, xlabel = my_xlabel, ylabel = my_ylabel, myalpha = 0.6, x_min_max = x_min_max, y_min_max = y_min_max)
-    
-
+    Plot2DScatter(plot_traj_length, plot_diameter, title = my_title, 
+                  xlabel = my_xlabel, ylabel = my_ylabel,
+                  myalpha = 0.6, x_min_max = x_min_max, y_min_max = y_min_max)
  
     if save_plot == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "DiameterOverTrajLength",
