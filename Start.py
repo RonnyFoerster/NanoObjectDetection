@@ -177,5 +177,5 @@ def NewEvaluation():
 
     print("Make slash and backslash right")
 
-    print("Go to {} in the explorer and open the py-script and json parameter file.".format(dir_results.replace("/","\\")))
+    print("Go to \n{}\n in the explorer and open the py-script and json parameter file.".format(dir_results.replace("/","\\")))
     
