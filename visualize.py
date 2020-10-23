@@ -611,11 +611,11 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
     DiameterPDF_Show = settings["Plot"]['DiameterPDF_Show']
     DiameterPDF_Save = settings["Plot"]['DiameterPDF_Save']
 
-    histogramm_min = settings["Plot"]['PDF_min']
-    histogramm_max = settings["Plot"]['PDF_max']
+    PDF_min = settings["Plot"]['PDF_min']
+    PDF_max = settings["Plot"]['PDF_max']
         
     diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
-    diam_grid = np.linspace(histogramm_min,histogramm_max,10000)
+    diam_grid = np.linspace(PDF_min,PDF_max,10000)
     diam_grid_inv = 1/diam_grid
     
     
@@ -649,17 +649,17 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
     Histogramm_min_max_auto = settings["Plot"]["DiameterPDF_min_max_auto"]
 
     if Histogramm_min_max_auto == 1:
-        histogramm_min, histogramm_max = GetCI_Interval(prob_inv_diam, diam_grid, 0.999)
-        histogramm_min = 0
+        PDF_min, PDF_max = GetCI_Interval(prob_inv_diam, diam_grid, 0.999)
+        #histogramm_min = 0
     else:
-        histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(PDF_min, settings, "Plot", "Histogramm_min")
-        histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(PDF_max, settings, "Plot", "Histogramm_max")
+        PDF_min, settings = nd.handle_data.SpecificValueOrSettings(PDF_min, settings, "Plot", "PDF_min")
+        PDF_max, settings = nd.handle_data.SpecificValueOrSettings(PDF_max, settings, "Plot", "PDF_max")
         
 
-    title = str("Mean: {:2.3g} nm; Median: {:2.3g} nm; Trajectories{:3.0f}; \n CI68: [{:2.3g} : {:2.3g}] nm;  CI95: [{:2.3g} : {:2.3g}] nm".format(diam_mean, diam_median, num_trajectories, lim_68CI[0], lim_68CI[1],lim_95CI[0], lim_95CI[1]))
+    title = str("Mean: {:2.3g} nm; Median: {:2.3g} nm; Trajectories: {:3.0f}; \n CI68: [{:2.3g} : {:2.3g}] nm;  CI95: [{:2.3g} : {:2.3g}] nm".format(diam_mean, diam_median, num_trajectories, lim_68CI[0], lim_68CI[1],lim_95CI[0], lim_95CI[1]))
     xlabel = "Diameter [nm]"
     ylabel = "Probability"
-    x_lim = [histogramm_min, histogramm_max]
+    x_lim = [PDF_min, PDF_max]
 #    x_lim = [1, 1000]
     y_lim = [0, 1.1*np.max(prob_inv_diam)]
 #    sns.reset_orig()
