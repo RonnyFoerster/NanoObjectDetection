@@ -694,10 +694,10 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre,
     
     frame = 0
     # get trajectory of particles in current frame
-    traj_roi_history = GetTrajHistory(frame, traj_roi)
+    traj_roi_history = nd.visualize.GetTrajHistory(frame, traj_roi)
 
     # get position and diameter of evaluated particles
-    pos_roi, sizes_df_lin_frame = GetPosEvaluated(frame, traj_roi, sizes_df_lin)
+    pos_roi, sizes_df_lin_frame = nd.visualize.GetPosEvaluated(frame, traj_roi, sizes_df_lin)
   
     # design the subplot
     fig = plt.figure(figsize = [25, 13], constrained_layout=True)
@@ -903,10 +903,10 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre,
         traj_roi = traj[traj.particle.isin(particle_id_traj)]
         
         # get trajectory of particles in current frame
-        traj_roi_history = GetTrajHistory(frame, traj_roi)
+        traj_roi_history = nd.visualize.GetTrajHistory(frame, traj_roi)
 
         # get position and diameter of evaluated particles
-        pos_roi, sizes_df_lin_roi_frame = GetPosEvaluated(frame, traj_roi, sizes_df_lin)
+        pos_roi, sizes_df_lin_roi_frame = nd.visualize.GetPosEvaluated(frame, traj_roi, sizes_df_lin)
 
 
         #update figure
@@ -1125,8 +1125,8 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre,
     return
 
 
-def AnimateDiameterAndRawData_temporal(rawframes_rot, sizes_df_lin_rolling):
-    sys.exit("AnimateDiameterAndRawData_temporal has moved to animate.py! Please change if you see this")    
+
+def AnimateDiameterAndRawData_temporal(rawframes_rot, sizes_df_lin_rolling):  
     
     fig, (ax0, ax5) = plt.subplots(2, sharex=True, sharey=True)
 #    scat5 = ax5.scatter([], [], s=60)
