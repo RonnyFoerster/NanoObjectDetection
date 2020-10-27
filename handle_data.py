@@ -393,7 +393,7 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
         
         
 
-def CheckForSaturation(rawframes_np,warnUser=False):
+def CheckForSaturation(rawframes_np,warnUser=True):
     """ check if saturation is present in the raw data
     
     Saturation is visible in the intensity histogramm has a peak in the highest intensity bin.
