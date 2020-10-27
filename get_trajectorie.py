@@ -74,8 +74,8 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
             frames_np = np.uint16(frames_np)
               
             if ExternalSlider == False:
-                # output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, processes = 'auto', percentile = percentile)
-                output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile)
+                output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', processes = 'auto', percentile = percentile)
+                # output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile)
             else:
 #                output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
                 print("WARNING UPDATE THIS!")
