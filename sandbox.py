@@ -6,6 +6,7 @@ Created on Tue Mar 10 13:45:19 2020
 """
 import numpy as np # library for array-manipulation
 import matplotlib.pyplot as plt # libraries for plotting
+from matplotlib.animation import FuncAnimation
 from matplotlib.gridspec import GridSpec
 from pdb import set_trace as bp #debugger
 
@@ -138,7 +139,7 @@ Mona's section
     
 def DiameterOverTrajLengthColored(ParameterJsonFile, sizes_df_lin, 
                                   color_by='mass', use_log=False,
-                                  show_plot = None, save_plot = None):
+                                  save_plot = True):
     """ plot (and save) calculated particle diameters vs. the number of frames
     where the individual particle is visible (in standardized format) 
     and color it by a property of choice
@@ -266,6 +267,6 @@ def AnimateTracksOnRawData(t2_long,rawframes_ROI,settings,frm_start=0):#, gamma=
                              interval=70, blit=False, repeat=False)
     return traj_ani
 
-# anim2 = myMPaniInklRaw(t2_long,rawframes_ROI)
+# anim2 = AnimateTracksOnRawData(t2_long,rawframes_ROI,settings)
 # anim2.save('Au50_raw+tracks_1000frames.mp4')
 

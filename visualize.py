@@ -1109,7 +1109,7 @@ def DriftCorrectedTraj(tm_sub):
     plt.ylabel('Lateral position in fibre (y) [px]')
     
     
-def PlotGlobalDrift(d):
+def PlotGlobalDrift(d,settings,save=True):
     my_font = 18
     plt.figure(figsize=(6,6))
     plt.plot(d)
@@ -1117,6 +1117,10 @@ def PlotGlobalDrift(d):
     plt.xlabel("frames", fontsize = my_font)
     plt.ylabel("drift [px]", fontsize = my_font)
     plt.legend(("transversal","along fiber"), fontsize = my_font-2)
+    
+    if save==True:
+        save_folder_name = settings["Plot"]["SaveFolder"]
+        settings = nd.visualize.export(save_folder_name, "Global Drift", settings)
     
    
     

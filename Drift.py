@@ -17,13 +17,18 @@ import NanoObjectDetection as nd
 from pdb import set_trace as bp #debugger
 
 
-def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None, min_particle_per_block = None, min_tracking_frames = None, PlotGlobalDrift = False, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False):
+def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, 
+                    drift_smoothing_frames = None, rolling_window_size = None, 
+                    min_particle_per_block = None, min_tracking_frames = None, 
+                    PlotGlobalDrift = True, SaveDriftPlots = True,
+                    PlotDriftAvgSpeed = False, 
+                    PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, 
+                    PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, 
+                    PlotDriftCorrectedTraj = False):
+    """ calculate and remove overall drift from trajectories
     
-    """
-    Calculate and remove overall drift from trajectories
-    
-    The drift needs to be removed, because the entire movement consists of brownian motion and drift
-    In order to measure the brownian motion, the drift needs to be calculated and subtracted
+    The entire movement consists of Brownian motion and drift.
+    To measure pure Brownian motion, the drift needs to be calculated and subtracted.
     
     There are currently three options to choose from
     1) No drift correction - this is dangerous. However, if just a few particles are tracked the 
@@ -33,10 +38,11 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
     Calculated the drift of all particles between neighbouring frames
     
     3) Transversal drift corretion
-    Splits the fiber in several "subfibers". Each of them is treated independent. This is motivated by the idea of laminar
-    flow, where particles on the side have a lower current than the ones in the middle
-    However this method requires a lot of particles and makes sense for small fiber diameters where laminar flow is
-    significant.
+    Splits the fiber in several "subfibers". Each of them is treated independently. 
+    This is motivated by the idea of laminar flow, where particles close to 
+    the channel wall are in a lower current than the ones in the center.
+    However this method requires a lot of particles and makes sense for smaller 
+    fiber diameters where laminar flow is significant.
     
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -98,7 +104,7 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
 
             
             if PlotGlobalDrift == True:
-                nd.visualize.PlotGlobalDrift(my_drift) # plot the calculated drift
+                nd.visualize.PlotGlobalDrift(my_drift,settings,save=SaveDriftPlots) # plot the calculated drift
         
         
         else:
@@ -182,7 +188,8 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
                 use_part_subtract_index = np.where(np.array(use_part_subtract)==True)
                 
                 # Writing x as ysub into copy of t1. That's needed to treat data differently depending on y-sub-position
-                # Python 3.5 t1_ysub['ysub'].iloc[use_part_subtract_index]=x # I believe that's not an elegant way of doing it. Maybe find a better approach       
+                # Python 3.5 t1_ysub['ysub'].iloc[use_part_subtract_index]=x 
+                # I believe that's not an elegant way of doing it. Maybe find a better approach       
                 t_drift_ysub.loc[use_part,'ysub'] = x # RF 180906
                 
         

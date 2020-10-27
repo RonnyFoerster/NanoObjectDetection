@@ -393,10 +393,10 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
         
         
 
-def CheckForSaturation(rawframes_np):
+def CheckForSaturation(rawframes_np,warnUser=False):
     """ check if saturation is present in the raw data
     
-    Saturation is visible in the intensity histogramm as a peak in the highest intensity bin.
+    Saturation is visible in the intensity histogramm has a peak in the highest intensity bin.
     """
     min_value = np.min(rawframes_np)
     max_value = np.max(rawframes_np)
@@ -428,29 +428,30 @@ def CheckForSaturation(rawframes_np):
     plt.show(block = False)
     plt.pause(1)
     
-    ValidInput = False
-    while ValidInput == False:
-        IsSaturated = input('An intensity histogramm should be plotted. '
-                            'The highest intensity bin should not be a peak. '
-                            'If you see such a peak, you probably have saturation. '
-                            'Do you have saturation [y/n]?')
-        
-        if IsSaturated in ['y','n']:
-            ValidInput = True
-            if IsSaturated  == "y":
-                #Plot the coordinates where saturation happens the first time
-                is_saturated = rawframes_np == max_value
-                
-                pos_saturated = np.where(is_saturated)
-                
-                frame_saturated = np.sort(pos_saturated[0])
-                
-                print("\n\n First 10 frames where saturation occurs: ", frame_saturated[0:10])
-                
-                warnings.warn("\n \n Saturation suspected. Check your rawimages to find out if the are saturated \n")
-                
-        else:
-            print("enter y or n!")
+    if warnUser==True:
+        ValidInput = False
+        while ValidInput == False:
+            IsSaturated = input('An intensity histogram should be plotted. '
+                                'The highest intensity bin should not be a peak. '
+                                'If you see such a peak, you probably have saturation. '
+                                'Do you have saturation [y/n]?')
+            
+            if IsSaturated in ['y','n']:
+                ValidInput = True
+                if IsSaturated  == "y":
+                    #Plot the coordinates where saturation happens the first time
+                    is_saturated = rawframes_np == max_value
+                    
+                    pos_saturated = np.where(is_saturated)
+                    
+                    frame_saturated = np.sort(pos_saturated[0])
+                    
+                    print("\n\n First 10 frames where saturation occurs: ", frame_saturated[0:10])
+                    
+                    warnings.warn("\n \n Saturation suspected. Check your rawimages to find out if the are saturated \n")
+                    
+            else:
+                print("enter y or n!")
     
     
 
