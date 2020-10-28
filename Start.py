@@ -103,13 +103,13 @@ def NewEvaluation():
     settings["Exp"]["ExposureTime"]      = float(input("Exposure Time [ms] = ")) / 1000
     
     
-
-    
-    
-    print("Viscosity not inserted yet.")
-#    settings["Exp"]["Viscosity"] = float(input(: 9.5e-16,
-#    settings["Exp"]["Viscosity_auto"] = float(input(: 0,
-#    settings["Exp"]["solvent"] = input(: "water",
+    adjustT = input("Do you want to use \n[0] the default values for temperature (295.0 K), solvent (water) and viscosity (9.5e-16 Ns/um^2) \n[1] or adjust them?")
+    if adjustT == '1':
+        temp = 273.15 + float(input("Temperature [C] = "))
+        settings["Exp"]["Temperature"] = temp # [K]
+        solv = input("Solvent: ")
+        settings["Exp"]["solvent"] = solv
+        settings["Exp"]["Viscosity"] = nd.Experiment.GetViscosity(temp,solv)
 
 
     settings["Fiber"]["TubeDiameter_nm"] = float(input("Channel Diameter [um] = ")) * 1000
@@ -118,9 +118,9 @@ def NewEvaluation():
     settings["File"]["data_folder_name"] = os.path.normpath(data_folder_name)
     settings["File"]["data_type"]        = os.path.normpath(data_type)
 
-    print("Here come the help functions:")
+    # print("Here come the help functions:")
     
-    help_options = int(input("Which help functions do you want to use? \
+    help_options = int(input("\nWhich help functions do you want to use? \
             \n 0 - none \
             \n 1 - auto \
             \n 2 - select myself \n"))
@@ -175,7 +175,7 @@ def NewEvaluation():
     # save the stuff   
     nd.handle_data.WriteJson(mypath.replace("/","\\"), settings)    
 
-    print("Make slash and backslash right")
+    # print("Make slash and backslash right")
 
-    print("Go to \n{}\n in the explorer and open the py-script and json parameter file.".format(dir_results.replace("/","\\")))
+    print("\nGo to \n{}\n in the explorer and open the py-script and json parameter file.".format(dir_results.replace("/","\\")))
     

@@ -165,17 +165,6 @@ def ARHCF_HexToDiameter(side_length):
 
 
 
-def GetViscosity(temperature = 295.15, solvent = "Water"):
-    import CoolProp as CP
-    my_visc = CP.CoolProp.Props('V','T',temperature,'P',101.3,solvent)
-    
-    # units
-    my_visc = my_visc * 1e-12
-    
-    return my_visc
-
-
-
 def GetTrajLengthAndParticleNumber(t):
     """ extract ID and trajectory length of the particle with the longest trajectory
     
@@ -452,6 +441,24 @@ def CheckForSaturation(rawframes_np,warnUser=True):
                     
             else:
                 print("enter y or n!")
+                
+    
+
+def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
+    """ check if rawimages are saturated
+    
+    This is done by looking if the maximum value is 2^x with x an integer which sounds saturated
+    e.g. if the max value is 1024, this is suspicious
+    """
+    brightest_pixel = np.max(rawframes_np)
+    
+    # is it a multiple of 2^x ... if so it sounds saturated
+    hot_pixel = float(np.log2(brightest_pixel + 1)).is_integer()
+    if hot_pixel == True:
+        if ignore_saturation == False:
+            sys.exit("Your data seems to be saturated")
+        else:
+            print("Your data seems to be saturated - but you dont care...")
     
     
 
@@ -684,24 +691,6 @@ def percentile_rawframes(rawframes_np, percentile, display = False):
         plt.imshow(rawframes_percentile)
         
     return rawframes_percentile
-    
-
-    
-def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
-    """
-    Check if rawimages are saturated.
-    This is done by looking if the maximum value is 2^x with x an integer which sounds saturated
-    e.g. if the max value is 1024, this is suspicious
-    """
-    brightes_pixel = np.max(rawframes_np)
-    
-    # is it a multiple of 2^x ... if so it sounds saturated
-    hot_pixel = float(np.log2(brightes_pixel + 1)).is_integer()
-    if hot_pixel == True:
-        if ignore_saturation == False:
-            sys.exit("Your Data seems saturated")
-        else:
-            print("Your Data seems saturated - but you dont care...")
  
     
     
