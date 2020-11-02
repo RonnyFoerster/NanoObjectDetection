@@ -15,6 +15,36 @@ from pdb import set_trace as bp #debugger
 
 
 #here is the file for playing with new functions, debugging and so on
+def RollingMedianFilter(image, window = 11):
+
+    # check if window is odd
+    if (window%2) == 0:
+        raise ValueError("window size has to be odd")
+    
+    # window in one direction
+    a = int((window-1)/2)
+    
+    first_frame = a
+    last_frame = image.shape[0] - a
+    
+    valid_frames = np.arange(first_frame, last_frame)
+    
+    background = np.zeros_like(image, dtype = "double")
+    
+    #frame that does not exceed the winodw limit
+    for loop_frame in valid_frames:
+        # print(loop_frame)
+        background[loop_frame, : , :] = np.median(image[loop_frame-a:loop_frame+a, :, :], axis = 0)
+        
+    # handle frames at the beginning
+    background[:first_frame, : , :] = background[first_frame, : , :]
+    
+    # handle frames at the end
+    background[last_frame:, : , :] = background[last_frame, : , :]
+    
+    
+    return background
+
 
 
 def NewBGFilter(img):
