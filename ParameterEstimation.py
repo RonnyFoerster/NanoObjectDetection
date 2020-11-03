@@ -387,7 +387,10 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             wrong_found = wrong_found + num_particle_only_trackpy_finds
             
             # get the ratio of wrong to right assignments. This should be as small as possible
-            wrong_to_right =  wrong_found / right_found
+            if right_found > 0:
+                wrong_to_right =  wrong_found / right_found
+            else:
+                wrong_to_right  = np.inf
             
             wrong_to_right_save = np.append(wrong_to_right_save, wrong_to_right)
             minmass_save = np.append(minmass_save, minmass)
