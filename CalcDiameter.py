@@ -739,10 +739,6 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
     
 
 
-# 
-
-
-
 def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = False, 
                   lagtimes_min = 1, lagtimes_max = 2):
     """ calculate the mean of the squared displacement values for all lagtime values
@@ -751,17 +747,17 @@ def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = Fa
     Parameters
     ----------
     nan_tm_sq : TYPE
-        DESCRIPTION.
+        squared displacement value of each lagtime
     frames_per_second : TYPE
-        DESCRIPTION.
+        frames_per_second 
     my_rolling : TYPE, optional
         DESCRIPTION. The default is 100.
     DoRolling : bool, optional
-        DESCRIPTION. The default is False.
+        True if the msd shall be evaluated time dependent (rolling). The default is False.
     lagtimes_min : TYPE, optional
-        DESCRIPTION. The default is 1.
+        MSD fit starting point. The default is 1.
     lagtimes_max : TYPE, optional
-        DESCRIPTION. The default is 2.
+        MSD fit end point. The default is 2.
 
     Returns
     -------
@@ -819,6 +815,7 @@ def AvgMsdRolling(nan_tm_sq, frames_per_second, my_rolling = 100, DoRolling = Fa
             mean_displ_variance_direct_loop = nan_indi_means.var(axis=0) / (len_nan_tm_sq_loop-1)
             
             mean_displ_variance_direct[column] = mean_displ_variance_direct_loop
+
 
     else:   
         bp()
@@ -1276,13 +1273,32 @@ def rolling_with_step(s, window, step, func):
     # Defining a function that allows to calculate another function over a window of a series,
     # while the window moves with steps 
     # See https://github.com/pandas-dev/pandas/issues/15354
-    vert_idx_list = np.arange(0, s.size - window, step)
+    
+    # Idea: Reorder the 1d input (s) into a 2d array, in which each coloum contains the values inside the window the func shall be applied on. the rows are the different windows.
+    
+    # vert_idx_list = np.arange(0, s.size - window, step) # old version #30
+    
+    
+    # start index of window
+    vert_idx_list = np.arange(0, s.size - window + 1, step)
+    
+    # incremte in a window (this is the same for windows)
     hori_idx_list = np.arange(window)
+    
+    # get the indices in each window to apply the function on
     A, B = np.meshgrid(hori_idx_list, vert_idx_list)
     idx_array = A + B
+    
+    # get the values for the windows
     x_array = s.values[idx_array]
-    idx = s.index[vert_idx_list + int(window/2.)]
+    
+    # apply function
     d = func(x_array)
+    
+    # get the index of the MIDDLE of the window. thus the window is centered
+    idx = s.index[vert_idx_list + int(window/2.)]
+    
+    # return it as a pandas
     return pd.Series(d, index=idx)
 
 
