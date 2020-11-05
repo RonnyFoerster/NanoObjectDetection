@@ -739,43 +739,7 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
     
 
 
-def AvgMsd(nan_tm_sq, frames_per_second):
-    """ calculate the mean values of the squared displacement matrix for all lagtimes
-    
-    MN: obsolete function?!
-    """
-    mean_displ_direct = pd.Series() # To hold the mean sq displacement of a particle
-    mean_displ_variance_direct = pd.Series() # To hold the variance of the msd of a particle
-#    my_columns = nan_tm_sq.columns
-    
-    for column in nan_tm_sq.columns[1:]:
-        # That iterates over lag-times for the respective particle and
-        # calculates the msd in the following manner:
-        # 1. Build sub-blocks for statistically independent lag-time measurements
-        nan_indi_means = rolling_with_step(nan_tm_sq[column], column, column, mean_func)
-        
-        # 2. Calculate mean msd for the sublocks
-        mean_displ_direct_loop = nan_indi_means.mean(axis=0)
-        mean_displ_direct = mean_displ_direct.append(pd.Series(index=[column], data=[mean_displ_direct_loop]), sort=False)
-        
-        # 3. Check how many independent measurements are present (this number is used for filtering later. 
-        # Also the iteration is limited to anaylzing
-        # those lag-times only that can possibly yield enough entries according to the chosen filter). 
-        len_nan_tm_sq_loop = nan_indi_means.count()
-        
-        # 4. Calculate the mean of these sub-means --> that's the msd for each lag-time
-        # 5. Calculate the variance of these sub-means --> that's used for variance-based fitting 
-        # when determining the slope of msd over time
-        
-        mean_displ_variance_direct_loop = nan_indi_means.var(axis=0)*(2/(len_nan_tm_sq_loop-1))
-        mean_displ_variance_direct = mean_displ_variance_direct.append(pd.Series(index=[column], data=[mean_displ_variance_direct_loop]), sort=False)
-        
-        mean_displ_sigma_direct = np.sqrt(mean_displ_variance_direct)
-        
-    lagt_direct = mean_displ_direct.index/frames_per_second # converting frames into physical time: 
-    # first entry always starts with 1/frames_per_second
-    
-    return lagt_direct, mean_displ_direct, mean_displ_sigma_direct
+# 
 
 
 
@@ -1552,3 +1516,42 @@ def FitMeanDiameter(sizes_df_lin, settings):
 #     p_min = np.int(np.min(np.round([value_1, value_2])))
 
 #     return p_min
+
+
+# def AvgMsd(nan_tm_sq, frames_per_second):
+#     """ calculate the mean values of the squared displacement matrix for all lagtimes
+    
+#     MN: obsolete function?!
+#     """
+#     mean_displ_direct = pd.Series() # To hold the mean sq displacement of a particle
+#     mean_displ_variance_direct = pd.Series() # To hold the variance of the msd of a particle
+# #    my_columns = nan_tm_sq.columns
+    
+#     for column in nan_tm_sq.columns[1:]:
+#         # That iterates over lag-times for the respective particle and
+#         # calculates the msd in the following manner:
+#         # 1. Build sub-blocks for statistically independent lag-time measurements
+#         nan_indi_means = rolling_with_step(nan_tm_sq[column], column, column, mean_func)
+        
+#         # 2. Calculate mean msd for the sublocks
+#         mean_displ_direct_loop = nan_indi_means.mean(axis=0)
+#         mean_displ_direct = mean_displ_direct.append(pd.Series(index=[column], data=[mean_displ_direct_loop]), sort=False)
+        
+#         # 3. Check how many independent measurements are present (this number is used for filtering later. 
+#         # Also the iteration is limited to anaylzing
+#         # those lag-times only that can possibly yield enough entries according to the chosen filter). 
+#         len_nan_tm_sq_loop = nan_indi_means.count()
+        
+#         # 4. Calculate the mean of these sub-means --> that's the msd for each lag-time
+#         # 5. Calculate the variance of these sub-means --> that's used for variance-based fitting 
+#         # when determining the slope of msd over time
+        
+#         mean_displ_variance_direct_loop = nan_indi_means.var(axis=0)*(2/(len_nan_tm_sq_loop-1))
+#         mean_displ_variance_direct = mean_displ_variance_direct.append(pd.Series(index=[column], data=[mean_displ_variance_direct_loop]), sort=False)
+        
+#         mean_displ_sigma_direct = np.sqrt(mean_displ_variance_direct)
+        
+#     lagt_direct = mean_displ_direct.index/frames_per_second # converting frames into physical time: 
+#     # first entry always starts with 1/frames_per_second
+    
+#     return lagt_direct, mean_displ_direct, mean_displ_sigma_direct
