@@ -9,14 +9,31 @@ import matplotlib.pyplot as plt # libraries for plotting
 from matplotlib.animation import FuncAnimation
 from matplotlib.gridspec import GridSpec
 from pdb import set_trace as bp #debugger
-
+from joblib import Parallel, delayed
+import multiprocessing
 
 ## In[]
+def RollingMedianFilter_main(image, window = 11):
+    num_cores = multiprocessing.cpu_count()
+    
+    num_lines = image.shape[1]
+    
+    inputs = range(num_lines)
 
+    print("start median background filter - parallel")
+    background_list = Parallel(n_jobs=num_cores)(delayed(RollingMedianFilter)(image[:,loop_line,:].copy(), window) for loop_line in inputs)
+    print("finished median background filter - parallel")
+
+    background = np.asarray(background_list)
+    
+    background = np.swapaxes(background, 0, 1)
+    
+    return background
 
 #here is the file for playing with new functions, debugging and so on
 def RollingMedianFilter(image, window = 11):
-
+    print("start median background filter")
+    
     # check if window is odd
     if (window%2) == 0:
         raise ValueError("window size has to be odd")
@@ -33,14 +50,26 @@ def RollingMedianFilter(image, window = 11):
     
     #frame that does not exceed the winodw limit
     for loop_frame in valid_frames:
+        print("loop_frame : ", loop_frame)
         # print(loop_frame)
-        background[loop_frame, : , :] = np.median(image[loop_frame-a:loop_frame+a, :, :], axis = 0)
+        # background[loop_frame, : , :] = np.median(image[loop_frame-a:loop_frame+a, :, :], axis = 0)
+        
+        image_loop = image[loop_frame-a:loop_frame+a, :]
+
+        min_percentile = int(0.4*image_loop.shape[0])
+        max_percentile = int(0.6*image_loop.shape[0])
+            
+        background[loop_frame, :] = np.mean(np.sort(image_loop,axis = 0)[min_percentile:max_percentile,:],axis = 0)
+        
+        # background[loop_frame, :] = np.median(image[loop_frame-a:loop_frame+a, :], axis = 0)
         
     # handle frames at the beginning
-    background[:first_frame, : , :] = background[first_frame, : , :]
+    # background[:first_frame, : , :] = background[first_frame, : , :]
+    background[:first_frame, :] = background[first_frame, :]
     
     # handle frames at the end
-    background[last_frame:, : , :] = background[last_frame, : , :]
+    # background[last_frame:, : , :] = background[last_frame, : , :]
+    background[last_frame:, :] = background[last_frame, :]
     
     
     return background
