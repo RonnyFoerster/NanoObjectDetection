@@ -1311,7 +1311,7 @@ def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel =
 def rolling_with_step(s, window, step, func): 
     # Defining a function that allows to calculate another function over a window of a series,
     # while the window moves with steps 
-    # See https://ga7g08.github.io/2015/01/30/Applying-python-functions-in-moving-windows/
+    # See https://github.com/pandas-dev/pandas/issues/15354
     vert_idx_list = np.arange(0, s.size - window, step)
     hori_idx_list = np.arange(window)
     A, B = np.meshgrid(hori_idx_list, vert_idx_list)

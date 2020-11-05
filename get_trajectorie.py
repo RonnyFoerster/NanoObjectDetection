@@ -75,6 +75,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
               
             if ExternalSlider == False:
                 # output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, processes = 'auto', percentile = percentile)
+                
                 output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile)
             else:
 #                output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
