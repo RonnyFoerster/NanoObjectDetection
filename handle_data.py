@@ -44,8 +44,8 @@ def ReadJson(mypath, CreateNew = False):
         comp2 = mypath.lower()
         if comp1 != comp2:
             if CreateNew == False:
-                print(comp1)
-                print(comp2)
+                print("\n json path: \n", comp1)
+                print("\n given path: \n", comp2)
                 sys.exit("Given Json path does not match defined path in json file! ,\
                          You might wanna delete the 'settings' row entirely from the json file.")
             else:

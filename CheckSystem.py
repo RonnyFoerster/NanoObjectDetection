@@ -92,7 +92,7 @@ def CheckJson(ParameterJsonFile):
 
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
     except:
-        print("No Json File found in >> {} <<".format(ParameterJsonFile))
+        print("\n No Json File found in >> {} <<".format(ParameterJsonFile))
 
         CopyJson = input("Copy standard json (y/n)? ")
         if CopyJson == 'y':
