@@ -401,7 +401,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     
     # select first 100 frames, otherwise the following calcuation takes to long
     if len(frames) > 10:
-        use_frames = frames[0:100]
+        use_frames = frames[0:10]
     else:
         use_frames = frames
     
