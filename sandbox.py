@@ -256,55 +256,83 @@ def DiameterOverTrajLengthColored(ParameterJsonFile, sizes_df_lin,
 
 
 
-def AnimateTracksOnRawData(t2_long,rawframes_ROI,settings,frm_start=0):#, gamma=0.5):
+def AnimateTracksOnRawData(t2_long,rawframes_ROI,settings,max_frm=100,frm_start=0,gamma=1.0):
     """ animate trajectories on top of raw data
     
     to do:
+        - reduce ROI to actually necessary section
+        - cut history of tracks for frames < frm_start
+        - check if trajectory data and rawframes match (?)
         - make starting frame free to choose
         - implement gamma transform that does not blow up the file size by a factor of 10!!
         - choose traj. color by length/mass/size/...?
+        - convert from px to um (optionally)
 """
     rawframes_gam = rawframes_ROI.copy()
-    # rawframes_gam = 2**16 * (rawframes_gam/2**16)**gamma # for 16bit images
-    # rawframes_gam = np.uint16(rawframes_gam)
-    
-    amnt_f,y_len,x_len = rawframes_ROI.shape
-    fps = settings["Exp"]["fps"]
-    
-    fig,ax = plt.subplots(1,figsize=plt.figaspect(y_len/x_len))
-    cm_prism = plt.get_cmap('prism')
+    if gamma != 1.0:
+        rawframes_gam = 2**16 * (rawframes_gam/2**16)**gamma # for 16bit images
+        rawframes_gam = np.uint16(rawframes_gam)
+        
+    fps = settings["Exp"]["fps"]    
+    # get rawframes' dimensions
+    _,y_len_raw,x_len_raw = rawframes_ROI.shape
     
     # prepare the data
     trajdata = t2_long.copy() 
+    frm0 = trajdata.frame.min()
+    frmMax = trajdata.frame.max()
+    amnt_f = frmMax - frm0 + 1
+    if amnt_f > max_frm:
+        amnt_f = max_frm
+        # track = track[track.frame <= amnt_f]  
+    
+    # get trajectory dimensions for plotting (and add 15px to have it more centered)
+    xMin = int(trajdata.x.min() - 15)
+    if xMin < 0:
+        xMin = 0
+    xMax = int(trajdata.x.max() + 15)
+    if xMax > x_len_raw:
+        xMax = x_len_raw
+    x_len = xMax - xMin
+    
+    # make DataFrame a bit slimmer
     trajdata = trajdata.set_index(['frame'])
     trajdata = trajdata.drop(columns=['mass', 'size', 'ecc', 'signal', 'raw_mass', 'ep', 'abstime'])
     
+    # prepare plotting
+    fig,ax = plt.subplots(1,figsize=plt.figaspect(y_len_raw/x_len))
+    cm_prism = plt.get_cmap('prism')
     
-    raw_img = ax.imshow(rawframes_gam[0,:,:], cmap='gray', aspect="equal",
+    raw_img = ax.imshow(rawframes_gam[frm0,:,xMin:xMax], cmap='gray', aspect="equal",
                         animated=True)
+    ax.set(xlabel='x [px]', ylabel='y [px]',
+           ylim=[y_len_raw-1,0] ) # invert limits of y-axis!
+    ax_t = ax.twiny()
+    ax_t.set(xlim=[xMin,xMax-1])#,ylim=[70,0])
+    # initialize plots for all particles in the whole video
+    trajplots = [ax_t.plot([],[],'-',color=cm_prism(part_id),
+                           animated=True
+                           )[0] for part_id in trajdata.particle.unique()]
+    
     # heading = ax.annotate("", (5,10), animated=True,
     #                       bbox=dict(boxstyle="round", fc="white", alpha=0.3, lw=0) )
-    # initialize plots for all particles in the whole video
-    trajplots = [ax.plot([],[],'-',color=cm_prism(part_id),
-                         animated=True
-                         )[0] for part_id in trajdata.particle.unique()]
-    
-    ax.set(xlabel='x [px]', ylabel='y [px]',
-           xlim=[0,x_len-1], ylim=[y_len-1,0] ) # invert limits of y-axis!
+
     # fig.tight_layout() 
     
-    def init_tracks():
-        raw_img.set_data(rawframes_gam[0,:,:])
+    # def init_tracks():
+    #     raw_img.set_data(rawframes_gam[0,:,:])
         
-        for tplot in trajplots:
-            tplot.set_data([],[])
+    #     for tplot in trajplots:
+    #         tplot.set_data([],[])
         
-        # heading.set_text("")
-        # ax.set(title='frame: {}, time: {}s'.format(frm_start,time_start))
-        # return raw_img, trajplots #,heading
+    #     # heading.set_text("")
+    #     # ax.set(title='frame: {}, time: {}s'.format(frm_start,time_start))
+    #     # return raw_img, trajplots #,heading
     
-    def update_frame(frm): #,trajdata): #,trajplots):
-        raw_img.set_data(rawframes_gam[frm,:,:])
+    def update_frame(frmN, rawframes_gam, raw_img, trajdata, trajplots): #
+        frm = frmN + frm0 # if frm0!=0, we have to add it as offset
+        
+        raw_img.set_data(rawframes_gam[frm,:,xMin:xMax])
         
         # update all trajectory plots individually
         for traj,tplot in zip(trajdata.groupby('particle'),trajplots): 
@@ -313,18 +341,22 @@ def AnimateTracksOnRawData(t2_long,rawframes_ROI,settings,frm_start=0):#, gamma=
             
             # check if current frame adds a trajectory point
             if frm in trajdf.index: 
-                tplot.set_data(trajdf.loc[:frm+1].x, trajdf.loc[:frm+1].y)
+                tplot.set_data(trajdf.loc[:frm+1].x.values, trajdf.loc[:frm+1].y.values) 
         
         time = 1000*frm/fps # ms
         # heading.set_text("frame: {}\ntime: {:.1f} ms".format(frm,time))
         ax.set_title("frame: {}, time: {:.1f} ms".format(frm,time))
         
-        return raw_img, trajplots#, heading
+        return raw_img, trajplots#, heading 
     
-    traj_ani = FuncAnimation(fig, update_frame, init_func=init_tracks, 
-                             frames=amnt_f, #fargs=(trajdata),#, trajplots),
-                             interval=70, blit=False, repeat=False)
+    traj_ani = FuncAnimation(fig, update_frame, #init_func=init_tracks, 
+                             frames=amnt_f, 
+                             fargs=(rawframes_gam, raw_img, trajdata, trajplots),
+                             interval=200, blit=False, repeat=False)
     return traj_ani
+
+""" why are not all trajectories plotted? """
+
 
 # anim2 = AnimateTracksOnRawData(t2_long,rawframes_ROI,settings)
 # anim2.save('Au50_raw+tracks_1000frames.mp4')

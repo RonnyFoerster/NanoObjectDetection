@@ -86,7 +86,7 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
             plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha, color = Color)
             
         if FillArea == True:
-            plt.fill_between(x_np,y_np, y2 = 0, color = Color)
+            plt.fill_between(x_np,y_np, y2 = 0, color = Color, alpha=0.7)
     else:
         plt.semilogx(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
         import matplotlib.ticker
@@ -152,8 +152,9 @@ def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None, ShowColorBa
     
 
 def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
-    """ plot and/or save diameter histogram (or other statistics) for analyzed particles """
-    
+    """ plot and/or save diameter histogram (or other statistics) for analyzed particles 
+    (main function)
+    """
     import NanoObjectDetection as nd
     
     # check for NaN values in DataFrame
@@ -644,6 +645,8 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
         
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
+    
+    return prob_inv_diam
 
 
 
