@@ -66,7 +66,7 @@ def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None, settings = No
     
     
     if settings != None:
-        nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings, data = plot_np)
+        nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings, data = plot_np)
 
 
 
@@ -375,7 +375,7 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     nd.visualize.PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
   
     if Histogramm_Save == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings,
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings,
                                        data = sizes_df_lin)
         
         
@@ -548,7 +548,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
 
     
     if Histogramm_Save == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter Histogramm", settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
         
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
@@ -637,11 +637,11 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
     if DiameterPDF_Save == True:
         save_folder_name = settings["Plot"]["SaveFolder"]
         
-        settings = nd.visualize.export(save_folder_name, "Diameter Probability", settings,
+        settings = nd.visualize.export(save_folder_name, "Diameter_Probability", settings,
                                        data = sizes_df_lin, ShowPlot = DiameterPDF_Show)
         
         data = np.transpose(np.asarray([diam_grid, prob_inv_diam]))
-        nd.visualize.save_plot_points(data, save_folder_name, 'Diameter Probability Data')
+        nd.visualize.save_plot_points(data, save_folder_name, 'Diameter_Probability_Data')
         
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
@@ -763,6 +763,10 @@ def CreateFileAndFolderName(folder_name, file_name, d_type = 'png'):
     
     dir_name = '%s\\{date:%y%m%d}\\'.format( date=datetime.datetime.now()) %folder_name
 
+    if len(dir_name) > 259:
+        print("\n directory name: \n", dir_name)
+        raise ValueError ("directory name to long for windows!")
+
     try:
         os.stat(dir_name)
     except:
@@ -775,6 +779,10 @@ def CreateFileAndFolderName(folder_name, file_name, d_type = 'png'):
     file_name_image = file_name_image + '.' + d_type
     
     entire_path = dir_name +  file_name_image
+
+    if len(entire_path) > 259:
+        print("\n entire path: \n", entire_path)
+        raise ValueError ("full path to long name to long for windows!")
 
     return dir_name, entire_path, time_string
 
@@ -1123,7 +1131,7 @@ def PlotGlobalDrift(d,settings,save=True):
     
     if save==True:
         save_folder_name = settings["Plot"]["SaveFolder"]
-        settings = nd.visualize.export(save_folder_name, "Global Drift", settings)
+        settings = nd.visualize.export(save_folder_name, "Global_Drift", settings)
     
    
     

@@ -132,7 +132,7 @@ def RemoveLaserfluctuation(rawframes_np, settings):
 
 
     if Laserfluctuation_Save == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Intensity Fluctuations", \
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Intensity_Fluctuations", \
                                        settings, data = rel_intensity, data_header = "Intensity Fluctuations")
         
     print('Laser fluctuations: removed')

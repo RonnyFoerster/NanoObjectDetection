@@ -220,7 +220,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
             sizes_df_lin_rolling = "Undone"
     
         if MSD_fit_Save == True:
-            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD Fit", settings, ShowPlot = settings["Plot"]["MSD_fit_Show"])
+            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD_Fit", settings, ShowPlot = settings["Plot"]["MSD_fit_Show"])
         
         if settings["Plot"]["save_data2csv"] == True:
             save_folder_name = settings["Plot"]["SaveFolder"]
