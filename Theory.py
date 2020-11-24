@@ -19,6 +19,17 @@ from scipy.constants import pi as pi
 from scipy.constants import speed_of_light as c
 
 
+def CRLB(N,x):
+    # Number of frames
+    # x reduced localization precision
+    
+    # Theoretical minimum values of eps = std(D)/D
+    # (Michalet & Berglund, 2012)
+    
+    eps = np.sqrt(2/(N-1) * (1+2*np.sqrt(1+2*x)))
+    
+    return eps
+
 
 def StokesEinsteinEquation(diff = None, diam = None, temp_water = 295, visc_water = 9.5E-16):
     """ solves the Stokes-Einstein equation either for the diffusion coefficient or the 

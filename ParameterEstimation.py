@@ -395,7 +395,6 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             wrong_to_right_save = np.append(wrong_to_right_save, wrong_to_right)
             minmass_save = np.append(minmass_save, minmass)
             
-                
             print("\n minmass: ", minmass)
             
             print("Found particles (trackpy): ", num_particles_trackpy)

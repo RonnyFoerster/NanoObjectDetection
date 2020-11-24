@@ -520,17 +520,20 @@ def UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_
     method from Michalet 2012
     """
     # Eq B3 and 4
-    L_a = 3 + np.sqrt(4.5*np.power(amount_frames_lagt1, 0.4) - 8.5)
+    # L_a = 3 + np.sqrt(4.5*np.power(amount_frames_lagt1, 0.4) - 8.5) #error in exponent 201124 RF
+    L_a = 3 + np.power(4.5*np.power(amount_frames_lagt1, 0.4) - 8.5, 1.2)
+    
     L_b = 0.8 + 0.564 * amount_frames_lagt1
 
     # change maximal lagtime if slope or offset is negativ (Michalet2012)
     if msd_fit_para[0] < 0:
         # negative slope
         lagtimes_max = np.array([L_a, L_b], dtype = 'int')
-       
-    elif msd_fit_para[1] < 0:
-        # negative offset
-        lagtimes_max = [2,2]
+ 
+    # negative offset is not a problem. it arises from the motion blur
+    # elif msd_fit_para[1] < 0:
+    #     # negative offset
+    #     lagtimes_max = [2,2]
         
     else:
         #calculate best considered maximal lagtime
@@ -540,13 +543,20 @@ def UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_
         t_frame = 1 / settings["Exp"]["fps"]
         
         red_x = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], t_frame)
-        
+
+        # set it to zero if negative
+        if red_x < 0:
+            red_x = 0
+
         # for the offset - Eq. B3
         f_a = 2 + 1.6 * np.power(red_x, 0.51)        
         
         p_min_a = (f_a*L_a) / (np.power((f_a**3) + (L_a**3),1/3))
         p_min_a = np.floor(p_min_a)    
 
+        # 2 points are required at least
+        if p_min_a < 2:
+            p_min_a = 2
         
         # for the slope - Eq. B4
         f_b = 2 + 1.35 * np.power(red_x, 0.6)
@@ -556,6 +566,9 @@ def UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_
            
         p_min_b = np.floor(np.min([value_1, value_2]))
         
+        # 2 points are required at least
+        if p_min_b < 2:
+            p_min_b = 2
         
         lagtimes_max = np.array([p_min_a, p_min_b], dtype = 'int')
 
@@ -575,8 +588,8 @@ def RedXOutOfMsdFit(slope, offset, t_frame):
     
     red_x = offset / (t_frame*slope)
     
-    if red_x < 0:
-        red_x = 0
+    # if red_x < 0:
+    #     red_x = 0
         
     return red_x
 
@@ -1159,8 +1172,10 @@ def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
     lambda_nm = settings["Exp"]["lambda"]
     gain = settings["Exp"]["gain"]
     
-    rayleigh_nm = 2 * 0.61 * lambda_nm / NA
-    rayleigh_um = rayleigh_nm / 1000
+    # rayleigh_nm = 2 * 0.61 * lambda_nm / NA
+    # rayleigh_um = rayleigh_nm / 1000
+    
+    sigma_um = 0.21 * lambda_nm / NA / 1000
     
     # we use rayleigh as resolution of the system
     # 2* because it is coherent
@@ -1172,19 +1187,24 @@ def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
 #        num_photons = raw_mass / gain
         num_photons = raw_mass * gain #gain in photoelectron/ADU
         
-        static_local_precision_um = rayleigh_um / np.power(num_photons ,1/2)
+        # old with rayleigh limit
+        # static_local_precision_um = rayleigh_um / np.power(num_photons ,1/2)
 
-        # Eq. 13:
-        red_x = np.power(static_local_precision_um,2) / (diffusion * lagtime_s) \
-        * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
-        - 1/3 * (exposure_time_s / lagtime_s)
-    
     #    red_x = np.power(local_precision_um,2) / (diffusion * lagtime_s) \
     #    * (1 + (diffusion * exposure_time_s / np.power(rayleigh_um,2))) \
     #    - 1/3 * (exposure_time_s / lagtime_s)
+
+    
+        static_local_precision_um = sigma_um / np.power(num_photons ,1/2)
+
+        # Eq. 13:
+        red_x = np.power(static_local_precision_um,2) / (diffusion * lagtime_s) \
+        * (1 + (diffusion * exposure_time_s / np.power(sigma_um,2))) \
+        - 1/3 * (exposure_time_s / lagtime_s)
+    
         
-        if red_x < 0:
-            red_x = 0
+        # if red_x < 0:
+        #     red_x = 0
     
     
     return red_x
