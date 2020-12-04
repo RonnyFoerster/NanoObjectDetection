@@ -1175,7 +1175,7 @@ def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
     # rayleigh_nm = 2 * 0.61 * lambda_nm / NA
     # rayleigh_um = rayleigh_nm / 1000
     
-    sigma_um = 0.21 * lambda_nm / NA / 1000
+    sigma_um = nd.Theory.SigmaPSF(NA, lambda_nm / 1000)
     
     # we use rayleigh as resolution of the system
     # 2* because it is coherent

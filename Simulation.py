@@ -24,6 +24,7 @@ from numpy import pi
 import scipy
 import scipy.signal
 from scipy.constants import Boltzmann as k_b
+from scipy.constants import pi
 
 import time
 from joblib import Parallel, delayed
@@ -47,11 +48,22 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
         RatioDroppedFrames  = settings["Simulation"]["RatioDroppedFrames"]
         EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
         mass                = settings["Simulation"]["mass"]        
+        Photons             = settings["Simulation"]["Photons"]        
+
         
         frames_per_second   = settings["Exp"]["fps"]
         microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
         temp_water          = settings["Exp"]["Temperature"]
 
+        # NA = settings["Exp"]["NA"]
+        # my_lambda = settings["Exp"]["lambda"]
+        
+        # #sigma PSF in nm
+        # sigma_PSF = nd.Theory.SigmaPSF(NA, my_lambda)
+
+        # diffusion = nd.Theory.StokesEinsteinEquation(diam = None, temp_water = 295, visc_water = 9.5E-16)
+
+        # ep = nd.theory.LocalError(sigma_PSF, diffusion, t_exp, photons)
 
         solvent = settings["Exp"]["solvent"]
         
@@ -62,7 +74,7 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
             visc_water = settings["Exp"]["Viscosity"]
 
     
-    output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, RatioDroppedFrames = RatioDroppedFrames, ep = EstimationPrecision, mass = mass,                                               microns_per_pixel = microns_per_pixel, temp_water = temp_water, visc_water = visc_water)
+    output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, ep = EstimationPrecision, mass = mass, microns_per_pixel = microns_per_pixel, temp_water = temp_water, visc_water = visc_water)
             
           
     if ParameterJsonFile != None:
@@ -72,13 +84,13 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
     return output
    
 
-def CalcDiffusionCoefficent(radius_m, temp_water = 293, visc_water = 0.001):
-    diffusion = (k_b*temp_water)/(6*math.pi *visc_water * radius_m) # [um^2/s]
+# def CalcDiffusionCoefficent(radius_m, temp_water = 293, visc_water = 0.001):
+#     diffusion = (k_b*temp_water)/(6*math.pi *visc_water * radius_m) # [um^2/s]
     
-    return diffusion
+#     return diffusion
 
 
-def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp = 0, num_microsteps = 1, RatioDroppedFrames = 0, ep = 0, mass = 1, microns_per_pixel = 0.477, temp_water = 295, visc_water = 9.5e-16, PrintParameter = True, start_pos = None):
+def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp = 0, num_microsteps = 1, ep = 0, mass = 1, microns_per_pixel = 0.477, temp_water = 295, visc_water = 9.5e-16, PrintParameter = True, start_pos = None):
     """ simulate a random walk of Brownian diffusion and return it as Pandas.DataFrame
     object as if it came from real data:
         
@@ -110,12 +122,11 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
               \n visc_water = {}" \
               .format(diameter,num_particles,frames,frames_per_second, t_exp, ep,mass,\
               microns_per_pixel,temp_water,visc_water))
-    
-    const_Boltz = k_b
 
     radius_m = diameter/2 * 1e-9 # in m
+    
     # diffusion constant of the simulated particle (Stokes-Einstein eq.)
-    sim_part_diff = (const_Boltz*temp_water)/(6*math.pi *visc_water * radius_m) # [um^2/s]
+    sim_part_diff = (k_b*temp_water)/(6*pi *visc_water * radius_m) # [um^2/s]
 
     print("Diffusion coefficent: ", sim_part_diff)
 
@@ -123,46 +134,52 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     # exposure time of a microstep
     t_exp_step = t_exp / num_microsteps
 
+    # time one frame is long
     t_frame = 1/frames_per_second
     
     #readout time
     t_readout = t_frame - t_exp
     
-    # sigma of diffusion in a microstep during exposure
+    # sigma of diffusion in a microstep during exposure in um
     sim_part_sigma_um_step = np.sqrt(2*sim_part_diff * t_exp_step)
+    
+    # convert to px
     sim_part_sigma_x_step = sim_part_sigma_um_step / microns_per_pixel 
     
-    # sigma of diffusion during readout
+    # sigma of diffusion during readout in um
     sim_part_sigma_um_readout = np.sqrt(2*sim_part_diff * t_readout)
+    
+    # convert to px
     sim_part_sigma_x_readout = sim_part_sigma_um_readout / microns_per_pixel 
     
-    # [pixel/frame] st.deviation for simulated particle's x-movement (in pixel units!)
+    # std of random walk for one frame. it consists of num_microsteps diffusion steps during the exposure with a std of sim_part_sigma_x_step and one diffusion step during readout
     sim_part_sigma_x_microstep = np.append(np.repeat(sim_part_sigma_x_step, num_microsteps), sim_part_sigma_x_readout)
     
-    # for later cumsum save if a step is exposed or not (read out)
+    # for later cumsum save if a step is exposed (visible) or readout (invisible)
     step_mode = np.append(np.repeat("exp", num_microsteps), "readout")
     
+    # copy the diffusion std and mode for all frames and particles
     sim_part_sigma_x = np.tile(sim_part_sigma_x_microstep, frames * num_particles)
     step_mode  = np.tile(step_mode , frames * num_particles)
     
-    #create emply dataframe of correct size
-    # number of required random walks
+    # number of required random walks per frame (including the readout walk)
     steps_per_frame = num_microsteps+1
+    
+    # number of random walks
     num_elements = steps_per_frame * frames * num_particles
+    
+    # here we save the random walks into
     sim_part = pd.DataFrame(columns = ["frame", "particle", "step", "dx", "x", "dy", "y"], index = range(0,num_elements))
 
-    # # generate list to hold frames:
-    # sim_part_frame=[]
-    # for sim_frame in range(frames):
-    #     sim_part_frame.append(sim_frame)
-    # sim_part_frame_list=sim_part_frame*num_particles
-    
+    # create frame number
     frame_numbers = np.arange(0,frames)
-    frame_microsteps = np.repeat(frame_numbers, steps_per_frame)   
+    
+    # each frame number is repeated steps_per_frame due to microsteps and readout
+    frame_microsteps = np.repeat(frame_numbers, steps_per_frame)
+    
+    # procedure is repeated for all particles
     frame_tot = np.tile(frame_microsteps, num_particles)   
-    
-    frame_no_microsteps = np.tile(frame_numbers, num_particles)   
-    
+        
     sim_part["frame"] = frame_tot
 
     #fill the particle row
@@ -179,30 +196,37 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
     sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
     
-    # make a cumsum over time for every particle induvidual
+    # sum up the induvidual steps over time via a cumsum to get the particles position over time
     sim_part["x"] = sim_part[["particle", "dx"]].groupby("particle").cumsum()
     sim_part["y"] = sim_part[["particle", "dy"]].groupby("particle").cumsum()
     
-    # move every trajectory to starting position
+    # move every trajectory to starting position, if provided
     if (start_pos is None) == False:
         sim_part["x"] = sim_part["x"] + np.repeat(start_pos[:,0],frames)
         sim_part["y"] = sim_part["y"] + np.repeat(start_pos[:,1],frames)
     
-    #average of microsteps position in each frame and particle
+    # average of microsteps position in each frame and particle. this is where the center of mass of the localization is
     pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()[["x","y"]]
+      
+    # variance of the localization
+    pos_var = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).var()[["x","y"]]
     
-    # select positions within each microstep
-    pos_micro = sim_part[sim_part.step == "exp"].set_index(["particle","frame"])[["x","y"]]
+    # only one var for x and y - not sure here - maybe no y would be better
+    pos_var = (pos_var["x"] + pos_var["y"]) / 2
     
-    # variance of a mixture distribution
-    motion_var = (pos_micro**2 - pos_avg**2).groupby(["particle", "frame"]).mean()
+    ep = ep*1E6 / microns_per_pixel
     
-    motion_ep = np.sqrt(ep**2 + motion_var)
-        
+    # the unvertainty of the movement and the photon limited localization noise is convolved. the convolution of two gaussians is a gaussian with var_prod = var1 + var2
+    motion_ep = np.sqrt(ep**2 + pos_var)
+
+     
     sim_part_tm = pos_avg.reset_index()
 
     sim_part_tm["mass"] =mass
-    sim_part_tm['ep'] = ep
+    #sim_part_tm['ep'] = ep
+    
+    sim_part_tm['ep'] = motion_ep.values
+    
     sim_part_tm["size"] = 0
     sim_part_tm["ecc"] = 0
     sim_part_tm["signal"] = 0
@@ -210,25 +234,11 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     sim_part_tm["rel_step"] = mass
     sim_part_tm["abstime"] = sim_part_tm["frame"] * t_frame
     
-    # sim_part_tm=pd.DataFrame({'x': pos_avg["x"], \
-    #                       # 'dx' :sim_part["dx"], \
-    #                       'y': pos_avg["y"],  \
-    #                       # 'dy': sim_part["dy"],  \
-    #                       'mass': mass,  \
-    #                       'ep': 0,  \
-    #                       'frame': frame_no_microsteps,  \
-    #                       'particle': sim_part["particle"],  \
-    #                       "size": 0, \
-    #                       "ecc": 0, \
-    #                       "signal": 0, \
-    #                       "raw_mass": mass,})
-       
-
-    if ep > 0:
-        sim_part_tm.x = sim_part_tm.x + np.random.normal(0,ep,len(sim_part_tm.x))
-        sim_part_tm.y = sim_part_tm.y + np.random.normal(0,ep,len(sim_part_tm.x))
-    
-    
+  
+    #insert localization accuracy to theoretical know position
+    if np.max(motion_ep) > 0:
+        sim_part_tm.x = sim_part_tm.x + np.random.normal(0,motion_ep)
+        sim_part_tm.y = sim_part_tm.y + np.random.normal(0,motion_ep)
 
     
     return sim_part_tm

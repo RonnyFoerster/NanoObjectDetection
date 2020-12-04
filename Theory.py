@@ -19,6 +19,18 @@ from scipy.constants import pi as pi
 from scipy.constants import speed_of_light as c
 
 
+def SigmaPSF(NA, mylambda):
+    # Zhang et al 2007
+    sigma = 0.21 * mylambda/ NA
+    
+    return sigma
+
+    
+def LocalError(sigma_psf, diffusion, t_exp, photons):
+    ep = np.sqrt((sigma_psf**2 + diffusion*t_exp)/photons) 
+
+    return ep
+
 def CRLB(N,x):
     # Number of frames
     # x reduced localization precision
@@ -35,9 +47,12 @@ def StokesEinsteinEquation(diff = None, diam = None, temp_water = 295, visc_wate
     """ solves the Stokes-Einstein equation either for the diffusion coefficient or the 
     hydrodynamic diameter of a particle
     
-    diff:   diffusion coefficient [um^2/s]
-    diam:   particle diameter [um]    
+    diff:   diffusion coefficient [m^2/s]
+    diam:   particle diameter [m]    
     """
+    
+    # into SI unit mPa*s
+    visc_water = visc_water * 1E12
     
     if (diff == None) and (diam == None):
         raise ValueError('Either diffusion or diameter must be >NONE<')
