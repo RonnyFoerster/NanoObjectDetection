@@ -432,6 +432,10 @@ def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
         lagtimes_min = 1
         lagtimes_max = np.int(len(eval_tm)/10)
         
+        # lagtimes must be 2 at least
+        if lagtimes_max == 1:
+            lagtimes_max = 2
+        
         print("Currently considered lagtimes (offset, slope):", lagtimes_max)              
     else:
         max_counter = 1
@@ -586,10 +590,14 @@ def UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_
 def RedXOutOfMsdFit(slope, offset, t_frame):
     # calculated reduced localication accuracy out of the fitting parameters
     
+    # Michalet 2012 using Eq 4 in offset of Eq 10
+    
     red_x = offset / (t_frame*slope)
     
-    # if red_x < 0:
-    #     red_x = 0
+    # do not allow theoretical unalloed x
+    # look at defintion of x. minimum of x is achieved with sigma^2 = 0 and R maximum = 1/4
+    if red_x < (-1/2):
+        red_x = -1/2
         
     return red_x
 
@@ -1234,7 +1242,10 @@ def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, D
         # Eq. 12
         d = 1
 
-        rel_error = np.sqrt(2/(d*(traj_length-1))) * np.sqrt(1+2*np.sqrt(1+2*red_x))
+        # rel_error = np.sqrt(2/(d*(traj_length-1))) * np.sqrt(1+2*np.sqrt(1+2*red_x))
+        
+        # rel. error is well approximated by CRLB for optimized least square fit (Michatelet)
+        rel_error = nd.Theory.CRLB(traj_length, red_x)
     
     else:
         #Foerster2019 ARHCF-paper

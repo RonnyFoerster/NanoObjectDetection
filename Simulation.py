@@ -115,13 +115,13 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
               \n frames = {} \
               \n frames_per_second = {} \
               \n exposure time = {} \
+              \n number of microsteps = {} \
               \n ep = {} \
               \n mass = {} \
               \n microns_per_pixel = {} \
               \n temp_water = {} \
               \n visc_water = {}" \
-              .format(diameter,num_particles,frames,frames_per_second, t_exp, ep,mass,\
-              microns_per_pixel,temp_water,visc_water))
+              .format(diameter, num_particles, frames, frames_per_second, t_exp,  num_microsteps, ep, mass, microns_per_pixel, temp_water, visc_water))
 
     radius_m = diameter/2 * 1e-9 # in m
     
@@ -211,21 +211,24 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     # variance of the localization
     pos_var = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).var()[["x","y"]]
     
-    # only one var for x and y - not sure here - maybe no y would be better
-    pos_var = (pos_var["x"] + pos_var["y"]) / 2
-    
     ep = ep*1E6 / microns_per_pixel
-    
-    # the unvertainty of the movement and the photon limited localization noise is convolved. the convolution of two gaussians is a gaussian with var_prod = var1 + var2
-    motion_ep = np.sqrt(ep**2 + pos_var)
+    # only one var for x and y - not sure here - maybe no y would be better
+    if num_microsteps > 1:
+        pos_var = (pos_var["x"] + pos_var["y"]) / 2
+        # the uncertainty of the movement and the photon limited localization noise is convolved. the convolution of two gaussians is a gaussian with var_prod = var1 + var2
+        motion_ep = np.sqrt(ep**2 + pos_var)
+        motion_ep = motion_ep.values
+        
+    else:
+        motion_ep = ep
 
-     
+
     sim_part_tm = pos_avg.reset_index()
 
     sim_part_tm["mass"] =mass
     #sim_part_tm['ep'] = ep
     
-    sim_part_tm['ep'] = motion_ep.values
+    sim_part_tm['ep'] = motion_ep
     
     sim_part_tm["size"] = 0
     sim_part_tm["ecc"] = 0
@@ -237,8 +240,8 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
   
     #insert localization accuracy to theoretical know position
     if np.max(motion_ep) > 0:
-        sim_part_tm.x = sim_part_tm.x + np.random.normal(0,motion_ep)
-        sim_part_tm.y = sim_part_tm.y + np.random.normal(0,motion_ep)
+        sim_part_tm.x = sim_part_tm.x + np.random.normal(0, sim_part_tm.ep)
+        sim_part_tm.y = sim_part_tm.y + np.random.normal(0, sim_part_tm.ep)
 
     
     return sim_part_tm
