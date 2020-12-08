@@ -33,7 +33,7 @@ import multiprocessing
 import trackpy as tp
 
 # In[Functions]
-def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 1, frames = 100, RatioDroppedFrames = 0, EstimationPrecision = 0, mass = 0, frames_per_second = 100, microns_per_pixel = 1, temp_water = 293, visc_water = 9.5e-16):
+def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 1, frames = 100, RatioDroppedFrames = 0, EstimationPrecision = 0, mass = 0, frames_per_second = 100, microns_per_pixel = 1, temp_water = 293, visc_water = 9.5e-16, seed_startpos=None, oldSim=False):
     """ configure the parameters for a randowm walk out of a JSON file, and generate 
     it in a DataFrame
     """
@@ -67,14 +67,42 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
 
         solvent = settings["Exp"]["solvent"]
         
+        FoVheight           = settings["Fiber"]["TubeDiameter_nm"]*0.001 /microns_per_pixel # px
+        
+        try:
+            FoVlength       = settings["Simulation"]["FoVlength"] # px
+        except KeyError:
+            print('FoV length not found in json parameter file. Take default value: 1000px')
+            FoVlength = 1000
+
+        
         if settings["Exp"]["Viscosity_auto"] == 1:
             visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
             bp()
         else:
             visc_water = settings["Exp"]["Viscosity"]
-
     
-    output = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, ep = EstimationPrecision, mass = mass, microns_per_pixel = microns_per_pixel, temp_water = temp_water, visc_water = visc_water)
+
+    start_pos=None
+    if not(seed_startpos is None):
+        # initialize a random generator with fixed seed
+        rng=np.random.default_rng(seed_startpos)
+        # create random trajectory starting points, uniformly distributed within the FoV
+        start_pos_x = FoVlength * rng.random(num_particles)
+        start_pos_y = FoVheight * rng.random(num_particles)
+        start_pos = np.column_stack((start_pos_x, start_pos_y)) # px
+    
+    if oldSim==True:
+        output = GenerateRandomWalk_old(diameter, num_particles, frames, frames_per_second,
+                                        ep = EstimationPrecision,
+                                        mass = mass, microns_per_pixel = microns_per_pixel, 
+                                        temp_water = temp_water, visc_water = visc_water)
+    else:
+        output = output = GenerateRandomWalk(diameter, num_particles, frames, 
+                                             frames_per_second, ep = EstimationPrecision, 
+                                             mass = mass, microns_per_pixel = microns_per_pixel, 
+                                             temp_water = temp_water, visc_water = visc_water,
+                                             start_pos = start_pos)
             
           
     if ParameterJsonFile != None:
@@ -85,12 +113,14 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
    
 
 # def CalcDiffusionCoefficent(radius_m, temp_water = 293, visc_water = 0.001):
-#     diffusion = (k_b*temp_water)/(6*math.pi *visc_water * radius_m) # [um^2/s]
-    
+#     diffusion = (k_b*temp_water)/(6*math.pi *visc_water * radius_m) # [um^2/s]    
 #     return diffusion
 
 
-def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp = 0, num_microsteps = 1, ep = 0, mass = 1, microns_per_pixel = 0.477, temp_water = 295, visc_water = 9.5e-16, PrintParameter = True, start_pos = None):
+def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp = 0, 
+                       num_microsteps = 1, ep = 0, mass = 1, microns_per_pixel = 0.477, 
+                       temp_water = 295, visc_water = 9.5e-16, PrintParameter = True, 
+                       start_pos = None):
     """ simulate a random walk of Brownian diffusion and return it as Pandas.DataFrame
     object as if it came from real data:
         
@@ -109,7 +139,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
 
     
     if PrintParameter == True:
-        print("Do random walk with parameters: \
+        print("Random walk parameters: \
               \n diameter = {} \
               \n num_particles = {} \
               \n frames = {} \
@@ -142,7 +172,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     
     # sigma of diffusion in a microstep during exposure in um
     sim_part_sigma_um_step = np.sqrt(2*sim_part_diff * t_exp_step)
-    
+
     # convert to px
     sim_part_sigma_x_step = sim_part_sigma_um_step / microns_per_pixel 
     
@@ -196,7 +226,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
     sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
     
-    # sum up the induvidual steps over time via a cumsum to get the particles position over time
+    # sum up the individual steps over time via a cumsum to get the particle position over time
     sim_part["x"] = sim_part[["particle", "dx"]].groupby("particle").cumsum()
     sim_part["y"] = sim_part[["particle", "dy"]].groupby("particle").cumsum()
     
@@ -204,7 +234,20 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     if (start_pos is None) == False:
         sim_part["x"] = sim_part["x"] + np.repeat(start_pos[:,0],frames)
         sim_part["y"] = sim_part["y"] + np.repeat(start_pos[:,1],frames)
-    
+        
+    # MN2012: The above adjustment of the starting positions does not work as it should. 
+    # But my version (below) neither... needs fix!
+    #
+    # # move every trajectory to starting position
+    # if not(start_pos is None):
+        
+    #     """ does not work as it should yet... :/ """
+        
+    #     for partID in sim_part.particle.unique():
+    #         sim_part[sim_part.particle==partID].x = sim_part[sim_part.particle==partID].x + start_pos[partID,0] 
+    #         sim_part[sim_part.particle==partID].y = sim_part[sim_part.particle==partID].y + start_pos[partID,1]
+    #         # assuming particle IDs 0,1,2,3,4,5,... (starting from 0, no gaps - as should be the case for a simulation)
+
     # average of microsteps position in each frame and particle. this is where the center of mass of the localization is
     pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()[["x","y"]]
       
@@ -242,7 +285,142 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     if np.max(motion_ep) > 0:
         sim_part_tm.x = sim_part_tm.x + np.random.normal(0, sim_part_tm.ep)
         sim_part_tm.y = sim_part_tm.y + np.random.normal(0, sim_part_tm.ep)
+        
+    #    # check if tm is gaussian distributed
+#    my_mean = []
+#    my_var = []
+#    for sim_frame in range(frames):
+#        mycheck = sim_part_tm[sim_part_tm.frame == sim_frame].x.values
+#        my_mean.append(np.mean(mycheck))
+#        my_var.append(np.var(mycheck))
+#        
+#    plt.plot(my_mean)
+#    plt.plot(my_var)
+    
+    return sim_part_tm # x, y position in px
 
+
+
+def GenerateRandomWalk_old(diameter, num_particles, frames, frames_per_second, 
+                           RatioDroppedFrames=0, ep=0, mass=1, microns_per_pixel=0.477, 
+                           temp_water=295, visc_water=9.5e-16):
+    """ previous function - restored for comparison and re-running of older scripts
+    
+    simulate a random walk of Brownian diffusion and return it as Pandas.DataFrame as 
+    if it came from real data
+    
+    diameter:       particle size in nm
+    num_particles:  number of particles to simulate
+    frames:         number of frames to simulate
+    frames_per_second
+    ep = 0:         estimation precision
+    mass = 1:       mass of the particle
+    microns_per_pixel = 0.477
+    temp_water = 295 K
+    visc_water = 9.5e-16:
+    """
+    
+    print("Do random walk with parameters: \
+          \n diameter = {} \
+          \n num_particles = {} \
+          \n frames = {} \
+          \n frames_per_second = {} \
+          \n ep = {} \
+          \n mass = {} \
+          \n microns_per_pixel = {} \
+          \n temp_water = {} \
+          \n visc_water = {}" \
+          .format(diameter,num_particles,frames,frames_per_second,ep,mass,\
+          microns_per_pixel,temp_water,visc_water))
+    
+    const_Boltz = k_b
+
+    radius_m = diameter/2 * 1e-9 # in m
+    # diffusion constant of the simulated particle (Stokes-Einstein eq.)
+    sim_part_diff = (const_Boltz*temp_water)/(6*math.pi *visc_water * radius_m)
+    # unit sim_part_diff = um^2/s
+    
+    print("Diffusion coefficent: ", sim_part_diff)
+    
+    # [mum^2/s] x-diffusivity of simulated particle 
+    sim_part_sigma_um = np.sqrt(2*sim_part_diff / frames_per_second)
+    sim_part_sigma_x = sim_part_sigma_um / microns_per_pixel 
+    # [pixel/frame] st.deviation for simulated particle's x-movement (in pixel units!)
+    
+    # generating list to hold frames:
+    sim_part_frame=[]
+    for sim_frame in range(frames):
+        sim_part_frame.append(sim_frame)
+    sim_part_frame_list=sim_part_frame*num_particles
+    
+    # generating lists to hold particle IDs and
+    # step lengths in x and y direction, coming from a Gaussian distribution
+    sim_part_part=[]
+    sim_part_x=[]
+    sim_part_y=[]
+
+    drop_rate = RatioDroppedFrames
+    
+    if drop_rate == 0:
+        for sim_part in range(num_particles):
+            loop_frame_drop = 0
+            for sim_frame in range(frames):
+                sim_part_part.append(sim_part)
+                sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x)) 
+                sim_part_y.append(np.random.normal(loc=0,scale=sim_part_sigma_x)) 
+                # Is that possibly wrong??
+     
+    else:        
+        drop_frame = 1/drop_rate
+
+        if drop_frame > 5:
+            print("Drops every %s frame" %(drop_frame))
+        else:
+            sys.exit("Such high drop rates are probably not right implemented")
+                
+        for sim_part in range(num_particles):
+            loop_frame_drop = 0
+            for sim_frame in range(frames):
+                sim_part_part.append(sim_part)
+                
+                if loop_frame_drop <= drop_frame:
+                    loop_frame_drop += 1
+                    lag_frame = 1
+                else:
+                    loop_frame_drop = 1
+                    lag_frame = 2
+                
+                sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x * lag_frame)) 
+                sim_part_y.append(np.random.normal(loc=0,scale=sim_part_sigma_x * lag_frame))
+                # Is that possibly wrong??
+
+    # Putting the results into a df and formatting correctly:
+    sim_part_tm=pd.DataFrame({'x':sim_part_x, \
+                              'y':sim_part_y,  \
+                              'mass':mass, \
+                              'ep': ep, \
+                              'frame':sim_part_frame_list, \
+                              'particle':sim_part_part, \
+                              "size": 0, \
+                              "ecc": 0, \
+                              "signal": 0, \
+                              "raw_mass": mass, \
+                              "rel_step": mass})
+    
+    # calculate cumulative sums to get position values from x- and y-steps for the full random walk
+    sim_part_tm.x=sim_part_tm.groupby('particle').x.cumsum()
+    sim_part_tm.y=sim_part_tm.groupby('particle').y.cumsum()
+    
+
+#    sim_part_tm.index=sim_part_tm.frame # old method RF 190408
+#    copies frame to index and thus exists twice. not good
+#    bp()
+
+    # here come the localization precision ep on top    
+    if ep>0:
+        sim_part_tm.x = sim_part_tm.x + np.random.normal(0,ep,len(sim_part_tm.x))
+        sim_part_tm.y = sim_part_tm.y + np.random.normal(0,ep,len(sim_part_tm.x))
+        
     
     return sim_part_tm
 
@@ -279,13 +457,13 @@ def DepthOfField(NA, n, my_lambda):
     return dz
     
 
+
 def DetectionEfficency(NA,n):
     alpha = np.arcsin(NA/n) #opening angle
     ster = 2*np.pi*(1-np.cos(alpha)) # steradiant
     DE = ster / (4*np.pi)# Detection efficency    
     
     return DE
-
 
 
 
@@ -702,6 +880,7 @@ def PlotSimulationResults(num_particles, conc_per_nl, frames, num_eval_particles
     PlotNumberDifferentParticle(num_particles, conc_per_nl, frames, num_eval_particles, RelDrop)
     
     
+    
 def PlotNumberParticlesPerFrame(num_particles, conc_per_nl, frames, num_eval_particles_per_frame, RelDrop = False):
     # Plot the Number of Particles that can be evaluated in average in a frame
     eval_part_mean = np.mean(num_eval_particles_per_frame, axis = 0)
@@ -754,6 +933,7 @@ def PlotNumberParticlesPerFrame(num_particles, conc_per_nl, frames, num_eval_par
     ax2.set_xticklabels(list((np.asarray(disp_rel_array)*100).astype("int")))
     ax2.set_xlim([0,1.4*frames])
     ax2.set_xlabel("Minimum rel. error [%]", fontsize = 14)
+    
     
     
 def PlotNumberDifferentParticle(num_particles, conc_per_nl, frames, num_eval_particles, RelDrop = False):
@@ -1020,7 +1200,10 @@ def CheckTrajLeavesConfinement(t_part, x_min, x_max, y_min, y_max):
 
 def SimulateTrajectories(x_size, y_size, num_particles, diameter, frames, frames_per_second, 
                          microns_per_pixel, temp_water, visc_water, max_displacement, PrintParameter = True):
-    # simulate the random walk
+    """ simulate the random walk 
+    
+    MN2011 obsolete function?
+    """
 
     start_pos = np.random.rand(num_particles,2)
     start_pos[0,:] = 0.5 # particle under investigation is in the middle
@@ -1075,6 +1258,7 @@ def SimulateTrajectories(x_size, y_size, num_particles, diameter, frames, frames
     t_conf.loc[new_part,"dr"] = np.nan
 
     return t, t_conf
+
 
 
 def SplitTrajectory(eval_t2):

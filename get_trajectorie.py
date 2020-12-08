@@ -22,7 +22,7 @@ from tqdm import tqdm# progress bar
 
 def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, 
               minmass=None, maxsize=None, separation=None, max_iterations = 10, 
-              SaveFig = False, gamma = 0.8, ExternalSlider = False):
+              SaveFig = False, gamma = 0.8, ExternalSlider = False, oldSim=False):
     """ wrapper for trackpy routine tp.batch, which spots particles
     
     important parameters:
@@ -34,8 +34,8 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
   
     DoSimulation = settings["Simulation"]["SimulateData"]
     if DoSimulation == 1:
-        print("No data present. A simulation is done instead.")        
-        output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile)
+        print("A simulation is performed.")        
+        output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile,oldSim=oldSim)
 
     else:
 #        UseLog = settings["Find"]["Analyze in log"]
@@ -137,7 +137,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
                 print("Ronny changed something here and did not had the time to check it")
                 #plt.close(fig)        
             
-    return output
+    return output # usually pd.DataFrame with feature position data
 
 
 

@@ -21,7 +21,7 @@ import scipy.constants
 def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, 
          frames_per_second = None, amount_summands = None, amount_lagtimes = None, 
          amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, 
-         EvalOnlyLongestTraj = 0, Max_traj_length = None, yEval = False):
+         EvalOnlyLongestTraj = 0, Max_traj_length = None, yEval = False, processOutput=True):
     """ calculate diameters of individual particles via mean squared displacement analysis
     
     Procedure:
@@ -110,7 +110,8 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
 
     # LOOP THROUGH ALL THE PARTICLES
     for i,particleid in enumerate(particle_list_value):
-        print("\nParticle number: ",  round(particleid))
+        if processOutput == True:
+            print("\nParticle number: ",  round(particleid))
 
         # select trajectory to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
@@ -150,8 +151,9 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
                 # only continue if trajectory is good, otherwise plot the error
                 if traj_has_error == True:
                     OptimizingStatus = "Abort"
-                    print("Trajectory has error. Particle ID: ", particleid)
-                    print("Kolmogorow-Smirnow test significance: ", stat_sign)
+                    if processOutput == True:
+                        print("Trajectory has error. Particle ID: ", particleid)
+                        print("Kolmogorow-Smirnow test significance: ", stat_sign)
                     error_counter += 1
                     
                 else:    
@@ -993,7 +995,8 @@ def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None
 #                     \n 2 - stationary particle remains, which seems very big because it diffuses to little. ")
 #            
     else:
-        print("WARNING: Hindrance factor ignored. You just need to have the fiber diameter!")   
+        # MN 202012: I prefer to switch this off - particularly for simulations
+        # print("WARNING: Hindrance factor ignored. You just need to have the fiber diameter!")   
         diamter_corr = diameter
     
     return diamter_corr
@@ -1248,8 +1251,12 @@ def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, D
         rel_error = nd.Theory.CRLB(traj_length, red_x)
     
     else:
+        # MN2011: if lagtimes_max is a list, the following operation throws an error
+        if type(lagtimes_max)==type([]):
+            lagtimes_max = lagtimes_max[0] # workaround: take first element only (mostly the values are all the same anyways, no?!)
+        
         #Foerster2019 ARHCF-paper
-        rel_error = np.sqrt((2*lagtimes_max) / (3*(traj_length-lagtimes_max)))
+        rel_error = np.sqrt((2*lagtimes_max) / (3*(traj_length-lagtimes_max))) 
   
     diffusion_std = diffusion * rel_error
     
@@ -1301,16 +1308,17 @@ def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel =
 
 
 def rolling_with_step(s, window, step, func): 
-    # Defining a function that allows to calculate another function over a window of a series,
-    # while the window moves with steps 
-    # See https://github.com/pandas-dev/pandas/issues/15354
+    """ apply a given function "func" over a window of a series "s",
+    while the window moves with stepsize "step" 
+    cf. https://github.com/pandas-dev/pandas/issues/15354
     
-    # Idea: Reorder the 1d input (s) into a 2d array, in which each coloum contains the values inside the window the func shall be applied on. the rows are the different windows.
+    Idea: Reorder the 1d input (s) into a 2d array, in which each coloum contains the values inside the window the func shall be applied on. the rows are the different windows.
+    """
     
     # vert_idx_list = np.arange(0, s.size - window, step) # old version #30
     
     
-    # start index of window
+    # start index of window    
     vert_idx_list = np.arange(0, s.size - window + 1, step)
     
     # incremte in a window (this is the same for windows)
@@ -1335,10 +1343,15 @@ def rolling_with_step(s, window, step, func):
 
 
 def mean_func(d):
-    # Function that calculates the mean of a series, while ignoring NaN and not yielding a warning when all are NaN
+    """ function that calculates the mean of a series, while ignoring NaN and 
+    not yielding a warning when all are NaN 
+    
+    MN: obsolete? pd.Series.mean() function handles this automatically
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         return np.nanmean(d, axis=1)
+
 
 
 def hindrance_fac(diam_channel,diam_particle):
@@ -1419,30 +1432,35 @@ def StatisticOneParticle(sizes_df_lin):
     
     
 
-def FitMeanDiameter(sizes_df_lin, settings):    
-    inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
+def Statistic_N_Distribution(sizes_df_lin, num_dist):
     
-    diff = inv_diam
-    diff_std = inv_diam_std
-    diff_weight = 1/(diff_std**2)
     
-    mean_diff = np.average(diff, weights = diff_weight)
+    return 0
     
-#    https://en.wikipedia.org/wiki/Weighted_arithmetic_mean    
-    mean_diff_std = np.sqrt(1/np.sum(diff_weight))
+    
+    
+# def FitMeanDiameter(sizes_df_lin, settings):    
+#     inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
+    
+#     diff = inv_diam
+#     diff_std = inv_diam_std
+#     diff_weight = 1/(diff_std**2)
+    
+#     mean_diff = np.average(diff, weights = diff_weight)
+    
+# #    https://en.wikipedia.org/wiki/Weighted_arithmetic_mean    
+#     mean_diff_std = np.sqrt(1/np.sum(diff_weight))
 
-    snr = mean_diff / mean_diff_std
+#     snr = mean_diff / mean_diff_std
     
-    diam = 1/mean_diff
+#     diam = 1/mean_diff
     
-    diam_std = diam / snr
+#     diam_std = diam / snr
     
-    return diam, diam_std
+#     return diam, diam_std
     
-    
-    
-    
-    
+
+
 #def FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, PlotMsdOverLagtime = False):
 #
 #    if (len(lagt_direct) >= 5):

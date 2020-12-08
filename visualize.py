@@ -116,6 +116,10 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
 
     nd.PlotProperties
     plt.style.use(params)
+    
+    ax = plt.gca()
+    return ax
+
 
 
 def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1,
@@ -524,17 +528,14 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     
     if settings["Plot"]["Histogramm_Fit_1_Particle"] == 1:
         max_hist = values_hist.max()
-        # here comes the fit
     
-        if 1 == 1:
-            print("method 1")
-#        diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
-            diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
-        else:
-            print("NOT SURE IF THIS IS RIGHT")
-            diam_mean, diam_mean_std =  nd.CalcDiameter.FitMeanDiameter(sizes_df_lin, settings)
-            diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
-            diam_inv_mean = 1/diam_mean
+        # if 1 == 1:
+        diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
+        # else:
+        #     print("NOT SURE IF THIS IS RIGHT") # MN2011 we better don't use it then...
+        #     diam_mean, diam_mean_std =  nd.CalcDiameter.FitMeanDiameter(sizes_df_lin, settings)
+        #     diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
+        #     diam_inv_mean = 1/diam_mean
             
         diam_grid = np.linspace(histogramm_min,histogramm_max,1000)
         diam_grid_inv = 1/diam_grid
@@ -542,7 +543,6 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
         prob_diam_inv = scipy.stats.norm(diam_inv_mean,diam_inv_std).pdf(diam_grid_inv)
         prob_diam_inv = prob_diam_inv / prob_diam_inv.max() * max_hist
         prob_diam = 1 / prob_diam_inv 
-        
     
         plt.plot(diam_grid,prob_diam_inv)
 
@@ -550,12 +550,34 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     if Histogramm_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
         
-        
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
 
 
-def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
+def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None, fillplot=True, mycolor='C2'):
+    """ ...
+    
+
+    Parameters
+    ----------
+    ParameterJsonFile : TYPE
+        DESCRIPTION.
+    sizes_df_lin : TYPE
+        DESCRIPTION.
+    histogramm_min : TYPE, optional
+        DESCRIPTION. The default is None.
+    histogramm_max : TYPE, optional
+        DESCRIPTION. The default is None.
+    Histogramm_min_max_auto : TYPE, optional
+        DESCRIPTION. The default is None.
+    binning : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Returns
+    -------
+    None.
+
+    """
     import NanoObjectDetection as nd
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -619,7 +641,7 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
 #    sns.reset_orig()
 
     
-    Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0], semilogx = False, FillArea = True, Color = (0,0,1))
+    ax = Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0,0.0003], semilogx = False, FillArea = fillplot, Color = mycolor)
 
     print("\n\n mean diameter: ", np.round(np.mean(GetCI_Interval(prob_inv_diam, diam_grid, 0.001)),1))
     print("68CI Intervall: ", np.round(GetCI_Interval(prob_inv_diam, diam_grid, 0.68),1),"\n\n")
@@ -646,7 +668,7 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
-    return prob_inv_diam
+    return prob_inv_diam, diam_grid, ax
 
 
 
