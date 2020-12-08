@@ -34,7 +34,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
   
     DoSimulation = settings["Simulation"]["SimulateData"]
     if DoSimulation == 1:
-        print("A simulation is performed.")        
+        print("================ A simulation is performed. ================")        
         output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile,oldSim=oldSim)
 
     else:

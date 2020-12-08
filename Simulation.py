@@ -36,73 +36,111 @@ import trackpy as tp
 def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 1, frames = 100, RatioDroppedFrames = 0, EstimationPrecision = 0, mass = 0, frames_per_second = 100, microns_per_pixel = 1, temp_water = 293, visc_water = 9.5e-16, seed_startpos=None, oldSim=False):
     """ configure the parameters for a randowm walk out of a JSON file, and generate 
     it in a DataFrame
+    
+    if seed_startpos is not none, random trajectory starting points are generated,
+    otherwise the starting position for every particle is (0,0)
     """
     
-    if ParameterJsonFile != None:
-        #read para file if existing
+    # print error, if filepath was not entered - error is thrown later anyways
+    try: 
         settings = nd.handle_data.ReadJson(ParameterJsonFile)    
-        
-        diameter            = settings["Simulation"]["DiameterOfParticles"]
-        num_particles       = settings["Simulation"]["NumberOfParticles"]
-        frames              = settings["Simulation"]["NumberOfFrames"]
-        RatioDroppedFrames  = settings["Simulation"]["RatioDroppedFrames"]
-        EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
-        mass                = settings["Simulation"]["mass"]        
-        Photons             = settings["Simulation"]["Photons"]        
-
-        
-        frames_per_second   = settings["Exp"]["fps"]
-        microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
-        temp_water          = settings["Exp"]["Temperature"]
-
-        # NA = settings["Exp"]["NA"]
-        # my_lambda = settings["Exp"]["lambda"]
-        
-        # #sigma PSF in nm
-        # sigma_PSF = nd.Theory.SigmaPSF(NA, my_lambda)
-
-        # diffusion = nd.Theory.StokesEinsteinEquation(diam = None, temp_water = 295, visc_water = 9.5E-16)
-
-        # ep = nd.theory.LocalError(sigma_PSF, diffusion, t_exp, photons)
-
-        solvent = settings["Exp"]["solvent"]
-        
-        FoVheight           = settings["Fiber"]["TubeDiameter_nm"]*0.001 /microns_per_pixel # px
-        
-        try:
-            FoVlength       = settings["Simulation"]["FoVlength"] # px
-        except KeyError:
-            print('FoV length not found in json parameter file. Take default value: 1000px')
-            FoVlength = 1000
-
-        
-        if settings["Exp"]["Viscosity_auto"] == 1:
-            visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
-            bp()
-        else:
-            visc_water = settings["Exp"]["Viscosity"]
+    except TypeError:
+        print('You did not enter a filepath to the parameter json file. \nPlease do so and repeat.')
     
-
-    start_pos=None
-    if not(seed_startpos is None):
-        # initialize a random generator with fixed seed
-        rng=np.random.default_rng(seed_startpos)
-        # create random trajectory starting points, uniformly distributed within the FoV
-        start_pos_x = FoVlength * rng.random(num_particles)
-        start_pos_y = FoVheight * rng.random(num_particles)
-        start_pos = np.column_stack((start_pos_x, start_pos_y)) # px
+    # keys that may contain lists of values
+    diameter            = settings["Simulation"]["DiameterOfParticles"]
+    num_particles       = settings["Simulation"]["NumberOfParticles"]
+    mass                = settings["Simulation"]["mass"]   
     
-    if oldSim==True:
-        output = GenerateRandomWalk_old(diameter, num_particles, frames, frames_per_second,
-                                        ep = EstimationPrecision,
-                                        mass = mass, microns_per_pixel = microns_per_pixel, 
-                                        temp_water = temp_water, visc_water = visc_water)
+    frames              = settings["Simulation"]["NumberOfFrames"]
+    RatioDroppedFrames  = settings["Simulation"]["RatioDroppedFrames"]
+    EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
+    
+    # make code downward compatible!!
+    try:
+        Photons = settings["Simulation"]["Photons"]  
+    except KeyError:
+        print('Photons not found in json parameter file. Take default value: 1000')
+        Photons = 1000
+
+    frames_per_second   = settings["Exp"]["fps"]
+    microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
+    temp_water          = settings["Exp"]["Temperature"]
+
+    # NA = settings["Exp"]["NA"]
+    # my_lambda = settings["Exp"]["lambda"]
+    
+    # #sigma PSF in nm
+    # sigma_PSF = nd.Theory.SigmaPSF(NA, my_lambda)
+
+    # diffusion = nd.Theory.StokesEinsteinEquation(diam = None, temp_water = 295, visc_water = 9.5E-16)
+
+    # ep = nd.theory.LocalError(sigma_PSF, diffusion, t_exp, photons)
+
+    solvent = settings["Exp"]["solvent"]
+    
+    # define a field of view (FoV) for the simulation
+    FoVheight = settings["Fiber"]["TubeDiameter_nm"]*0.001 /microns_per_pixel # px
+    try:
+        FoVlength = settings["Simulation"]["FoVlength"] # px
+    except KeyError:
+        print('FoV length not found in json parameter file. Take default value: 1000px')
+        FoVlength = 1000
+
+    
+    if settings["Exp"]["Viscosity_auto"] == 1:
+        visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
+        bp()
     else:
-        output = output = GenerateRandomWalk(diameter, num_particles, frames, 
-                                             frames_per_second, ep = EstimationPrecision, 
-                                             mass = mass, microns_per_pixel = microns_per_pixel, 
-                                             temp_water = temp_water, visc_water = visc_water,
-                                             start_pos = start_pos)
+        visc_water = settings["Exp"]["Viscosity"]
+        
+    # ========== up to here, parameters should be completely defined ============
+    
+    if not(type(diameter)==list):
+        diameter = [diameter]
+    if not(type(num_particles)==list):
+        num_particles = [num_particles] * len(diameter) # adjust list lengths
+    else:
+        if not(len(num_particles)==len(diameter)):
+            print('Given diameters and number of particles are not equal. Please adjust.')
+            # this provides the info... an error will be thrown later in the loop automatically
+    if not(type(mass)==list):
+        mass = [mass] * len(diameter) # adjust list lengths
+    else:
+        if not(len(mass)==len(diameter)):
+            print('Given diameters and mass values are not equal. Please adjust.')
+            # this provides the info... an error will be thrown later in the loop automatically
+    
+    output = pd.DataFrame()
+    # loop over all given diameters
+    for n_d in range(len(diameter)):
+        
+        start_pos=None
+        if not(seed_startpos is None):
+            # initialize a random generator with fixed seed
+            rng=np.random.default_rng(seed_startpos + n_d)
+            # create random trajectory starting points, uniformly distributed within the FoV
+            start_pos_x = FoVlength * rng.random(num_particles[n_d])
+            start_pos_y = FoVheight * rng.random(num_particles[n_d])
+            start_pos = np.column_stack((start_pos_x, start_pos_y)) # px
+        
+        
+        if oldSim==True:
+            objall = GenerateRandomWalk_old(diameter[n_d], num_particles[n_d], frames, frames_per_second,
+                                            ep = EstimationPrecision,
+                                            mass = mass[n_d], microns_per_pixel = microns_per_pixel, 
+                                            temp_water = temp_water, visc_water = visc_water)
+        else:
+            objall = GenerateRandomWalk(diameter[n_d], num_particles[n_d], frames, 
+                                        frames_per_second, ep = EstimationPrecision, 
+                                        mass = mass[n_d], microns_per_pixel = microns_per_pixel, 
+                                        temp_water = temp_water, visc_water = visc_water,
+                                        start_pos = start_pos)
+            
+            # here, I still need to adjust the index and the particle ID 
+            # so that they don't appear twice or more
+            output = pd.concat([output,objall])
+        
             
           
     if ParameterJsonFile != None:
@@ -320,7 +358,7 @@ def GenerateRandomWalk_old(diameter, num_particles, frames, frames_per_second,
     visc_water = 9.5e-16:
     """
     
-    print("Do random walk with parameters: \
+    print("Random walk parameters: \
           \n diameter = {} \
           \n num_particles = {} \
           \n frames = {} \

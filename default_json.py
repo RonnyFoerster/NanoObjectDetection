@@ -52,7 +52,7 @@ Experimental parameters
           
 | key: particleConc_inSolvent
 | description: estimated concentration value of the prepared particle solution
-| example: "0.188"
+| example: 0.188
 | unit: 1/nL
  
 ########################################################################################################################
@@ -126,12 +126,12 @@ In case the data is simulated and not acquired physically the parameters can be 
 | unit: boolean
 
 | key: DiameterOfParticles
-| description: Diameter of the simulated particles
-| example: 100
+| description: Diameter(s) of the simulated particles (float or list of float)
+| example: [50, 80]
 | unit: nm
 
 | key: NumberOfParticles
-| description: Number of created particles
+| description: Number(s) of created particles (int or list of int)
 | example: 42
 | unit: 
 
@@ -141,7 +141,7 @@ In case the data is simulated and not acquired physically the parameters can be 
 | unit: frames
 
 | key: mass
-| description: Mass of the particles
+| description: Mass of the particles (float or list of float)
 | example: 100
 | unit: 
 
