@@ -30,8 +30,10 @@
           "DiameterOfParticles": 0,
           "NumberOfParticles": 0,
           "NumberOfFrames": 0,
+          "NumMicrosteps": 1,
           "RatioDroppedFrames": 0,
           "mass": 0,
+          "Photons": 10000.0,
           "EstimationPrecision": 0,
           "Max_traj_length": 0
      },
