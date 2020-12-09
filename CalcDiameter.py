@@ -21,7 +21,8 @@ import scipy.constants
 def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, 
          frames_per_second = None, amount_summands = None, amount_lagtimes = None, 
          amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, 
-         EvalOnlyLongestTraj = 0, Max_traj_length = None, yEval = False, processOutput=True):
+         EvalOnlyLongestTraj = 0, Max_traj_length = None, yEval = False, 
+         processOutput=True, t_beforeDrift=None):
     """ calculate diameters of individual particles via mean squared displacement analysis
     
     Procedure:
@@ -115,6 +116,8 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
 
         # select trajectory to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
+        if not(type(t_beforeDrift)==type(None)):
+            t_bDrift = t_beforeDrift[t_beforeDrift.particle==particleid]
         
         """ 1.) """
         # define which lagtimes are used to fit the MSD data
@@ -193,7 +196,8 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
             # summarize
             sizes_df_lin = ConcludeResultsMain(settings, eval_tm, sizes_df_lin, 
                                                diff_direct_lin, traj_length, lagtimes_max, 
-                                               amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = False)
+                                               amount_frames_lagt1, stat_sign, msd_fit_para, 
+                                               DoRolling = False, t_beforeDrift=t_bDrift)
     
             # plot MSD if wanted
             if MSD_fit_Show == True:
@@ -203,7 +207,10 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
             # do it time resolved                    
             if do_rolling == True:
                 bp()                        
-                sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = True)
+                sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling,
+                                                           diff_direct_lin, traj_length, lagtimes_max,
+                                                           amount_frames_lagt1, stat_sign, msd_fit_para,
+                                                           DoRolling = True)
     # ============= here ends the long loop over all trajectories =============
         
     if len(sizes_df_lin) == 0:
@@ -362,7 +369,7 @@ def SelectTrajectories(t6_final, settings):
 
 
 
-def GetParameterOfTraj(eval_tm):
+def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
     """ extract information from trajectory DataFrame of a single particle
     
     Parameters
@@ -393,8 +400,12 @@ def GetParameterOfTraj(eval_tm):
 
     """
     start_frame = int(eval_tm.iloc[0].frame)
-    start_x = eval_tm.iloc[0].x
-    start_y = eval_tm.iloc[0].y
+    if type(t_beforeDrift) == type(None):
+        start_x = eval_tm.iloc[0].x
+        start_y = eval_tm.iloc[0].y
+    else:
+        start_x = t_beforeDrift.iloc[0].x
+        start_y = t_beforeDrift.iloc[0].y        
     mean_mass = eval_tm["mass"].mean()
     mean_size = eval_tm["size"].mean()
     mean_ecc = eval_tm["ecc"].mean()
@@ -1048,7 +1059,7 @@ def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm, DoPrint = True):
 
 
 
-def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = False):
+def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = False, t_beforeDrift=None):
     """ organize the results and write them in one large pandas.DataFrame
     """
     
@@ -1060,7 +1071,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     settings, visc_water = GetVisc(settings)
     fibre_diameter_nm = GetFiberDiameter(settings)
     # get parameters of the trajectory to analyze it
-    start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle, start_x, start_y = GetParameterOfTraj(eval_tm)
+    start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle, start_x, start_y = GetParameterOfTraj(eval_tm, t_beforeDrift = t_beforeDrift)
     
     particleid = eval_tm.particle.unique()
     
