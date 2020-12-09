@@ -204,7 +204,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
             if do_rolling == True:
                 bp()                        
                 sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = True)
-        # here ends the long loop over all trajectories
+    # ============= here ends the long loop over all trajectories =============
         
     if len(sizes_df_lin) == 0:
         print("No particle made it to the end!!!")
@@ -393,6 +393,8 @@ def GetParameterOfTraj(eval_tm):
 
     """
     start_frame = int(eval_tm.iloc[0].frame)
+    start_x = eval_tm.iloc[0].x
+    start_y = eval_tm.iloc[0].y
     mean_mass = eval_tm["mass"].mean()
     mean_size = eval_tm["size"].mean()
     mean_ecc = eval_tm["ecc"].mean()
@@ -402,7 +404,7 @@ def GetParameterOfTraj(eval_tm):
     max_step = eval_tm["rel_step"].max()
     true_particle = eval_tm["true_particle"].max()
     
-    return start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle
+    return start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle, start_x, start_y
 
 
 
@@ -1058,7 +1060,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     settings, visc_water = GetVisc(settings)
     fibre_diameter_nm = GetFiberDiameter(settings)
     # get parameters of the trajectory to analyze it
-    start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle = GetParameterOfTraj(eval_tm)
+    start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle, start_x, start_y = GetParameterOfTraj(eval_tm)
     
     particleid = eval_tm.particle.unique()
     
@@ -1075,7 +1077,8 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
         sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter, \
                            particleid, traj_length, amount_frames_lagt1, start_frame, \
                            mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
-                           red_ep, max_step, true_particle, stat_sign = stat_sign)
+                           red_ep, max_step, true_particle, stat_sign = stat_sign,
+                           start_x=start_x, start_y=start_y)
     else:
         bp()
 
@@ -1086,10 +1089,10 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
 def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                     particleid, traj_length, amount_frames_lagt1, start_frame,
                     mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
-                    red_ep, max_step, true_particle, stat_sign = None):
+                    red_ep, max_step, true_particle, stat_sign = None, start_x=0,start_y=0):
     """ write all the valuable parameters in one large pandas.DataFrame """
 
-    # Storing results in DataFrame:   
+    # store results in DataFrame:   
     sizes_df_lin = sizes_df_lin.append(pd.DataFrame(data={'particle': [particleid],
                                                           'diffusion': [diff_direct_lin],
                                                           'diffusion std': [diff_std],
@@ -1106,7 +1109,10 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                                                           'size': [mean_size],
                                                           'ecc': [mean_ecc],
                                                           'stat_sign': [stat_sign],
-                                                          'true_particle': [true_particle]}), sort=False)
+                                                          'true_particle': [true_particle],
+                                                          'x in first frame': [start_x],
+                                                          'y in first frame': [start_y]
+                                                          }), sort=False)
     
     return sizes_df_lin
 
@@ -1412,27 +1418,54 @@ def ContinousIndexingTrajectory(t):
 
 
 def InvDiameter(sizes_df_lin, settings):
+    """ calculates inverse diameter values and estimates of their stds
     
-    inv_diam = 1/sizes_df_lin["diameter"]
+    assumption: 
+        relative error = std/mean = sqrt( 2*N_tmax/(3*N_f - N_tmax) )
+        with N_tmax : number of considered lagtimes
+             N_f : number of frames of the trajectory (=tracklength)
     
-    t_max = settings["MSD"]["lagtimes_max"]
-#    print("t_max = ", t_max)
+    Parameters
+    ----------
+    sizes_df_lin : pandas.DataFrame
+        with "diameter" and "traj length" columns
+    settings : dict
+        with ["MSD"]["lagtimes_max"] entry
+
+    Returns
+    -------
+    inv_diam, inv_diam_std : both pandas.Series
+    """
     
-    f = sizes_df_lin["traj length"]
-#    print("f = ", f)
+    inv_diam = 1/sizes_df_lin["diameter"] # pd.Series
+    
+    N_tmax = settings["MSD"]["lagtimes_max"] # int value
+    N_f = sizes_df_lin["traj length"] # pd.Series
     
 #    rel_error = sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]
-    rel_error = np.sqrt((2*t_max)/(3*(f-t_max)))
-#    print("rel_error = ", rel_error)
+    rel_error = np.sqrt((2*N_tmax)/(3*(N_f - N_tmax))) # pd.Series
+    
     inv_diam_std = inv_diam * rel_error
     
-    return inv_diam,inv_diam_std
+    return inv_diam, inv_diam_std
 
 
 
 def StatisticOneParticle(sizes_df_lin):
+    """ calculate mean and std of the INVERSE particle diameters
     
-    # mean diameter is 1/(mean diffusion) not mean of all diameter values
+    reason:
+    mean diameter is 1/(mean diffusion) not mean of all diameter values (!)
+
+    Parameters
+    ----------
+    sizes_df_lin : pandas.DataFrame
+        with "diameter" column
+        
+    Returns
+    -------
+    diam_inv_mean, diam_inv_std : both float
+    """
     diam_inv_mean = (1/sizes_df_lin.diameter).mean()
     diam_inv_std  = (1/sizes_df_lin.diameter).std()
     
@@ -1441,7 +1474,10 @@ def StatisticOneParticle(sizes_df_lin):
     
 
 def Statistic_N_Distribution(sizes_df_lin, num_dist):
-    
+    """ under construction... meant to calculate the best fit for a certain number
+    of different particle sizes "num_dist" to an (experimental/simulated)
+    particle ensemble
+    """
     
     return 0
     

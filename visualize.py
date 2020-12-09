@@ -555,8 +555,15 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
 
 
 def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None, fillplot=True, mycolor='C2'):
-    """ ...
+    """ calculate and plot the diameter probability density function of a
+    particle ensemble as the sum of individual PDFs
+    NB: each trajectory is considered individually, the tracklength determines
+        the PDF widths
     
+    assumption: 
+        relative error = std/mean = sqrt( 2*N_tmax/(3*N_f - N_tmax) )
+        with N_tmax : number of considered lagtimes
+             N_f : number of frames of the trajectory (=tracklength)
 
     Parameters
     ----------
@@ -575,87 +582,75 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
 
     Returns
     -------
-    None.
-
+    prob_inv_diam
+    diam_grid
+    ax
     """
-    import NanoObjectDetection as nd
-
+    # import NanoObjectDetection as nd
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-       
-#    sizes_df_lin = sizes_df_lin[sizes_df_lin["diameter"] > 75]
     
     DiameterPDF_Show = settings["Plot"]['DiameterPDF_Show']
     DiameterPDF_Save = settings["Plot"]['DiameterPDF_Save']
-
     PDF_min = settings["Plot"]['PDF_min']
     PDF_max = settings["Plot"]['PDF_max']
-        
+    
+    # calculate mean and std of the ensemble (inverse!) and the grid for plotting
     diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
-    diam_grid = np.linspace(PDF_min,PDF_max,10000)
+    diam_grid = np.linspace(PDF_min,PDF_max,10000) # prepare grid for plotting
     diam_grid_inv = 1/diam_grid
     
-    
+    # calculate inverse diameters and estimates of their std
     inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
     
     prob_inv_diam = np.zeros_like(diam_grid_inv)
+    # loop over all individual diameters, calculate their PDFs and add them up
     for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
-        #print("mean_diam_part = ", 1 / loop_mean)
-
         my_pdf = scipy.stats.norm(loop_mean,loop_std).pdf(diam_grid_inv)
-
-        my_pdf = my_pdf / np.sum(my_pdf)
-        
+        my_pdf = my_pdf / np.sum(my_pdf) # normalization
         prob_inv_diam = prob_inv_diam + my_pdf    
 
     # normalize
     prob_inv_diam = prob_inv_diam / np.sum(prob_inv_diam)
-
+    
+    # get statistical quantities
     diam_median = np.mean(GetCI_Interval(prob_inv_diam, diam_grid, 0.001))
-    
     diam_mean = np.average(diam_grid, weights = prob_inv_diam)
-       
-    lim_68CI = GetCI_Interval(prob_inv_diam, diam_grid, 0.68)
-#    diam_68CI = lim_68CI[1] - lim_68CI[0]
-    
+    lim_68CI = GetCI_Interval(prob_inv_diam, diam_grid, 0.68) 
+    # diam_68CI = lim_68CI[1] - lim_68CI[0]
     lim_95CI = GetCI_Interval(prob_inv_diam, diam_grid, 0.95)
-#    diam_95CI = lim_95CI[1] - lim_95CI[0]
-    
+    # diam_95CI = lim_95CI[1] - lim_95CI[0]
     num_trajectories = len(sizes_df_lin) 
-
+    
+    # configure plot settings
     Histogramm_min_max_auto = settings["Plot"]["DiameterPDF_min_max_auto"]
-
     if Histogramm_min_max_auto == 1:
         PDF_min, PDF_max = GetCI_Interval(prob_inv_diam, diam_grid, 0.999)
         #histogramm_min = 0
     else:
-        PDF_min, settings = nd.handle_data.SpecificValueOrSettings(PDF_min, settings, "Plot", "PDF_min")
-        PDF_max, settings = nd.handle_data.SpecificValueOrSettings(PDF_max, settings, "Plot", "PDF_max")
+        PDF_min, settings = nd.handle_data.SpecificValueOrSettings(PDF_min, settings, 
+                                                                   "Plot", "PDF_min")
+        PDF_max, settings = nd.handle_data.SpecificValueOrSettings(PDF_max, settings, 
+                                                                   "Plot", "PDF_max")
         
-
     title = str("Mean: {:2.3g} nm; Median: {:2.3g} nm; Trajectories: {:3.0f}; \n CI68: [{:2.3g} : {:2.3g}] nm;  CI95: [{:2.3g} : {:2.3g}] nm".format(diam_mean, diam_median, num_trajectories, lim_68CI[0], lim_68CI[1],lim_95CI[0], lim_95CI[1]))
     xlabel = "Diameter [nm]"
-    ylabel = "Probability"
+    ylabel = "Probability [a.u.]"
     x_lim = [PDF_min, PDF_max]
-#    x_lim = [1, 1000]
     y_lim = [0, 1.1*np.max(prob_inv_diam)]
 #    sns.reset_orig()
 
-    
-    ax = Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0,0.0003], semilogx = False, FillArea = fillplot, Color = mycolor)
+    # plot it!
+    ax = Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0], semilogx = False, FillArea = fillplot, Color = mycolor)
 
     print("\n\n mean diameter: ", np.round(np.mean(GetCI_Interval(prob_inv_diam, diam_grid, 0.001)),1))
     print("68CI Intervall: ", np.round(GetCI_Interval(prob_inv_diam, diam_grid, 0.68),1),"\n\n")
 
-
-    
 #    prob_diam_inv = scipy.stats.norm(diam_inv_mean,diam_inv_std).pdf(diam_grid_inv)
 #    prob_diam_inv = prob_diam_inv / prob_diam_inv.max() * max_hist
 #    prob_diam = 1 / prob_diam_inv 
     
-
 #    plt.plot(diam_grid,prob_diam_inv)
 
-    
     if DiameterPDF_Save == True:
         save_folder_name = settings["Plot"]["SaveFolder"]
         
@@ -664,7 +659,6 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogra
         
         data = np.transpose(np.asarray([diam_grid, prob_inv_diam]))
         nd.visualize.save_plot_points(data, save_folder_name, 'Diameter_Probability_Data')
-        
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
@@ -1170,7 +1164,7 @@ def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, co
     
     #ax.annotate(particleid, xy=(lagt_direct.max(), mean_displ_fit_direct_lin.max()))
     plt.title("MSD fit", **title_font)
-    plt.ylabel("MSD $[\mu m^2]$", **axis_font)
+    plt.ylabel(r"MSD $[\mu m^2]$", **axis_font)
     plt.xlabel("Lagtime [ms]", **axis_font)
 
     
