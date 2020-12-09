@@ -68,6 +68,8 @@ def GetViscosity(temperature = 295.15, solvent = "water"):
     except ModuleNotFoundError:
         print("CoolProp is not installed yet. Please enter the correct viscosity yourself.")
         my_visc = 1e-12 * float(input("viscosity [Ns/m^2] = "))
+		
+		# https://www.tec-science.com/de/mechanik/gase-und-fluessigkeiten/viskositat-von-flussigkeiten-und-gasen/
 
     return my_visc
 
