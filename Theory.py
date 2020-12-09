@@ -26,10 +26,17 @@ def SigmaPSF(NA, mylambda):
     return sigma
 
     
-def LocalError(sigma_psf, diffusion, t_exp, photons):
+def LocalErrorStatic(sigma_psf, photons):
+    ep = sigma_psf / np.sqrt(photons) 
+
+    return ep
+
+
+def LocalErrorMotion(sigma_psf, diffusion, t_exp, photons):
     ep = np.sqrt((sigma_psf**2 + diffusion*t_exp)/photons) 
 
     return ep
+
 
 def CRLB(N,x):
     # Number of frames

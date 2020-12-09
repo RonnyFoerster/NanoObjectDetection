@@ -191,7 +191,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
             # summarize
             sizes_df_lin = ConcludeResultsMain(settings, eval_tm, sizes_df_lin, 
                                                diff_direct_lin, traj_length, lagtimes_max, 
-                                               amount_frames_lagt1, stat_sign, DoRolling = False)
+                                               amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = False)
     
             # plot MSD if wanted
             if MSD_fit_Show == True:
@@ -201,9 +201,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
             # do it time resolved                    
             if do_rolling == True:
                 bp()                        
-                sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling, 
-                                                           diff_direct_lin, traj_length, lagtimes_max, 
-                                                           amount_frames_lagt1, stat_sign, DoRolling = True)
+                sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = True)
         # here ends the long loop over all trajectories
         
     if len(sizes_df_lin) == 0:
@@ -429,12 +427,21 @@ def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
        
         # the lower lagtimes are always considered no matter how noise they are 
         # (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3055791/)
+        
+        traj_length = len(eval_tm)
+        
         lagtimes_min = 1
-        lagtimes_max = np.int(len(eval_tm)/10)
+        lagtimes_max = np.int(traj_length/10)
         
         # lagtimes must be 2 at least
         if lagtimes_max == 1:
             lagtimes_max = 2
+        
+        # special rule for simulated data of very long track lengths
+        if settings["Simulation"]["SimulateData"] == 1:
+            if traj_length > 10:
+                print("Use 100 Lagtimes as a starting value, instead of TrajLength/100")
+                lagtimes_max = 10
         
         print("Currently considered lagtimes (offset, slope):", lagtimes_max)              
     else:
@@ -1036,7 +1043,7 @@ def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm, DoPrint = True):
 
 
 
-def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, DoRolling = False):
+def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = False):
     """ organize the results and write them in one large pandas.DataFrame
     """
     
@@ -1052,7 +1059,8 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     
     particleid = eval_tm.particle.unique()
     
-    red_ep = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
+    # red_ep = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
+    red_ep = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], settings["Exp"]["ExposureTime"])
                     
 #     get the fit error if switches on (and working)
     rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
