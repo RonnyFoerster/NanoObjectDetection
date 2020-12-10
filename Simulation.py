@@ -37,7 +37,7 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
     """ configure the parameters for a randowm walk out of a JSON file, and generate
     it in a DataFrame
 
-    if seed_startpos is not none, random trajectory starting points are generated,
+    if seed_startpos is not None, random trajectory starting points are generated,
     otherwise the starting position for every particle is (0,0)
     """
 
@@ -56,12 +56,11 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
     RatioDroppedFrames  = settings["Simulation"]["RatioDroppedFrames"]
     EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
 
-    # make code downward compatible!!
-    try:
-        Photons = settings["Simulation"]["Photons"]
-    except KeyError:
-        print('Photons not found in json parameter file. Take default value: 1000')
-        Photons = 1000
+    # try:
+    Photons = settings["Simulation"]["Photons"]
+    # except KeyError:
+    #     print('Photons not found in json parameter file. Take default value: 1000')
+    #     Photons = 1000
 
     frames_per_second   = settings["Exp"]["fps"]
     microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
@@ -137,10 +136,12 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
                                         temp_water = temp_water, visc_water = visc_water,
                                         start_pos = start_pos)
 
-            # MN: here, I still need to adjust the index and the particle ID
-            #     so that they don't appear twice or more
+        # adjust the particle IDs so that they don't appear twice (or more)
+        if any(output):
+            objall.particle = objall.particle + output.particle.max() + 1
         output = pd.concat([output,objall])
-
+        output = output.reset_index() # create a continuous index for the complete DataFrame
+        output = output.drop(['index'],axis=1) # delete the old one (which contains duplicates for n_d>0)
 
 
     if ParameterJsonFile != None:
