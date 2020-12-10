@@ -360,9 +360,9 @@ def SelectTrajectories(t6_final, settings):
         
     # split too long trajectories
     if Max_traj_length is None:
-        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings)
+        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectory(t6_final_use, settings)
     else:
-        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectorie(t6_final_use, settings, Min_traj_length, Max_traj_length)
+        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectory(t6_final_use, settings, Min_traj_length, Max_traj_length)
         
 
     return t6_final_use, settings

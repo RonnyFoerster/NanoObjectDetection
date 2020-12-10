@@ -17,7 +17,7 @@ import sys
 import NanoObjectDetection as nd
 import matplotlib.pyplot as plt # Libraries for plotting
 from tqdm import tqdm# progress bar
-
+# from pdb import set_trace as bp
 
 
 def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None, 
@@ -678,8 +678,8 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
 
 
 
-def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, Max_traj_length = None):
-    """ split trajectories if they are too long
+def split_traj_at_long_trajectory(t4_cutted, settings, Min_traj_length = None, Max_traj_length = None):
+    """ split trajectories if they are longer than a given value
     
     This might be usefull, to have sufficently long trajectories all at the same length.
     Otherwise they have very different confidence intervalls
@@ -716,56 +716,56 @@ def split_traj_at_long_trajectorie(t4_cutted, settings, Min_traj_length = None, 
         
     free_particle_id = np.max(t4_cutted["particle"]) + 1
     
-#    Max_traj_length = 1000
-
     t4_cutted["true_particle"] = t4_cutted["particle"]
     
     #traj length of each (true) particle
     traj_length = t4_cutted.groupby(["particle"]).frame.max() - t4_cutted.groupby(["particle"]).frame.min()
     
-    # split when trajectory is longer than max value 
-    split_particles = traj_length > Max_traj_length
+    # split if trajectory is longer than max value 
+    split_particles = traj_length > Max_traj_length # pd.Series of boolean
     
+    particle_list = split_particles.index[split_particles] # index list of particleIDs
     
-    particle_list = split_particles.index[split_particles]
-    
-    particle_list = np.asarray(particle_list.values,dtype = 'int')
+    particle_list = np.asarray(particle_list.values,dtype='int')
     
     num_particle_list = len(particle_list)
-
+    
+    # loop over all particleIDs
     for count, test_particle in enumerate(particle_list):
         nd.visualize.update_progress("Split too long trajectories", (count+1) / num_particle_list)
-
-
+        
 #        start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
 #        end_frame   = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[-1]
        
         # start_frame = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[0]
 #        end_frame   = t4_cutted[t4_cutted["particle"] == test_particle]["frame"].iloc[-1]
         
-        
         traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
+        # print("traj_length", traj_length)
         
-        
-        print("traj_length", traj_length)
+        # cut trajectory until it is not longer than Max_traj_length
         while traj_length > Max_traj_length:
-            if (traj_length > 2*Max_traj_length) or (keep_tail == 0):
-                # start_frame for new particle id
-                start_frame = t4_cutted[t4_cutted["particle"] == test_particle].iloc[Max_traj_length]["frame"]
+            
+            # MN122020: if we keep this condition, trajectories between Max_traj_length and 2*Max_traj_length are allowed
+            # if (traj_length > 2*Max_traj_length): # or (keep_tail == 0): 
                 
-                # every trajectory point above the start frame gets the new id
-                t4_cutted.loc[(t4_cutted["particle"] == test_particle) & (t4_cutted["frame"] >= start_frame), "particle"] = free_particle_id
-    
-                #next particle to test is the new generated one (the tail)
-                test_particle = free_particle_id
-                
-                # new free particle id
-                free_particle_id = free_particle_id + 1
-                
-                #traj length of particle under investigation
-                traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
-            else:
-                break
+            # start_frame for new particle id
+            start_frame = t4_cutted[t4_cutted["particle"] == test_particle].iloc[Max_traj_length]["frame"]
+            
+            # every trajectory point above the start frame gets the new id
+            t4_cutted.loc[(t4_cutted["particle"] == test_particle) & (t4_cutted["frame"] >= start_frame), "particle"] = free_particle_id
+
+            #next particle to test is the new generated one (the tail)
+            test_particle = free_particle_id
+            
+            # new free particle id
+            free_particle_id = free_particle_id + 1
+            
+            #traj length of particle under investigation
+            traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
+            # bp()
+            # else:
+            #     break
             
     if keep_tail == 0:
         t4_cutted = tp.filter_stubs(t4_cutted, Min_traj_length)
