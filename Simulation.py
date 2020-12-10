@@ -321,6 +321,8 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
         # sim_part_tm.y = sim_part_tm.y + np.random.normal(0, sim_part_tm.ep)
 
 
+    return sim_part_tm
+
 
 def GenerateRandomWalk_old(diameter, num_particles, frames, frames_per_second,
                            RatioDroppedFrames=0, ep=0, mass=1, microns_per_pixel=0.477,
