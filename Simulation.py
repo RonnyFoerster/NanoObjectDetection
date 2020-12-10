@@ -137,9 +137,9 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
                                         temp_water = temp_water, visc_water = visc_water,
                                         start_pos = start_pos)
 
-            # here, I still need to adjust the index and the particle ID
-            # so that they don't appear twice or more
-            output = pd.concat([output,objall])
+            # MN: here, I still need to adjust the index and the particle ID
+            #     so that they don't appear twice or more
+        output = pd.concat([output,objall])
 
 
 

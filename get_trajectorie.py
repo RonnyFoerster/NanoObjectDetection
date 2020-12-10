@@ -746,26 +746,23 @@ def split_traj_at_long_trajectory(t4_cutted, settings, Min_traj_length = None, M
         # cut trajectory until it is not longer than Max_traj_length
         while traj_length > Max_traj_length:
             
-            # MN122020: if we keep this condition, trajectories between Max_traj_length and 2*Max_traj_length are allowed
-            # if (traj_length > 2*Max_traj_length): # or (keep_tail == 0): 
+            if (traj_length > 2*Max_traj_length) or (keep_tail == 0): 
+                # start_frame for new particle id
+                start_frame = t4_cutted[t4_cutted["particle"] == test_particle].iloc[Max_traj_length]["frame"]
                 
-            # start_frame for new particle id
-            start_frame = t4_cutted[t4_cutted["particle"] == test_particle].iloc[Max_traj_length]["frame"]
-            
-            # every trajectory point above the start frame gets the new id
-            t4_cutted.loc[(t4_cutted["particle"] == test_particle) & (t4_cutted["frame"] >= start_frame), "particle"] = free_particle_id
-
-            #next particle to test is the new generated one (the tail)
-            test_particle = free_particle_id
-            
-            # new free particle id
-            free_particle_id = free_particle_id + 1
-            
-            #traj length of particle under investigation
-            traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
-            # bp()
-            # else:
-            #     break
+                # every trajectory point above the start frame gets the new id
+                t4_cutted.loc[(t4_cutted["particle"] == test_particle) & (t4_cutted["frame"] >= start_frame), "particle"] = free_particle_id
+        
+                #next particle to test is the new generated one (the tail)
+                test_particle = free_particle_id
+                
+                # new free particle id
+                free_particle_id = free_particle_id + 1
+                
+                #traj length of particle under investigation
+                traj_length = len(t4_cutted[t4_cutted["particle"] == test_particle])
+            else:
+                break
             
     if keep_tail == 0:
         t4_cutted = tp.filter_stubs(t4_cutted, Min_traj_length)

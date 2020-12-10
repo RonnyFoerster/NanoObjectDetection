@@ -116,7 +116,9 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
 
         # select trajectory to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
-        if not(type(t_beforeDrift)==type(None)):
+        if t_beforeDrift is None:
+            t_bDrift = None
+        else:
             t_bDrift = t_beforeDrift[t_beforeDrift.particle==particleid]
         
         """ 1.) """
