@@ -1486,13 +1486,68 @@ def StatisticOneParticle(sizes_df_lin):
     
     
 
-def Statistic_N_Distribution(sizes_df_lin, num_dist):
-    """ under construction... meant to calculate the best fit for a certain number
-    of different particle sizes "num_dist" to an (experimental/simulated)
-    particle ensemble
-    """
+def StatisticDistribution(sizes_df_lin, num_dist_max=10, showICplot=False):
+    """ compute the best fit of a mixture distribution to a particle ensemble
     
-    return 0
+    ATTENTION: scikit learn python package needed!
+    Gaussian mixture models for different number of mixture components are 
+    calculated via the expectation maximization algorithm. 
+    The model with the smallest AIC (Akaike information criterion)
+    value is chosen for computing the distribution parameters.
+
+    NOTE: 
+        Unlike in the "StatisticOneParticle" function, here the distribution 
+        parameters are NOT computed for the inverse diameters. 
+    
+    Parameters
+    ----------
+    sizes_df_lin: pd.DataFrame containing 'diameter' keyword
+    num_dist_max: int
+        maximum number of considered components in the mixture
+    
+    Returns
+    -------
+    diam_mean, diam_std, weights: np.arrays of length N_best
+        fitting parameters
+    
+    credits to Jake VanderPlas
+    https://www.astroml.org/book_figures/chapter4/fig_GMM_1D.html (15.12.2020)
+    """
+    from sklearn.mixture import GaussianMixture
+    
+    # special format needed here...
+    sizes = np.array(sizes_df_lin.diameter,ndmin=2).transpose()
+    
+    N = np.arange(1,num_dist_max+1) # number of components for all models
+    models = [None for i in range(len(N))]
+
+    for i in range(len(N)):
+        models[i] = GaussianMixture(N[i],covariance_type='spherical').fit(sizes) 
+        # default is 'full', but this is only needed for data dimensions >1
+        
+    AIC = [m.aic(sizes) for m in models]
+    BIC = [m.bic(sizes) for m in models]
+    
+    if showICplot==True:
+        ax = nd.visualize.Plot2DPlot(N, AIC,
+                                     title = 'Akaike (-) and Bayesian (--)', 
+                                     xlabel = 'number of components', 
+                                     ylabel = 'information criterion',
+                                     mymarker = 'x', mylinestyle  = '-')
+        ax.plot(N, BIC, 'x--')
+    
+    minAICindex = np.argmin(AIC)
+    M_best = models[minAICindex] # choose model where AIC is smallest
+    print('Number of components considered: {}'.format(N[minAICindex]))
+
+    diam_mean = M_best.means_.flatten()
+    diam_std = (M_best.covariances_.flatten())**0.5
+    weights = M_best.weights_
+    
+    
+    print('Number of iterations performed: {}'.format(M_best.n_iter_))
+    
+    return diam_mean, diam_std, weights
     
     
     
