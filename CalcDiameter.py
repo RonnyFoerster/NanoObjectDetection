@@ -1464,29 +1464,35 @@ def InvDiameter(sizes_df_lin, settings):
 
 
 
-def StatisticOneParticle(sizes_df_lin):
-    """ calculate mean and std of the INVERSE particle diameters
+def StatisticOneParticle(sizes):
+    """ calculate the inverse mean and std of a particle diameter ensemble,
+    assuming only one contributing size
     
-    reason:
-    mean diameter is 1/(mean diffusion) not mean of all diameter values (!)
+    NOTE:
+    mean diameter is ~1/(mean diffusion) not mean of all diameter values (!)
+    => inverse Gaussian distribution
 
     Parameters
     ----------
-    sizes_df_lin : pandas.DataFrame
-        with "diameter" column
+    sizes : pandas.DataFrame with 'diameter' column or pandas.Series of float
+        particle diameters
         
     Returns
     -------
     diam_inv_mean, diam_inv_std : both float
     """
-    diam_inv_mean = (1/sizes_df_lin.diameter).mean()
-    diam_inv_std  = (1/sizes_df_lin.diameter).std()
+    if type(sizes) is pd.DataFrame:
+        sizes = sizes.diameter
+    
+    diam_inv_mean = (1/sizes).mean()
+    diam_inv_std  = (1/sizes).std()
     
     return diam_inv_mean, diam_inv_std
     
     
 
-def StatisticDistribution(sizes_df_lin, num_dist_max=10, showICplot=False):
+def StatisticDistribution(sizes_df_lin, num_dist_max=10, 
+                          weighting=True, showICplot=False):
     """ compute the best fit of a mixture distribution to a particle ensemble
     
     ATTENTION: scikit learn python package needed!
@@ -1501,9 +1507,14 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10, showICplot=False):
     
     Parameters
     ----------
-    sizes_df_lin: pd.DataFrame containing 'diameter' keyword
+    sizes_df_lin: pd.DataFrame containing 'diameter' keyword 
+                  (and 'traj length' if weighting==True)
     num_dist_max: int
         maximum number of considered components in the mixture
+    weighting: boolean
+        introduce weights for the sizes according to the trajectory lengths
+    showICplot: boolean
+        plot a figure with AIC and BIC over N
     
     Returns
     -------
@@ -1515,8 +1526,13 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10, showICplot=False):
     """
     from sklearn.mixture import GaussianMixture
     
+    if weighting==True:
+        sizes = sizes_df_lin.diameter.repeat(np.array(sizes_df_lin['traj length'],dtype='int'))
+    else:
+        sizes = sizes_df_lin.diameter
+    
     # special format needed here...
-    sizes = np.array(sizes_df_lin.diameter,ndmin=2).transpose()
+    sizes = np.array(sizes,ndmin=2).transpose()
     
     N = np.arange(1,num_dist_max+1) # number of components for all models
     models = [None for i in range(len(N))]
@@ -1533,7 +1549,7 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10, showICplot=False):
                                      title = 'Akaike (-) and Bayesian (--)', 
                                      xlabel = 'number of components', 
                                      ylabel = 'information criterion',
-                                     mymarker = 'x', mylinestyle  = '-')
+                                     mymarker = 'x', mylinestyle = '-')
         ax.plot(N, BIC, 'x--')
     
     minAICindex = np.argmin(AIC)

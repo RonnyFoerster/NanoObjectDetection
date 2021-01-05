@@ -256,6 +256,126 @@ def DiameterOverTrajLengthColored(ParameterJsonFile, sizes_df_lin,
 
 
 
+def DiameterPDF_transparent(ParameterJsonFile, sizes_df_lin, histogramm_min = None, 
+                            histogramm_max = None, Histogramm_min_max_auto = 0, 
+                            binning = None):
+    """ calculate and plot the diameter probability density function of a
+    particle ensemble as the sum of individual PDFs - and plot the individual 
+    PDFs as well!
+    
+    NB: each trajectory is considered individually, the tracklength determines
+        the PDF widths
+    
+    assumption: 
+        relative error = std/mean = sqrt( 2*N_tmax/(3*N_f - N_tmax) )
+        with N_tmax : number of considered lagtimes
+             N_f : number of frames of the trajectory (=tracklength)
+
+    Parameters
+    ----------
+    ParameterJsonFile : TYPE
+        DESCRIPTION.
+    sizes_df_lin : TYPE
+        DESCRIPTION.
+    histogramm_min : TYPE, optional
+        DESCRIPTION. The default is None.
+    histogramm_max : TYPE, optional
+        DESCRIPTION. The default is None.
+    Histogramm_min_max_auto : TYPE, optional
+        DESCRIPTION. The default is None.
+    binning : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Returns
+    -------
+    prob_inv_diam
+    diam_grid
+    ax
+    """
+    import NanoObjectDetection as nd
+    from scipy.stats import norm
+    # sns.set(style="darkgrid")
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    DiameterPDF_Show = settings["Plot"]['DiameterPDF_Show']
+    DiameterPDF_Save = settings["Plot"]['DiameterPDF_Save']
+    PDF_min = settings["Plot"]['PDF_min']
+    PDF_max = settings["Plot"]['PDF_max']
+    
+    # calculate mean and std of the ensemble (inverse!) and the grid for plotting
+    diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
+    diam_grid = np.linspace(PDF_min,PDF_max,10000) # prepare grid for plotting
+    diam_grid_inv = 1/diam_grid
+    
+    # calculate inverse diameters and estimates of their std
+    inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
+    num_trajectories = len(sizes_df_lin) 
+    
+    fig,ax = plt.subplots()
+    
+    prob_inv_diam = np.zeros_like(diam_grid_inv)
+    # loop over all individual diameters, calculate their PDFs and add them up
+    for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
+        my_pdf = norm(loop_mean,loop_std).pdf(diam_grid_inv)
+        my_pdf = my_pdf / np.sum(my_pdf) # normalization
+        
+        ax.fill_between(diam_grid,my_pdf,alpha=0.3)
+        
+        prob_inv_diam = prob_inv_diam + my_pdf    
+
+    # normalize
+    prob_inv_diam = prob_inv_diam / np.sum(prob_inv_diam)
+    
+    # instantiate a second axes that shares the same x-axis
+    ax2 = ax.twinx()  
+    mycol = 'tab:blue'
+    ax2.plot(diam_grid,prob_inv_diam, color=mycol)
+    
+    # configure plot settings
+    ax2.set_ylabel('Ensemble probability [a.u.]', color=mycol)
+    ax2.tick_params(axis='y', labelcolor=mycol)
+    
+    if Histogramm_min_max_auto == 1:
+        PDF_min, PDF_max = nd.visualize.GetCI_Interval(prob_inv_diam, diam_grid, 0.999)
+        #histogramm_min = 0
+    else:
+        PDF_min, settings = nd.handle_data.SpecificValueOrSettings(PDF_min, settings, 
+                                                                   "Plot", "PDF_min")
+        PDF_max, settings = nd.handle_data.SpecificValueOrSettings(PDF_max, settings, 
+                                                                   "Plot", "PDF_max")
+    ax.set(title="Trajectories: {:3.0f}".format(num_trajectories),
+           xlim = [PDF_min, PDF_max], xlabel = "Diameter [nm]", 
+           ylabel = "Individual probabilities [a.u.]",
+           ylim=[0, 11.5*np.max(prob_inv_diam)])
+    ax2.set(ylim = [0, 1.05*np.max(prob_inv_diam)])
+    
+    # use scientific tick notation
+    from matplotlib import ticker
+    formatter = ticker.ScalarFormatter(useMathText=True)
+    formatter.set_scientific(True) 
+    formatter.set_powerlimits((-1,1)) 
+    ax.yaxis.set_major_formatter(formatter) 
+    ax2.yaxis.set_major_formatter(formatter) 
+        
+    fig.tight_layout()
+    
+    
+    if DiameterPDF_Save == True:
+        save_folder_name = settings["Plot"]["SaveFolder"]
+        
+        settings = nd.visualize.export(save_folder_name, "Diameter_Probability", settings,
+                                       data = sizes_df_lin, ShowPlot = DiameterPDF_Show)
+        
+        data = np.transpose(np.asarray([diam_grid, prob_inv_diam]))
+        nd.visualize.save_plot_points(data, save_folder_name, 'Diameter_Probability_Data')
+        
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)
+    
+    return prob_inv_diam, diam_grid, ax
+
+
+
 # def AnimateTracksOnRawData(t2_long,rawframes_ROI,settings,max_frm=100,frm_start=0,gamma=1.0):
 #     """ animate trajectories on top of raw data
     
