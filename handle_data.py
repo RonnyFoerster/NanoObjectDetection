@@ -352,7 +352,7 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         CheckForRepeatedFrames(rawframes_np)
         
         # check if camera is saturated
-        CheckForSaturation(rawframes_np)
+        rawframes_np = CheckForSaturation(rawframes_np)
 
     return rawframes_np
 
@@ -401,15 +401,15 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     
     # select first 100 frames, otherwise the following calcuation takes to long
     if len(frames) > 10:
-        use_frames = frames[0:10]
+        frames_first_10 = frames[0:10]
     else:
-        use_frames = frames
+        frames_first_10 = frames
     
     # 8Bit image (works for 10 and 12 bits too)
     num_bins = 2**8
     
     plt.figure()
-    plt.hist(np.ndarray.flatten(rawframes_np[use_frames,:,:]), bins = num_bins, log = True)
+    plt.hist(np.ndarray.flatten(rawframes_np[frames_first_10,:,:]), bins = num_bins, log = True)
     plt.title("Intensity histogramm of images with bright particles")
     plt.xlabel("Intensity")
     plt.ylabel("Counts")
@@ -428,20 +428,25 @@ def CheckForSaturation(rawframes_np,warnUser=True):
             if IsSaturated in ['y','n']:
                 ValidInput = True
                 if IsSaturated  == "y":
-                    #Plot the coordinates where saturation happens the first time
-                    is_saturated = rawframes_np == max_value
+                    # #Plot the coordinates where saturation happens the first time
+                    # is_saturated = rawframes_np == max_value
                     
-                    pos_saturated = np.where(is_saturated)
+                    # pos_saturated = np.where(is_saturated)
                     
-                    frame_saturated = np.sort(pos_saturated[0])
+                    # frame_saturated = np.sort(pos_saturated[0])
                     
-                    print("\n\n First 10 frames where saturation occurs: ", frame_saturated[0:10])
+                    print("\n\n First 10 frames where saturation occurs: ", frames_first_10)
                     
                     warnings.warn("\n \n Saturation suspected. Check your rawimages to find out if the are saturated \n")
+                    
+                    rawframes_np[frames,:,:] = 0
+                    
+                    print("\n set ALL pixel in a frame to zero where saturation occurs!")
                     
             else:
                 print("enter y or n!")
                 
+    return rawframes_np
     
 
 def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
