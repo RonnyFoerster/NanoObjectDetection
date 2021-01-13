@@ -518,11 +518,12 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     #consider that a particle can vanish for number of frames Dark_time
     t_max = t * (1+Dark_frame)
     
-    sigma_px = np.sqrt(2*MaxDiffusion_sqpx*t_max )
+    sigma_diff_px = np.sqrt(2*MaxDiffusion_sqpx*t_max )
 
     # look into Förster2020
+    # Estimate the maximum displacement ONE particle undergoes between two frames (maybe more due to dark frames if switched on), sothat linking by nearest neighbor works
     # 5 sigma is 1 in 1.74 million (or sth like this) that particle does not leave this area
-    Max_displacement = 5 * sigma_px
+    Max_displacement = 5 * sigma_diff_px 
 
     # trackpy require integer
     Max_displacement = int(np.ceil(Max_displacement))
@@ -530,15 +531,24 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     # one is added because a bit of drift is always in
     Max_displacement = Max_displacement + 1
 
-    # 7sigma leads to 1 in a million of mixing up two particle by nearest neighbor linking
-    Min_Separation = 7 * sigma_px
-    Min_Separation = int(np.ceil(Min_Separation))
-    # one is added because a bit of drift is always in
-    Min_Separation = Min_Separation + 1
-    
-
     print("\n The distance a particle can maximal move (and identified as the same one) >Max displacement< is set to: ", Max_displacement)
     settings["Link"]["Max displacement"] = Max_displacement 
+
+
+    # Estimate the distance TWO particle must be apart in order to successfully link them in the next frame without interchanging them.
+    # 7sigma leads to 1 in a million of mixing up two particle by nearest neighbor linking
+    Min_Separation_diff = 7 * sigma_diff_px
+    
+    # sigma of the PSF  
+    sigma_PSF_nm = nd.Theory.SigmaPSF(settings["Exp"]["NA"], settings["Exp"]["lambda"])
+    sigma_PSF_px = sigma_PSF_nm / (settings["Exp"]["Microns_per_pixel"]*1000)
+
+    # seperate two gaussian by 6 sigma (meaning 3 sigma on each particle (3 sigma = beyond 99.7%))
+    Min_Separation_PSF = 6 * sigma_PSF_px
+
+    Min_Separation = int(np.ceil(Min_Separation_diff + Min_Separation_PSF))
+
+
 
     print("\n The minimum distance between two located particles >Separation data< is set to: ", Min_Separation )
     settings["Find"]["Separation data"] = Min_Separation 

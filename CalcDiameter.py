@@ -403,11 +403,28 @@ def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
     """
     start_frame = int(eval_tm.iloc[0].frame)
     if type(t_beforeDrift) == type(None):
-        start_x = eval_tm.iloc[0].x
-        start_y = eval_tm.iloc[0].y
+        # check if x and y columns exist (sometimes just one is given (RF))
+        if "x" in eval_tm:
+            start_x = eval_tm.iloc[0].x
+        else:
+            start_x = -1            
+            
+        if "y" in eval_tm:
+            start_y = eval_tm.iloc[0].y
+        else:
+            start_y = -1
+            
     else:
-        start_x = t_beforeDrift.iloc[0].x
-        start_y = t_beforeDrift.iloc[0].y        
+        if "x" in t_beforeDrift:
+            start_x = t_beforeDrift.iloc[0].x
+        else:
+            start_x = -1            
+            
+        if "y" in t_beforeDrift:
+            start_y = t_beforeDrift.iloc[0].y       
+        else:
+            start_y = -1
+            
     mean_mass = eval_tm["mass"].mean()
     mean_size = eval_tm["size"].mean()
     mean_ecc = eval_tm["ecc"].mean()
@@ -617,6 +634,10 @@ def RedXOutOfMsdFit(slope, offset, t_frame):
     # Michalet 2012 using Eq 4 in offset of Eq 10
     
     red_x = offset / (t_frame*slope)
+    
+    # print("\n\nslope: ", slope)
+    # print("offset: ", offset)
+    # print("red_x: ", red_x)
     
     # do not allow theoretical unalloed x
     # look at defintion of x. minimum of x is achieved with sigma^2 = 0 and R maximum = 1/4
@@ -1078,7 +1099,9 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     particleid = eval_tm.particle.unique()
     
     # red_ep = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
-    red_ep = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], settings["Exp"]["ExposureTime"])
+    lagtime = 1/settings["Exp"]["fps"]
+    
+    red_ep = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], lagtime)
                     
 #     get the fit error if switches on (and working)
     rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
