@@ -403,8 +403,9 @@ def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
     """
     start_frame = int(eval_tm.iloc[0].frame)
 	
-    if type(t_beforeDrift) is None:
+    if t_beforeDrift is None:
         # check if x and y columns exist (sometimes just one is given (RF))
+        print("Ronny thinks that is missleading.")
         if "x" in eval_tm:
             start_x = eval_tm.iloc[0].x
         else:
