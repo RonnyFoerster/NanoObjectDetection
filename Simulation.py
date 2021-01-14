@@ -267,14 +267,18 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
     # sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
 
+    # move every trajectory to starting position, if provided
+    if start_pos != None:
+        # sim_part["x"] = sim_part["x"] + np.repeat(start_pos[:,0],frames)
+        
+        # RF210114 - set dx position in first frame for every particle to starting position
+        sim_part.loc[(sim_part.frame == 0) & (sim_part.step == 'exp'), "dx"] = start_pos
+        # sim_part["y"] = sim_part["y"] + np.repeat(start_pos[:,1],frames)
+
     # sum up the individual steps over time via a cumsum to get the particle position over time
     sim_part["x"] = sim_part[["particle", "dx"]].groupby("particle").cumsum()
     # sim_part["y"] = sim_part[["particle", "dy"]].groupby("particle").cumsum()
 
-    # move every trajectory to starting position, if provided
-    if start_pos != None:
-        sim_part["x"] = sim_part["x"] + np.repeat(start_pos[:,0],frames)
-        # sim_part["y"] = sim_part["y"] + np.repeat(start_pos[:,1],frames)
 
     # average of microsteps position in each frame and particle. this is where the center of mass of the localization is
     # pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()[["x","y"]]
