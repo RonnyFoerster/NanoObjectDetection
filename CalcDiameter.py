@@ -1100,13 +1100,13 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     
     particleid = eval_tm.particle.unique()
     
-    # red_ep = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
+    # red_x = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
     lagtime = 1/settings["Exp"]["fps"]
     
-    red_ep = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], lagtime)
+    red_x = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], lagtime)
                     
 #     get the fit error if switches on (and working)
-    rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
+    rel_error_diff, diff_std = DiffusionError(traj_length, red_x, diff_direct_lin, min_rel_error, lagtimes_max)
 
     diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, 
                                    temp_water, visc_water, DoRolling = DoRolling)
@@ -1115,7 +1115,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
         sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter, \
                            particleid, traj_length, amount_frames_lagt1, start_frame, \
                            mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
-                           red_ep, max_step, true_particle, stat_sign = stat_sign,
+                           red_x, max_step, true_particle, stat_sign = stat_sign,
                            start_x=start_x, start_y=start_y)
     else:
         bp()
@@ -1127,7 +1127,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
 def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                     particleid, traj_length, amount_frames_lagt1, start_frame,
                     mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
-                    red_ep, max_step, true_particle, stat_sign = None, start_x=0,start_y=0):
+                    red_x, max_step, true_particle, stat_sign = None, start_x=0,start_y=0):
     """ write all the valuable parameters in one large pandas.DataFrame """
 
     # store results in DataFrame:   
@@ -1136,7 +1136,7 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                                                           'diffusion std': [diff_std],
                                                           'diameter': [diameter],
                                                           'ep': [mean_ep],
-                                                          'redep' : [red_ep], 
+                                                          'red_x' : [red_x], 
                                                           'signal': [mean_signal],
                                                           'mass': [mean_mass],
                                                           'rawmass': [mean_raw_mass],
@@ -1159,7 +1159,7 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
 def ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, diff_std_rolling, diameter_rolling, 
                     particleid, traj_length, amount_frames_lagt1, start_frame,
                     mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
-                    red_ep, max_step):
+                    red_x, max_step):
     
     # Storing results in df:
     new_panda = pd.DataFrame(data={'particle': particleid,
@@ -1168,7 +1168,7 @@ def ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, diff_s
                                   'diffusion std': diff_std_rolling,
                                   'diameter': diameter_rolling,
                                   'ep': mean_ep,
-                                  'redep' : red_ep, 
+                                  'red_x' : red_x, 
                                   'signal': mean_signal,
                                   'mass': mean_mass,
                                   'rawmass': mean_raw_mass,
