@@ -402,12 +402,30 @@ def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
 
     """
     start_frame = int(eval_tm.iloc[0].frame)
+	
     if type(t_beforeDrift) is None:
-        start_x = eval_tm.iloc[0].x
-        start_y = eval_tm.iloc[0].y
+        # check if x and y columns exist (sometimes just one is given (RF))
+        if "x" in eval_tm:
+            start_x = eval_tm.iloc[0].x
+        else:
+            start_x = -1            
+            
+        if "y" in eval_tm:
+            start_y = eval_tm.iloc[0].y
+        else:
+            start_y = -1
+            
     else:
-        start_x = t_beforeDrift.iloc[0].x
-        start_y = t_beforeDrift.iloc[0].y        
+        if "x" in t_beforeDrift:
+            start_x = t_beforeDrift.iloc[0].x
+        else:
+            start_x = -1            
+            
+        if "y" in t_beforeDrift:
+            start_y = t_beforeDrift.iloc[0].y       
+        else:
+            start_y = -1
+            
     mean_mass = eval_tm["mass"].mean()
     mean_size = eval_tm["size"].mean()
     mean_ecc = eval_tm["ecc"].mean()
@@ -617,6 +635,10 @@ def RedXOutOfMsdFit(slope, offset, t_frame):
     # Michalet 2012 using Eq 4 in offset of Eq 10
     
     red_x = offset / (t_frame*slope)
+    
+    # print("\n\nslope: ", slope)
+    # print("offset: ", offset)
+    # print("red_x: ", red_x)
     
     # do not allow theoretical unalloed x
     # look at defintion of x. minimum of x is achieved with sigma^2 = 0 and R maximum = 1/4
@@ -1078,7 +1100,9 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     particleid = eval_tm.particle.unique()
     
     # red_ep = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
-    red_ep = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], settings["Exp"]["ExposureTime"])
+    lagtime = 1/settings["Exp"]["fps"]
+    
+    red_ep = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], lagtime)
                     
 #     get the fit error if switches on (and working)
     rel_error_diff, diff_std = DiffusionError(traj_length, red_ep, diff_direct_lin, min_rel_error, lagtimes_max)
@@ -1434,7 +1458,7 @@ def InvDiameter(sizes_df_lin, settings):
     """ calculates inverse diameter values and estimates of their stds
     
     assumption: 
-        relative error = std/mean = sqrt( 2*N_tmax/(3*N_f - N_tmax) )
+        relative error = std/mean = CRLB
         with N_tmax : number of considered lagtimes
              N_f : number of frames of the trajectory (=tracklength)
     
@@ -1454,9 +1478,11 @@ def InvDiameter(sizes_df_lin, settings):
     
     N_tmax = settings["MSD"]["lagtimes_max"] # int value
     N_f = sizes_df_lin["traj length"] # pd.Series
+    x = sizes_df_lin["red_x"] # pd.Series
     
 #    rel_error = sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]
-    rel_error = np.sqrt((2*N_tmax)/(3*(N_f - N_tmax))) # pd.Series
+    # rel_error = np.sqrt((2*N_tmax)/(3*(N_f - N_tmax))) # pd.Series
+    rel_error = nd.Theory.CRLB(N_f, x) # RF 210113
     
     inv_diam_std = inv_diam * rel_error
     
@@ -1589,186 +1615,3 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
     
     return diam_mean, diam_std, weights
     
-    
-    
-# def FitMeanDiameter(sizes_df_lin, settings):    
-#     inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
-    
-#     diff = inv_diam
-#     diff_std = inv_diam_std
-#     diff_weight = 1/(diff_std**2)
-    
-#     mean_diff = np.average(diff, weights = diff_weight)
-    
-# #    https://en.wikipedia.org/wiki/Weighted_arithmetic_mean    
-#     mean_diff_std = np.sqrt(1/np.sum(diff_weight))
-
-#     snr = mean_diff / mean_diff_std
-    
-#     diam = 1/mean_diff
-    
-#     diam_std = diam / snr
-    
-#     return diam, diam_std
-    
-
-
-#def FitMSD(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_displ_sigma_direct, PlotMsdOverLagtime = False):
-#
-#    if (len(lagt_direct) >= 5):
-#        [fit_values, fit_cov]= np.polyfit(lagt_direct, mean_displ_direct, 1, w = 1/mean_displ_sigma_direct, cov=True) 
-#    else:
-#        fit_values= np.polyfit(lagt_direct, mean_displ_direct, 1, w = 1/mean_displ_sigma_direct) 
-##        fit_cov = []
-#    
-#     
-#    if PlotMsdOverLagtime == True:
-#
-#        mean_displ_fit_direct_lin=lagt_direct.map(lambda x: x*fit_values[0])+ fit_values[1]
-#        # order of regression_coefficients depends on method for regression (0 and 1 are switched in the two methods)
-#        # fit results into non-log-space again
-#        nd.visualize.MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin)
-#    
-#    return diff_direct_lin, std_diff_direct_lin
-    
-    
-
-#def CalculateLagtimes_min(eval_tm, lagtimes_min_max = 10, min_snr = 10):
-#    """RF200306 - The idead of this function is nice. However publications show that the noise should be considered too, because it contains the best information though
-#    
-#    calculate the minimum lagtime for the MSD fit
-#    
-#    If the framerate is to high or the localization precision to bad, small lagtimes contain only noise
-#    The function searches the first lagtime which has a msd which is at least 10 times beyond the noise floor
-#    """
-#        
-#    eval_tm = ContinousIndexingTrajectory(eval_tm)
-#    msd_offset = np.square(eval_tm.ep).mean()
-#    
-#    valid_lagtimes_min = False
-#    lagtimes_min = 1
-#    
-#    # this function needs and abort-criteria too
-#    # for 
-#    
-#    while valid_lagtimes_min == False:
-#        msd = np.square(eval_tm.x.diff(lagtimes_min)).mean()
-#        
-#        # check if SNR of MSD is better the minimum SNR
-#        current_snr = msd/msd_offset
-#        if current_snr > min_snr:
-#            valid_lagtimes_min = True
-#        else:
-#            print("msd offset is: ", msd_offset)
-#            print("msd (at first lagtime = {:d}) is: {:f}".format(lagtimes_min,msd))
-#
-#            lagtimes_min = lagtimes_min + 1
-#            if lagtimes_min > lagtimes_min_max:
-#                lagtimes_min = -1
-#                
-#                valid_lagtimes_min = True
-#    
-#    return lagtimes_min
-#    
-#
-#def DeltaErrorEstimation(red_x,traj_length):
-#    """
-#    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#APP1
-#    Eq A5 - A8
-#    """
-#
-#    #  
-#    # old red_x**2 is wrong
-#    y1 = 1 / np.power(1 + 2*red_x**2 , 1/2)
-#    y2 = (1+red_x) / np.power(1 + 2*red_x**2 , 3/2)
-#    delta = (1-y1) / np.sqrt(y2 - y1**2)
-#
-#    
-#    return delta
-
-
-# def OptimalMSDPoints(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
-#     """
-    
-#     XAVIER MICHALET AND ANDREW J. BERGLUND, PHYSICAL REVIEW E 85, 2012
-#     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/
-#     """
-#     red_x = ReducedLocalPrecision(settings, raw_mass, diffusivity)
-    
-    
-#     if type(red_x) == "gain missing":
-#         f_b = 2
-#     else:
-#         f_b = 2 + 1.35 * np.power(red_x,0.6)
-    
-#     L_b = 0.8 + 0.564 * amount_frames_lagt1
-    
-#     value_1 = L_b
-#     value_2 = (f_b * L_b) / np.power(np.power(f_b,3) + np.power(L_b,3),1/3)
-       
-#     p_min = np.int(np.min(np.round([value_1, value_2])))
-
-#     return p_min
-
-
-# def OptimalMSDPoints_Old(settings, ep, raw_mass, diffusivity, amount_frames_lagt1):
-#     """
-    
-#     XAVIER MICHALET AND ANDREW J. BERGLUND, PHYSICAL REVIEW E 85, 2012
-#     https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/
-#     """
-#     red_x = ReducedLocalPrecision(settings, raw_mass, diffusivity)
-    
-    
-#     if type(red_x) == "gain missing":
-#         f_b = 2
-#     else:
-#         f_b = 2 + 1.35 * np.power(red_x,0.6)
-    
-#     L_b = 0.8 + 0.564 * amount_frames_lagt1
-    
-#     value_1 = L_b
-#     value_2 = (f_b * L_b) / np.power(np.power(f_b,3) + np.power(L_b,3),1/3)
-       
-#     p_min = np.int(np.min(np.round([value_1, value_2])))
-
-#     return p_min
-
-
-# def AvgMsd(nan_tm_sq, frames_per_second):
-#     """ calculate the mean values of the squared displacement matrix for all lagtimes
-    
-#     MN: obsolete function?!
-#     """
-#     mean_displ_direct = pd.Series() # To hold the mean sq displacement of a particle
-#     mean_displ_variance_direct = pd.Series() # To hold the variance of the msd of a particle
-# #    my_columns = nan_tm_sq.columns
-    
-#     for column in nan_tm_sq.columns[1:]:
-#         # That iterates over lag-times for the respective particle and
-#         # calculates the msd in the following manner:
-#         # 1. Build sub-blocks for statistically independent lag-time measurements
-#         nan_indi_means = rolling_with_step(nan_tm_sq[column], column, column, mean_func)
-        
-#         # 2. Calculate mean msd for the sublocks
-#         mean_displ_direct_loop = nan_indi_means.mean(axis=0)
-#         mean_displ_direct = mean_displ_direct.append(pd.Series(index=[column], data=[mean_displ_direct_loop]), sort=False)
-        
-#         # 3. Check how many independent measurements are present (this number is used for filtering later. 
-#         # Also the iteration is limited to anaylzing
-#         # those lag-times only that can possibly yield enough entries according to the chosen filter). 
-#         len_nan_tm_sq_loop = nan_indi_means.count()
-        
-#         # 4. Calculate the mean of these sub-means --> that's the msd for each lag-time
-#         # 5. Calculate the variance of these sub-means --> that's used for variance-based fitting 
-#         # when determining the slope of msd over time
-        
-#         mean_displ_variance_direct_loop = nan_indi_means.var(axis=0)*(2/(len_nan_tm_sq_loop-1))
-#         mean_displ_variance_direct = mean_displ_variance_direct.append(pd.Series(index=[column], data=[mean_displ_variance_direct_loop]), sort=False)
-        
-#         mean_displ_sigma_direct = np.sqrt(mean_displ_variance_direct)
-        
-#     lagt_direct = mean_displ_direct.index/frames_per_second # converting frames into physical time: 
-#     # first entry always starts with 1/frames_per_second
-    
-#     return lagt_direct, mean_displ_direct, mean_displ_sigma_direct

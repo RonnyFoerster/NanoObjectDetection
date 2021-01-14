@@ -434,14 +434,19 @@ def CheckForSaturation(rawframes_np,warnUser=True):
                     # pos_saturated = np.where(is_saturated)
                     
                     # frame_saturated = np.sort(pos_saturated[0])
+
+                    print("\n Saturation suspected. Check your rawimages to find out if the are saturated \n")
                     
-                    print("\n\n First 10 frames where saturation occurs: ", frames_first_10)
+                    print("\n Total number of frames: ", rawframes_np.shape[0])
                     
-                    warnings.warn("\n \n Saturation suspected. Check your rawimages to find out if the are saturated \n")
+                    print("\n Number of frames with Saturation: ", len(frames))
                     
-                    rawframes_np[frames,:,:] = 0
+                    print("\n First 10 frames where saturation occurs: ", frames_first_10)
                     
-                    print("\n set ALL pixel in a frame to zero where saturation occurs!")
+              
+                    rawframes_np[frames,:,:] = np.min(rawframes_np, axis = 0)
+                    
+                    print("\n Replace a frame where saturation occurs with a background image! \n")
                     
             else:
                 print("enter y or n!")
