@@ -272,7 +272,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
         # sim_part["x"] = sim_part["x"] + np.repeat(start_pos[:,0],frames)
         
         # RF210114 - set dx position in first frame for every particle to starting position
-        sim_part.loc[(sim_part.frame == 0) & (sim_part.step == 'exp'), "dx"] = start_pos
+        sim_part.loc[(sim_part.frame == 0) & (sim_part.step == 'exp') & (sim_part.dx == 0), "dx"] = start_pos
         # sim_part["y"] = sim_part["y"] + np.repeat(start_pos[:,1],frames)
 
     # sum up the individual steps over time via a cumsum to get the particle position over time
@@ -299,7 +299,6 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
         motion_ep = np.sqrt(ep**2 + pos_var)
         motion_ep = motion_ep.values
 
-        motion_ep = ep
 
     else:
         motion_ep = ep
