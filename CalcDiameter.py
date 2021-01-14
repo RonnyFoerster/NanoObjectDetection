@@ -2,7 +2,7 @@
 """
 Created on Fri Feb  8 09:52:27 2019
 
-@author: Ronny Förster und Stefan Weidlich
+@author: Ronny Förster, Stefan Weidlich, Mona Nissen
 
 """
 
@@ -402,7 +402,7 @@ def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
 
     """
     start_frame = int(eval_tm.iloc[0].frame)
-    if type(t_beforeDrift) == type(None):
+    if type(t_beforeDrift) is None:
         start_x = eval_tm.iloc[0].x
         start_y = eval_tm.iloc[0].y
     else:
@@ -1474,7 +1474,9 @@ def StatisticOneParticle(sizes):
 
     Parameters
     ----------
-    sizes : pandas.DataFrame with 'diameter' column or pandas.Series of float
+    sizes : pandas.DataFrame with 'diameter' column 
+            OR pandas.Series of float 
+            OR np.array of float
         particle diameters
         
     Returns
@@ -1492,7 +1494,7 @@ def StatisticOneParticle(sizes):
     
 
 def StatisticDistribution(sizes_df_lin, num_dist_max=10, 
-                          weighting=True, showICplot=False):
+                          weighting=True, showICplot=False, useAIC=True):
     """ compute the best fit of a mixture distribution to a particle ensemble
     
     ATTENTION: scikit learn python package needed!
@@ -1509,6 +1511,8 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
     ----------
     sizes_df_lin: pd.DataFrame containing 'diameter' keyword 
                   (and 'traj length' if weighting==True)
+                  OR pd.Series
+                  OR np.array
     num_dist_max: int
         maximum number of considered components in the mixture
     weighting: boolean
@@ -1529,7 +1533,10 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
     if weighting==True:
         sizes = sizes_df_lin.diameter.repeat(np.array(sizes_df_lin['traj length'],dtype='int'))
     else:
-        sizes = sizes_df_lin.diameter
+        if type(sizes_df_lin) is pd.DataFrame:
+            sizes = sizes_df_lin.diameter
+        else:
+            sizes = sizes_df_lin # should be np.array or pd.Series type here
     
     # special format needed here...
     sizes = np.array(sizes,ndmin=2).transpose()
@@ -1541,8 +1548,17 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
         models[i] = GaussianMixture(N[i],covariance_type='spherical').fit(sizes) 
         # default is 'full', but this is only needed for data dimensions >1
         
+    # https://en.wikipedia.org/wiki/Akaike_information_criterion
     AIC = [m.aic(sizes) for m in models]
+    # https://en.wikipedia.org/wiki/Bayesian_information_criterion
     BIC = [m.bic(sizes) for m in models]
+    ''' Wikipedia:
+        "The formula for the Bayesian information criterion (BIC) is similar 
+        to the formula for AIC, but with a different penalty for the number 
+        of parameters. With AIC the penalty is 2k, whereas with BIC 
+        the penalty is ln(n) k." 
+        (k: number of fitting parameters,
+         n: number of observation points in the sample) '''
     
     if showICplot==True:
         ax = nd.visualize.Plot2DPlot(N, AIC,
@@ -1552,14 +1568,22 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
                                      mymarker = 'x', mylinestyle = '-')
         ax.plot(N, BIC, 'x--')
     
-    minAICindex = np.argmin(AIC)
-    M_best = models[minAICindex] # choose model where AIC is smallest
-    print('Number of components considered: {}'.format(N[minAICindex]))
+    if useAIC==True:
+        minICindex = np.argmin(AIC)
+    else:
+        minICindex = np.argmin(BIC)
+    M_best = models[minICindex] # choose model where AIC is smallest
+    print('Number of components considered: {}'.format(N[minICindex]))
 
     diam_mean = M_best.means_.flatten()
     diam_std = (M_best.covariances_.flatten())**0.5
     weights = M_best.weights_
     
+    # sort the parameters from lowest to highest mean value
+    sortedIndices = diam_mean.argsort()
+    diam_mean = diam_mean[sortedIndices]
+    diam_std = diam_std[sortedIndices]
+    weights = weights[sortedIndices]
     
     print('Number of iterations performed: {}'.format(M_best.n_iter_))
     

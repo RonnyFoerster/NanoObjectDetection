@@ -294,7 +294,7 @@ def DiameterPDF_transparent(ParameterJsonFile, sizes_df_lin, histogramm_min = No
     """
     import NanoObjectDetection as nd
     from scipy.stats import norm
-    # sns.set(style="darkgrid")
+    # sns.set(style="dark")
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     

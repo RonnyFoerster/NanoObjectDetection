@@ -86,7 +86,7 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
             plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha, color = Color)
             
         if FillArea == True:
-            plt.fill_between(x_np,y_np, y2 = 0, color = Color, alpha=0.7)
+            plt.fill_between(x_np,y_np, y2 = 0, color = Color, alpha=0.5)
     else:
         plt.semilogx(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
         import matplotlib.ticker
@@ -521,7 +521,20 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
 
     """
     import NanoObjectDetection as nd
-
+    
+    title = 'Amount of trajectories analyzed = %r' % len(sizes_df_lin)
+    
+    if weighting==True:
+        # repeat each size value as often as the particle appears in the data
+        sizes = sizes_df_lin.diameter.repeat(np.array(sizes_df_lin['traj length'],dtype='int'))
+        title = title + ', weighted by traj. length'
+    else:
+        if type(sizes_df_lin) is pd.DataFrame:
+            sizes = sizes_df_lin.diameter
+        else:
+            sizes = sizes_df_lin # should be np.array or pd.Series type here
+        title = title + ', each track counted once'
+        
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     # read in plotting parameters
@@ -530,30 +543,20 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     
     if settings["Plot"]["Histogramm_Bins_Auto"] == 1:
         settings["Plot"]["Histogramm_Bins"] = NumberOfBinsAuto(sizes_df_lin)
- 
-    #binning = np.arange(settings["Plot"]["Histogramm_Bins"])
-    binning = settings["Plot"]["Histogramm_Bins"]
-    
-    Histogramm_min_max_auto = settings["Plot"]["Histogramm_min_max_auto"]
+    if binning is None:
+        #binning = np.arange(settings["Plot"]["Histogramm_Bins"])
+        binning = settings["Plot"]["Histogramm_Bins"]
+    if Histogramm_min_max_auto is None:
+        Histogramm_min_max_auto = settings["Plot"]["Histogramm_min_max_auto"]
     if Histogramm_min_max_auto == 1:
-        histogramm_min = np.round(np.min(sizes_df_lin.diameter) - 5, -1)
-        histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)
+        histogramm_min = np.round(np.min(sizes) - 5, -1)
+        histogramm_max = np.round(np.max(sizes) + 5, -1)
         
     histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
     histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
 
     xlabel = 'Diameter [nm]'
     ylabel = 'Absolute occurrence'
-    title = 'Amount of particles analyzed = %r' % len(sizes_df_lin)
-    
-    if weighting==True:
-        # repeat each size value as often as the particle appears in the data
-        sizes = sizes_df_lin.diameter.repeat(np.array(sizes_df_lin['traj length'],dtype='int'))
-        
-        title = title + ', weighted by traj. length'
-    else:
-        sizes = sizes_df_lin.diameter
-        title = title + ', each track counted once'
 
     values_hist, ax = nd.visualize.PlotDiameterHistogramm(sizes, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
     if (showInfobox==True) and (fitNdist==False):
@@ -578,7 +581,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
             prob_diam_inv = \
                 scipy.stats.norm(diam_inv_mean,diam_inv_std).pdf(diam_grid_inv)
             prob_diam_inv = prob_diam_inv / prob_diam_inv.max() * max_hist
-            prob_diam = 1 / prob_diam_inv 
+            # prob_diam = 1 / prob_diam_inv 
         
             plt.plot(diam_grid,prob_diam_inv)
         else:
@@ -586,7 +589,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
             diam_means, diam_stds, weights = \
                 nd.CalcDiameter.StatisticDistribution(sizes_df_lin,
                                                       weighting=weighting,
-                                                      num_dist_max = 2,
+                                                      num_dist_max = 10,
                                                       showICplot=False)
             
             def myGauss(d,mean,std):
@@ -617,14 +620,16 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
                     wtext += '{:.1f},'.format(100*weights[n]) # [%]
                 
                 textstr = '\n'.join([
-                    r'$\mu$ = ['+mtext+'] nm',
-                    r'$\sigma$ = ['+stext+'] nm', 
-                    r'$\phi$ = ['+wtext+'] %', ])
+                    r'$\mu$ = ['+mtext[:-1]+'] nm', # '[:-1]' removes the last ','
+                    r'$\sigma$ = ['+stext[:-1]+'] nm', 
+                    r'$\phi$ = ['+wtext[:-1]+'] %', ])
             
                 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
                 
-                ax.text(0.60, 0.95, textstr, transform=ax.transAxes, 
-                        **axis_font, verticalalignment='top', bbox=props)
+                ax.text(0.5, 0.95, textstr, transform=ax.transAxes, 
+                        #**{'fontname':'Arial', 'size':'14'},
+                        **axis_font, 
+                        verticalalignment='top', bbox=props)
             
                 
     if Histogramm_Save == True:
@@ -636,7 +641,9 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
 
 def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, 
                 histogramm_max = None, Histogramm_min_max_auto = None, 
-                binning = None, fillplot=True, mycolor='C2'):
+                binning = None, fitNdist=False, num_dist_max=2, useAIC=True,
+                statsInfo=True, showInfobox=True,
+                fillplot=True, mycolor='C2'):
     """ calculate and plot the diameter probability density function of a
     particle ensemble as the sum of individual PDFs
     NB: each trajectory is considered individually, the tracklength determines
@@ -661,6 +668,10 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
         DESCRIPTION. The default is None.
     binning : TYPE, optional
         DESCRIPTION. The default is None.
+    fitNdist : boolean, optional
+        If True, a GMM is fitted to the data. The default is False.
+    num_dist_max : integer, optional
+        Maximum number of Gaussians to fit. Default is 2.
 
     Returns
     -------
@@ -713,8 +724,10 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
                                                                    "Plot", "PDF_min")
         PDF_max, settings = nd.handle_data.SpecificValueOrSettings(PDF_max, settings, 
                                                                    "Plot", "PDF_max")
-        
-    title = str("Mean: {:2.3g} nm; Median: {:2.3g} nm; Trajectories: {:3.0f}; \n CI68: [{:2.3g} : {:2.3g}] nm;  CI95: [{:2.3g} : {:2.3g}] nm".format(diam_mean, diam_median, num_trajectories, lim_68CI[0], lim_68CI[1],lim_95CI[0], lim_95CI[1]))
+    if statsInfo==True:    
+        title = str("Mean: {:2.3g} nm; Median: {:2.3g} nm; Trajectories: {:3.0f}; \n CI68: [{:2.3g} : {:2.3g}] nm;  CI95: [{:2.3g} : {:2.3g}] nm".format(diam_mean, diam_median, num_trajectories, lim_68CI[0], lim_68CI[1],lim_95CI[0], lim_95CI[1]))
+    else:
+        title = str("Trajectories: {:.0f}".format(num_trajectories))
     xlabel = "Diameter [nm]"
     ylabel = "Probability [a.u.]"
     x_lim = [PDF_min, PDF_max]
@@ -722,7 +735,9 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
 #    sns.reset_orig()
 
     # plot it!
-    ax = Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0], semilogx = False, FillArea = fillplot, Color = mycolor)
+    ax = Plot2DPlot(diam_grid, prob_inv_diam, title, xlabel, ylabel, mylinestyle = "-",  
+                    mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0], 
+                    semilogx = False, FillArea = fillplot, Color = mycolor)
 
     print("\n\n mean diameter: ", np.round(np.mean(GetCI_Interval(prob_inv_diam, diam_grid, 0.001)),1))
     print("68CI Intervall: ", np.round(GetCI_Interval(prob_inv_diam, diam_grid, 0.68),1),"\n\n")
@@ -732,6 +747,72 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
 #    prob_diam = 1 / prob_diam_inv 
     
 #    plt.plot(diam_grid,prob_diam_inv)
+    
+    if settings["Plot"]["Histogramm_Fit_1_Particle"] == 1:
+        max_PDF = prob_inv_diam.max()
+        
+        if fitNdist == False: # consider only one contributing particle size   
+         
+            # diam_inv_mean, diam_inv_std were calculated before already
+            prob_diam_inv_1size = \
+                scipy.stats.norm(diam_inv_mean,diam_inv_std).pdf(diam_grid_inv)
+            prob_diam_inv_1size = prob_diam_inv_1size / prob_diam_inv_1size.max() * max_PDF
+            # prob_diam = 1 / prob_diam_inv_1size
+        
+            plt.plot(diam_grid,prob_diam_inv_1size)
+        else:
+            # reduce the grid from 10000 to 500 values
+            diamsR = diam_grid[::20]
+            probsR = prob_inv_diam[::20] * 6E5 # scale up to be able to use the values as integers
+            probsN = probsR.round()
+            # create (large!) array with repeated diameter values, cf. weighting scheme
+            sizesPDF = diamsR.repeat(np.array(probsN,dtype='int'))
+            
+            # use Gaussian mixture model (GMM) fitting to get best parameters
+            diam_means, diam_stds, weights = \
+                nd.CalcDiameter.StatisticDistribution(sizesPDF,
+                                                      weighting=False,
+                                                      num_dist_max=num_dist_max,
+                                                      showICplot=True, useAIC=useAIC)
+            
+            def myGauss(d,mean,std):
+                return 1/((2*np.pi)**0.5*std)*np.exp(-(d-mean)**2/(2.*std**2))
+            
+            # compute individual Gaussian functions from GMM fitted parameters
+            dist = np.array([weights[n]*myGauss(diamsR,diam_means[n],diam_stds[n]) 
+                             for n in range(weights.size)])
+            # calculate sum of all distributions
+            dsum = dist.sum(axis=0)
+            # normalize dsum to histogram' max. value...
+            normFactor = max_PDF / dsum.max()
+            dsum = normFactor * dsum
+            dist = normFactor * dist # and the individual distributions accordingly
+            
+            ax.plot(diamsR,dist.transpose(),ls='--')
+            ax.plot(diamsR,dist.sum(axis=0),color='k')
+            
+            if showInfobox==True:
+                from NanoObjectDetection.PlotProperties import axis_font
+                
+                mtext = ''
+                stext = ''
+                wtext = ''
+                for n in range(weights.size):
+                    mtext += ' {:.1f},'.format(diam_means[n])
+                    stext += ' {:.1f},'.format(diam_stds[n])
+                    wtext += ' {:.1f},'.format(100*weights[n]) # [%]
+                
+                textstr = '\n'.join([
+                    r'$\mu$ = ['+mtext[:-1]+'] nm',
+                    r'$\sigma$ = ['+stext[:-1]+'] nm', 
+                    r'$\phi$ = ['+wtext[:-1]+'] %', ])
+                props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+                
+                x_text = 0.7 - (0.05*weights.size)
+                ax.text(x_text, 0.95, textstr, transform=ax.transAxes, 
+                        **{'fontname':'Arial', 'size':'13'}, #**axis_font, 
+                        verticalalignment='top', bbox=props)
+
 
     if DiameterPDF_Save == True:
         save_folder_name = settings["Plot"]["SaveFolder"]
