@@ -1281,23 +1281,6 @@ def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, D
         https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4917385/#FD7
         Eq 7
         """
-#        if DoRolling == False:
-#            delta = DeltaErrorEstimation(red_x,traj_length)
-#        else:
-#            bp()
-#            
-#        if np.isnan(delta) == True:
-#            rel_error = min_rel_error
-#        else:
-#            rel_error = np.power(2/(traj_length-1) * (1+delta**2),1/2)
-        
-        if DoRolling == True:
-            bp()
-           
-        # Eq. 12
-        d = 1
-
-        # rel_error = np.sqrt(2/(d*(traj_length-1))) * np.sqrt(1+2*np.sqrt(1+2*red_x))
         
         # rel. error is well approximated by CRLB for optimized least square fit (Michatelet)
         rel_error = nd.Theory.CRLB(traj_length, red_x)
