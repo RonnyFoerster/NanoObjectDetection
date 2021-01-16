@@ -33,6 +33,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
     3.) check if displacement values are normal distributed (Kolmogorow-Smirnow test)
     4.) calculate mean of the squared displacement values ...
     
+    # [documentation still under construction...]
     # 3.) calculate mean and variance of lag-times for each particle
     # 4.) regress each particle individually linearly: MSD per lag-time 
     # 5.) slope of regression used to calculate size of particle
@@ -73,6 +74,12 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
     yEval : bool, optional
         If set to True, the MSD analysis is done along the transverse (y) axis
         instead of along the fiber (x). The default is False.
+    processOutput : bool, optional
+        Get some more info printout during processing. The default is True.
+    t_beforeDrift : pandas.DataFrame or None, optional
+        Trajectory data needed to calculate the initial positions "x/y in first frame"
+        before drift correction. If not given, the values from t6_final are taken and
+        are usually not identical to the values in the rawdata. The default is None.
 
     Returns
     -------
@@ -1438,7 +1445,7 @@ def ContinousIndexingTrajectory(t):
 
 
 
-def InvDiameter(sizes_df_lin, settings):
+def InvDiameter(sizes_df_lin, settings, useCRLB=True):
     """ calculates inverse diameter values and estimates of their stds
     
     assumption: 
@@ -1461,12 +1468,15 @@ def InvDiameter(sizes_df_lin, settings):
     inv_diam = 1/sizes_df_lin["diameter"] # pd.Series
     
     N_tmax = settings["MSD"]["lagtimes_max"] # int value
-    N_f = sizes_df_lin["traj length"] # pd.Series
-    x = sizes_df_lin["red_x"] # pd.Series
+    N_f = sizes_df_lin["traj length"] # pd.Series 
+    # MN: switch to "valid frames" here?!
     
-#    rel_error = sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]
-    # rel_error = np.sqrt((2*N_tmax)/(3*(N_f - N_tmax))) # pd.Series
-    rel_error = nd.Theory.CRLB(N_f, x) # RF 210113
+    if useCRLB==True:
+        x = sizes_df_lin["red_x"] # pd.Series
+        rel_error = nd.Theory.CRLB(N_f, x) # RF 210113
+    else:
+        #    rel_error = sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]
+        rel_error = np.sqrt((2*N_tmax)/(3*(N_f - N_tmax))) # pd.Series
     
     inv_diam_std = inv_diam * rel_error
     
