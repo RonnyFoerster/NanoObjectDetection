@@ -159,7 +159,7 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
 def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp = 0,
                        num_microsteps = 1, ep = 0, mass = 1, microns_per_pixel = 0.477,
                        temp_water = 295, visc_water = 9.5e-16, PrintParameter = True,
-                       start_pos = None):
+                       start_pos = None, NumDims = 2):
     """ simulate a random walk of Brownian diffusion and return it as Pandas.DataFrame
     object as if it came from real data:
 
@@ -238,10 +238,12 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     num_elements = steps_per_frame * frames * num_particles
 
     # here we save the random walks into
-    sim_part = pd.DataFrame(columns = ["frame", "particle", "step", "dx", "x"], index = range(0,num_elements))
-
-    # sim_part = pd.DataFrame(columns = ["frame", "particle", "step", "dx", "x", "dy", "y"], index = range(0,num_elements))
-
+    if NumDims == 1:
+        sim_part = pd.DataFrame(columns = ["frame", "particle", "step", "dx", "x"], index = range(0,num_elements))   
+        
+    elif NumDims == 2:
+        sim_part = pd.DataFrame(columns = ["frame", "particle", "step", "dx", "x", "dy", "y"], index = range(0,num_elements))
+    
     # create frame number
     frame_numbers = np.arange(0,frames)
 
@@ -258,31 +260,44 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
 
     # make shift as random number for all particles and frames
     sim_part["dx"] = np.random.normal(loc = 0, scale=sim_part_sigma_x, size = num_elements)
-    # sim_part["dy"] = np.random.normal(loc = 0, scale=sim_part_sigma_x, size = num_elements)
+    
+    #first frame of each particle should have dx and dy = 0. It is just disturbing and has no effect
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
+    
+    if NumDims == 2:
+         sim_part["dy"] = np.random.normal(loc = 0, scale=sim_part_sigma_x, size = num_elements)
+         sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
 
     #save if exposed or read out
     sim_part["step"] = step_mode
-
-    #first frame of each particle should have dx and dy = 0. It is just disturbing and has no effect
-    sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
-    # sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
 
     # move every trajectory to starting position, if provided
     if start_pos != None:
         # sim_part["x"] = sim_part["x"] + np.repeat(start_pos[:,0],frames)
         
+        print("RF: Guess that needs some debugging when someone is using it.")
+        
         # RF210114 - set dx position in first frame for every particle to starting position
         sim_part.loc[(sim_part.frame == 0) & (sim_part.step == 'exp') & (sim_part.dx == 0), "dx"] = start_pos
+        
+        if NumDims == 2:
+            print("COPY HERE FROM ABOVE!")
         # sim_part["y"] = sim_part["y"] + np.repeat(start_pos[:,1],frames)
 
     # sum up the individual steps over time via a cumsum to get the particle position over time
     sim_part["x"] = sim_part[["particle", "dx"]].groupby("particle").cumsum()
-    # sim_part["y"] = sim_part[["particle", "dy"]].groupby("particle").cumsum()
+    
+    if NumDims == 2:
+        sim_part["y"] = sim_part[["particle", "dy"]].groupby("particle").cumsum()
 
 
     # average of microsteps position in each frame and particle. this is where the center of mass of the localization is
     # pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()[["x","y"]]
-    pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()["x"]
+
+    if NumDims == 1:
+        pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()["x"]
+    elif NumDims == 2:
+        pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()[["x","y"]] 
 
     ep = ep*1E6 / microns_per_pixel
     # only one var for x and y - not sure here - maybe no y would be better
@@ -290,7 +305,12 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
         # variance of the localization
         # pos_var = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).var()[["x","y"]]
 
-        pos_var = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).var()["x"]
+        if NumDims == 1:
+            pos_var = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).var()["x"]
+        elif NumDims == 2:
+            pos_var = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).var()[["x","y"]]
+            #make geometric mean
+            pos_var = np.sqrt(pos_var["x"]*pos_var["y"])
 
         #average of mean is 1/4 and 1/4 of variances
         #pos_var = (pos_var["x"] + pos_var["y"]) / 4
@@ -298,7 +318,6 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
         # the uncertainty of the movement and the photon limited localization noise is convolved. the convolution of two gaussians is a gaussian with var_prod = var1 + var2
         motion_ep = np.sqrt(ep**2 + pos_var)
         motion_ep = motion_ep.values
-
 
     else:
         motion_ep = ep
@@ -322,7 +341,9 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     #insert localization accuracy to theoretical know position
     if np.max(motion_ep) > 0:
         sim_part_tm.x = sim_part_tm.x + np.random.normal(0, sim_part_tm.ep)
-        # sim_part_tm.y = sim_part_tm.y + np.random.normal(0, sim_part_tm.ep)
+        
+        if NumDims == 2:
+            sim_part_tm.y = sim_part_tm.y + np.random.normal(0, sim_part_tm.ep)
 
 
     return sim_part_tm
