@@ -85,7 +85,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
         print("No particle made it to the end!!!")
         
     else:
-        ExportResultsMain(settings, sizes_df_lin)
+        ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin)
 
         # that is not done anymore    
         sizes_df_lin_rolling = "Undone"
@@ -95,7 +95,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
 
 
 
-def ExportResultsMain(settings, sizes_df_lin):
+def ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin):
     MSD_fit_Show = settings["Plot"]['MSD_fit_Show']
     MSD_fit_Save = settings["Plot"]['MSD_fit_Save']
     
@@ -107,12 +107,12 @@ def ExportResultsMain(settings, sizes_df_lin):
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD_Fit", settings, ShowPlot = settings["Plot"]["MSD_fit_Show"])
     
     if settings["Plot"]["save_data2csv"] == True:
-        sizes_df_lin2csv(settings)        
+        sizes_df_lin2csv(settings, sizes_df_lin)        
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
 
-def sizes_df_lin2csv(settings):
+def sizes_df_lin2csv(settings, sizes_df_lin):
     save_folder_name = settings["Plot"]["SaveFolder"]
     save_file_name = "sizes_df_lin"
     my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
@@ -122,6 +122,8 @@ def sizes_df_lin2csv(settings):
 
 
 def OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_successful_check, MSD_fit_Show, max_counter):
+    
+    amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
     
     # boolean to leave optimization counter of the loop
     OptimizingStatus = "Continue"
