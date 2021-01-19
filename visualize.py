@@ -589,7 +589,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
             diam_means, diam_stds, weights = \
                 nd.CalcDiameter.StatisticDistribution(sizes_df_lin,
                                                       weighting=weighting,
-                                                      num_dist_max = 10,
+                                                      num_dist_max = 2,
                                                       showICplot=False)
             
             def myGauss(d,mean,std):
@@ -643,7 +643,7 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
                 histogramm_max = None, Histogramm_min_max_auto = None, 
                 binning = None, fitNdist=False, num_dist_max=2, useAIC=True,
                 statsInfo=True, showInfobox=True,
-                fillplot=True, mycolor='C2'):
+                fillplot=True, mycolor='C2', useCRLB=True):
     """ calculate and plot the diameter probability density function of a
     particle ensemble as the sum of individual PDFs
     NB: each trajectory is considered individually, the tracklength determines
@@ -684,8 +684,8 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     
     DiameterPDF_Show = settings["Plot"]['DiameterPDF_Show']
     DiameterPDF_Save = settings["Plot"]['DiameterPDF_Save']
-    PDF_min = settings["Plot"]['PDF_min']
-    PDF_max = settings["Plot"]['PDF_max']
+    PDF_min = settings["Plot"]['PDF_min'] # gets overwritten later...
+    PDF_max = settings["Plot"]['PDF_max'] # ... if "Hist_min_max_auto"==1
     
     # calculate mean and std of the ensemble (inverse!) and the grid for plotting
     diam_inv_mean, diam_inv_std = nd.CalcDiameter.StatisticOneParticle(sizes_df_lin)
@@ -693,7 +693,7 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     diam_grid_inv = 1/diam_grid
     
     # calculate inverse diameters and estimates of their std
-    inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
+    inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings, useCRLB=useCRLB)
     
     prob_inv_diam = np.zeros_like(diam_grid_inv)
     # loop over all individual diameters, calculate their PDFs and add them up

@@ -60,14 +60,14 @@ def GetViscosity(temperature = 295.15, solvent = "water"):
     try:
         import CoolProp as CP
         
-        my_visc = CP.CoolProp.PropsSI('V','T',temperature,'P',101.3,solvent)
-        print(r"\nCoolProp (http://www.coolprop.org/) returns a viscosity of {:.3e} Ns/m^2.".format(my_visc))
+        my_visc = CP.CoolProp.PropsSI('V','T',temperature,'P',101325,solvent)
+        print(r"CoolProp (http://www.coolprop.org/) returns a viscosity of {:.3e} Ns/m^2.".format(my_visc))
         # convert from Ns/m^2 (=Pa*s) to Ns/um^2
         my_visc = my_visc * 1e-12
         
     except ModuleNotFoundError:
         print("CoolProp is not installed yet. Please enter the correct viscosity yourself.")
-        my_visc = 1e-12 * float(input("viscosity [Ns/m^2] = "))
+        my_visc = 1e-15 * float(input("viscosity [mPa s] = "))
 		
 		# https://www.tec-science.com/de/mechanik/gase-und-fluessigkeiten/viskositat-von-flussigkeiten-und-gasen/
 
