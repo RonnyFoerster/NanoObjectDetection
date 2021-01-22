@@ -25,7 +25,7 @@ def CheckAll(ParameterJsonFile):
     CheckPanda()
     # CheckLatex()
     CheckJson(ParameterJsonFile)
-    
+    CheckJsonEntires(ParameterJsonFile)
     
 def CheckPython():
     """ check if the python version is right
@@ -120,6 +120,9 @@ def CheckJson(ParameterJsonFile):
 def CheckJsonEntires(ParameterJsonFile):
     # check if all required entire exist, otherwise copy from json
     
+    # memory if sth was wrong
+    MissingEntry = False
+    
     # get path of standard json
     nd_path = os.path.dirname(nd.__file__)
     source_path_default_json = nd_path + "\\default_json\\default_json.json"
@@ -148,7 +151,13 @@ def CheckJsonEntires(ParameterJsonFile):
                 settings[loop_key_lv1][loop_key_lv2] = default_value
                 print("Copy default value: ", default_value)
             
+                MissingEntry = True
         
+    if MissingEntry == True:
+        print("Some entries have been missing in json parameter file.")    
+    else:
+        print("All required entries inside json parameter file.")    
+    
     
 def CheckNumbda():
     # http://soft-matter.github.io/trackpy/v0.4.2/tutorial/performance.html
