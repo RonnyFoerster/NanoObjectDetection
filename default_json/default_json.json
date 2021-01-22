@@ -23,7 +23,7 @@
           "data_type": "tif_stack",
           "use_num_frame": "all",
           "DefaultParameterJsonFile": "default",
-          "json": "Here comes the data path of the json parameter file."
+          "json": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\default_json\\default_json.json"
      },
      "Simulation": {
           "SimulateData": 0,
@@ -154,10 +154,10 @@
           "Pearson_Show": 0,
           "Pearson_Save": 0,
           "fontsize": 14,
-          "SaveFolder": "auto",
+          "SaveFolder": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\default_json\\analysis",
           "Title": "Choose a title in the json file",
           "save_json": 1,
-          "SaveProperties": "auto",
+          "SaveProperties": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\default_json\\analysis",
           "save_data2csv": 1,
           "dpi": 300
      },
@@ -168,5 +168,5 @@
           "y_max": 120,
           "gamma": 0.5,
           "frames_tot": 5
-     }     
+     }
 }

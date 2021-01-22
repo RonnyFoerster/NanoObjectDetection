@@ -16,7 +16,6 @@ import os
 from packaging import version
 
 
-# In[] check python version
 
 def CheckAll(ParameterJsonFile):
     """ main function
@@ -113,7 +112,40 @@ def CheckJson(ParameterJsonFile):
             print("Done")
         else:
             print("Abort")
+
+
+def CheckJsonEntires(ParameterJsonFile):
+    # check if all required entire exist, otherwise copy from json
     
+    # get path of standard json
+    nd_path = os.path.dirname(nd.__file__)
+    source_path_default_json = nd_path + "\\default_json\\default_json.json"
+    
+    # read default settings
+    settings_default = nd.handle_data.ReadJson(source_path_default_json, CreateNew=True)
+    
+    # read experimental settings
+    settings = nd.handle_data.ReadJson(source_path_default_json, CreateNew=True)
+    
+    # loop through both levels of keys
+    
+    list_key_lv1 = settings_default.keys() # level 1 keys
+        
+    for loop_key_lv1 in list_key_lv1:
+        list_key_lv2 = settings_default[loop_key_lv1].keys() #get level 2 keys
+        
+        for loop_key_lv2 in list_key_lv2:
+            
+            # test if key exists
+            if (loop_key_lv2 in settings[loop_key_lv1].keys()) == False:
+                print("Parameter settings['%s']['%s'] not found" %(loop_key_lv1, loop_key_lv2))
+                
+                # copy defaul value 
+                default_value = settings_default[loop_key_lv1][loop_key_lv2]
+                settings[loop_key_lv1][loop_key_lv2] = default_value
+                print("Copy default value: ", default_value)
+            
+        
     
 def CheckNumbda():
     # http://soft-matter.github.io/trackpy/v0.4.2/tutorial/performance.html

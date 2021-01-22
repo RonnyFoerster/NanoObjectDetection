@@ -27,6 +27,7 @@ def ReadJson(mypath, CreateNew = False):
     """ read the json parameter file into a dictionary
     
     mypath: path to the json file
+    CreateNew: Sanitiy Check if False
     """
     changed_something = False
 
@@ -307,17 +308,18 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
     DoSimulation = settings["Simulation"]["SimulateData"]
     
     if DoSimulation == 1:
-        print("No data. The simulation is not done NOW, because it does not provide an image\
-              it provides already the particle positions. Thus it is done in \
-              nd.get_trajectorie.FindSpots.")
+        print("No data. The simulation is not done NOW, because it does not provide an image it provides already the particle positions. Thus it is done in               nd.get_trajectorie.FindSpots.")
         rawframes_np = 0
         
         
     else:
-        data_type        = nd.handle_data.GetVarOfSettings(settings,"File","data_type")
+        data_type = nd.handle_data.GetVarOfSettings(settings,"File","data_type")
+        
         data_folder_name = nd.handle_data.GetVarOfSettings(settings,"File","data_folder_name")
-        data_file_name   = nd.handle_data.GetVarOfSettings(settings,"File","data_file_name")
-        use_num_frame    = nd.handle_data.GetVarOfSettings(settings,"File","use_num_frame")
+        
+        data_file_name = nd.handle_data.GetVarOfSettings(settings,"File","data_file_name")
+        
+        use_num_frame = nd.handle_data.GetVarOfSettings(settings,"File","use_num_frame")
     
         print('start reading in raw images. (That may take a while...)')
         if data_type == 'tif_series':
