@@ -31,7 +31,7 @@ ParameterJsonFile = r'Insert Json Path here, like: Z:\Datenauswertung\Ronny_Foer
 #%% check if the python version and the library are good
 nd.CheckSystem.CheckAll(ParameterJsonFile)
 
-nd.CheckSystem.CheckJsonEntires(ParameterJsonFile)
+# nd.CheckSystem.CheckJsonEntires(ParameterJsonFile)
 
 
 #%% read in the raw data to numpy

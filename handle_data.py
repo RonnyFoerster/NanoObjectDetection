@@ -218,40 +218,43 @@ def GetVarOfSettings(settings, key, entry):
     entry: variable name
     old function - should no be in use anymore
     """
-    if entry in list(settings[key].keys()):
-        # get value
-        value = settings[key][entry]
+    
+    print("Old Function, which should not be used anymore")
+    
+    # if entry in list(settings[key].keys()):
+    #     # get value
+    #     value = settings[key][entry]
         
-    else:
-        print("!!! Parameter settings['%s']['%s'] not found !!!" %(key, entry))
-        # see if defaul file is available
-        if "DefaultParameterJsonFile" in list(settings["Exp"].keys()):
-            print('!!! Default File found !!!')
-            path_default = settings["Exp"]["DefaultParameterJsonFile"]
+    # else:
+    #     print("!!! Parameter settings['%s']['%s'] not found !!!" %(key, entry))
+    #     # see if defaul file is available
+    #     if "DefaultParameterJsonFile" in list(settings["Exp"].keys()):
+    #         print('!!! Default File found !!!')
+    #         path_default = settings["Exp"]["DefaultParameterJsonFile"]
             
-            settings_default = ReadJson(path_default)
-            default_value = settings_default[key][entry]
+    #         settings_default = ReadJson(path_default)
+    #         default_value = settings_default[key][entry]
             
-            ReadDefault = 'invalid'
-            while (ReadDefault in ["y", "n"]) == False:
-                # Do until input is useful
-                ReadDefault = input("Shall default value %s been used [y/n]?" %default_value)
+    #         ReadDefault = 'invalid'
+    #         while (ReadDefault in ["y", "n"]) == False:
+    #             # Do until input is useful
+    #             ReadDefault = input("Shall default value %s been used [y/n]?" %default_value)
             
-            if ReadDefault == "y":
-                value = default_value
+    #         if ReadDefault == "y":
+    #             value = default_value
 
-            else:
-                SetYourself = 'invalid'
-                while (SetYourself in ["y", "n"]) == False:
-                    # Do until input is useful
-                    ReadDefault = input("Do you wanna set the value yourself [y/n]?")
+    #         else:
+    #             SetYourself = 'invalid'
+    #             while (SetYourself in ["y", "n"]) == False:
+    #                 # Do until input is useful
+    #                 ReadDefault = input("Do you wanna set the value yourself [y/n]?")
                  
-                if ReadDefault == "y":
-                    value = input("Ok. Set the value of settings['%s']['%s']: " %(key, entry))
-                else:
-                    sys.exit("Well... you had your chances!")
+    #             if ReadDefault == "y":
+    #                 value = input("Ok. Set the value of settings['%s']['%s']: " %(key, entry))
+    #             else:
+    #                 sys.exit("Well... you had your chances!")
                                                
-    return value
+    # return value
 
 
 
