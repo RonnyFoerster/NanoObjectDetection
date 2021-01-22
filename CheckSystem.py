@@ -24,8 +24,8 @@ def CheckAll(ParameterJsonFile):
     CheckTrackpy()
     CheckPanda()
     # CheckLatex()
-    CheckJson(ParameterJsonFile)
-    CheckJsonEntires(ParameterJsonFile)
+    CheckJson_Exist(ParameterJsonFile)
+    CheckJson_Entires(ParameterJsonFile)
     
 def CheckPython():
     """ check if the python version is right
@@ -84,7 +84,7 @@ def CheckLatex():
         sys.exit("Latex not installed for making good figures")
         
 
-def CheckJson(ParameterJsonFile):
+def CheckJson_Exist(ParameterJsonFile):
     """ check if json file exists, otherwise create a default one
     """
     try:
@@ -117,7 +117,8 @@ def CheckJson(ParameterJsonFile):
             print("Abort")
 
 
-def CheckJsonEntires(ParameterJsonFile):
+
+def CheckJson_Entires(ParameterJsonFile):
     # check if all required entire exist, otherwise copy from json
     
     # memory if sth was wrong
@@ -156,6 +157,7 @@ def CheckJsonEntires(ParameterJsonFile):
         print("Some entries have been missing in json parameter file.")    
     else:
         print("All required entries inside json parameter file.")    
+    
     
     
 def CheckNumbda():
