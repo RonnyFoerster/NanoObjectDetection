@@ -23,121 +23,17 @@ import warnings
 import NanoObjectDetection as nd
 
 
-def ReadJson(mypath, CreateNew = False):
-    """ read the json parameter file into a dictionary
-    
-    mypath: path to the json file
-    CreateNew: Sanitiy Check if False
-    """
-    changed_something = False
-
+def ReadJson(mypath):
+    # read the json parameter file into a dictionary   
 
     with open(mypath) as json_file:
         settings = json.load(json_file)
     
-    
-    # check if json path is written in file. otherwise put it there
-    if "json" in list(settings["File"].keys()):
-        
-        # compare given and saved json path
-        # lower is needed to convert Lib to lib, which is identical in the explorer
-        comp1 = settings["File"]["json"].lower()
-        comp2 = mypath.lower()
-        if comp1 != comp2:
-            if CreateNew == False:
-                print("\n json path: \n", comp1)
-                print("\n given path: \n", comp2)
-                sys.exit("Given Json path does not match defined path in json file! ,\
-                         You might wanna delete the 'settings' row entirely from the json file.")
-            else:
-                settings["File"]["json"] = mypath
-                changed_something = True
-    else:
-        settings["File"]["json"] = mypath
-    
-    
-    # check if default settings are missing.
-    mypath_default = settings["File"]["DefaultParameterJsonFile"]
-    
-    # use default_json file if set to default
-    if mypath_default == "default":
-        mypath_default = os.path.dirname(nd.__file__) + "\\default_json\\default_json.json"
-    
-    try:    
-        with open(mypath_default) as json_file:
-            settings_default = json.load(json_file)
-    except:
-        sys.exit("Default Json file probably not found. You can insert default at the key DefaultParameterJsonFile.")
-       
-    
-    #go through all the main keys in defauls
-    for loop_key in settings_default.keys():
-        # check if the current key is in
-        if loop_key in settings.keys():
-            # if so check all subkeys
-            for loop_subkey in settings_default[loop_key].keys():
-                if (loop_subkey in settings[loop_key].keys()) == False:
-                    print("Insert defaul key: %s with subkey: %s" %(loop_key,loop_subkey))
-                    settings[loop_key][loop_subkey] = settings_default[loop_key][loop_subkey]
-                    changed_something = True
-        
-        
-        # if not copy the entire defaul key
-        else:
-            print("Insert defaul key: %s" %(loop_key))
-            settings[loop_key] = settings_default[loop_key]
-            changed_something = True
-     
-    
-    # set SaveFolder in case of auto     
-    if settings["Plot"]["SaveFolder"] == "auto":
-#        settings["Plot"]["SaveFolder"] = settings["File"]["data_folder_name"] + "\\analysis"
-        settings["Plot"]["SaveFolder"] = os.path.dirname(settings["File"]["json"]) + "\\analysis"
-        changed_something = True
-    
-    # check if saving folders are valid    
-    my_path = settings["Plot"]["SaveFolder"]
-    
-    invalid, my_path = CheckIfFolderGeneratable(my_path)
-     
-    if invalid == True:
-        settings["Plot"]["SaveFolder"] = my_path
-        changed_something = True
-    
-    # set SaveProperties in case of auto  
-    if settings["Plot"]["SaveProperties"] == "auto":
-        settings["Plot"]["SaveProperties"] = settings["Plot"]["SaveFolder"]
-        changed_something = True
-    
-    # check if saving folders are valid
-    my_path = settings["Plot"]["SaveProperties"]
-    invalid, my_path = CheckIfFolderGeneratable(my_path)
-     
-    if invalid == True:
-        settings["Plot"]["SaveProperties"] = my_path
-        changed_something = True
-         
-            
-    if changed_something == True:
-        WriteJson(mypath, settings)    
-    
     return settings
 
+   
+    
 
-
-def CheckIfFolderGeneratable(my_path):
-    invalid = False
-    try:
-        os.stat(my_path)
-    except:
-        try:
-            os.mkdir(my_path)
-        except:
-            my_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
-            invalid = True
-            print("Path not accessible. Write on desktop.")
-
-    return invalid, my_path
 
 
 
@@ -213,51 +109,7 @@ def Get_min_max_round(array_in, decade):
 
 
 
-def GetVarOfSettings(settings, key, entry):
-    """ read the variable inside a dictonary
-    
-    settings: dict
-    key: type of setting
-    entry: variable name
-    old function - should no be in use anymore
-    """
-    
-    print("Old Function, which should not be used anymore")
-    
-    # if entry in list(settings[key].keys()):
-    #     # get value
-    #     value = settings[key][entry]
-        
-    # else:
-    #     print("!!! Parameter settings['%s']['%s'] not found !!!" %(key, entry))
-    #     # see if defaul file is available
-    #     if "DefaultParameterJsonFile" in list(settings["Exp"].keys()):
-    #         print('!!! Default File found !!!')
-    #         path_default = settings["Exp"]["DefaultParameterJsonFile"]
-            
-    #         settings_default = ReadJson(path_default)
-    #         default_value = settings_default[key][entry]
-            
-    #         ReadDefault = 'invalid'
-    #         while (ReadDefault in ["y", "n"]) == False:
-    #             # Do until input is useful
-    #             ReadDefault = input("Shall default value %s been used [y/n]?" %default_value)
-            
-    #         if ReadDefault == "y":
-    #             value = default_value
 
-    #         else:
-    #             SetYourself = 'invalid'
-    #             while (SetYourself in ["y", "n"]) == False:
-    #                 # Do until input is useful
-    #                 ReadDefault = input("Do you wanna set the value yourself [y/n]?")
-                 
-    #             if ReadDefault == "y":
-    #                 value = input("Ok. Set the value of settings['%s']['%s']: " %(key, entry))
-    #             else:
-    #                 sys.exit("Well... you had your chances!")
-                                               
-    # return value
 
 
 
@@ -319,15 +171,15 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         
         
     else:
-        data_type = nd.handle_data.GetVarOfSettings(settings,"File","data_type")
-        
-        data_folder_name = nd.handle_data.GetVarOfSettings(settings,"File","data_folder_name")
-        
-        data_file_name = nd.handle_data.GetVarOfSettings(settings,"File","data_file_name")
-        
-        use_num_frame = nd.handle_data.GetVarOfSettings(settings,"File","use_num_frame")
+        # get the file properties
+        data_type = settings["File"]["data_type"]
+        data_folder_name = settings["File"]["data_folder_name"]
+        data_file_name = settings["File"]["data_file_name"]
+        use_num_frame = settings["File"]["use_num_frame"]
+    
     
         print('start reading in raw images. (That may take a while...)')
+        # select the read-in-routine by data type
         if data_type == 'tif_series':
             if data_folder_name == 0:
                 sys.exit('!!! data_folder_name required !!!')
@@ -352,6 +204,7 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
             sys.exit('Data type %s' %data_type)
         
         print('finishied reading in raw images =)')
+        
         
     if PerformSanityCheck == True:
         print("Perform a sanity check for the raw data...")
@@ -536,12 +389,9 @@ def ReadFits2Numpy(data_file_name):
 
 
 
-def UseROI(image, ParameterJsonFile, x_min = None, x_max = None, y_min = None, y_max = None,
-           frame_min = None, frame_max = None):
+def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = None, frame_min = None, frame_max = None):
     """ applies a ROI to a given image """ 
     
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-
     if settings["ROI"]["Apply"] == 0:
         print("ROI NOT applied")
         image_ROI = image
@@ -554,20 +404,15 @@ def UseROI(image, ParameterJsonFile, x_min = None, x_max = None, y_min = None, y
         y_max = settings["ROI"]['y_max']
         frame_min = settings["ROI"]['frame_min']
         frame_max = settings["ROI"]['frame_max']
-
-        
+       
         image_ROI = image[frame_min : frame_max, y_min : y_max, x_min : x_max]
-        
         
         if settings["ROI"]["Save"] == 1:
             data_folder_name = settings["File"]["data_folder_name"]
             SaveROIToTiffStack(image_ROI, data_folder_name)
-
         
         print("Size rawdata (frames, height, length):", image.shape)
         print("Size ROI (frames, height, length):", image_ROI.shape)
-        
-    WriteJson(ParameterJsonFile, settings)
     
     return image_ROI
 
@@ -597,8 +442,7 @@ def UseSuperSampling(image_in, ParameterJsonFile, fac_xy = None, fac_frame = Non
         else:
             print("Supersampling IS applied")
             fac_xy = settings["Subsampling"]['fac_xy']
-            fac_frame = settings["Subsampling"]['fac_frame']
-            
+            fac_frame = settings["Subsampling"]['fac_frame']           
             
         image_super = image_in[::fac_frame, ::fac_xy, ::fac_xy]
             
@@ -810,4 +654,48 @@ def LogData(rawframes):
 #Yet, when rotating the image lateron, it's better not to do this, but to crop after rotation.
 #"""
 
+def GetVarOfSettings(settings, key, entry):
+    """ read the variable inside a dictonary
+    
+    settings: dict
+    key: type of setting
+    entry: variable name
+    old function - should no be in use anymore
+    """
+    
+    print("nd.handle_data.GetVarOfSettings is an old function, which should not be used anymore")
+    
+    # if entry in list(settings[key].keys()):
+    #     # get value
+    #     value = settings[key][entry]
+        
+    # else:
+    #     print("!!! Parameter settings['%s']['%s'] not found !!!" %(key, entry))
+    #     # see if defaul file is available
+    #     if "DefaultParameterJsonFile" in list(settings["Exp"].keys()):
+    #         print('!!! Default File found !!!')
+    #         path_default = settings["Exp"]["DefaultParameterJsonFile"]
+            
+    #         settings_default = ReadJson(path_default)
+    #         default_value = settings_default[key][entry]
+            
+    #         ReadDefault = 'invalid'
+    #         while (ReadDefault in ["y", "n"]) == False:
+    #             # Do until input is useful
+    #             ReadDefault = input("Shall default value %s been used [y/n]?" %default_value)
+            
+    #         if ReadDefault == "y":
+    #             value = default_value
 
+    #         else:
+    #             SetYourself = 'invalid'
+    #             while (SetYourself in ["y", "n"]) == False:
+    #                 # Do until input is useful
+    #                 ReadDefault = input("Do you wanna set the value yourself [y/n]?")
+                 
+    #             if ReadDefault == "y":
+    #                 value = input("Ok. Set the value of settings['%s']['%s']: " %(key, entry))
+    #             else:
+    #                 sys.exit("Well... you had your chances!")
+                                               
+    # return value

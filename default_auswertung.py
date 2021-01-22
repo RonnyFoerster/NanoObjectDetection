@@ -31,8 +31,6 @@ ParameterJsonFile = r'Insert Json Path here, like: Z:\Datenauswertung\Ronny_Foer
 #%% check if the python version and the library are good
 nd.CheckSystem.CheckAll(ParameterJsonFile)
 
-# nd.CheckSystem.CheckJsonEntires(ParameterJsonFile)
-
 
 #%% read in the raw data to numpy
 rawframes_np = nd.handle_data.ReadData2Numpy(ParameterJsonFile)
@@ -44,7 +42,7 @@ settings = nd.handle_data.ReadJson(ParameterJsonFile)
 if settings["Help"]["ROI"] == 1:
             nd.AdjustSettings.FindROI(rawframes_np)
 
-rawframes_ROI = nd.handle_data.UseROI(rawframes_np, ParameterJsonFile)
+rawframes_ROI = nd.handle_data.UseROI(rawframes_np, settings)
 
 # supersampling  
 rawframes_super = nd.handle_data.UseSuperSampling(rawframes_ROI, ParameterJsonFile)

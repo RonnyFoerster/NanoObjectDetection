@@ -20,12 +20,20 @@ from packaging import version
 def CheckAll(ParameterJsonFile):
     """ main function
     """
+    
+    print("\n\n check Packages of Python: ")
     CheckPython()
     CheckTrackpy()
     CheckPanda()
     # CheckLatex()
-    CheckJson_Exist(ParameterJsonFile)
-    CheckJson_Entires(ParameterJsonFile)
+    
+    print("\n\n check inserted json parameter file: ")
+    settings = CheckJson_Exist(ParameterJsonFile)
+    settings = CheckJson_path(ParameterJsonFile, settings, CreateNew = False)
+    settings = CheckJson_specify_default_auto(settings)
+    settings = CheckJson_Entries(settings)
+    
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
 def CheckPython():
     """ check if the python version is right
@@ -74,6 +82,15 @@ def CheckPanda():
         print("New panda versions do not work since https://github.com/soft-matter/trackpy/issues/529#issue-410397797")
         print("Try: Downgrading your system in Anaconda promt using >>> conda install pandas=0.23.4 <<<")
         sys.exit("Change your pandas version accoringly, or insert your pandas version in pd_maximum_versions")       
+
+
+def CheckNumbda():
+    # http://soft-matter.github.io/trackpy/v0.4.2/tutorial/performance.html
+    
+    from trackpy.diag import performance_report
+    
+    print("Performance report: Is numba installed and working?")
+    performance_report()
     
 
 def CheckLatex():
@@ -91,7 +108,9 @@ def CheckJson_Exist(ParameterJsonFile):
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
     except ValueError:
-        print("JSON file corrupted. Maybe a missing or additional >>>,<<< ?")
+        print("JSON file corrupted!!!. \
+              \n\n Maybe a missing or additional >>>,<<< ? \
+                  \n\n Mabe replate all \\ by \\\\")
      
     except FileNotFoundError:
         print("\n No Json File found in >> {} <<".format(ParameterJsonFile))
@@ -116,24 +135,23 @@ def CheckJson_Exist(ParameterJsonFile):
         else:
             print("Abort")
 
+    return settings
 
 
-def CheckJson_Entires(ParameterJsonFile):
-    # check if all required entire exist, otherwise copy from json
+def CheckJson_Entries(settings):
+    # check if all required entires exist, otherwise copy from json
     
     # memory if sth was wrong
     MissingEntry = False
     
     # get path of standard json
-    nd_path = os.path.dirname(nd.__file__)
-    source_path_default_json = nd_path + "\\default_json\\default_json.json"
+    # nd_path = os.path.dirname(nd.__file__)
+    # source_path_default_json = nd_path + "\\default_json\\default_json.json"
+    source_path_default_json = settings["File"]["DefaultParameterJsonFile"]
     
     # read default settings
-    settings_default = nd.handle_data.ReadJson(source_path_default_json, CreateNew=True)
-    
-    # read experimental settings
-    settings = nd.handle_data.ReadJson(source_path_default_json, CreateNew=True)
-    
+    settings_default = nd.handle_data.ReadJson(source_path_default_json)
+        
     # loop through both levels of keys and check if all required keys exist
     list_key_lv1 = settings_default.keys() # level 1 keys
         
@@ -158,13 +176,101 @@ def CheckJson_Entires(ParameterJsonFile):
     else:
         print("All required entries inside json parameter file.")    
     
+    return settings
+
+
+def CheckJson_path(mypath, settings, CreateNew = False):
+    """ check if json path is written in file. otherwise put it there
+    
+    settings: 
+    CreateNew: Sanitiy Check if False
+    """    
+    
+    # check if json path is written in file. otherwise put it there
+    if "json" in list(settings["File"].keys()):
+        
+        # compare given and saved json path
+        # lower is needed to convert Lib to lib, which is identical in the explorer
+        comp1 = settings["File"]["json"].lower()
+        comp2 = mypath.lower()
+        if comp1 != comp2:
+            if CreateNew == False:
+                print("\n json path: \n", comp1)
+                print("\n given path: \n", comp2)
+                sys.exit("Given Json path does not match defined path in json file! ,\
+                         You might wanna delete the 'settings' row entirely from the json file.")
+            else:
+                settings["File"]["json"] = mypath
+
+    else:
+        settings["File"]["json"] = mypath
+    
+    return settings
+
+    
+def CheckJson_specify_default_auto(settings):
+    # set default_json file from default folder
+    mypath_default = settings["File"]["DefaultParameterJsonFile"]
+    
+    # use default_json file if set to default
+    if mypath_default == "default":
+        mypath_default = os.path.dirname(nd.__file__) + "\\default_json\\default_json.json"
+        settings["File"]["DefaultParameterJsonFile"] = mypath_default
+    
+    try:    
+        nd.handle_data.ReadJson(settings["File"]["DefaultParameterJsonFile"])
+            
+    except:
+        sys.exit("Default Json file probably not found. You can insert default at the key DefaultParameterJsonFile.")
+       
+    
+    # set SaveFolder in case of auto     
+    if settings["Plot"]["SaveFolder"] == "auto":
+        settings["Plot"]["SaveFolder"] = os.path.dirname(settings["File"]["json"]) + "\\analysis"
+        
+    # check if saving folders are valid    
+    my_path = settings["Plot"]["SaveFolder"]
+    invalid, my_path = CheckIfFolderGeneratable(my_path)
+     
+    if invalid == True:
+        settings["Plot"]["SaveFolder"] = my_path
+    
+    print("Figures are saved into: ", settings["Plot"]["SaveFolder"])
     
     
-def CheckNumbda():
-    # http://soft-matter.github.io/trackpy/v0.4.2/tutorial/performance.html
+    # same for the save SaveProperties entry
+    if settings["Plot"]["SaveProperties"] == "auto":
+        settings["Plot"]["SaveProperties"] = settings["Plot"]["SaveFolder"]
     
-    from trackpy.diag import performance_report
+    # check if saving folders are valid
+    my_path = settings["Plot"]["SaveProperties"]
+    invalid, my_path = CheckIfFolderGeneratable(my_path)
+     
+    if invalid == True:
+        settings["Plot"]["SaveProperties"] = my_path
+
     
-    print("Performance report: Is numba installed and working?")
-    performance_report()
+    print("Properties are saved into: ", settings["Plot"]["SaveProperties"])
+    
+  
+    return settings
+
+
+
+def CheckIfFolderGeneratable(my_path):
+    invalid = False
+    try:
+        os.stat(my_path)
+    except:
+        try:
+            os.mkdir(my_path)
+        except:
+            my_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
+            invalid = True
+            print("Path not accessible. Write on desktop. \n If you are not happy with this, try writing <auto> into the json key!")
+
+    return invalid, my_path
+    
+    
+
     
