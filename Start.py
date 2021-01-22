@@ -66,9 +66,10 @@ def NewEvaluation():
           \n 2 - Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera \
           \n 3 - Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera \
           \n 4 - Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera \
+          \n 5 - Zeiss 20x 0_40 epiplan Objective with Basler AC4096-40um_camera\
         \n\n"))
     
-    if pre_select in [2,3,4]:
+    if pre_select in [2,3,4,5]:
         if pre_select == 2:
             print("Load: Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera")
             path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
@@ -78,7 +79,10 @@ def NewEvaluation():
         elif pre_select == 4:
             print("Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera")
             path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera.json"
-
+        elif pre_select == 5:
+            print("Zeiss 20x 0_40 epiplan Objective with Basler AC4096-40um_camera")
+            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\default_json_20x 0_40 epiplan Objective with Basler cam.json"
+            
             
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)

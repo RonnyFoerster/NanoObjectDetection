@@ -133,8 +133,7 @@ def CheckJsonEntires(ParameterJsonFile):
     # read experimental settings
     settings = nd.handle_data.ReadJson(source_path_default_json, CreateNew=True)
     
-    # loop through both levels of keys
-    
+    # loop through both levels of keys and check if all required keys exist
     list_key_lv1 = settings_default.keys() # level 1 keys
         
     for loop_key_lv1 in list_key_lv1:
