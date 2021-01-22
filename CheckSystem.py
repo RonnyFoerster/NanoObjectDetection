@@ -88,9 +88,12 @@ def CheckJson(ParameterJsonFile):
     """ check if json file exists, otherwise create a default one
     """
     try:
-
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
-    except:
+
+    except ValueError:
+        print("JSON file corrupted. Maybe a missing or additional >>>,<<< ?")
+     
+    except FileNotFoundError:
         print("\n No Json File found in >> {} <<".format(ParameterJsonFile))
 
         CopyJson = input("Copy standard json (y/n)? ")
