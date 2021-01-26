@@ -18,6 +18,37 @@ from pdb import set_trace as bp #debugger
 
 
 
+def Main(rawframes_pre, ParameterJsonFile):
+    """
+    Runs the various routines for optimiting and estimating the localizing and trackpy parameters of trackpy
+    """
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+
+    # optimized the distance a particle can move between two frames and how close to beads can be without risk of wrong assignment
+    if settings["Help"]["Separation"] == "auto":
+        nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        
+
+    # if beadsize is not auto - the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
+    if settings["Help"]["Bead size"] != "auto":
+        FindSpot(rawframes_pre, ParameterJsonFile)
+        
+    # optimize PSF diameter
+    SpotSize(rawframes_pre, ParameterJsonFile)  
+    
+    # optimize minmass to identify particle
+    num_particles_trackpy = FindSpot(rawframes_pre, ParameterJsonFile)
+ 
+    # maybe do this right before the drift correction
+    if settings["Help"]["Drift"] == "auto":
+        nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_trackpy)
+        
+
+def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
+    print("Function not in use anymore. Use <Main> instead.")
+    Main(rawframes_pre, ParameterJsonFile)
+
+
 def GetIntegerInput(MessageOnScreen):
     """ ask for an INTEGER input on the console
     """
@@ -92,6 +123,7 @@ def AskMethodToImprove():
     return method
 
 
+
 def AskIfUserSatisfied(QuestionForUser):
     """ ask if user is satisfied
     """
@@ -107,36 +139,14 @@ def AskIfUserSatisfied(QuestionForUser):
             else:
                 UserSatisfied = False
     return UserSatisfied
-
-
-
-def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
-    
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-
-    # optimized the distance a particle can move between two frames and how close to beads can be without risk of wrong assignment
-    if settings["Help"]["Separation"] == "auto":
-        nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        
-
-    # if beadsize is not auto - the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
-    if settings["Help"]["Bead size"] != "auto":
-        nd.AdjustSettings.FindSpot(rawframes_pre, ParameterJsonFile)
-        
-    # optimize PSF diameter
-    nd.AdjustSettings.SpotSize(rawframes_pre, ParameterJsonFile)  
-    
-    # optimize minmass to identify particle
-    num_particles_trackpy = nd.AdjustSettings.FindSpot(rawframes_pre, ParameterJsonFile)
-
- 
-    # maybe do this right before the drift correction
-    if settings["Help"]["Drift"] == "auto":
-        nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_trackpy)
-    
+  
 
 
 def FindSpot(rawframes_pre, ParameterJsonFile):
-    
+    """
+    Estimated the minmass value that trackpy uses in its feature finding routine
+    The value have to be choosen such that dim featues are still reconized, while noise is not mistaken as a particle
+    """    
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     if (settings["Help"]["Bead brightness"] == "manual") or (settings["Help"]["Bead brightness"] == 1):
@@ -225,6 +235,10 @@ def FindSpot_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = False, ga
 
 
 def SpotSize(rawframes_pre, ParameterJsonFile):
+    """
+    select if Diameter value in trackpy is estiamted manual or automatically
+    """
+    
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     if (settings["Help"]["Bead size"] == "manual") or (settings["Help"]["Bead size"] == 1):
@@ -235,25 +249,17 @@ def SpotSize(rawframes_pre, ParameterJsonFile):
         
     else:
         print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
-
-
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings)  
     
 
 
-def SpotSize_auto(settings):
-    
-    ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
-    diameter = nd.ParameterEstimation.EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF)
-      
-    return diameter
-
-
-
 def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
     """
     Optimize the diameter of the Particles
+    Start with a very low diameter (3px) and run Trackpy on the first 100 frames. 
+    A good choosen diameter leads to a even (flat) distributed decimal place of the localized particle position
+    If the distribution is not flat, the diameter is increase till its ok.
     """
         
     separation = settings["Find"]["Separation data"]
@@ -288,9 +294,7 @@ def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
             
             if AutoIteration == True:
                 plt.pause(3)
-                UserSatisfied = AskIfUserSatisfied('The histogramm should be flat. \
-                                                   They should not have a dip in the middle! \
-                                               Particles should be detected. Are you satisfied?')
+                UserSatisfied = AskIfUserSatisfied('The histogramm should be flat. They should not have a dip in the middle! Particles should be detected. \n Are you satisfied?')
                 
             else:
                 UserSatisfied = True
@@ -313,7 +317,16 @@ def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
     
     return try_diameter
  
+ 
+ 
+def SpotSize_auto(settings):
     
+    ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
+    diameter = nd.ParameterEstimation.EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF)
+      
+    return diameter
+   
+ 
 
 def FindROI(rawframes_np):
     """ show the maximum value of all images to reveal where the ROI is

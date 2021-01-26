@@ -95,6 +95,14 @@ def EstimageSigmaPSF(settings):
 
 
 def EstimateMinmassMain(img1, settings):
+    """
+    Estimate the minmass parameter trackpy requires to locate particles
+    1 - Make an intensity independent feature finding by a zero-normalized cross correlation (ZNCC)
+    This is computational very demanding
+    2 - Optimize trackpy parameters such, that it obtains the same result than ZNCC
+    """    
+    
+    # use first frame only
     img1 = img1[0,:,:]
        
     #check if raw data is convolved by PSF to reduce noise
@@ -102,11 +110,12 @@ def EstimateMinmassMain(img1, settings):
     
     #if so - convolve the rawimage with the PSF
     if ImgConvolvedWithPSF == True:
-        img1_in = nd.PreProcessing.ConvolveWithPSF(img1, settings)        
+        gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
+        img1_in = nd.PreProcessing.ConvolveWithPSF(img1, gauss_kernel_rad)        
     else:
         img1_in = img1
         
-    
+    # clip negative values and set datatype to uint16
     img1[img1 < 0] = 0
     img1 = np.uint16(img1)
       
@@ -280,9 +289,11 @@ def EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF = True):
     
 
 def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = True, percentile = 64):
-    # the particles are found accurately by zncc, which is accurate but time consuming
-    # trackpy is faster but needs proper threshold to find particles - minmass
-    # start with a low threshold and increase it till the found particles by zncc are lost
+    """
+    the particles are found accurately by zncc, which is accurate but time consuming
+    trackpy is faster but needs proper threshold to find particles - minmass
+    start with a low threshold and increase it till the found particles by zncc are lost
+    """
     
     #start value
     minmass = minmass_start
@@ -302,8 +313,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     else:
         max_distance = diameter[0] / 2 # assume that diameters for x and y direction are equal
     
-    # optimal value of wrong to right (the value to minimize) and the corresponding minmass
-    wrong_to_right_optimum = np.inf
+    # save the optimal minmass
     minmass_optimum = 0
     
     # save the history
@@ -327,9 +337,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
                 stop_optimizing = True
                 raise ValueError("Trackpy finds to few particles. Reasons: \n Start value of minmass is to low (unlikely) \n Specimen is too dense/ too high concentrated.")
         
-#        wrong_found = num_found_particle - num_features
-#        print("Wrong to right assignment: ", wrong_found / num_features)
-        
+
         # reset counters
         # right_found: particle is found in ncc and trackpy. Location mismatch is smaller than diameter
         right_found = 0
@@ -492,12 +500,19 @@ def SaltAndPepperKernel(sigma, fac = 6, x_size = None,y_size = None):
 
 
 def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None):
+    """
+    Estimate how much a particle moves maximum between two frames.
+    Leads to: Minimum distance (separation) of two points in the locating procedure
+    Leads to: Maximum displacment in the nearest neighbour linking
+    """
+    
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     temp_water = settings["Exp"]["Temperature"]
     visc_water = settings["Exp"]["Viscosity"]
     Dark_frame  = settings["Link"]["Dark time"]
 
+    # ask for the smallest expected diameter, which sets the largest expected diffusion
     if GuessLowestDiameter_nm == None:
         GuessLowestDiameter_nm = int(input("What is the lower limit of diameter (in nm) you expect?\n"))
     
@@ -550,7 +565,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
 
 
 
-    print("\n The minimum distance between two located particles >Separation data< is set to: ", Min_Separation )
+    print("\n The minimum distance between two located particles >Separation data< is set to: ", Min_Separation)
     settings["Find"]["Separation data"] = Min_Separation 
 
 
@@ -574,14 +589,18 @@ def DiameterToDiffusion(temp_water,visc_water,diameter):
 
 
 def Drift(ParameterJsonFile, num_particles_per_frame):
+    """
+    Calculates how many frames are requires to get a good estimation of the drift
+    """
+    
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
     # the drift can be estimated better if more particles are found and more trajectories are formed
     # averaging over many frames leads to more datapoints and thus to a better estimation
     # on the other hand drift changes - so averaging over many time frames reduces the temporal resolution
     
-    # I assume that 100 particles need to be averaged to separte drift from random motion
-    required_particles = 100
+    # I assume that 1000 particles need to be averaged to separte drift from random motion
+    required_particles = 1000
 
     #average_frames is applied in tp.drift. It is the number of >additional< follwing frames a drift is calculated. Meaning if a frame has 80 particles, it needs 2 frames to have more than 100 particles to average about. These two frame is the current and 1 addition one. That's why floor is used.
     average_frames = int(np.floor(required_particles/num_particles_per_frame))
@@ -591,6 +610,13 @@ def Drift(ParameterJsonFile, num_particles_per_frame):
     print("The drift correction is done by averaging over: ", average_frames, " frames")
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
+
+
+
+
+
+
+
 
 
 ## this is the zncc loop, which is in funciton format for parallel computing

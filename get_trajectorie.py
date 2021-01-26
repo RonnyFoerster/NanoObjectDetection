@@ -13,6 +13,8 @@ import pandas as pd
 import trackpy as tp 
 import warnings
 import sys
+import multiprocessing
+from joblib import Parallel, delayed
 
 import NanoObjectDetection as nd
 import matplotlib.pyplot as plt # Libraries for plotting
@@ -38,10 +40,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
         output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile,oldSim=oldSim)
 
     else:
-#        UseLog = settings["Find"]["Analyze in log"]
-#        
-#        if UseLog == True:
-#            frames_np = nd.handle_data.LogData(frames_np)
+
         ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
         DoPreProcessing = (ImgConvolvedWithPSF == False)
 
@@ -51,11 +50,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
         
         
         if diameter == None:
-            if UseLog == False:
-                diameter = settings["Find"]["Estimated particle size"]
-            else:
-                diameter = settings["Find"]["Estimated particle size (log-scale)"]
-    
+            diameter = settings["Find"]["Estimated particle size"]    
     
         output_empty = True
         
@@ -66,7 +61,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
             print("Separation = ", separation)
             print("Diameter = ", diameter)
             print("Max iterations = ", max_iterations)
-            print("PreProcessing of Trackpy = ", DoPreProcessing)
+            print("PreProcessing of Trackpy = ", DoPreProcessing, "\n")
 
                 
             # convert image to uint16 otherwise trackpy performs a min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
@@ -74,12 +69,38 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
             frames_np = np.uint16(frames_np)
               
             if ExternalSlider == False:
-                # output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, processes = 'auto', percentile = percentile)
+                # HERE HAPPENS THE LOCALIZATION OF THE PARTICLES
+                num_frames = frames_np.shape[0]
                 
-                output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile)
+                if num_frames < 100:
+                    print("Find the particles - seriell")
+                    output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile)
+
+                else:
+                    num_cores = multiprocessing.cpu_count()
+                    print("Find the particles - parallel. Number of cores: ", num_cores)
+                    inputs = range(num_frames)
+                    
+                    output_list = Parallel(n_jobs=num_cores)(delayed(tp.batch)(frames_np[loop_frame:loop_frame+1,:,:].copy(), diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile) for loop_frame in inputs)
+                 
+                    empty_frame = []
+                    #parallel looses frame number, so we add it again
+                    for frame_id,_ in enumerate(output_list):
+                        output_list[frame_id].frame = frame_id
+                        if len(output_list[frame_id]) == 0:
+                            empty_frame.append(frame_id)
+        
+                    # go through empty frames (start from the back deleting otherwise indexing fails)
+                    for frame_id in (np.flip(empty_frame)):
+                        del output_list[frame_id]
+        
+                    # make list pf pandas to one big pandas
+                    output = pd.concat(output_list)
+        
+                    print("Find the particles - finished")
+
             else:
-#                output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
-                print("WARNING UPDATE THIS!")
+#               print("WARNING UPDATE THIS!")
                 output = tp.batch(frames_np, diameter, minmass = minmass, separation = (diameter, separation), max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
             
             
@@ -193,7 +214,16 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
     else:
         max_displacement = settings["Link"]["Max displacement fix"]
     
+    # Switch the logging of for the moment
+    tp.quiet(suppress=True)
+    # here comes the linking
+    print("Start linking particles to trajectories...")
+    
     t1_orig = tp.link_df(obj, max_displacement, memory=dark_time)
+    
+    print("... finished.")
+    tp.quiet(suppress=False)
+    
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
@@ -217,7 +247,7 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
-        # stationry particles
+        # stationary particles
 #        min_tracking_frames = settings["Link"]["Dwell time stationary objects"]
         # in the old method, fixed particles might not long enough, so they join the drift correction.
         # This is not ideal.

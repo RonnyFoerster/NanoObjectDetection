@@ -351,4 +351,6 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
         nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
     
+        print("PUT nd.ParameterEstimation.Drift inside drift correction function")
+
     return t_no_drift

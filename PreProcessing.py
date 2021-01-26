@@ -80,7 +80,7 @@ def Main(rawframes_np, ParameterJsonFile):
  
         # 6 - ENHANCE SNR
         if settings["PreProcessing"]["EnhanceSNR"] == 1:            
-            rawframes_np = ConvolveWithPSF_Main(rawframes_np, settings)   
+            rawframes_np, settings = ConvolveWithPSF_Main(rawframes_np, settings)   
         else:
             print('Image SNR not enhanced by a gaussian average')
  
@@ -91,8 +91,6 @@ def Main(rawframes_np, ParameterJsonFile):
         else:
             print('Image Rotation: not applied')
             
-            
-        #  not sure if this is needed, because settings hasnt changed
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
     return rawframes_np, static_background
@@ -290,10 +288,12 @@ def ConvolveWithPSF(image_frame, gauss_kernel_rad):
 def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False, PlotIt = True):  
     print('\nConvolve rawframe by PSF to enhance SNR: start removing')
     
+    # estimate PSF by experimental settings
     if settings["PreProcessing"]["KernelSize"] == 'auto':        
-        gauss_kernel_rad = nd.ParameterEstimation.EstimageSigmaPSF(settings)
-    else:
-        gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
+        settings["PreProcessing"]["KernelSize"] = nd.ParameterEstimation.EstimageSigmaPSF(settings)
+    
+    # set PSF Kernel
+    gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
         
     print("Gauss Kernel in px:", gauss_kernel_rad)
 
@@ -356,5 +356,5 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
 
     print('Convolve rawframe by PSF to enhance SNR: removed')
 
-    return rawframes_filtered
+    return rawframes_filtered, settings
 

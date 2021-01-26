@@ -70,7 +70,7 @@
      "Help": {
           "ROI": 0,
           "Bead brightness": "auto",
-          "Bead size": "auto",
+          "Bead size": "manual",
           "Separation": "auto",
           "GuessLowestDiameter_nm": 50,
           "Drift": "auto",
