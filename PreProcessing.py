@@ -5,7 +5,7 @@ Created on Mon Feb 18 11:09:16 2019
 @author: Ronny Förster and Stefan Weidlich
 """
 
-# In[]
+
 import NanoObjectDetection as nd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,8 +14,20 @@ from scipy import ndimage
 from joblib import Parallel, delayed
 import multiprocessing
 
-# In[]
+
 def Main(rawframes_np, ParameterJsonFile):
+    """
+    Main Function of rawimage preprocessing
+    1 - LASER FLUCTUATION: reduced by normalizing every image to have the same total intensity
+    2 - CAMERA OFFSET: subtracted by defined value
+    3 - BACKGROUND (BG): Estimated bg for each pixel by median filter over time
+    4 - TIME DEPENDENT BACKGROUND: Similar to 3 but background can change in time
+    this should be avoided. If the bg changes in the experiment, that setup should be optimized
+    5 - CLIP NEGATIVE VALUE: RF does not like this at all
+    6 - ENHANCE SNR: Convolve image with PSF- maintains signal, while reducing noise
+    7 - ROTATE RAW IMAGE: Should be avoided experimentally, but if it happened with rare specimen...
+    """
+    
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     DoSimulation = settings["Simulation"]["SimulateData"]
@@ -27,43 +39,36 @@ def Main(rawframes_np, ParameterJsonFile):
         rawframes_np = 0
                 
     else:
+        # 1 - LASER FLUCTUATION
         if settings["PreProcessing"]["Remove_Laserfluctuation"] == 1:
-            rawframes_np = nd.PreProcessing.RemoveLaserfluctuation(rawframes_np, settings)
-            plt.figure()
-            plt.imshow(rawframes_np[0,:,0:350])
-            # WARNING - this needs a roughly constant amount of particles in the object!
+            rawframes_np = RemoveLaserfluctuation(rawframes_np, settings)
         else:
             print('Laser fluctuations: not removed')
 
 
-        # check if constant background shall be removed
+        # 2 - CAMERA OFFSET
         if settings["PreProcessing"]["Remove_CameraOffset"] == 1:
-            rawframes_np = nd.PreProcessing.SubtractCameraOffset(rawframes_np, settings)
-            
-            # show rawimage
-            nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
+            rawframes_np = SubtractCameraOffset(rawframes_np, settings)
         else:
             print('Constant camera background: not removed')
-      
-
+    
+        
+        # 3 - BACKGROUND (BG)
         if settings["PreProcessing"]["Remove_StaticBackground"] == 1:            
-            rawframes_np, static_background = nd.PreProcessing.Remove_StaticBackground(rawframes_np, settings)  
-            
-            nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (background subtracted) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
-                        
+            rawframes_np, static_background = Remove_StaticBackground(rawframes_np, settings)  
         else:
             static_background = "NotDone"
             print('Static background: not removed')
     
-
+    
+        # 4 - TIME DEPENDENT BACKGROUND
         if settings["PreProcessing"]["RollingPercentilFilter"] == 1:            
             rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings)    
-            
-            nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (rolling percentilce subtracted) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
         else:
             print('Rolling percentil filter: not applied')
       
 
+        # 5 - CLIP NEGATIVE VALUE
         if settings["PreProcessing"]["ClipNegativeValue"] == 1:
             print('Negative values: start removing')
             print("Ronny does not love clipping.")
@@ -73,28 +78,29 @@ def Main(rawframes_np, ParameterJsonFile):
             print('Negative values: kept')
       
  
+        # 6 - ENHANCE SNR
         if settings["PreProcessing"]["EnhanceSNR"] == 1:            
-            rawframes_np = nd.PreProcessing.ConvolveWithPSF(rawframes_np, settings)   
-            
-            nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
+            rawframes_np = ConvolveWithPSF_Main(rawframes_np, settings)   
         else:
             print('Image SNR not enhanced by a gaussian average')
  
 
+        # 7 - ROTATE RAW IMAGE
         if settings["PreProcessing"]["Do_or_apply_data_rotation"] == 1:
             rawframes_np = nd.handle_data.RotImages(rawframes_np, ParameterJsonFile)
         else:
             print('Image Rotation: not applied')
             
             
+        #  not sure if this is needed, because settings hasnt changed
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
     return rawframes_np, static_background
 
 
 
-def SubtractCameraOffset(rawframes_np, settings):
-    print('Constant camera background: start removing')
+def SubtractCameraOffset(rawframes_np, settings, PlotIt = True):
+    print('\nConstant camera background: start removing')
     
     #That generates one image that holds the minimum-vaues for each pixel of all times
     rawframes_pixelCountOffsetArray = nd.handle_data.min_rawframes(rawframes_np)
@@ -109,14 +115,20 @@ def SubtractCameraOffset(rawframes_np, settings):
     
     print("Camera offset is: ", offsetCount)
     
+    if PlotIt == True:
+        # show rawimage
+        nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
+    
+    
     print('Constant camera background: removed')  
     
     return rawframes_np
 
 
 
-def RemoveLaserfluctuation(rawframes_np, settings):
-    print('Laser fluctuations: start removing')
+def RemoveLaserfluctuation(rawframes_np, settings, PlotIt = True):
+    print('\nLaser fluctuations: start removing')
+    print("WARNING - this needs a roughly constant amount of particles in the object!")
     
     Laserfluctuation_Show = settings["Plot"]['Laserfluctuation_Show']
     Laserfluctuation_Save = settings["Plot"]['Laserfluctuation_Save']
@@ -134,15 +146,64 @@ def RemoveLaserfluctuation(rawframes_np, settings):
     if Laserfluctuation_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Intensity_Fluctuations", \
                                        settings, data = rel_intensity, data_header = "Intensity Fluctuations")
-        
+    
+    if PlotIt == True:
+        plt.figure()
+        plt.imshow(rawframes_np[0,:,0:350])
+    
     print('Laser fluctuations: removed')
-        
+    
     return rawframes_np
 
 
+def StaticBackground_Median(rawframes_np_loop, num_frames):
+    """
+    assumes that each pixel is at least in 50% of the time specimen free and shows bg only
+    However this can introduce artefacts on very black regions, because median give a discrete background. Mean gives a better estimation if preselected
+    E.g. [0,0,0,0,0,1,1,1,1] --> median: 0, mean: 0.44
+    but  [0,0,0,0,1,1,1,1,1] --> median: 1, mean: 0.55
+    """
+    
+    static_background_max = np.median(rawframes_np_loop, axis = 0)
+    
+    #repmat in order to subtract 2d background from 3d rawimage
+    static_background_max = np.squeeze(np.dstack([static_background_max]*num_frames))
+    
+    #transpose so that 0dim is time again
+    static_background_max = np.transpose(static_background_max, (1, 0))   
+    
+    mask_background = rawframes_np_loop > static_background_max
+    
+    # https://docs.scipy.org/doc/numpy/reference/generated/numpy.ma.mean.html
+    a = np.ma.array(rawframes_np_loop, mask=mask_background)
+    
+    static_background = a.mean(axis = 0)
+            
+    return static_background
+
+
+def StaticBackground_Mean(rawframes_np_loop):
+    """
+    Calculate the background by a combination of mean and median
+    E.g. [0,0,0,0,0,1,1,1,1] --> median: 0, mean: 0.44
+    but  [0,0,0,0,1,1,1,1,1] --> median: 1, mean: 0.55
+    
+    1 - sort the values in each pixel
+    2 - grab the middle percentile from 30% to 70%. Do a mean here.
+    
+    """
+    
+    min_percentile = int(0.3*rawframes_np_loop.shape[0])
+    max_percentile = int(0.7*rawframes_np_loop.shape[0])
+    
+    static_background = np.mean(np.sort(rawframes_np_loop,axis = 0)[min_percentile:max_percentile,:],axis = 0)         
+    
+    return static_background
+ 
+           
 
 def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False, ShowColorBar = True, ExternalSlider = False):
-    print('Static background: start removing')
+    print('\nStatic background: start removing')
     Background_Show = settings["Plot"]['Background_Show']
     Background_Save = settings["Plot"]['Background_Save']
     
@@ -152,53 +213,23 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     Subtracting back-ground and take out points that are constantly bright
     '''
 
-#    static_background = nd.handle_data.min_rawframes(rawframes_np,  display = Background_Show)
-#    print("remove median")
-#    static_background = nd.handle_data.percentile_rawframes(rawframes_np, 50, display = Background_Show)
-
-
-    
-    def CalcBackgroundParallel(rawframes_np_loop, num_frames):
-        if 1 == 0:
-            #old
-            #assumes that each pixel is at least in 50% of the time specimen free and shows bg only
-            static_background_max = np.median(rawframes_np_loop, axis = 0)
-            
-            #repmat 
-            static_background_max = np.squeeze(np.dstack([static_background_max]*num_frames))
-            
-            #transpose so that 0dim is time again
-            static_background_max = np.transpose(static_background_max, (1, 0))   
-            
-            mask_background = rawframes_np_loop > static_background_max
-            
-            # https://docs.scipy.org/doc/numpy/reference/generated/numpy.ma.mean.html
-            a = np.ma.array(rawframes_np_loop, mask=mask_background)
-            
-            static_background = a.mean(axis = 0)
-            
-        else:
-            min_percentile = int(0.3*rawframes_np_loop.shape[0])
-            max_percentile = int(0.7*rawframes_np_loop.shape[0])
-            
-            static_background = np.mean(np.sort(rawframes_np_loop,axis = 0)[min_percentile:max_percentile,:],axis = 0)
-
-        
-        return static_background    
-
-    
+    # prepare multiprocessing (parallel computing)
     num_cores = multiprocessing.cpu_count()
+    print("Do that parallel. Number of cores: ", num_cores)    
     
     num_frames = rawframes_np.shape[0]
     num_lines = rawframes_np.shape[1]
     
     inputs = range(num_lines)
 
-    static_background_list = Parallel(n_jobs=num_cores)(delayed(CalcBackgroundParallel)(rawframes_np[:,loop_line,:].copy(), num_frames) for loop_line in inputs)
+    # execute background estimation in parallel for each line
+    static_background_list = Parallel(n_jobs=num_cores)(delayed(StaticBackground_Mean)(rawframes_np[:,loop_line,:].copy()) for loop_line in inputs)
 
+    # get output back to proper array
     static_background = np.asarray(static_background_list)
 
-    rawframes_np_no_bg = rawframes_np - static_background # Now, I'm subtracting a background, in case there shall be        
+    # Remove the background
+    rawframes_np_no_bg = rawframes_np - static_background 
 
 
     if ExternalSlider == False:
@@ -218,7 +249,13 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     
 
 
-def RollingPercentilFilter(rawframes_np, settings):
+def RollingPercentilFilter(rawframes_np, settings, PlotIt = True):
+    """
+    Old function that removes a percentile/median generates background image from the raw data.
+    The background is calculated time-dependent.
+    """
+    print('\n THIS IS AN OLD FUNCTION! SURE YOU WANNA USE IT?')
+
     print('Rolling percentil filter: start applying')
     
     rolling_length = ["PreProcessing"]["RollingPercentilFilter_rolling_length"]
@@ -229,96 +266,78 @@ def RollingPercentilFilter(rawframes_np, settings):
         my_percentil_value = np.percentile(rawframes_np[i:i+rolling_length], percentile_filter, axis=0)
         rawframes_np[i:i+rolling_step] = rawframes_np[i:i+rolling_step] - my_percentil_value
 
+
+    if PlotIt == True:
+        nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (rolling percentilce subtracted) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
+
     print('Rolling percentil filter: applied')
 
     return rawframes_np
 
 
 
-def EstimageSigmaPSF(settings):
-    #estimate best sigma
-    #https://en.wikipedia.org/wiki/Numerical_aperture
-    NA = settings["Exp"]["NA"]
-    n = settings["Exp"]["n_immersion"]
+def ConvolveWithPSF(image_frame, gauss_kernel_rad):
+    """
+    convolves a 2d image with a gaussian kernel by multipliying in fourierspace
+    """
     
-    # fnumber
-    N = 1/(2*np.tan(np.arcsin(NA / n)))
+    image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
     
-    # approx PSF by gaussian
-    # https://en.wikipedia.org/wiki/Airy_disk
-    lambda_nm = settings["Exp"]["lambda"]
-    sigma_nm = 0.45 * lambda_nm * N
-    sigma_um = sigma_nm / 1000
-    sigma_px = sigma_um / settings["Exp"]["Microns_per_pixel"]
-    
-    
-    # old
-#    #        diameter_partice = settings["Find"]['Estimated particle size'][0]
-##        gauss_kernel_rad = 0.68 * diameter_partice / 2
-#        rayleigh_nm = 0.61 * settings["Exp"]["lambda"] / settings["Exp"]["NA"]
-#        rayleigh_um = rayleigh_nm / 1000
-#        rayleigh_px = rayleigh_um / settings["Exp"]["Microns_per_pixel"]
-    
-    return sigma_px
+    return image_frame_filtered
 
 
 
-def ConvolveWithPSF(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False):  
-    print('Convolve rawframe by PSF to enhance SNR: start removing')
+def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False, PlotIt = True):  
+    print('\nConvolve rawframe by PSF to enhance SNR: start removing')
     
     if settings["PreProcessing"]["KernelSize"] == 'auto':        
-        gauss_kernel_rad = EstimageSigmaPSF(settings)
+        gauss_kernel_rad = nd.ParameterEstimation.EstimageSigmaPSF(settings)
     else:
         gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
         
     print("Gauss Kernel in px:", gauss_kernel_rad)
 
-    if 1==0:
-        print("Do it seriell")
-        #get number of frames for iteration    
-        num_frames = rawframes_np.shape[0]   
-        rawframes_filtered = rawframes_np.copy()
+    if rawframes_np.ndim == 2:
+        rawframes_filtered = ConvolveWithPSF(rawframes_np, gauss_kernel_rad)
         
-        print("Do FT of:", num_frames, "frames. That might take a while")
-        for loop_frames in range(num_frames):
-    #        print("number of current frame", loop_frames, "of:", num_frames, "\r")
-            rawframes_filtered[loop_frames,:,:] = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(rawframes_np[loop_frames,:,:]), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
-            
-    #        rawframes_filtered[loop_frames,:,:] =  np.real(np.fft.ifft(ndimage.fourier_gaussian(np.fft.fft(rawframes_np[loop_frames,:,:]), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
-    #        
-    #        rawframes_filtered[loop_frames,:,:] = np.real(np.fft.ifftn(ndimage.fourier_gaussian(np.fft.fftn(np.squeeze(rawframes_np[loop_frames,:,:]), axes = (0,1)), sigma=gauss_kernel_rad), axes = (0,1)))
-            
-            if np.mod(loop_frames,100) == 0:
-                print("Number of frames done: ", loop_frames)
-        
-    
     else:
-       
-        def ApplyPSFKernelParallel(image_frame, gauss_kernel_rad):
-            image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
-            
-            return image_frame_filtered
+        #3D case requires efficent looping over the frames
         
-        if rawframes_np.ndim == 3:
-            print("Do it parallel")
-            num_cores = multiprocessing.cpu_count()
+        #get number of frames for iteration    
+        num_frames = rawframes_np.shape[0] 
+    
+        if 1==0:
+            print("OLD METHOD - Do it seriell")
+    
+            # save space to save it in
+            rawframes_filtered = np.zeros_like(rawframes_np)
             
-            num_frames = rawframes_np.shape[0]
+            print("Do FT of:", num_frames, "frames. That might take a while")
+            for loop_frames in range(num_frames):
+                rawframes_filtered[loop_frames,:,:] = ConvolveWithPSF(rawframes_np[loop_frames,:,:], gauss_kernel_rad)
+                
+                # show the progres every 100 frames            
+                if np.mod(loop_frames,100) == 0:
+                    print("Number of frames done: ", loop_frames)
+                  
+        else:
+            print("Do it parallel")
+            
+            # setup and execute parallel processing of the filterung
+            num_cores = multiprocessing.cpu_count()
+            print("Number of parallel cores: ", num_cores)
             
             inputs = range(num_frames)
         
-        #    rawframes_filtered_list = Parallel(n_jobs=num_cores)(delayed(ApplyPSFKernelParallel)(np.squeeze(rawframes_np[loop_frame,:,:]).copy(), gauss_kernel_rad) for loop_frame in inputs)
-
-            rawframes_filtered_list = Parallel(n_jobs=num_cores)(delayed(ApplyPSFKernelParallel)(rawframes_np[loop_frame,:,:].copy(), gauss_kernel_rad) for loop_frame in inputs)
+            rawframes_filtered_list = Parallel(n_jobs=num_cores)(delayed(ConvolveWithPSF)(rawframes_np[loop_frame,:,:].copy(), gauss_kernel_rad) for loop_frame in inputs)
         
-        
+            # make it into a proper array
             rawframes_filtered = np.asarray(rawframes_filtered_list)
             
             print("Parallel finished")
-            
-        else:
-            rawframes_filtered = ApplyPSFKernelParallel(rawframes_np, gauss_kernel_rad)
-      
+                
+
+    # Do some plotting if requries  
     if ExternalSlider == False:
         if ShowFirstFrame == True:
             if rawframes_filtered.ndim == 2:
@@ -328,19 +347,14 @@ def ConvolveWithPSF(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar
                 
             nd.visualize.Plot2DImage(disp_data,title = "Filtered image", xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
 
-    
-#    rawframes_filtered = np.real(np.fft.ifftn(ndimage.fourier_gaussian(np.fft.fftn(rawframes_np, axes = (1,2)), sigma=[0,gauss_kernel_rad  ,gauss_kernel_rad]), axes = (1,2)))
-    
-#    import cv2
-#    
-#    rawframes_filtered = cv2.GaussianBlur(rawframes_np, (0,0), gauss_kernel_rad)
+    if PlotIt == True:
+        if rawframes_filtered.ndim == 2:
+            nd.visualize.Plot2DImage(rawframes_np[:,0:500], title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
+        else:
+            nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
+
 
     print('Convolve rawframe by PSF to enhance SNR: removed')
 
     return rawframes_filtered
-
-
-
-
-
 

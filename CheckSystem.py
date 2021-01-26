@@ -235,7 +235,7 @@ def CheckJson_specify_default_auto(settings):
     if invalid == True:
         settings["Plot"]["SaveFolder"] = my_path
     
-    print("Figures are saved into: ", settings["Plot"]["SaveFolder"])
+    print("Figures are saved into: \n", settings["Plot"]["SaveFolder"])
     
     
     # same for the save SaveProperties entry
@@ -250,7 +250,7 @@ def CheckJson_specify_default_auto(settings):
         settings["Plot"]["SaveProperties"] = my_path
 
     
-    print("Properties are saved into: ", settings["Plot"]["SaveProperties"])
+    print("Properties are saved into: \n", settings["Plot"]["SaveProperties"])
     
   
     return settings
