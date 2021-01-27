@@ -283,7 +283,7 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
     # check if the trajectories follow brownian motion after the drift correction.
     if (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==True):
         #check if the histogram of each particle displacement is Gaussian shaped
-        CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorCheck)
+        traj_min_length = CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorCheck)
 
 
     return traj_min_length # trajectory DataFrame
@@ -318,51 +318,33 @@ def DisplayNumDroppedTraj(traj_all, traj_min_length, FixedParticles, BeforeDrift
     else:
         # MOVING particles
         print("Too short trajectories removed!")
-        print("Before: %d, After: %d, Removed: %d (%d%%)"
-              %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
-        print('')
+        print("Before: %d, After: %d, Removed: %d (%d%%) \n" %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
+
 
         if amount_valid_particles == 0:
             raise ValueError("All particles removed!")
 
 
 def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorCheck):
+    """
+    Check each Trajectory if its pure Brownian motion by a Kolmogorow-Smirnow test
+    """
+    
+    # add a new column to the final df
+    traj_min_length['stat_sign'] = 0 
+    
     for i,particleid in enumerate(valid_particle_number):
         # print("particleid: ", particleid)
         # select traj to analyze in loop
         eval_tm = traj_min_length[traj_min_length.particle == particleid]
 
-        traj_min_length['stat_sign'] = 0 # add a new column to the final df
-
-        for i,particleid in enumerate(valid_particle_number):
-            # print("particleid: ", particleid)
-            eval_tm = traj_min_length[traj_min_length.particle==particleid]
-
-#            eval_tm = eval_tm.set_index("frame")
-
-            nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
-            nd.CalcDiameter.CalcMSD(eval_tm, lagtimes_min = 1, lagtimes_max = 1)
-
-#            bp()
-            traj_has_error, stat_sign, dx = \
-            nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length,
-                                                      MinSignificance = 0.01,
-                                                      PlotErrorIfTestFails = PlotErrorCheck,
-                                                      ID=particleid)
-
-            if traj_has_error == True:
-                #remove if traj has error
-                print("Drop particleID (because of unbrownian trajectory): ", particleid)
-                print("Significance: ", stat_sign)
-
-                #drop particles with unbrownian trajectory
-                traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
-            else:
-                traj_min_length.loc[traj_min_length.particle==particleid,'stat_sign'] = stat_sign
+        # get the misplacement value of the first lagtime for the Kolmogorov test out of the MSD analysis (discard the rest of the outputs)
+        nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
+        nd.CalcDiameter.CalcMSD(eval_tm, lagtimes_min = 1, lagtimes_max = 1)
 
         # put the misplacement vector into the Kolmogorow-Smirnow significance test
         traj_has_error, stat_sign, dx = \
-        nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.01, PlotErrorIfTestFails = PlotErrorCheck, ID = particleid)
+        nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.01,  PlotErrorIfTestFails = PlotErrorCheck, ID=particleid)
 
         if traj_has_error == True:
             #remove if traj has error
@@ -370,19 +352,26 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
             print("Significance: ", stat_sign)
 
             #drop particles with unbrownian trajectory
-            traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
+            # traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
+            
+            # RF210127
+            traj_min_length = traj_min_length.drop(traj_min_length[traj_min_length.particle == particleid].index)
+        else:
+            #insert statistical significance to trajectory as property
+            traj_min_length.loc[traj_min_length.particle==particleid,'stat_sign'] = stat_sign
+
+        
 
     # number of particle before and after particle test
     num_before = len(valid_particle_number)
     num_after = len(traj_min_length['particle'].unique());
     num_lost = num_before - num_after
+    dropped_ratio = num_lost / num_before * 100
 
+    print("\nResult of the Brownian motion (Kolmogorow-Smirnow) test:")
+    print("Before: %d, After: %d, Removed: %d (%d%%) \n" %(num_before, num_after , num_lost, dropped_ratio))
 
-    print("\nNumber of particle before Brownian motion test: ", num_before)
-
-    print("Number of particle passed Brownian motion test: ", num_after)
-
-    print("Number of particle failed Brownian motion test: ", num_lost)
+    return traj_min_length
 
 
 def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = None):
