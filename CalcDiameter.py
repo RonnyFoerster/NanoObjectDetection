@@ -19,7 +19,7 @@ import scipy.constants
 
 
 def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, 
-         processOutput = True, t_beforeDrift = None):
+          processOutput = True, t_beforeDrift = None):
     
     # read the parameters
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -112,6 +112,7 @@ def ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin):
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
 
+
 def sizes_df_lin2csv(settings, sizes_df_lin):
     save_folder_name = settings["Plot"]["SaveFolder"]
     save_file_name = "sizes_df_lin"
@@ -129,7 +130,7 @@ def OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_succes
     OptimizingStatus = "Continue"
     counter = 0 # loop counter 
         
-# CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
+    # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
     while OptimizingStatus == "Continue":
     
         """ 2.) """
@@ -147,9 +148,18 @@ def OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_succes
             any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
             
             """ 3.) """
-            # check if datapoints in first lagtime are normal distributed
-            traj_has_error, stat_sign, dx = CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.01)
-            
+            # check if KS test was done before already
+            try:
+                stat_sign = eval_tm['stat_sign'].mean() # note: always the same value anyways
+                if stat_sign >= 0.01:
+                    traj_has_error = False
+                else:
+                    traj_has_error = True
+            except KeyError:
+                # check if datapoints in first lagtime are normal distributed
+                traj_has_error, stat_sign, _ = CheckIfTrajectoryHasError(nan_tm, traj_length, 
+                                                                         MinSignificance = 0.01)
+                
             # only continue if trajectory is good, otherwise plot the error
             if traj_has_error == True:
                 OptimizingStatus = "Abort"
@@ -657,7 +667,7 @@ def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
 
 
 
-def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, PlotAlways = False, ID='unknown', processOutput = True):
+def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, PlotAlways = False, ID='unknown', processOutput = False):
     """ perform a Kolmogorow-Smirnow test on the displacement values of a trajectory
     
     Parameters
@@ -720,7 +730,6 @@ def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotEr
         plt.show()
     
     #        bp()
-    
     
     if processOutput == True:
         # print("Trajectory has error. Particle ID: ", particleid)
@@ -1374,7 +1383,7 @@ def AdjustMSDPlot(MSD_fit_Show):
         y_min = 0
         
         for ii,ax_ii in enumerate(ax.lines):
-            print(ii)
+            # print(ii)
             x_max_loop = np.max(ax_ii.get_xdata())
             y_max_loop = np.max(ax_ii.get_ydata())
             y_min_loop = np.min(ax_ii.get_ydata())
@@ -1386,8 +1395,6 @@ def AdjustMSDPlot(MSD_fit_Show):
         plt.xlim(0,x_max * 1.1)
         plt.ylim(y_min,y_max * 1.1)
 
-
-    
     
     
 def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
@@ -1619,7 +1626,7 @@ def InvDiameter(sizes_df_lin, settings, useCRLB=True):
     Parameters
     ----------
     sizes_df_lin : pandas.DataFrame
-        with "diameter" and "traj length" columns
+        with "diameter" and "valid frames" or "traj length" columns
     settings : dict
         with ["MSD"]["lagtimes_max"] entry
 
@@ -1631,15 +1638,26 @@ def InvDiameter(sizes_df_lin, settings, useCRLB=True):
     inv_diam = 1/sizes_df_lin["diameter"] # pd.Series
     
     N_tmax = settings["MSD"]["lagtimes_max"] # int value
-    N_f = sizes_df_lin["traj length"] # pd.Series 
-    # MN: switch to "valid frames" here?!
+    
+    # MN210227
+    # N_f = sizes_df_lin["traj length"] # pd.Series 
+    try:
+        N_f = sizes_df_lin["valid frames"] # pd.Series 
+    except KeyError:
+        N_f = sizes_df_lin["traj length"]
     
     if useCRLB==True:
         x = sizes_df_lin["red_x"] # pd.Series
         rel_error = nd.Theory.CRLB(N_f, x) # RF 210113
     else:
         #    rel_error = sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]
+        
+        # Qian 1991
         rel_error = np.sqrt((2*N_tmax)/(3*(N_f - N_tmax))) # pd.Series
+        
+        # # CRLB/Michalet 2012 for the ideal case red_x = 0
+        # rel_error = np.sqrt( 6/(N_f-1))
+        
     
     inv_diam_std = inv_diam * rel_error
     

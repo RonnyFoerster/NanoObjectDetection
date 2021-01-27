@@ -295,6 +295,7 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
         print("Too short trajectories removed!")
         print("Before: %d, After: %d, Removed: %d (%d%%)" 
               %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
+        print('')
         
         if amount_valid_particles == 0:
             raise ValueError("All particles removed!")
@@ -302,8 +303,10 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
     if (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==True):
         #check if the histogram of each particle displacement is Gaussian shaped
         
+        traj_min_length['stat_sign'] = 0 # add a new column to the final df
+        
         for i,particleid in enumerate(valid_particle_number):
-            print("particleid: ", particleid)
+            # print("particleid: ", particleid)
             eval_tm = traj_min_length[traj_min_length.particle==particleid]
             
 #            eval_tm = eval_tm.set_index("frame")
@@ -325,6 +328,8 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
                 
                 #drop particles with unbrownian trajectory
                 traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
+            else:
+                traj_min_length.loc[traj_min_length.particle==particleid,'stat_sign'] = stat_sign
         
         # update total number of valid particles
         amount_valid_particles_after_check = len(traj_min_length['particle'].unique()); 

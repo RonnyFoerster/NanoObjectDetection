@@ -761,9 +761,9 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
         
             plt.plot(diam_grid,prob_diam_inv_1size)
         else:
-            # reduce the grid from 10000 to 500 values
-            diamsR = diam_grid[::20]
-            probsR = prob_inv_diam[::20] * 6E5 # scale up to be able to use the values as integers
+            # reduce the grid from 10000 to 1000 values
+            diamsR = diam_grid[::10]
+            probsR = prob_inv_diam[::10] * 6E5 # scale up to be able to use the values as integers
             probsN = probsR.round()
             # create (large!) array with repeated diameter values, cf. weighting scheme
             sizesPDF = diamsR.repeat(np.array(probsN,dtype='int'))
