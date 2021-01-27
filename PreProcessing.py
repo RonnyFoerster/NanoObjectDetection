@@ -221,7 +221,7 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     inputs = range(num_lines)
 
     # execute background estimation in parallel for each line
-    static_background_list = Parallel(n_jobs=num_cores)(delayed(StaticBackground_Mean)(rawframes_np[:,loop_line,:].copy()) for loop_line in inputs)
+    static_background_list = Parallel(n_jobs=num_cores, verbose = 5)(delayed(StaticBackground_Mean)(rawframes_np[:,loop_line,:].copy()) for loop_line in inputs)
 
     # get output back to proper array
     static_background = np.asarray(static_background_list)
@@ -329,7 +329,7 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
             
             inputs = range(num_frames)
         
-            rawframes_filtered_list = Parallel(n_jobs=num_cores)(delayed(ConvolveWithPSF)(rawframes_np[loop_frame,:,:].copy(), gauss_kernel_rad) for loop_frame in inputs)
+            rawframes_filtered_list = Parallel(n_jobs=num_cores, verbose = 5)(delayed(ConvolveWithPSF)(rawframes_np[loop_frame,:,:].copy(), gauss_kernel_rad) for loop_frame in inputs)
         
             # make it into a proper array
             rawframes_filtered = np.asarray(rawframes_filtered_list)

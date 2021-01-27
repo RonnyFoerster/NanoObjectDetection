@@ -139,7 +139,7 @@ def zncc(image, kernel, size):
       
     
     # parallel zncc
-    img_zncc_list = Parallel(n_jobs=num_cores)(delayed(zncc_one_line)(image.copy(), kernel, loop_u, size) for loop_u in inputs)
+    img_zncc_list = Parallel(n_jobs=num_cores, verbose=5)(delayed(zncc_one_line)(image.copy(), kernel, loop_u, size) for loop_u in inputs)
            
     # resulting list to array
     img_zncc_roi = np.asarray(img_zncc_list)

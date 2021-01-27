@@ -81,7 +81,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
                     print("Find the particles - parallel. Number of cores: ", num_cores)
                     inputs = range(num_frames)
                     
-                    output_list = Parallel(n_jobs=num_cores)(delayed(tp.batch)(frames_np[loop_frame:loop_frame+1,:,:].copy(), diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile) for loop_frame in inputs)
+                    output_list = Parallel(n_jobs=num_cores, verbose=5)(delayed(tp.batch)(frames_np[loop_frame:loop_frame+1,:,:].copy(), diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile) for loop_frame in inputs)
                  
                     empty_frame = []
                     #parallel looses frame number, so we add it again

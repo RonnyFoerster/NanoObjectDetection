@@ -215,7 +215,7 @@ def CorrelateImgAndPSF(img1, settings):
     inputs = range(u_min, u_max+1)   
       
     # parallel zncc
-    img_zncc_list = Parallel(n_jobs=num_cores)(delayed(zncc_one_line)(img1.copy(), gauss_kernel, loop_u, n) for loop_u in inputs)
+    img_zncc_list = Parallel(n_jobs=num_cores, verbose = 5)(delayed(zncc_one_line)(img1.copy(), gauss_kernel, loop_u, n) for loop_u in inputs)
            
     # resulting list to array
     img_zncc_roi = np.asarray(img_zncc_list)
