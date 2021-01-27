@@ -101,7 +101,7 @@ t4_cutted, t4_cutted_no_gaps = nd.get_trajectorie.split_traj(t2_long, t3_gapless
 
 
 #%% drift correction
-t5_no_drift = nd.Drift.DriftCorrection(t4_cutted, ParameterJsonFile, PlotGlobalDrift = True)
+t5_no_drift = nd.Drift.Main(t4_cutted, ParameterJsonFile, PlotGlobalDrift = True)
 
 
 #%% only long trajectories are used in the MSD plot in order to get a good fit

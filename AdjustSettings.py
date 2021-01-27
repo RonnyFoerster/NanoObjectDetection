@@ -39,9 +39,6 @@ def Main(rawframes_pre, ParameterJsonFile):
     # optimize minmass to identify particle
     num_particles_trackpy = FindSpot(rawframes_pre, ParameterJsonFile)
  
-    # maybe do this right before the drift correction
-    if settings["Help"]["Drift"] == "auto":
-        nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_trackpy)
         
 
 def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):

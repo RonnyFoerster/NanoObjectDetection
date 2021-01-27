@@ -663,7 +663,7 @@ def GetVarOfSettings(settings, key, entry):
     old function - should no be in use anymore
     """
     
-    print("nd.handle_data.GetVarOfSettings is an old function, which should not be used anymore")
+    print("nd.handle_data.GetVarOfSettings is an old function, which should not be used anymore. Consider replacing it by settings[key][entry].")
     
     if entry in list(settings[key].keys()):
         # get value
