@@ -657,7 +657,7 @@ def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
 
 
 
-def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, PlotAlways = False, ID='unknown', processOutput = True):
+def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, PlotAlways = False, ID='unknown', processOutput = False):
     """ perform a Kolmogorow-Smirnow test on the displacement values of a trajectory
     
     Parameters

@@ -247,23 +247,22 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
-        # stationary particles
-#        min_tracking_frames = settings["Link"]["Dwell time stationary objects"]
-        # in the old method, fixed particles might not long enough, so they join the drift correction.
-        # This is not ideal.
-        print("New method here.")
+        # STATIONARY particles must have a specfic minimum length - otherwise it is noise
         min_tracking_frames = settings["Link"]["Min tracking frames before drift"]
         
     elif (FixedParticles == False) and (BeforeDriftCorrection == True):
-        # moving particle before drift correction
+        # MOVING particles BEFORE DRIFT CORRECTION
+        # moving particle must have a minimum length. However, for the drift correction, the too short trajectories are still full of information about flow and drift. Thus keep them for the moment but they wont make it to the final MSD evaluation
         min_tracking_frames = settings["Link"]["Min tracking frames before drift"]
         
     else:
-        # moving particle after drift correction
+        # MOVING particles AFTER DRIFT CORRECTION
         min_tracking_frames = settings["Link"]["Min_tracking_frames"]
  
+    
     print("Minimum trajectorie length: ", min_tracking_frames)
 
+    # only keep the trajectories with the given minimum length
     traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
     
     # RF 190408 remove Frames because the are doupled and panda does not like it
@@ -275,67 +274,89 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
         traj_min_length = traj_min_length.reset_index()
 
 
-    particle_number = traj_all['particle'].unique(); #particle numbers that are inserted
-    amount_particles = len(particle_number); #total number of all particles
+    # plot properties for the user
+    DisplayNumDroppedTraj(traj_all, traj_min_length, FixedParticles, BeforeDriftCorrection)
+
+        #ID of VALID particles that have sufficent trajectory length
+    valid_particle_number = traj_min_length['particle'].unique(); 
+
+    # check if the trajectories follow brownian motion after the drift correction.
+    if (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==True):
+        #check if the histogram of each particle displacement is Gaussian shaped      
+        CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorCheck)
+        
     
-    valid_particle_number = traj_min_length['particle'].unique(); #particle numbers that fulfill all previous requirements
-    amount_valid_particles = len(valid_particle_number); #total number of valid particles
+    return traj_min_length # trajectory DataFrame
+
+
+def DisplayNumDroppedTraj(traj_all, traj_min_length, FixedParticles, BeforeDriftCorrection):
+    """
+    gives the user feed back how many trajectories are discared because they are to short
+    """
     
+     #ID of particles that are INSERTED
+    particle_number = traj_all['particle'].unique(); 
+    
+    #total number of INSERTED particles
+    amount_particles = len(particle_number); 
+    
+    #ID of VALID particles that have sufficent trajectory length
+    valid_particle_number = traj_min_length['particle'].unique(); 
+    
+    #total number of VALID particles
+    amount_valid_particles = len(valid_particle_number);
+    
+    # calculate ratio of dropped trajectories
     amount_removed_traj = amount_particles - amount_valid_particles
     ratio_removed_traj = amount_removed_traj/amount_particles * 100
     
+    # print some properties for the user
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
+        # STATIONARY particles
         print('Number of stationary objects (might be detected multiple times after being dark):', amount_valid_particles)
-    
-#    elif (FixedParticles == False) and (BeforeDriftCorrection == True):
-#        print("Too short trajectories removed!")
-#        print("Before: %d, After = %d, Removed: %d (%d %%)" 
-#              %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))     
+        
     else:
+        # MOVING particles
         print("Too short trajectories removed!")
-        print("Before: %d, After: %d, Removed: %d (%d%%)" 
-              %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
+        print("Before: %d, After: %d, Removed: %d (%d%%)" %(amount_particles, amount_valid_particles, amount_removed_traj, ratio_removed_traj))
         
         if amount_valid_particles == 0:
             raise ValueError("All particles removed!")
 
-    if (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==True):
-        #check if the histogram of each particle displacement is Gaussian shaped
-        
-        for i,particleid in enumerate(valid_particle_number):
-            print("particleid: ", particleid)
-            eval_tm = traj_min_length[traj_min_length.particle==particleid]
-            
-#            eval_tm = eval_tm.set_index("frame")
-            
-            nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
-            nd.CalcDiameter.CalcMSD(eval_tm, lagtimes_min = 1, lagtimes_max = 1)
-            
-#            bp()
-            traj_has_error, stat_sign, dx = \
-            nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, 
-                                                      MinSignificance = 0.01, 
-                                                      PlotErrorIfTestFails = PlotErrorCheck, 
-                                                      ID=particleid)
-            
-            if traj_has_error == True:
-                #remove if traj has error
-                print("Drop particleID (because of unbrownian trajectory): ", particleid)
-                print("Significance: ", stat_sign)
-                
-                #drop particles with unbrownian trajectory
-                traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
-        
-        # update total number of valid particles
-        amount_valid_particles_after_check = len(traj_min_length['particle'].unique()); 
-        print('')
-        print('Number of particle trajectories that survived the test: {}'.format(amount_valid_particles_after_check))
 
-
-    nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorCheck):
+    for i,particleid in enumerate(valid_particle_number):
+        # print("particleid: ", particleid)
+        # select traj to analyze in loop
+        eval_tm = traj_min_length[traj_min_length.particle == particleid]
+        
+        # calc msd, because it returns the misplacement vector            
+        nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
+        nd.CalcDiameter.CalcMSD(eval_tm, lagtimes_min = 1, lagtimes_max = 1)
+        
+        # put the misplacement vector into the Kolmogorow-Smirnow significance test
+        traj_has_error, stat_sign, dx = \
+        nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.01, PlotErrorIfTestFails = PlotErrorCheck, ID = particleid)
+        
+        if traj_has_error == True:
+            #remove if traj has error
+            print("Drop particleID (because of unbrownian trajectory): ", particleid)
+            print("Significance: ", stat_sign)
+            
+            #drop particles with unbrownian trajectory
+            traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
     
-    return traj_min_length # trajectory DataFrame
-
+    # number of particle before and after particle test
+    num_before = len(valid_particle_number)
+    num_after = len(traj_min_length['particle'].unique()); 
+    num_lost = num_before - num_after
+    
+    
+    print("\nNumber of particle before Brownian motion test: ", num_before)
+    
+    print("Number of particle passed Brownian motion test: ", num_after)
+    
+    print("Number of particle failed Brownian motion test: ", num_lost)
 
 
 def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = None):
