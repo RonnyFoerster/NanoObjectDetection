@@ -94,7 +94,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
                     for frame_id in (np.flip(empty_frame)):
                         del output_list[frame_id]
 
-                    # make list pf pandas to one big pandas
+                    # make list of pandas to one big pandas
                     output = pd.concat(output_list)
 
                     print("Find the particles - finished")
@@ -375,7 +375,8 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
 
 
 def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = None):
-    """ delete objects that were found in the close neighborhood of fixed particles
+    """
+    Delete objects that were found in the close neighborhood of fixed particles
 
     In case of stationary/fixed objects a moving particle should not come too close.
     This is because stationary objects might be very bright clusters which overshine
@@ -387,11 +388,24 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
         # required minimum distance in pixels between moving and stationary particles
         min_distance = settings["StationaryObjects"]["Min distance to stationary object"]
         print("Minimal distance to stationary object: ", min_distance)
-        stationary_particles = t2_long_fix.groupby("particle").mean() # average particle data
+        
+        # average data of each particle
+        stationary_particles = t2_long_fix.groupby("particle").mean() 
 
         # loop through all stationary objects (contains position (x,y) and time of existence (frame))
         num_loop_elements = len(stationary_particles)
+        
+        # num_cores = multiprocessing.cpu_count()
+        # print("Remove spots in no go areas - parallel. Number of cores: ", num_cores)
+        # inputs = range(num_frames)
+        
+        # output_list = Parallel(n_jobs = num_cores, verbose=5)(delayed(RemoveSpotsInNoGoAreas_loop)(frames_np[loop_frame:loop_frame+1,:,:].copy()) for loop_frame in inputs)
+                    
+                    
+        
         for loop_t2_long_fix in range(0,num_loop_elements):
+            print("RF: THIS IS A GOOD MOMENT TO PROGRAMM THIS INTO PARALLEL!")
+            
             nd.visualize.update_progress("Remove spots in no-go-areas", (loop_t2_long_fix+1)/num_loop_elements)
 
 #            print(loop_t2_long_fix)
@@ -421,6 +435,32 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
     return obj
 
 
+
+def RemoveSpotsInNoGoAreas_loop(stationary_particles, loop_t2_long_fix, obj, min_distance):
+    """
+    Central loop in RemoveSpotsInNoGoAreas
+    make a separate function for it for better parallelisazion
+    """
+
+    # stationary object to check if it disturbs other particles
+    my_check = stationary_particles.iloc[loop_t2_long_fix]
+    
+    # SEMI EXPENSIVE STEP: calculate the position and time mismatch between all objects
+    # and stationary object under investigation
+    mydiff = obj[['x','y']] - my_check[['x','y']]
+    
+    # get the norm
+    # THIS ALSO ACCOUNT FOR THE TIME DIMENSION!
+    # --> IF THE STATIONARY OBJECT VANISHED ITS "SHADOW" CAN STILL DELETE A MOVING PARTICLE
+    mynorm = np.linalg.norm(mydiff.values,axis=1)
+    
+    # check for which particles the criteria of minimum distance is fulfilled
+    valid_distance = mynorm > min_distance
+    
+    # keep only the good ones
+    obj = obj[valid_distance]
+            
+            
 
 def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
     """ delete objects where the camera sensor was (over)saturated
@@ -482,66 +522,74 @@ def close_gaps(t1):
     t1_search_gap["RealData"] = True
     #t1_search_gap.head()
 
-    #fill the gaps now - get the header
-#    t1_gapless = pd.DataFrame(columns = t1_search_gap.columns, dtype = t1_search_gap.dtypes)
-
-    concerned_traj_count = 0
-
-    #for loop_particle in range(0,int(num_last_particles)):
-    for i, loop_particle in enumerate(valid_particle_number):
-        nd.visualize.update_progress("Close gaps in trajectories", (i+1) / amount_valid_particles)
-
-        #grab values for specific particle
-        t1_loop = t1_search_gap[t1_search_gap.particle == loop_particle]
-        # read number of detected frames
-        num_catched_frames = t1_loop.shape[0]
-        # check if particle is not empty
-        if num_catched_frames > 0:
-            # calculate possible number of frames
-
-            #frame is index
-#            start_frame = t1_loop.index.min()
-#            end_frame = t1_loop.index.max()
-            # frame is column
-
-            start_frame = t1_loop.frame.min()
-            end_frame = t1_loop.frame.max()
-    #        start_frame = t1_loop.frame_as_column.min()
-    #        end_frame = t1_loop.frame_as_column.max()
-            num_frames = end_frame - start_frame + 1
-
-            # check if frames are missing
-            if num_catched_frames < num_frames:
-                concerned_traj_count += 1
-
-                # insert missing indicies by nearest neighbour
-                index_frames = np.linspace(start_frame, end_frame, num_frames, dtype='int')
-
-                t1_loop = t1_loop.set_index("frame")
-                t1_loop = t1_loop.reindex(index_frames)
-
-                t1_loop.loc[t1_loop["RealData"] != True, "RealData"] = False
-#                t1_loop["measured"] = True
-#                t1_loop.loc[np.isnan(t1_loop["particle"]), "measured"] = False
-
-                t1_loop = t1_loop.interpolate('nearest')
-
-                # make integeter particle id again (lost by filling with nan)
-                t1_loop.particle = t1_loop.particle.astype("int")
-
-                t1_loop = t1_loop.reset_index()
-
-            # cat data frame together
+    if amount_valid_particles < 100:
+        print("Close the gaps in trajectory - sequential.")
+        
+        for i, loop_particle in enumerate(valid_particle_number):
+            # select trajectory and close its gaps
+            eval_traj = t1_search_gap[t1_search_gap.particle == loop_particle]
+            t1_loop = clopse_gaps_loop(eval_traj )
+        
+            #depending if its the first result or not make a new dataframe or concat it
             if i == 0:
                 t1_gapless = t1_loop
             else:
                 t1_gapless = pd.concat([t1_gapless, t1_loop])
+        
+    else:
+        num_cores = multiprocessing.cpu_count()
+        print("Close the gaps in trajectory - parallel. Number of cores: ", num_cores)
+    
+        output_list = Parallel(n_jobs=num_cores, verbose=5)(delayed(clopse_gaps_loop)(t1_search_gap[t1_search_gap.particle == loop_particle]) for loop_particle in valid_particle_number)
 
-    missing_traj_points_count = t1_gapless[t1_gapless.RealData==False].shape[0]
-    print('Result: {} gaps in {} trajectories were closed.'.format(missing_traj_points_count,concerned_traj_count))
+        #make list on panas to one big panda
+        t1_gapless = pd.concat(output_list)
+
+
+    # do some plotting for the user
+    traj_total_data_points = len(t1_gapless[t1_gapless.RealData==True])
+    traj_filled_data_points = len(t1_gapless[t1_gapless.RealData==False])
+    
+    print("Total trajectory points: %d, Closed gaps: %d\n" %(traj_total_data_points, traj_filled_data_points))
+    
+
 
     return t1_gapless
 
+
+def clopse_gaps_loop(t1_loop):
+    # main loop inside close gaps    
+
+    # number of detected frames
+    num_catched_frames = t1_loop.shape[0]
+    
+    # check if particle is not empty
+    if num_catched_frames > 0:
+        # calculate possible number of frames
+        start_frame = t1_loop.frame.min()
+        end_frame = t1_loop.frame.max()
+
+        num_frames = end_frame - start_frame + 1
+
+        # check if frames are missing
+        if num_catched_frames < num_frames:
+            # insert missing indicies by nearest neighbour
+            index_frames = np.linspace(start_frame, end_frame, num_frames, dtype='int')
+
+            t1_loop = t1_loop.set_index("frame")
+            t1_loop = t1_loop.reindex(index_frames)
+
+            # set RealData entry to False for all new inserted data points
+            t1_loop.loc[t1_loop["RealData"] != True, "RealData"] = False
+
+            t1_loop = t1_loop.interpolate('nearest')
+
+            # make integeter particle id again (lost by filling with nan)
+            t1_loop.particle = t1_loop.particle.astype("int")
+
+            t1_loop = t1_loop.reset_index()
+
+    return t1_loop
 
 
 def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None, PlotIntMedianFit = False, PlotIntFlucPerBead = False):
