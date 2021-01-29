@@ -29,8 +29,8 @@ def Main(rawframes_pre, ParameterJsonFile):
     if settings["Help"]["Separation"] == "auto":
         nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        
 
-    # if beadsize is not auto - the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
-    if settings["Help"]["Bead size"] != "auto":
+    # if beadsize is manual - the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
+    if settings["Help"]["Bead size"] == "manual":
         FindSpot(rawframes_pre, ParameterJsonFile)
         
     # optimize PSF diameter

@@ -444,40 +444,7 @@ def GetSettingsParameters(settings):
 
 
 
-def GetFiberDiameter(settings):
-    """ take or calculate the fiber channel diameter
-
-    Parameters
-    ----------
-    settings : dict
-        Parameter dictionary defined via parameter json file.
-
-    Returns
-    -------
-    fibre_diameter_nm : float
-        Diameter of the fiber channel in [nm].
-    """
-    
-    if settings["Fiber"]["Shape"] == "round":
-        fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
-    
-    elif settings["Fiber"]["Shape"] == "square":
-        fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"] 
-        # in a first approximation at least...
-        
-    elif settings["Fiber"]["Shape"] == "hex":
-        #calc out of hex diameters if wanted
-        if settings["Fiber"]["CalcTubeDiameterOutOfSidelength"] == 0:
-            fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
-        else:
-            side_length_um = settings["Fiber"]["ARHCF_hex_sidelength_um"]
-            diameter_inner_um, diameter_outer_um = nd.handle_data.ARHCF_HexToDiameter(side_length_um)
-            diameter_inner_nm = np.round(1000 * diameter_inner_um,0)
-            fibre_diameter_nm, settings = nd.handle_data.SpecificValueOrSettings(diameter_inner_nm, settings, "Fiber", "TubeDiameter_nm")
-    else:
-        fibre_diameter_nm = None
-        
-    return fibre_diameter_nm
+# 
 
 
 
@@ -1273,7 +1240,10 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     temp_water = settings["Exp"]["Temperature"]
     
     settings, visc_water = GetVisc(settings)
-    fibre_diameter_nm = GetFiberDiameter(settings)
+    
+    #fibre_diameter_nm = GetFiberDiameter(settings)
+    fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
+    
     # get parameters of the trajectory to analyze it
     start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle, start_x, start_y = GetParameterOfTraj(eval_tm, t_beforeDrift = t_beforeDrift)
     
@@ -1790,3 +1760,38 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
     
     return diam_mean, diam_std, weights
     
+
+# def GetFiberDiameter(settings):
+#     """ take or calculate the fiber channel diameter
+
+#     Parameters
+#     ----------
+#     settings : dict
+#         Parameter dictionary defined via parameter json file.
+
+#     Returns
+#     -------
+#     fibre_diameter_nm : float
+#         Diameter of the fiber channel in [nm].
+#     """
+    
+#     if settings["Fiber"]["Shape"] == "round":
+#         fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
+    
+#     elif settings["Fiber"]["Shape"] == "square":
+#         fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"] 
+#         # in a first approximation at least...
+        
+#     elif settings["Fiber"]["Shape"] == "hex":
+#         #calc out of hex diameters if wanted
+#         if settings["Fiber"]["CalcTubeDiameterOutOfSidelength"] == 0:
+#             fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
+#         else:
+#             side_length_um = settings["Fiber"]["ARHCF_hex_sidelength_um"]
+#             diameter_inner_um, diameter_outer_um = nd.handle_data.ARHCF_HexToDiameter(side_length_um)
+#             diameter_inner_nm = np.round(1000 * diameter_inner_um,0)
+#             fibre_diameter_nm, settings = nd.handle_data.SpecificValueOrSettings(diameter_inner_nm, settings, "Fiber", "TubeDiameter_nm")
+#     else:
+#         fibre_diameter_nm = None
+        
+#     return fibre_diameter_nm

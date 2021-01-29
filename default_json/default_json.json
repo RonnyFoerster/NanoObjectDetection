@@ -14,7 +14,6 @@
      },
      "Fiber": {
           "Shape": "round",
-          "CalcTubeDiameterOutOfSidelength": 0,
           "TubeDiameter_nm": 1000.0
      },
      "File": {
@@ -73,8 +72,7 @@
           "Bead size": "manual",
           "Separation": "auto",
           "GuessLowestDiameter_nm": 50,
-          "Drift": "auto",
-          "Debugger": 1
+          "Drift": "auto"
      },
      "Find": {
           "Estimated particle size": 13,
@@ -110,7 +108,7 @@
      },
      "MSD": {
           "Amount summands": 10,
-          "Amount lagtimes auto": 0,
+          "Amount lagtimes auto": 1,
           "lagtimes_min": 1,
           "lagtimes_max": 3,
           "effective_fps": 0,

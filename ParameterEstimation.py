@@ -102,8 +102,72 @@ def EstimateMinmassMain(img1, settings):
     2 - Optimize trackpy parameters such, that it obtains the same result than ZNCC
     """    
     
-    # use first frame only
-    img1 = img1[0,:,:]
+    #check if raw data is convolved by PSF to reduce noise
+    ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
+    
+    # select several frames to make the parameter estimation with
+    num_frames = 10
+    #print("RONNY MAKE NUM FRAMES RIGHT AGAIN!!!")
+    
+    use_frames = (np.round(np.linspace(0,img1.shape[0]-1, num_frames))).astype(int)
+    
+    img_zncc = np.zeros_like(img1[use_frames,:,:])
+    
+    # Find Particle by ZNNC
+    num_particles_zncc = 0
+    for ii, loop_frames in enumerate(use_frames):
+        print("loop_frames: ", loop_frames)
+        pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(img1[loop_frames,:,:], settings)
+        
+        # configure frame saving format
+        save_frames = np.tile(loop_frames,[num_particles_zncc_loop,1])
+        pos_particles_loop = np.concatenate((pos_particles_loop, save_frames), axis = 1)
+        
+        num_particles_zncc = num_particles_zncc + num_particles_zncc_loop
+        
+        if loop_frames == 0: #first run
+            pos_particles = pos_particles_loop
+        else:
+            pos_particles = np.concatenate((pos_particles, pos_particles_loop), axis = 0)
+            
+    
+
+    # load diameter from settings
+    diameter = settings["Find"]["Estimated particle size"]
+    
+    # load separation from settings
+    separation = settings["Find"]["Separation data"]
+    
+    # load the percentile filter value
+    percentile = settings["Find"]["PercentileThreshold"]    
+    
+    # Trackpy does bandpass filtering as "preprocessing". If the rawdata is already convolved by the PSF this additional bandpass does not make any sense. Switch of the preprocessing if rawdata is already convolved by the PSF
+    DoPreProcessing = (ImgConvolvedWithPSF == False)
+    
+    # optimize the minmass in trackpy, sothat the results of ncc and trackpy agree best
+    # minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
+    
+    minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
+        
+    # plot the stuff
+    for ii, loop_frames in enumerate(use_frames):
+        use_img1 = img1[loop_frames,:,:]
+        use_img_zncc = img_zncc[ii,:,:]
+        use_pos_particles = pos_particles[pos_particles[:,2] == loop_frames, 0:2]
+        
+        if len(use_pos_particles) > 0:
+            plt.figure()
+            PlotImageProcessing(use_img1, use_img_zncc, use_pos_particles)
+
+    
+    return minmass, num_particles_trackpy
+
+
+
+def FindParticlesByZNCC(img1, settings):
+    """
+    Find Particles by zero normalized cross-correclation
+    """
        
     #check if raw data is convolved by PSF to reduce noise
     ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
@@ -129,26 +193,7 @@ def EstimateMinmassMain(img1, settings):
     # get positions of located spots and number of located particles
     pos_particles, num_particles_zncc = FindParticles(img_zncc, correl_min)
 
-    # load diameter from settings
-    diameter = settings["Find"]["Estimated particle size"]
-    
-    # load separation from settings
-    separation = settings["Find"]["Separation data"]
-    
-    # load the percentile filter value
-    percentile = settings["Find"]["PercentileThreshold"]    
-    
-    # Trackpy does bandpass filtering as "preprocessing". If the rawdata is already convolved by the PSF this additional bandpass does not make any sense. Switch of the preprocessing if rawdata is already convolved by the PSF
-    DoPreProcessing = (ImgConvolvedWithPSF == False)
-    
-    # optimize the minmass in trackpy, sothat the results of ncc and trackpy agree best
-    minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
-        
-    # plot the stuff
-    PlotImageProcessing(img1_in, img_zncc, pos_particles)
-    
-    return minmass, num_particles_trackpy
-
+    return pos_particles, num_particles_zncc, img_zncc
 
 
 def CorrelateImgAndPSF(img1, settings):
@@ -327,7 +372,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
         # here comes trackpy.
         # Trackpy is not running in parallel mode, since it loads quite long and we have only one frame here
         
-        output = tp.locate(img1, diameter, minmass = minmass, separation = separation, max_iterations = 10, preprocess = DoPreProcessing, percentile = percentile)
+        output = tp.batch(img1, diameter, minmass = minmass, separation = separation, max_iterations = 10, preprocess = DoPreProcessing, percentile = percentile)
         # num of found particles by trackpy
         num_particles_trackpy = len(output)
 
@@ -364,10 +409,13 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             # trackpy and znnc have similar results. so make some find tuning in small steps
             # check for every particle found by zncc if trackpy finds a particle too, withing the diameter
             for id_part, pos in enumerate(pos_particles):
-                pos_y, pos_x = pos
+                pos_y, pos_x, frame = pos
+                
+                # choose correct frame
+                output_frame = output[output.frame == frame]
                 
                 # get distance to each particle found by trackpy
-                dist_each_det_particle = np.hypot(output.y-pos_y, output.x-pos_x)
+                dist_each_det_particle = np.hypot(output_frame.y-pos_y, output_frame.x-pos_x)
                 
                 # get the nearest
                 closest_agreement = np.min(dist_each_det_particle)
@@ -416,7 +464,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
 
             # check how value is changing
 #            if Wrong_to_right > Wrong_to_right_optimum:
-            if num_particles_trackpy < 0.8 * num_particles_zncc:  
+            if  (wrong_found == 0) | (num_particles_trackpy < 0.8 * num_particles_zncc):  
                 print("TrackPy finds much less particles than the zncc")
                 
                 #value increasing so abort loop
@@ -433,7 +481,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
 
                 
             # enhance minmass for next iteration
-            minmass = np.int(minmass * 1.01) + 1
+            minmass = np.int(minmass * 1.02) + 10
         
         first_iteration = False
     
@@ -441,7 +489,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     minmass_optimum = np.int(minmass_optimum * 0.90)
     print("\n Optimized Minmass threshold is: ", minmass_optimum, "\n")
 
-    output = tp.locate(img1, diameter, minmass = minmass_optimum, separation = diameter, max_iterations = 10, preprocess = DoPreProcessing)
+    output = tp.batch(img1, diameter, minmass = minmass_optimum, separation = diameter, max_iterations = 10, preprocess = DoPreProcessing)
         
     # num of found particles by trackpy
     num_particles_trackpy = len(output)
