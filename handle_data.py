@@ -131,7 +131,8 @@ def SpecificValueOrSettings(try_value,settings, key, entry):
         if settings == None:
             sys.exit("Either value or settings needed")
         else:
-            use_value = nd.handle_data.GetVarOfSettings(settings, key, entry)
+            # use_value = nd.handle_data.GetVarOfSettings(settings, key, entry)
+            use_value = settings[key][entry]
     
     settings[key][entry] = use_value
     
