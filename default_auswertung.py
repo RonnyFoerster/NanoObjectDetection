@@ -62,6 +62,8 @@ nd.AdjustSettings.Main(rawframes_pre, ParameterJsonFile)
 
 #%% find the objects
 obj_all = nd.get_trajectorie.FindSpots(rawframes_pre, ParameterJsonFile)
+objects_per_frame = nd.particleStats.ParticleCount(obj_all, rawframes_pre.shape[0])
+print(objects_per_frame.describe())
 
 
 #%% identify static objects

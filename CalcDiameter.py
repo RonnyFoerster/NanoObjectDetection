@@ -148,8 +148,7 @@ def OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_succes
             any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
             
             """ 3.) """
-            # check if KS test was done before already
-            try:
+            try: # ... if KS test was done before already
                 stat_sign = eval_tm['stat_sign'].mean() # note: always the same value anyways
                 if stat_sign >= 0.01:
                     traj_has_error = False
@@ -160,7 +159,7 @@ def OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_succes
                 traj_has_error, stat_sign, _ = CheckIfTrajectoryHasError(nan_tm, traj_length, 
                                                                          MinSignificance = 0.01)
                 
-            # only continue if trajectory is good, otherwise plot the error
+            # only continue if trajectory is good
             if traj_has_error == True:
                 OptimizingStatus = "Abort"
                 
@@ -547,7 +546,7 @@ def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
 	
     if t_beforeDrift is None:
         # check if x and y columns exist (sometimes just one is given (RF))
-        print("Ronny thinks that is missleading.")
+        # print("Ronny thinks that is missleading.")
         if "x" in eval_tm:
             start_x = eval_tm.iloc[0].x
         else:
@@ -594,7 +593,8 @@ def CreateNewMSDPlot(any_successful_check, MSD_fit_Show):
 
 
 def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
-    """ define how many lagtimes are considered for the fit
+    """ define how many lagtimes are considered for the fit 
+    (initial values for optimization only!)
     
     amount_lagtimes_auto:   boolean that defines whether to set the number of lagtimes automatically
     eval_tm:                trajectory data of a single particle
@@ -1608,9 +1608,10 @@ def InvDiameter(sizes_df_lin, settings, useCRLB=True):
     inv_diam = 1/sizes_df_lin["diameter"] # pd.Series
     
     N_tmax = settings["MSD"]["lagtimes_max"] # int value
+    # should only be used if "Amount lagtimes auto" = 0 (!!)
     
-    # MN210227
-    # N_f = sizes_df_lin["traj length"] # pd.Series 
+    # MN 210227:
+    # replace N_f = sizes_df_lin["traj length"] by
     try:
         N_f = sizes_df_lin["valid frames"] # pd.Series 
     except KeyError:

@@ -365,7 +365,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     wrong_to_right_save = []
     minmass_save = []
     
-    print("separation: ", separation)
+    print("Separation: ", separation)
     
     # run the following till the optimization is aborted
     while stop_optimizing == False:       
@@ -380,7 +380,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             # sanity check
             if num_particles_trackpy < num_particles_zncc:
                 stop_optimizing = True
-                raise ValueError("Trackpy finds to few particles. Reasons: \n Start value of minmass is to low (unlikely) \n Specimen is too dense/ too high concentrated.")
+                raise ValueError("Trackpy finds too few particles. Possible reasons: \n - start value of minmass is too low (unlikely) \n - specimen is too dense/too highly concentrated")
         
 
         # reset counters
@@ -399,8 +399,8 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
         
         
         if num_particles_trackpy > (5 * num_particles_zncc):
-            # if far to many particles are found the threshold must be increased significantly
-            print("far too many features. enhance threshold")
+            # if far too many particles are found the threshold must be increased significantly
+            print("Far too many features. Enhance threshold!")
             
             # + 1 is required to ensure that minmass is increasing, although the value might be small
             minmass = np.int(minmass * 1.5) + 1
