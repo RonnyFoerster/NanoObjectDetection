@@ -367,6 +367,9 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     
     print("Separation: ", separation)
     
+    percentile = 0
+    print("percentile: ", percentile)
+    
     # run the following till the optimization is aborted
     while stop_optimizing == False:       
         # here comes trackpy.
@@ -380,7 +383,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             # sanity check
             if num_particles_trackpy < num_particles_zncc:
                 stop_optimizing = True
-                raise ValueError("Trackpy finds too few particles. Possible reasons: \n - start value of minmass is too low (unlikely) \n - specimen is too dense/too highly concentrated")
+                raise ValueError("Trackpy finds too few particles. Possible reasons: \n - start value of minmass is too low (unlikely) \n - specimen is too dense/too highly concentrated \n - Percentile filter gives you problems in tp.batch or tp.locate.")
         
 
         # reset counters

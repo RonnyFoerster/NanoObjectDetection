@@ -93,6 +93,9 @@ def Main(rawframes_np, ParameterJsonFile):
             
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
+        # make it a 16bit image again (DTYPE MUST BE INT FOR TRACKPY!)
+        rawframes_np = rawframes_np.astype("int16")
+        
     return rawframes_np, static_background
 
 
@@ -279,7 +282,11 @@ def ConvolveWithPSF(image_frame, gauss_kernel_rad):
     convolves a 2d image with a gaussian kernel by multipliying in fourierspace
     """
     
-    image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
+
+    
+    PSF_Type = "Gauss"
+    if PSF_Type == "Gauss":
+        image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
     
     return image_frame_filtered
 
@@ -287,15 +294,27 @@ def ConvolveWithPSF(image_frame, gauss_kernel_rad):
 
 def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False, PlotIt = True):  
     print('\nConvolve rawframe by PSF to enhance SNR: start removing')
+     
+    CalcAiryDisc(settings, rawframes_np[0,:,:])
+     
+    PSF_Type = "Gauss"
     
-    # estimate PSF by experimental settings
-    if settings["PreProcessing"]["KernelSize"] == 'auto':        
-        settings["PreProcessing"]["KernelSize"] = nd.ParameterEstimation.EstimageSigmaPSF(settings)
-    
-    # set PSF Kernel
-    gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
+    # set parameters depending on PSF type.
+    if PSF_Type == "Gauss":
+        # Standard Gaussian PSF
+        # estimate PSF by experimental settings
+        if settings["PreProcessing"]["KernelSize"] == 'auto':        
+            settings["PreProcessing"]["KernelSize"] = nd.ParameterEstimation.EstimageSigmaPSF(settings)
         
-    print("Gauss Kernel in px:", gauss_kernel_rad)
+        # set PSF Kernel
+        gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
+            
+        print("Gauss Kernel in px:", gauss_kernel_rad)
+    
+    elif PSF_Type == "Airy":
+        print("RF: Implements the AIRY DISC")
+        # Calculate the Airy disc for the given experimental parameters
+        # this is for data with little or now aberrations
 
     if rawframes_np.ndim == 2:
         rawframes_filtered = ConvolveWithPSF(rawframes_np, gauss_kernel_rad)
@@ -358,3 +377,44 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
 
     return rawframes_filtered, settings
 
+
+def CalcAiryDisc(settings, img):
+    import pyotf.otf
+    
+    wl = settings["Exp"]["lambda"]
+    na = settings["Exp"]["NA"]
+    ni = settings["Exp"]["n_immersion"]
+    res = settings["Exp"]["Microns_per_pixel"] * 1000
+    size_x = int(img.shape[0])
+    size_y = int(img.shape[1])
+    size = int(np.max([size_x, size_y]))
+    zres = res
+    zsize = 99
+    
+    args = (wl, na, ni, res, size, zres, zsize)
+    # wl, na, ni, res, size, zres=None, zsize=None, vec_corr="none", condition="sine"
+    kwargs = dict(vec_corr="none", condition="none")
+    psf3d = pyotf.otf.SheppardPSF(*args, **kwargs)
+    
+    psfi3d = psf3d.PSFi
+    
+    #get focus slice
+    psfi2d = psfi3d[50,:,:]
+    
+    psfi2d = psfi2d /np.max(psfi2d)
+
+    # cut out psf same size as image
+    center = int(np.ceil(size/2))
+    
+    left_border_x = int(np.ceil(size/2 - size_x/2))
+    right_border_x = left_border_x + size_x
+
+    left_border_y = int(np.ceil(size/2 - size_y/2))
+    right_border_y = left_border_y + size_y
+    
+    
+    print(center, left_border_x, right_border_x)
+
+    psfi2d_roi = psfi2d[left_border_x : right_border_x, left_border_y : right_border_y]
+
+    return psfi2d_roi
