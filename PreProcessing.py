@@ -94,7 +94,10 @@ def Main(rawframes_np, ParameterJsonFile):
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
         # make it a 16bit image again (DTYPE MUST BE INT FOR TRACKPY!)
-        rawframes_np = rawframes_np.astype("int16")
+        # since it can have negative values from the bg subrations make it at int32
+        rawframes_np = np.round(rawframes_np)
+        rawframes_np = rawframes_np.astype("int32")
+
         
     return rawframes_np, static_background
 

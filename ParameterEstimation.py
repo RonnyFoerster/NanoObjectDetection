@@ -111,7 +111,7 @@ def EstimateMinmassMain(img1, settings):
     
     use_frames = (np.round(np.linspace(0,img1.shape[0]-1, num_frames))).astype(int)
     
-    img_zncc = np.zeros_like(img1[use_frames,:,:])
+    img_zncc = np.zeros_like(img1[use_frames,:,:], dtype = 'float')
     
     # Find Particle by ZNNC
     num_particles_zncc = 0
@@ -502,15 +502,19 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
 
 def PlotImageProcessing(img, img_zncc, pos_particles):
     
-    plt.subplot(3, 1, 1)
-    plt.imshow(np.abs(img)**(0.5), cmap = 'gray')
+    plt.subplot(4, 1, 1)
+    plt.imshow(np.abs(img), cmap = 'gray')
     plt.title("image in")
     
-    plt.subplot(3, 1, 2)
+    plt.subplot(4, 1, 2)
+    plt.imshow(np.abs(img)**(0.3), cmap = 'gray')
+    plt.title("image in (gamma = 0.3)")
+    
+    plt.subplot(4, 1, 3)
     plt.imshow(np.abs(img_zncc), cmap = 'jet')
     plt.title("zero normalized cross correlation")
     
-    plt.subplot(3, 1, 3)
+    plt.subplot(4, 1, 4)
     plt.scatter(pos_particles[:,1], pos_particles[:,0])
     plt.title("identified particles")
     plt.axis("scaled")
