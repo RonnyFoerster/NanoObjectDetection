@@ -261,7 +261,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     # have every frames only once
     frames = np.unique(frames)
     
-    # select first 100 frames, otherwise the following calcuation takes to long
+    # select first 10 frames, otherwise the following calcuation takes to long
     if len(frames) > 10:
         frames_first_10 = frames[0:10]
     else:
@@ -298,14 +298,16 @@ def CheckForSaturation(rawframes_np,warnUser=True):
                     # frame_saturated = np.sort(pos_saturated[0])
 
                     print("\n Saturation suspected. Check your rawimages to find out if the are saturated \n")
+                    # print some statistics
+                    frames_total = rawframes_np.shape[0]
+                    frames_sat = len(frames)
+                    sat_ratio = frames_sat/frames_total*100
                     
-                    print("\n Total number of frames: ", rawframes_np.shape[0])
-                    
-                    print("\n Number of frames with Saturation: ", len(frames))
+                    print("Number of frames: Total: %d, Saturated: %d (%d%%) \n" %(frames_total, frames_sat, sat_ratio))
+
                     
                     print("\n First 10 frames where saturation occurs: ", frames_first_10)
                     
-              
                     rawframes_np[frames,:,:] = np.min(rawframes_np, axis = 0)
                     
                     print("\n Replace a frame where saturation occurs with a background image! \n")

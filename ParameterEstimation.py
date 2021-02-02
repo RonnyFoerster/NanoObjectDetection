@@ -186,7 +186,6 @@ def FindParticlesByZNCC(img1, settings):
     # calculate zero normalized crosscorrelation of image and psf    
     img_zncc = CorrelateImgAndPSF(img1_in, settings)
     
-    
     # find objects in zncc
     correl_min = 0.60
     
