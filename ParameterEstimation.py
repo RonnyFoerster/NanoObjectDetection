@@ -369,6 +369,9 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     percentile = 0
     print("percentile: ", percentile)
     
+    # switch logger ouf for this optimization
+    tp.quiet(suppress=True)
+    
     # run the following till the optimization is aborted
     while stop_optimizing == False:       
         # here comes trackpy.
@@ -492,7 +495,9 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     print("\n Optimized Minmass threshold is: ", minmass_optimum, "\n")
 
     output = tp.batch(img1, diameter, minmass = minmass_optimum, separation = diameter, max_iterations = 10, preprocess = DoPreProcessing)
-        
+      
+    tp.quiet(suppress=False)
+    
     # num of found particles by trackpy
     num_particles_trackpy = len(output)
 
