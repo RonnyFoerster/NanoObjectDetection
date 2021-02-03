@@ -1235,7 +1235,6 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     """
     
     mean_raw_mass = eval_tm["raw_mass"].mean()
-    min_rel_error = settings["MSD"]["Min rel Error"]
     UseHindranceFac = settings["MSD"]["EstimateHindranceFactor"]
     temp_water = settings["Exp"]["Temperature"]
     
@@ -1255,7 +1254,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     red_x = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], lagtime)
                     
 #     get the fit error if switches on (and working)
-    rel_error_diff, diff_std = DiffusionError(traj_length, red_x, diff_direct_lin, min_rel_error, lagtimes_max)
+    rel_error_diff, diff_std = DiffusionError(traj_length, red_x, diff_direct_lin, lagtimes_max)
 
     diameter = DiffusionToDiameter(diff_direct_lin, UseHindranceFac, fibre_diameter_nm, 
                                    temp_water, visc_water, DoRolling = DoRolling)
@@ -1421,7 +1420,7 @@ def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
     
 
 
-def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, DoRolling = False):
+def DiffusionError(traj_length, red_x, diffusion, lagtimes_max, DoRolling = False):
     
     if red_x != "gain missing":
         """
@@ -1442,7 +1441,6 @@ def DiffusionError(traj_length, red_x, diffusion, min_rel_error, lagtimes_max, D
   
     diffusion_std = diffusion * rel_error
     
-    "Min rel Error"
     
     return rel_error, diffusion_std
 
