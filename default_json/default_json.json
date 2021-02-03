@@ -115,7 +115,6 @@
           "effective_Microns_per_pixel": 0,
           "EstimateHindranceFactor": 1,
           "Calculate Error": 0,
-          "Min rel Error": 0,
           "EvalOnlyLongestTraj": 0
      },
      "Time": {
