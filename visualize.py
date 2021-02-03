@@ -540,9 +540,9 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
     ylabel = 'Absolute occurrence'
 
     values_hist, ax = nd.visualize.PlotDiameterHistogramm(sizes, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
+    
     if (showInfobox==True) and (fitNdist==False):
         nd.visualize.PlotInfobox1N(ax, sizes)
-    
     
     if settings["Plot"]["Histogramm_Fit_1_Particle"] == 1:
         diam_grid = np.linspace(histogramm_min,histogramm_max,1000)
@@ -562,7 +562,6 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
             if showInfobox==True:
                 nd.visualize.PlotInfoboxMN(ax, diam_means, diam_stds, weights)
             
-                
     if Histogramm_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
         
@@ -831,18 +830,31 @@ def PlotInfobox1N(ax, sizes):
     
     diam_inv_mean, diam_inv_std = nd.statistics.StatisticOneParticle(sizes)
     my_mean = 1/diam_inv_mean
-
-#   old version:
-    diam_68 = [1/(diam_inv_mean + 1*diam_inv_std), 1/(diam_inv_mean - 1*diam_inv_std)]
-    diam_95 = [1/(diam_inv_mean + 2*diam_inv_std), 1/(diam_inv_mean - 2*diam_inv_std)]
-#    diam_99 = [1/(diam_inv_mean + 3*diam_inv_std), 1/(diam_inv_mean - 3*diam_inv_std)]
+    
+    # percentage of values that is within 1 or 2 sigma (for the normal distr.):
+    sigma1 = 0.682689492
+    sigma2 = 0.954499736
+    
+    if type(sizes) is pd.DataFrame:
+        sizes = sizes.diameter
+    elif not(type(sizes) is pd.Series):
+        sizes = pd.Series(sizes) # assume np.array
+        
+    # use quantiles to describe the sigma-intervals
+    # (this accounts for the skewness of the distribution)
+    diam_68 = [sizes.quantile(0.5 - sigma1/2), sizes.quantile(0.5 + sigma1/2)]
+    diam_95 = [sizes.quantile(0.5 - sigma2/2), sizes.quantile(0.5 + sigma2/2)]
+# #   old version (uses the assumption of a Gaussian fct):
+#     diam_68 = [1/(diam_inv_mean + 1*diam_inv_std), 1/(diam_inv_mean - 1*diam_inv_std)]
+#     diam_95 = [1/(diam_inv_mean + 2*diam_inv_std), 1/(diam_inv_mean - 2*diam_inv_std)]
+# #    diam_99 = [1/(diam_inv_mean + 3*diam_inv_std), 1/(diam_inv_mean - 3*diam_inv_std)]
     
     textstr = '\n'.join([
     r'$\mathrm{median}=  %.1f$ nm' % (my_median),
-    r'$\mu = %.1f$ nm' % (my_mean),
-    r'$1 \sigma = [%.1f; %.1f]$ nm' %(diam_68[0], diam_68[1]), 
-    r'$2 \sigma = [%.1f; %.1f]$ nm' %(diam_95[0], diam_95[1]), ])
-
+    r'$\mu_{\mathrm{inv}} = %.1f$ nm' % (my_mean),
+    r'$1 \sigma_{\mathrm{q}} = [%.1f; %.1f]$ nm' %(diam_68[0], diam_68[1]), 
+    r'$2 \sigma_{\mathrm{q}} = [%.1f; %.1f]$ nm' %(diam_95[0], diam_95[1]), ])
+    
     props = dict(boxstyle='round', facecolor='honeydew', alpha=0.7)
     
 #    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,

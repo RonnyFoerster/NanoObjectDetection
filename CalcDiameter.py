@@ -1421,12 +1421,11 @@ def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
 
 
 def DiffusionError(traj_length, red_x, diffusion, lagtimes_max, DoRolling = False):
-	""" [add description here] """
-    
+    """ ... """    
     if red_x == "gain missing":
         red_x = 0 # assume the ideal case
         # MN: I think this is okay since it's meant to estimate the MIN. error
-
+        
     # rel. error is well approximated by CRLB for optimized least square fit 
     rel_error = nd.Theory.CRLB(traj_length, red_x)
     
