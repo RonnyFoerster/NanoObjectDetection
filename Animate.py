@@ -25,6 +25,53 @@ import os.path
 
 import NanoObjectDetection as nd
 
+    
+
+
+def GetTrajHistory(frame, traj_roi):
+    """ returns the entire history of trajectories for particles which exist in the current frame
+    """
+    # get particles in the frame
+    id_particle_frame = list(traj_roi[traj_roi.frame == frame].particle.values)
+
+    # select those trajectories, which exist in the current frame
+    traj_roi_frame = traj_roi[traj_roi.particle.isin(id_particle_frame)]
+    
+    # select trajectories from the history
+    traj_roi_history = traj_roi_frame[traj_roi_frame.frame <= frame]    
+    
+    return traj_roi_history
+
+
+
+def GetPosEvaluated(frame, traj_roi, sizes_df_lin):
+    """ return the current position of particles which are successfully evaluated, and in the current ROI and frame """
+    traj_roi_frame = traj_roi[traj_roi.frame == frame]
+
+    # id of present particles
+    id_particle_frame =list(traj_roi_frame.particle.values)
+
+    # make it compareable to size_df_lin
+    pos_roi = traj_roi_frame.set_index(["particle"])
+    pos_roi = pos_roi.sort_index()
+    
+    # select only particles which are evaluated in current frame and roi
+    # that does not mean that all trajectories are evaluated
+    sizes_df_lin_roi_frame = sizes_df_lin[sizes_df_lin.true_particle.isin(id_particle_frame)]
+    
+    # id of evaluated particles - remove unevaluated trajectories
+    id_particle_eval = sizes_df_lin_roi_frame.true_particle.unique()
+    
+    sizes_df_lin_roi_frame = sizes_df_lin_roi_frame.sort_index()
+    
+    #trajectory of evaluated particles
+    pos_roi = pos_roi.loc[id_particle_eval]
+    pos_roi = pos_roi.sort_index()
+
+    
+    return pos_roi, sizes_df_lin_roi_frame
+
+
 
 def AnimateProcessedRawData(ParameterJsonFile, rawframes_rot, t4_cutted, t6_final, sizes_df_lin, sizes_df_lin_rolling):
     import NanoObjectDetection as nd
@@ -694,10 +741,10 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre,
     
     frame = 0
     # get trajectory of particles in current frame
-    traj_roi_history = nd.visualize.GetTrajHistory(frame, traj_roi)
+    traj_roi_history = GetTrajHistory(frame, traj_roi)
 
     # get position and diameter of evaluated particles
-    pos_roi, sizes_df_lin_frame = nd.visualize.GetPosEvaluated(frame, traj_roi, sizes_df_lin)
+    pos_roi, sizes_df_lin_frame = GetPosEvaluated(frame, traj_roi, sizes_df_lin)
   
     # design the subplot
     fig = plt.figure(figsize = [25, 13], constrained_layout=True)
@@ -903,10 +950,10 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre,
         traj_roi = traj[traj.particle.isin(particle_id_traj)]
         
         # get trajectory of particles in current frame
-        traj_roi_history = nd.visualize.GetTrajHistory(frame, traj_roi)
+        traj_roi_history = GetTrajHistory(frame, traj_roi)
 
         # get position and diameter of evaluated particles
-        pos_roi, sizes_df_lin_roi_frame = nd.visualize.GetPosEvaluated(frame, traj_roi, sizes_df_lin)
+        pos_roi, sizes_df_lin_roi_frame = GetPosEvaluated(frame, traj_roi, sizes_df_lin)
 
 
         #update figure

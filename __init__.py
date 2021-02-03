@@ -24,6 +24,7 @@ from . import PreProcessing
 from . import sandbox
 from . import Simulation
 from . import Start
+from . import statistics
 from . import teaching
 from . import Theory
 from . import Tools

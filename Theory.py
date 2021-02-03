@@ -19,6 +19,7 @@ from scipy.constants import pi as pi
 from scipy.constants import speed_of_light as c
 
 
+
 def SigmaPSF(NA, mylambda):
     # Zhang et al 2007
     sigma = 0.21 * mylambda/ NA
@@ -26,10 +27,12 @@ def SigmaPSF(NA, mylambda):
     return sigma
 
     
+
 def LocalErrorStatic(sigma_psf, photons):
     ep = sigma_psf / np.sqrt(photons) 
 
     return ep
+
 
 
 def LocalErrorMotion(sigma_psf, diffusion, t_exp, photons):
@@ -38,16 +41,41 @@ def LocalErrorMotion(sigma_psf, diffusion, t_exp, photons):
     return ep
 
 
+
 def CRLB(N,x):
-    # Number of frames
-    # x reduced localization precision
+    # N : number of frames
+    # x : reduced localization precision
     
     # Theoretical minimum values of eps = std(D)/D
-    # (Michalet & Berglund, 2012)
+    # (Michalet & Berglund, 2012; eq. (12))
     
-    eps = np.sqrt(2/(N-1) * (1+2*np.sqrt(1+2*x)))
+    eps = np.sqrt( 2/(N-1) * (1 + 2*np.sqrt(1+2*x)) )
     
     return eps
+
+
+
+def RedXOutOfTheory(diffusion, expTime, lagtime, NA, wavelength, photons):
+    """ compute reduced square localization error from theory
+    
+    cf. Michalet&Berglund 2012
+    """
+    # motion blurr coefficient (case of uniform exposure; paragraph behind eq.(5))
+    R = 1/6 * expTime/lagtime
+    
+    # standard dev. of a Gaussian approximation of the microscope point-spread function,
+    # i.e. resolution of the optical system
+    s0 = SigmaPSF(NA, wavelength)
+    # static localization error
+    sigma0 = LocalErrorStatic(s0, photons)
+    
+    # dynamic localization error
+    sigma = sigma0 * (1 + diffusion*expTime/s0**2)**0.5 # eq.(1)
+    
+    red_x = sigma**2/(diffusion*lagtime) - 2*R # eq.(4)
+    
+    return red_x
+
 
 
 def StokesEinsteinEquation(diff = None, diam = None, temp_water = 295, visc_water = 9.5E-16):
