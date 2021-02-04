@@ -735,7 +735,24 @@ def UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_
         #Fengjis idea
         t_frame = 1 / settings["Exp"]["fps"]
         
-        red_x = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], t_frame)
+        # red_x = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], t_frame)
+        
+        # get reduced localization accuracy depending on the mode
+        if settings["MSD"]["Estimate_X"] == "Exp":
+            red_x = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], t_frame)
+        
+        elif settings["MSD"]["Estimate_X"] == "Theory":
+            expTime = settings["Exp"]["ExposureTime"]
+            NA = settings["Exp"]["NA"]
+            wavelength = settings["Exp"]["lambda"]
+            gain = settings["Exp"]["gain"]
+            mass = eval_tm.mass.mean()
+            # convert ADU into photons by camera gain
+            photons = mass * gain
+            red_x = nd.Theory.RedXOutOfTheory(diff_direct_lin, expTime, t_frame, NA, wavelength, photons)
+        else:
+            print("ERROR in json settings[MSD][Estimate_X]. This should be either Exp or Theory!")
+
 
         # set it to zero if negative
         if red_x < 0:
@@ -775,6 +792,27 @@ def UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_
     return lagtimes_max, OptimizingStatus
 
 
+def Estimate_X(settings, slope, offset, t_frame):
+    # calculated reduced localication accuracy out of the fitting parameters
+    # different modes how to do this
+    
+    if settings["MSD"]["Estimate_X"] == "Exp":
+        red_x = RedXOutOfMsdFit(slope, offset, t_frame)
+        
+    elif settings["MSD"]["Estimate_X"] == "Theory":
+        diffusion = 1
+        expTime = settings["Exp"]["ExposureTime"]
+        NA = settings["Exp"]["NA"]
+        wavelength = settings["Exp"]["lambda"]
+        photons = 1
+        red_x = nd.Theory.RedXOutOfTheory(diffusion, expTime, t_frame, NA, wavelength, photons)
+        
+    else:
+        print("ERROR in json settings[MSD][Estimate_X]. This should be either Exp or Theory!")
+        
+        
+    return red_x
+
 
 def RedXOutOfMsdFit(slope, offset, t_frame):
     # calculated reduced localication accuracy out of the fitting parameters
@@ -783,16 +821,13 @@ def RedXOutOfMsdFit(slope, offset, t_frame):
     
     red_x = offset / (t_frame*slope)
     
-    # print("\n\nslope: ", slope)
-    # print("offset: ", offset)
-    # print("red_x: ", red_x)
-    
-    # do not allow theoretical unalloed x
+    # do not allow theoretical unallowed x
     # look at defintion of x. minimum of x is achieved with sigma^2 = 0 and R maximum = 1/4
     if red_x < (-1/2):
         red_x = -1/2
         
     return red_x
+
 
 
  

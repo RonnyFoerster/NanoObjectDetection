@@ -65,7 +65,7 @@ def RedXOutOfTheory(diffusion, expTime, lagtime, NA, wavelength, photons):
     
     # standard dev. of a Gaussian approximation of the microscope point-spread function,
     # i.e. resolution of the optical system
-    s0 = SigmaPSF(NA, wavelength)
+    s0 = SigmaPSF(NA, wavelength/1000)
     # static localization error
     sigma0 = LocalErrorStatic(s0, photons)
     

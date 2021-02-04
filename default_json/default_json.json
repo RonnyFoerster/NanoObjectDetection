@@ -109,6 +109,7 @@
      "MSD": {
           "Amount summands": 10,
           "Amount lagtimes auto": 1,
+          "Estimate_X": "Exp",
           "lagtimes_min": 1,
           "lagtimes_max": 3,
           "effective_fps": 0,
