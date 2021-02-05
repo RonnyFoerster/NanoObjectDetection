@@ -68,16 +68,6 @@ def Main(rawframes_np, ParameterJsonFile):
             print('Rolling percentil filter: not applied')
       
 
-        # 5 - CLIP NEGATIVE VALUE
-        if settings["PreProcessing"]["ClipNegativeValue"] == 1:
-            print('Negative values: start removing')
-            print("Ronny does not love clipping.")
-            rawframes_np[rawframes_np < 0] = 0
-            print('Negative values: removed')
-        else:
-            print('Negative values: kept')
-      
- 
         # 6 - ENHANCE SNR
         if settings["PreProcessing"]["EnhanceSNR"] == 1:            
             rawframes_np, settings = ConvolveWithPSF_Main(rawframes_np, settings)   
@@ -90,6 +80,30 @@ def Main(rawframes_np, ParameterJsonFile):
             rawframes_np = nd.handle_data.RotImages(rawframes_np, ParameterJsonFile)
         else:
             print('Image Rotation: not applied')
+            
+          
+        # DTYPE CANT BE FLOAT FOR TRACKPY! Decive int datatype below
+        rawframes_np = np.round(rawframes_np)
+            
+        # 5 - CLIP NEGATIVE VALUE
+        if settings["PreProcessing"]["ClipNegativeValue"] == 1:
+            print('Negative values: start removing')
+            print("Ronny does not love clipping.")
+            rawframes_np[rawframes_np < 0] = 0
+            rawframes_np = rawframes_np.astype("uint16")
+            print('Negative values: removed')
+            print('DType : UINT16 - good')
+            
+        else:
+            print('Negative values: kept')
+            # check if int16 is enough
+            if np.max(np.abs(rawframes_np)) < 32767:
+                rawframes_np = rawframes_np.astype("int16")
+                print('DType : INT16 - good')
+            else:
+                rawframes_np = rawframes_np.astype("int32")
+                print('DType : INT32 - This is only usefull if you have a true 16 bit image depth.')
+            
             
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
