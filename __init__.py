@@ -43,7 +43,7 @@ logger = logging.getLogger("nd")
 logger.setLevel(logging.INFO)
 logger.propagate = False
 
-formatter = logging.Formatter(" %(name)s: %(levelname)s: %(module)s.%(funcName)s: %(message)s")
+formatter = logging.Formatter("%(levelname)s: %(name)s: %(module)s.%(funcName)s: %(message)s")
 
 stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.INFO)
