@@ -15,6 +15,10 @@ import shutil
 import os
 from packaging import version
 
+import logging 
+# logger = logging.getLogger(__name__)
+
+
 
 
 def CheckAll(ParameterJsonFile):
@@ -30,10 +34,12 @@ def CheckAll(ParameterJsonFile):
     print("\n\n check inserted json parameter file: ")
     settings = CheckJson_Exist(ParameterJsonFile)
     settings = CheckJson_path(ParameterJsonFile, settings, CreateNew = False)
-    settings = CheckJson_specify_default_auto(settings)
     settings = CheckJson_Entries(settings)
+    settings = CheckJson_specify_default_auto(settings)
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
+    
+    SetupLogger(settings)
     
 def CheckPython():
     """ check if the python version is right
@@ -158,6 +164,12 @@ def CheckJson_Entries(settings):
     for loop_key_lv1 in list_key_lv1:
         list_key_lv2 = settings_default[loop_key_lv1].keys() #get level 2 keys
         
+        # test if key exists
+        if (loop_key_lv1 in settings.keys()) == False:
+            print("Parameter settings['%s'] not found" %(loop_key_lv1))
+            settings[loop_key_lv1] = settings_default[loop_key_lv1]
+            print("Copy default value.")
+        
         for loop_key_lv2 in list_key_lv2:
             
             # test if key exists
@@ -238,6 +250,7 @@ def CheckJson_specify_default_auto(settings):
     print("Figures are saved into: \n", settings["Plot"]["SaveFolder"])
     
     
+    
     # same for the save SaveProperties entry
     if settings["Plot"]["SaveProperties"] == "auto":
         settings["Plot"]["SaveProperties"] = settings["Plot"]["SaveFolder"]
@@ -252,6 +265,19 @@ def CheckJson_specify_default_auto(settings):
     
     print("Properties are saved into: \n", settings["Plot"]["SaveProperties"])
     
+  
+    # set Logger in case of auto     
+    if settings["Logger"]["path"] == "default":
+        settings["Logger"]["path"] = os.path.dirname(settings["File"]["json"])
+        
+    # check if saving folders are valid    
+    my_path = settings["Logger"]["path"]
+    invalid, my_path = CheckIfFolderGeneratable(my_path)
+     
+    if invalid == True:
+        settings["Logger"]["path"] = my_path
+    
+    print("Logger is in: \n", settings["Logger"]["path"])    
   
     return settings
 
@@ -271,6 +297,18 @@ def CheckIfFolderGeneratable(my_path):
 
     return invalid, my_path
     
-    
 
+    
+def SetupLogger(settings):    
+    #set the logger level
+    nd.Tools.LoggerSetLevel(settings["Logger"]["level"])
+        
+
+    nd.logger.debug("Logger on")
+    nd.logger.info("Logger on")
+    nd.logger.warning("Logger on")
+    nd.logger.error("Logger on")
+    nd.logger.critical("Logger on")
+    
+    
     

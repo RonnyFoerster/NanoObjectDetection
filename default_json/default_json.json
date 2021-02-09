@@ -24,6 +24,10 @@
           "DefaultParameterJsonFile": "default",
           "json": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\default_json\\default_json.json"
      },
+     "Logger": {
+          "level": "warning",
+          "path": "default"
+     },
      "Simulation": {
           "SimulateData": 0,
           "DiameterOfParticles": 0,

@@ -6,6 +6,10 @@ Created on Wed Feb  6 09:34:54 2019
 
 
 """
+import logging
+logger = logging.getLogger(__name__)
+
+
 from . import AdjustSettings
 from . import CalcDiameter
 from . import CheckSystem
@@ -33,5 +37,16 @@ from . import wlsice
 from . import visualize
 
 
+# set up the logger for the entire module
+import logging
+logger = logging.getLogger("nd")
+logger.setLevel(logging.INFO)
+logger.propagate = False
 
-# you can run the Example code
+formatter = logging.Formatter(" %(name)s: %(levelname)s: %(module)s.%(funcName)s: %(message)s")
+
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.INFO)
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+        
