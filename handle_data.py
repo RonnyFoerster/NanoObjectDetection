@@ -342,10 +342,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     if warnUser==True:
         ValidInput = False
         while ValidInput == False:
-            IsSaturated = input('An intensity histogram should be plotted. '
-                                'The highest intensity bin should not be a peak. '
-                                'If you see such a peak, you probably have saturation. '
-                                'Do you have saturation [y/n]?')
+            IsSaturated = input('\n An intensity histogram should be plotted. The highest intensity bin should not be a peak. If you see such a peak, you probably have saturation. But maybe you choose the exposure time to large on purpuse, ignore saturated areas, because your are interested in something very dim. In this case you should treat your data like you have no saturation. \n\n Do you have saturation [y/n]?')
             
             if IsSaturated in ['y','n']:
                 ValidInput = True
