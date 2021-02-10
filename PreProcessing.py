@@ -99,13 +99,15 @@ def Main(rawframes_np, ParameterJsonFile):
         # Transform to correct (ideal) dtype
         rawframes_np = IdealDType(rawframes_np, settings)
 
+        # save the settings
+        nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
     return rawframes_np, static_background
 
 
 
 def IdealDType(rawframes_np, settings):
-    
+    print("select ideal data type - starting")
     # remove empty bitdepth
     rawframes_np = rawframes_np / settings["Exp"]["bit-depth-fac"]
     
@@ -140,6 +142,8 @@ def IdealDType(rawframes_np, settings):
         elif max_value <= (2**16-1):
             rawframes_np = rawframes_np.astype("uint16")
             nd.logger.info("DType: uint16")
+     
+    print("select ideal data type - finished")
             
     return rawframes_np
                 
@@ -325,9 +329,7 @@ def ConvolveWithPSF(image_frame, gauss_kernel_rad):
     """
     convolves a 2d image with a gaussian kernel by multipliying in fourierspace
     """
-    
 
-    
     PSF_Type = "Gauss"
     if PSF_Type == "Gauss":
         image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
@@ -338,8 +340,6 @@ def ConvolveWithPSF(image_frame, gauss_kernel_rad):
 
 def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False, PlotIt = True):  
     print('\nConvolve rawframe by PSF to enhance SNR: start removing')
-     
-    CalcAiryDisc(settings, rawframes_np[0,:,:])
      
     PSF_Type = "Gauss"
     
@@ -356,6 +356,8 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
         print("Gauss Kernel in px:", gauss_kernel_rad)
     
     elif PSF_Type == "Airy":
+        CalcAiryDisc(settings, rawframes_np[0,:,:])
+        
         print("RF: Implements the AIRY DISC")
         # Calculate the Airy disc for the given experimental parameters
         # this is for data with little or now aberrations
@@ -417,7 +419,7 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
             nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
 
 
-    print('Convolve rawframe by PSF to enhance SNR: removed')
+    print('Convolve rawframe by PSF to enhance SNR: finished')
 
     return rawframes_filtered, settings
 

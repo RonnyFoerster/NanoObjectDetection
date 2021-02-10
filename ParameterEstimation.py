@@ -507,12 +507,16 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
 
 def PlotImageProcessing(img, img_zncc, pos_particles):
     
+    #avoid negative values
+    img = img - np.min(img)
+    
     plt.subplot(4, 1, 1)
-    plt.imshow(np.abs(img), cmap = 'gray')
+    # plt.imshow(np.abs(img), cmap = 'gray')
+    plt.imshow(img, cmap = 'gray')
     plt.title("image in")
     
     plt.subplot(4, 1, 2)
-    plt.imshow(np.abs(img)**(0.3), cmap = 'gray')
+    plt.imshow(img**0.3, cmap = 'gray')
     plt.title("image in (gamma = 0.3)")
     
     plt.subplot(4, 1, 3)
