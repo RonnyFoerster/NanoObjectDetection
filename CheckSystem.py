@@ -34,8 +34,8 @@ def CheckAll(ParameterJsonFile):
     print("\n\n check inserted json parameter file: ")
     settings = CheckJson_Exist(ParameterJsonFile)
     settings = CheckJson_path(ParameterJsonFile, settings, CreateNew = False)
-    settings = CheckJson_Entries(settings)
     settings = CheckJson_specify_default_auto(settings)
+    settings = CheckJson_Entries(settings)
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
@@ -266,18 +266,18 @@ def CheckJson_specify_default_auto(settings):
     print("Properties are saved into: \n", settings["Plot"]["SaveProperties"])
     
   
-    # set Logger in case of auto     
-    if settings["Logger"]["path"] == "default":
-        settings["Logger"]["path"] = os.path.dirname(settings["File"]["json"])
+    # # set Logger in case of auto     
+    # if settings["Logger"]["path"] == "default":
+    #     settings["Logger"]["path"] = os.path.dirname(settings["File"]["json"])
         
-    # check if saving folders are valid    
-    my_path = settings["Logger"]["path"]
-    invalid, my_path = CheckIfFolderGeneratable(my_path)
+    # # check if saving folders are valid    
+    # my_path = settings["Logger"]["path"]
+    # invalid, my_path = CheckIfFolderGeneratable(my_path)
      
-    if invalid == True:
-        settings["Logger"]["path"] = my_path
+    # if invalid == True:
+    #     settings["Logger"]["path"] = my_path
     
-    print("Logger is in: \n", settings["Logger"]["path"])    
+    # print("Logger is in: \n", settings["Logger"]["path"])    
   
     return settings
 
