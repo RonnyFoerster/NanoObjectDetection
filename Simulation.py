@@ -1526,6 +1526,23 @@ def DefocusCrossCorrelation(NA = 0.25, n=1, sampling_z = None, shape_z = None, u
 
 
 
+def RandomSamplesFromDistribution(N,mean,CV,seed=None):
+    """ generate N randomly chosen sizes from a Gaussian distribution
+    with given mean and CV (coefficient of variation = std/mean)
+    """
+    # use Generator(PCG64) from numpy
+    if seed == None:
+        rng = np.random.default_rng()
+    else:
+        rng = np.random.default_rng(seed=seed)
+
+    sigma = CV*mean
+    sample = rng.normal(mean, sigma, N)
+    
+    return sample
+
+
+
 
 
 ## get nearest neighbor
