@@ -94,7 +94,7 @@ def EstimageSigmaPSF(settings):
 
 
 
-def EstimateMinmassMain(img1, settings):
+def EstimateMinmassMain(img1_raw, img1, settings):
     """
     Estimate the minmass parameter trackpy requires to locate particles
     1 - Make an intensity independent feature finding by a zero-normalized cross correlation (ZNCC)
@@ -102,12 +102,16 @@ def EstimateMinmassMain(img1, settings):
     2 - Optimize trackpy parameters such, that it obtains the same result than ZNCC
     """    
     
+    # estimate where the channel is
+    mychannel = FindChannel(img1_raw)
+    
     #check if raw data is convolved by PSF to reduce noise
     ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
     
     # select several frames to make the parameter estimation with
     num_frames = 10
-    #print("RONNY MAKE NUM FRAMES RIGHT AGAIN!!!")
+    # num_frames =2
+    print("RONNY MAKE NUM FRAMES RIGHT AGAIN!!!")
     
     use_frames = (np.round(np.linspace(0,img1.shape[0]-1, num_frames))).astype(int)
     
@@ -117,7 +121,15 @@ def EstimateMinmassMain(img1, settings):
     num_particles_zncc = 0
     for ii, loop_frames in enumerate(use_frames):
         print("loop_frames: ", loop_frames)
-        pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(img1[loop_frames,:,:], settings)
+        
+        use_img = img1[loop_frames,:,:]
+        use_img[mychannel == 0] = 1
+        
+        plt.imshow(use_img)
+        
+        # pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(img1[loop_frames,:,:] * mychannel, settings)        
+        
+        pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(use_img, settings)
         
         # configure frame saving format
         save_frames = np.tile(loop_frames,[num_particles_zncc_loop,1])
@@ -188,7 +200,8 @@ def FindParticlesByZNCC(img1, settings):
     
     # find objects in zncc
     correl_min = 0.60
-    
+    correl_min = 0.70
+       
     # get positions of located spots and number of located particles
     pos_particles, num_particles_zncc = FindParticles(img_zncc, correl_min)
 
@@ -304,6 +317,32 @@ def FindParticles(img_zncc, correl_min):
     
     return pos_particles, num_features
   
+
+
+def FindChannel(rawframes_super):
+    # returns a boolean saying where the channel (and thus the particle) is
+    
+    print("Find the channel - start")
+    
+    # # a channel can only be, where 90% of the time light is detected (water bg signal)
+    # mychannel_raw = np.percentile(rawframes_super, q = 90, axis = 0) != 0
+    
+    # a channel can only be, where 50% of the time light is detected (water bg signal)
+    mychannel_raw = np.median(rawframes_super, axis = 0) != 0
+    
+    
+    #remove salt and pepper
+    mychannel_no_sp = scipy.ndimage.morphology.binary_opening(mychannel_raw, iterations = 2)
+        
+    # fill holes and area close to the edge of the channel where little water is scattered
+    mychannel = scipy.ndimage.morphology.binary_dilation(mychannel_no_sp, iterations = 15)
+    
+    plt.imshow(mychannel)
+    
+    print("Find the channel - finished")    
+    
+    return mychannel
+
     
 
 def EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF = True):   
@@ -377,6 +416,9 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
         # here comes trackpy.
         # Trackpy is not running in parallel mode, since it loads quite long and we have only one frame here
         
+        print("\n minmass: ", minmass)
+            
+        
         output = tp.batch(img1, diameter, minmass = minmass, separation = separation, max_iterations = 10, preprocess = DoPreProcessing, percentile = percentile)
         # num of found particles by trackpy
         num_particles_trackpy = len(output)
@@ -401,14 +443,20 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             num_particle_only_trackpy_finds = num_particles_trackpy - num_particles_zncc
         else:
             num_particle_only_trackpy_finds = 0
-        
+ 
+        print("Found particles (trackpy): ", num_particles_trackpy)
+        print("Found particles (zncc): ", num_particles_zncc)
         
         if num_particles_trackpy > (5 * num_particles_zncc):
             # if far too many particles are found the threshold must be increased significantly
-            print("Far too many features. Enhance threshold!")
+            print("5 times more feactures than expected. Enhance threshold!")
             
             # + 1 is required to ensure that minmass is increasing, although the value might be small
             minmass = np.int(minmass * 1.5) + 1
+            
+        elif num_particles_trackpy > (2 * num_particles_zncc):
+            print("2 times more feactures than expected. Enhance threshold!")
+            minmass = np.int(minmass * 1.2) + 1
             
         else:
             # trackpy and znnc have similar results. so make some find tuning in small steps
@@ -455,11 +503,6 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             
             wrong_to_right_save = np.append(wrong_to_right_save, wrong_to_right)
             minmass_save = np.append(minmass_save, minmass)
-            
-            print("\n minmass: ", minmass)
-            
-            print("Found particles (trackpy): ", num_particles_trackpy)
-            print("Found particles (zncc): ", num_particles_zncc)
             
             print("right_found: ", right_found)
             print("wrong_found: ", wrong_found)

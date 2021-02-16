@@ -31,10 +31,6 @@ def ReadJson(mypath):
     
     return settings
 
-   
-    
-
-
 
 
 def WriteJson(mypath, settings):
@@ -221,8 +217,8 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         bit_depth, min_value_distance = CalcBitDepth(rawframes_np)
         settings["Exp"]["bit-depth-fac"] = min_value_distance
         
-    if settings["Exp"]["gain"] != "unknown":
-        settings["Exp"]["gain_corr"] = settings["Exp"]["gain"] / settings["Exp"]["bit-depth-fac"]
+    # if settings["Exp"]["gain"] != "unknown":
+    #     settings["Exp"]["gain_corr"] = settings["Exp"]["gain"] / settings["Exp"]["bit-depth-fac"]
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 

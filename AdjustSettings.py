@@ -18,7 +18,7 @@ from pdb import set_trace as bp #debugger
 
 
 
-def Main(rawframes_pre, ParameterJsonFile):
+def Main(rawframes_super, rawframes_pre, ParameterJsonFile):
     """
     Runs the various routines for optimiting and estimating the localizing and trackpy parameters of trackpy
     """
@@ -31,19 +31,19 @@ def Main(rawframes_pre, ParameterJsonFile):
 
     # if beadsize is manual - the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
     if settings["Help"]["Bead size"] == "manual":
-        FindSpot(rawframes_pre, ParameterJsonFile)
+        FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile)
         
     # optimize PSF diameter
     SpotSize(rawframes_pre, ParameterJsonFile)  
     
     # optimize minmass to identify particle
-    num_particles_trackpy = FindSpot(rawframes_pre, ParameterJsonFile)
+    num_particles_trackpy = FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile)
  
         
 
-def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
+def AdjustSettings_Main(rawframes_super, rawframes_pre, ParameterJsonFile):
     print("Function not in use anymore. Use <Main> instead.")
-    Main(rawframes_pre, ParameterJsonFile)
+    Main(rawframes_super, rawframes_pre, ParameterJsonFile)
 
 
 def GetIntegerInput(MessageOnScreen):
@@ -139,7 +139,7 @@ def AskIfUserSatisfied(QuestionForUser):
   
 
 
-def FindSpot(rawframes_pre, ParameterJsonFile):
+def FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile):
     """
     Estimated the minmass value that trackpy uses in its feature finding routine
     The value have to be choosen such that dim featues are still reconized, while noise is not mistaken as a particle
@@ -150,7 +150,7 @@ def FindSpot(rawframes_pre, ParameterJsonFile):
         obj_first, settings, num_particles_trackpy = FindSpot_manual(rawframes_pre, ParameterJsonFile)
         
     elif settings["Help"]["Bead brightness"] == "auto":
-        minmass, num_particles_trackpy = nd.ParameterEstimation.EstimateMinmassMain(rawframes_pre, settings)
+        minmass, num_particles_trackpy = nd.ParameterEstimation.EstimateMinmassMain(rawframes_super, rawframes_pre, settings)
         settings["Find"]["Minimal bead brightness"] = minmass
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         

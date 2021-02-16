@@ -47,17 +47,16 @@ rawframes_ROI = nd.handle_data.UseROI(rawframes_np, settings)
 # supersampling  
 rawframes_super = nd.handle_data.UseSuperSampling(rawframes_ROI, ParameterJsonFile)
 
+del rawframes_ROI
 
 #%% standard image preprocessing
 rawframes_pre, static_background = nd.PreProcessing.Main(rawframes_super, ParameterJsonFile)
-
-del rawframes_super
 
 
 #%% help with the parameters for finding objects 
 settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-nd.AdjustSettings.Main(rawframes_pre, ParameterJsonFile)
+nd.AdjustSettings.Main(rawframes_super, rawframes_pre, ParameterJsonFile)
     
 
 #%% find the objects

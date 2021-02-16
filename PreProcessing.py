@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from scipy import ndimage
 from joblib import Parallel, delayed
 import multiprocessing
+import scipy 
 
 
 def Main(rawframes_np, ParameterJsonFile):
@@ -31,6 +32,7 @@ def Main(rawframes_np, ParameterJsonFile):
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     DoSimulation = settings["Simulation"]["SimulateData"]
+
     
     # required float instead of int and make negative value (bg subtraction) possible
     rawframes_np = np.float32(rawframes_np)
@@ -84,7 +86,7 @@ def Main(rawframes_np, ParameterJsonFile):
             
           
         # DTYPE CANT BE FLOAT FOR TRACKPY! Decive int datatype below
-        rawframes_np = np.round(rawframes_np)
+        # rawframes_np = np.round(rawframes_np)
             
         # 5 - CLIP NEGATIVE VALUE
         if settings["PreProcessing"]["ClipNegativeValue"] == 1:
@@ -97,7 +99,12 @@ def Main(rawframes_np, ParameterJsonFile):
 
         
         # Transform to correct (ideal) dtype
-        rawframes_np = IdealDType(rawframes_np, settings)
+        # rawframes_np = IdealDType(rawframes_np, settings)
+        
+        # Transform to int dtype, because trackpy requires this
+        # uint16 or int 16 is good compromise from precision and memory
+        rawframes_np, settings = MakeInt16(rawframes_np, settings)
+
 
         # save the settings
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
@@ -106,40 +113,85 @@ def Main(rawframes_np, ParameterJsonFile):
 
 
 
+
+
+def MakeInt16(rawframes_np, settings):
+    #make a uint16 or int16 dtype out of float
+    print("Convert to Integer DType - starting")
+    
+    min_value = np.min(rawframes_np) #check later if negative
+    max_value = np.max(np.abs(rawframes_np))
+
+    max_uint16 = 2**16-1
+    max_int16 = np.floor(max_uint16/2)
+    
+    if min_value < 0:
+        # SIGNED dtype needed
+        img_scale_fac = max_int16/max_value
+        rawframes_np = np.round(rawframes_np * img_scale_fac)
+        rawframes_np = rawframes_np.astype("int16")
+        nd.logger.info("DType: int16")
+    else :
+        # UNSIGNED dtype possible
+        img_scale_fac = max_uint16/max_value
+        rawframes_np = np.round(rawframes_np * img_scale_fac)
+        rawframes_np = rawframes_np.astype("uint16")
+        nd.logger.info("DType: uint16")
+        
+    settings["Exp"]["img-scale-fac"] = img_scale_fac
+    
+    if settings["Exp"]["gain"] != "unknown":
+        settings["Exp"]["gain-corr"] = settings["Exp"]["gain"] / img_scale_fac
+
+    print("Convert to Integer DType - finished")    
+
+    return rawframes_np, settings
+
+
 def IdealDType(rawframes_np, settings):
     print("select ideal data type - starting")
     # remove empty bitdepth
     rawframes_np = rawframes_np / settings["Exp"]["bit-depth-fac"]
-    
-    # round the values before transforming to int dtype
-    rawframes_np = np.round(rawframes_np)
-    
+        
     min_value = np.min(rawframes_np) #check later if negative
     max_value = np.max(np.abs(rawframes_np))
+
+    max_int8 = np.floor((2**8-1)/2)
+    max_int16 = np.floor((2**16-1)/2)
+    max_int32 = np.floor((2**32-1)/2)
+
+    max_uint8 = 2**8-1
+    max_uint16 = 2**16-1
 
     if min_value < 0:
         # SIGNED dtype needed
         
         # check if 8,16 or 32 bit are required
-        if max_value <= np.floor((2**8-1)/2):
+        if max_value <= max_int8:
+            #scale to maximum value to make most of the data if float is not accepted =/
+            rawframes_np = np.round(rawframes_np / max_value * max_int8)
             rawframes_np = rawframes_np.astype("int8")
             nd.logger.info("DType: int8")
             
-        elif max_value <= np.floor((2**16-1)/2):
+        elif max_value <= max_int16:
+            rawframes_np = np.round(rawframes_np / max_value * max_int16)
             rawframes_np = rawframes_np.astype("int16")
             nd.logger.info("DType: int16")
             
-        elif max_value <= np.floor((2**32-1)/2):
+        elif max_value <= max_int32:
+            rawframes_np = np.round(rawframes_np / max_value * max_int32)
             rawframes_np = rawframes_np.astype("int32")
             nd.logger.info("DType: int32")
 
     else:
         # UNSIGNED dtype possible
-        if max_value <= (2**8-1):
+        if max_value <= max_uint8:
+            rawframes_np = np.round(rawframes_np / max_value * max_uint8)
             rawframes_np = rawframes_np.astype("uint8")
             nd.logger.info("DType: uint8")
             
-        elif max_value <= (2**16-1):
+        elif max_value <= max_uint16:
+            rawframes_np = np.round(rawframes_np / max_value * max_uint16)
             rawframes_np = rawframes_np.astype("uint16")
             nd.logger.info("DType: uint16")
      
