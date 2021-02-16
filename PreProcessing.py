@@ -32,6 +32,7 @@ def Main(rawframes_np, ParameterJsonFile):
     
     DoSimulation = settings["Simulation"]["SimulateData"]
     
+    # required float instead of int and make negative value (bg subtraction) possible
     rawframes_np = np.float32(rawframes_np)
     
     if DoSimulation == 1:
@@ -90,32 +91,62 @@ def Main(rawframes_np, ParameterJsonFile):
             print('Negative values: start removing')
             print("Ronny does not love clipping.")
             rawframes_np[rawframes_np < 0] = 0
-            rawframes_np = rawframes_np.astype("uint16")
             print('Negative values: removed')
-            print('DType : UINT16 - good')
-            
         else:
-            print('Negative values: kept')
-            # check if int16 is enough
-            if np.max(np.abs(rawframes_np)) < 32767:
-                rawframes_np = rawframes_np.astype("int16")
-                print('DType : INT16 - good')
-            else:
-                rawframes_np = rawframes_np.astype("int32")
-                print('DType : INT32 - This is only usefull if you have a true 16 bit image depth.')
-            
-            
-        nd.handle_data.WriteJson(ParameterJsonFile, settings)
-        
-        # make it a 16bit image again (DTYPE MUST BE INT FOR TRACKPY!)
-        # since it can have negative values from the bg subrations make it at int32
-        rawframes_np = np.round(rawframes_np)
-        rawframes_np = rawframes_np.astype("int32")
+            print("Negative values in image kept")
 
         
+        # Transform to correct (ideal) dtype
+        rawframes_np = IdealDType(rawframes_np, settings)
+
+        # save the settings
+        nd.handle_data.WriteJson(ParameterJsonFile, settings)
+
     return rawframes_np, static_background
 
 
+
+def IdealDType(rawframes_np, settings):
+    print("select ideal data type - starting")
+    # remove empty bitdepth
+    rawframes_np = rawframes_np / settings["Exp"]["bit-depth-fac"]
+    
+    # round the values before transforming to int dtype
+    rawframes_np = np.round(rawframes_np)
+    
+    min_value = np.min(rawframes_np) #check later if negative
+    max_value = np.max(np.abs(rawframes_np))
+
+    if min_value < 0:
+        # SIGNED dtype needed
+        
+        # check if 8,16 or 32 bit are required
+        if max_value <= np.floor((2**8-1)/2):
+            rawframes_np = rawframes_np.astype("int8")
+            nd.logger.info("DType: int8")
+            
+        elif max_value <= np.floor((2**16-1)/2):
+            rawframes_np = rawframes_np.astype("int16")
+            nd.logger.info("DType: int16")
+            
+        elif max_value <= np.floor((2**32-1)/2):
+            rawframes_np = rawframes_np.astype("int32")
+            nd.logger.info("DType: int32")
+
+    else:
+        # UNSIGNED dtype possible
+        if max_value <= (2**8-1):
+            rawframes_np = rawframes_np.astype("uint8")
+            nd.logger.info("DType: uint8")
+            
+        elif max_value <= (2**16-1):
+            rawframes_np = rawframes_np.astype("uint16")
+            nd.logger.info("DType: uint16")
+     
+    print("select ideal data type - finished")
+            
+    return rawframes_np
+                
 
 def SubtractCameraOffset(rawframes_np, settings, PlotIt = True):
     print('\nConstant camera background: start removing')
@@ -298,9 +329,7 @@ def ConvolveWithPSF(image_frame, gauss_kernel_rad):
     """
     convolves a 2d image with a gaussian kernel by multipliying in fourierspace
     """
-    
 
-    
     PSF_Type = "Gauss"
     if PSF_Type == "Gauss":
         image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
@@ -311,8 +340,6 @@ def ConvolveWithPSF(image_frame, gauss_kernel_rad):
 
 def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False, PlotIt = True):  
     print('\nConvolve rawframe by PSF to enhance SNR: start removing')
-     
-    CalcAiryDisc(settings, rawframes_np[0,:,:])
      
     PSF_Type = "Gauss"
     
@@ -329,6 +356,8 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
         print("Gauss Kernel in px:", gauss_kernel_rad)
     
     elif PSF_Type == "Airy":
+        CalcAiryDisc(settings, rawframes_np[0,:,:])
+        
         print("RF: Implements the AIRY DISC")
         # Calculate the Airy disc for the given experimental parameters
         # this is for data with little or now aberrations
@@ -390,7 +419,7 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
             nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
 
 
-    print('Convolve rawframe by PSF to enhance SNR: removed')
+    print('Convolve rawframe by PSF to enhance SNR: finished')
 
     return rawframes_filtered, settings
 

@@ -216,7 +216,67 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         # check if camera is saturated
         rawframes_np = CheckForSaturation(rawframes_np)
 
+    # check bit depth if auto
+    if settings["Exp"]["bit-depth-fac"] == "auto":
+        bit_depth, min_value_distance = CalcBitDepth(rawframes_np)
+        settings["Exp"]["bit-depth-fac"] = min_value_distance
+        
+    if settings["Exp"]["gain"] != "unknown":
+        settings["Exp"]["gain_corr"] = settings["Exp"]["gain"] / settings["Exp"]["bit-depth-fac"]
+
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)
+
     return rawframes_np
+
+
+def CalcBitDepth(image):
+    # calculates the bit-depth of the images, which might differ to the bits a pixel has (e.g. 16bit image, but just 12 bit in depth, meaning that value of 0,16,32 occur but not 1-15 or 17-31)
+    
+    # one image is enough for this
+    test = image[0,:,:]
+    
+    # 2d to 1d
+    test = test.flatten()
+    num_elements = len(test)
+    
+    wasted_bits = 0
+    
+    if np.max(test) <= 255:
+        num_bits = 8
+        nd.logger.info("8 bit image")
+    else:
+        # transfered in 16bit - but does it have a dynamic range of 16bit?    
+        finished_loop = False
+        
+        while finished_loop == False:
+        # minimum distance two values are appart
+            min_value_distance = 2**(wasted_bits)
+            # count elements with digit 0 at the end!
+            
+            # idea: if bits are waisted - this is visible in the modulo
+            # (e.g if only values like 0,8,16,24,32, occur, than the modulo to 2 is always 0)
+            num_no_mod = sum(test%min_value_distance == 0)
+            
+            if num_no_mod == num_elements:
+                # bits wasted - try next one
+                wasted_bits = wasted_bits + 1
+            else:
+                # true bit depth found
+                finished_loop = True
+                # test failed
+                wasted_bits = wasted_bits - 1
+        
+        bit_depth = 16 - wasted_bits
+                
+        if wasted_bits == 0:
+            nd.logger.info("16bit data - bit depth: {}".format(bit_depth))
+        else:
+            nd.logger.warning("16bit data - bit depth: {}".format(bit_depth))
+    
+    min_value_distance = 2**(wasted_bits)        
+    
+    return bit_depth, min_value_distance
+            
 
 
 def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
@@ -282,10 +342,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     if warnUser==True:
         ValidInput = False
         while ValidInput == False:
-            IsSaturated = input('An intensity histogram should be plotted. '
-                                'The highest intensity bin should not be a peak. '
-                                'If you see such a peak, you probably have saturation. '
-                                'Do you have saturation [y/n]?')
+            IsSaturated = input('\n An intensity histogram should be plotted. The highest intensity bin should not be a peak. If you see such a peak, you probably have saturation. But maybe you choose the exposure time to large on purpuse, ignore saturated areas, because your are interested in something very dim. In this case you should treat your data like you have no saturation. \n\n Do you have saturation [y/n]?')
             
             if IsSaturated in ['y','n']:
                 ValidInput = True
