@@ -6,8 +6,8 @@ Created on Wed Feb  6 09:34:54 2019
 
 
 """
-import logging
-logger = logging.getLogger(__name__)
+# import logging
+# logger = logging.getLogger(__name__)
 
 
 from . import AdjustSettings
@@ -39,6 +39,10 @@ from . import visualize
 
 # set up the logger for the entire module
 import logging
+try:
+    del logger
+except:
+    pass
 logger = logging.getLogger("nd")
 logger.setLevel(logging.INFO)
 logger.propagate = False
@@ -49,4 +53,3 @@ stream_handler = logging.StreamHandler()
 stream_handler.setLevel(logging.INFO)
 stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
-        

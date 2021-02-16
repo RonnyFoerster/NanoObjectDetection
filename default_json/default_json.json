@@ -28,7 +28,7 @@
           "json": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\default_json\\default_json.json"
      },
      "Logger": {
-          "level": "warning"
+          "level": "info"
      },
      "Simulation": {
           "SimulateData": 0,

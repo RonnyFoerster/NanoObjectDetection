@@ -15,7 +15,7 @@ import shutil
 import os
 from packaging import version
 
-import logging 
+import logging
 # logger = logging.getLogger(__name__)
 
 
@@ -25,7 +25,8 @@ def CheckAll(ParameterJsonFile):
     """ main function
     """
     
-    print("\n\n check Packages of Python: ")
+    nd.logger.info("Check Packages of Python: ")
+    
     CheckPython()
     CheckTrackpy()
     CheckPanda()
@@ -49,10 +50,10 @@ def CheckPython():
     python_version = platform.python_version()
     
     if version.parse(python_version) >= version.parse(python_minimum_versions):
-        print("Python version valid: ", python_version)
+        nd.logger.info("Python version valid: %s", python_version)
     else:
-        print("Python minimum version: ", python_minimum_versions)
-        print("Your python version: ", python_version)
+        nd.logger.critical("Python minimum version: %s", python_minimum_versions)
+        nd.logger.critical("Your python version: %s", python_version)
         sys.exit("Change your python version accordingly, or insert your python version in python_allowed_versions")
     
 

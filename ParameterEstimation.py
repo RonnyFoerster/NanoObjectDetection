@@ -94,13 +94,14 @@ def EstimageSigmaPSF(settings):
 
 
 
-def EstimateMinmassMain(img1_raw, img1, settings, showPlots = False):
+def EstimateMinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
 
     """
     Estimate the minmass parameter trackpy requires to locate particles
     1 - Make an intensity independent feature finding by a zero-normalized cross correlation (ZNCC)
     This is computational very demanding
     2 - Optimize trackpy parameters such, that it obtains the same result than ZNCC
+    showPlots: number of frames that are shown
     """    
     
     # estimate where the channel is
@@ -111,8 +112,6 @@ def EstimateMinmassMain(img1_raw, img1, settings, showPlots = False):
     
     # select several frames to make the parameter estimation with
     num_frames = 10
-    # num_frames =2
-    print("RONNY MAKE NUM FRAMES RIGHT AGAIN!!!")
     
     use_frames = (np.round(np.linspace(0,img1.shape[0]-1, num_frames))).astype(int)
     
@@ -161,17 +160,17 @@ def EstimateMinmassMain(img1_raw, img1, settings, showPlots = False):
     # minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
     
     minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
-        
+    
+    
     # plot the stuff - optionally
-    if showPlots == True:
-        for ii, loop_frames in enumerate(use_frames):
-            use_img1 = img1[loop_frames,:,:]
-            use_img_zncc = img_zncc[ii,:,:]
-            use_pos_particles = pos_particles[pos_particles[:,2] == loop_frames, 0:2]
-            
-            if len(use_pos_particles) > 0:
-                plt.figure()
-                PlotImageProcessing(use_img1, use_img_zncc, use_pos_particles)
+    for ii, loop_frames in enumerate(use_frames[:NumShowPlots]):
+        use_img1 = img1[loop_frames,:,:]
+        use_img_zncc = img_zncc[ii,:,:]
+        use_pos_particles = pos_particles[pos_particles[:,2] == loop_frames, 0:2]
+        
+        if len(use_pos_particles) > 0:
+            plt.figure()
+            PlotImageProcessing(use_img1, use_img_zncc, use_pos_particles)
 
     
     return minmass, num_particles_trackpy
