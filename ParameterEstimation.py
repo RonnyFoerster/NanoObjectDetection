@@ -94,7 +94,7 @@ def EstimageSigmaPSF(settings):
 
 
 
-def EstimateMinmassMain(img1, settings):
+def EstimateMinmassMain(img1, settings, showPlots = False):
     """
     Estimate the minmass parameter trackpy requires to locate particles
     1 - Make an intensity independent feature finding by a zero-normalized cross correlation (ZNCC)
@@ -149,15 +149,16 @@ def EstimateMinmassMain(img1, settings):
     
     minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
         
-    # plot the stuff
-    for ii, loop_frames in enumerate(use_frames):
-        use_img1 = img1[loop_frames,:,:]
-        use_img_zncc = img_zncc[ii,:,:]
-        use_pos_particles = pos_particles[pos_particles[:,2] == loop_frames, 0:2]
-        
-        if len(use_pos_particles) > 0:
-            plt.figure()
-            PlotImageProcessing(use_img1, use_img_zncc, use_pos_particles)
+    # plot the stuff - optionally
+    if showPlots == True:
+        for ii, loop_frames in enumerate(use_frames):
+            use_img1 = img1[loop_frames,:,:]
+            use_img_zncc = img_zncc[ii,:,:]
+            use_pos_particles = pos_particles[pos_particles[:,2] == loop_frames, 0:2]
+            
+            if len(use_pos_particles) > 0:
+                plt.figure()
+                PlotImageProcessing(use_img1, use_img_zncc, use_pos_particles)
 
     
     return minmass, num_particles_trackpy
