@@ -25,7 +25,7 @@ def CheckAll(ParameterJsonFile):
     """ main function
     """
     
-    nd.logger.info("Check Packages of Python: ")
+    nd.logger.info("Check Packages of Python - starting")
     
     CheckPython()
     CheckTrackpy()
@@ -41,6 +41,9 @@ def CheckAll(ParameterJsonFile):
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
     SetupLogger(settings)
+    
+    nd.logger.info("Check Packages of Python: finished")
+    
     
 def CheckPython():
     """ check if the python version is right
@@ -65,12 +68,13 @@ def CheckTrackpy():
     tp_version = tp.__version__
     
     if version.parse(tp_version) >= version.parse(tp_minimum_versions):
-        print("Trackpy version valid: ", tp_version)
+        nd.logger.info("Trackpy version valid: %s", tp_version)
     else:
-        print("Trackpy minimum versions: ", tp_minimum_versions)
-        print("Your trackpy versions: ", tp_version)
+        nd.logger.critical("Trackpy minimum versions: %s", tp_minimum_versions)
+        nd.logger.critical("Your trackpy versions: %s", tp_version)
         sys.exit("Change your trackpy version accoringly, or insert your trackpy version in tp_allowed_versions")
        
+    # checks the internal fast processing routines
     CheckNumbda()
          
         
@@ -82,29 +86,36 @@ def CheckPanda():
     pd_version = pd.__version__
     
     if version.parse(pd_version) <= version.parse(pd_maximum_versions):
-        print("Pandas version valid: ", pd_version)
+        nd.logger.info("Pandas version valid: %s", pd_version)
     else:
-        print("Pandas maximum versions: ", pd_maximum_versions)
-        print("Your pandas versions: ", pd_version)
-        print("New panda versions do not work since https://github.com/soft-matter/trackpy/issues/529#issue-410397797")
-        print("Try: Downgrading your system in Anaconda promt using >>> conda install pandas=0.23.4 <<<")
+        nd.logger.critical("Pandas maximum versions: %s", pd_maximum_versions)
+        nd.logger.critical("Your pandas versions: %s", pd_version)
+        nd.warning("New panda versions do not work since https://github.com/soft-matter/trackpy/issues/529#issue-410397797")
+        nd.warning("Try: Downgrading your system in Anaconda promt using >>> conda install pandas=0.23.4 <<<")
         sys.exit("Change your pandas version accoringly, or insert your pandas version in pd_maximum_versions")       
 
 
 def CheckNumbda():
+    # checks the internal fast processing routines
     # http://soft-matter.github.io/trackpy/v0.4.2/tutorial/performance.html
     
-    from trackpy.diag import performance_report
+    #from tp.diag.performance_report()
+    numba_works = tp.try_numba.NUMBA_AVAILABLE
+
     
-    print("Performance report: Is numba installed and working?")
-    performance_report()
+    if numba_works:
+        nd.logger.info("FAST: numba is available and enabled (fast subnets and feature-finding).")
+    else:
+        nd.logger.warning("SLOW: numba was not found")
+    
     
 
 def CheckLatex():
     # https://stackoverflow.com/questions/40894859/how-do-i-check-from-within-python-whether-latex-and-tex-live-are-installed-on-a
     if find_executable('latex'):
-        print("Latex installed")    
+        nd.logger.info("Latex installed")    
     else:
+        nd.logger.warning("Latex not installed for making good figures")
         sys.exit("Latex not installed for making good figures")
         
 
@@ -115,16 +126,14 @@ def CheckJson_Exist(ParameterJsonFile):
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
     except ValueError:
-        print("JSON file corrupted!!!. \
-              \n\n Maybe a missing or additional >>>,<<< ? \
-                  \n\n Mabe replate all \\ by \\\\")
+        nd.logger.critical("JSON file corrupted!!! Maybe a missing or additional >>>,<<< ? Mabe replate all \\ by \\\\")
      
     except FileNotFoundError:
-        print("\n No Json File found in >> {} <<".format(ParameterJsonFile))
+        nd.logger.warning("No Json File found in \n %s ", ParameterJsonFile)
 
         CopyJson = input("Copy standard json (y/n)? ")
         if CopyJson == 'y':
-            print("Try copying standard json file")
+            nd.logger.info("Try copying standard json file")
             nd_path = os.path.dirname(nd.__file__)
             json_name = "default_json.json"
             source_path_default_json = nd_path + "\\" + json_name
@@ -138,9 +147,9 @@ def CheckJson_Exist(ParameterJsonFile):
             # write JsonPath into Json itself
             settings = nd.handle_data.ReadJson(ParameterJsonFile, CreateNew = True)
             
-            print("Done")
+            nd.logger.info("Done")
         else:
-            print("Abort")
+            nd.logger.error("Abort")
 
     return settings
 
@@ -167,27 +176,27 @@ def CheckJson_Entries(settings):
         
         # test if key exists
         if (loop_key_lv1 in settings.keys()) == False:
-            print("Parameter settings['%s'] not found" %(loop_key_lv1))
+            nd.logger.info("Parameter settings['%s'] not found" ,(loop_key_lv1))
             settings[loop_key_lv1] = settings_default[loop_key_lv1]
-            print("Copy default value.")
+            nd.logger.info("Copy default value.")
         
         for loop_key_lv2 in list_key_lv2:
             
             # test if key exists
             if (loop_key_lv2 in settings[loop_key_lv1].keys()) == False:
-                print("Parameter settings['%s']['%s'] not found" %(loop_key_lv1, loop_key_lv2))
+                nd.logger.info("Parameter settings['%s']['%s'] not found" ,loop_key_lv1, loop_key_lv2)
                 
                 # copy defaul value 
                 default_value = settings_default[loop_key_lv1][loop_key_lv2]
                 settings[loop_key_lv1][loop_key_lv2] = default_value
-                print("Copy default value: ", default_value)
+                nd.logger.info("Copy default value: %s", default_value)
             
                 MissingEntry = True
         
     if MissingEntry == True:
-        print("Some entries have been missing in json parameter file.")    
+        nd.logger.warning("Some entries have been missing in json parameter file. Replaced by the default values")    
     else:
-        print("All required entries inside json parameter file.")    
+        nd.logger.info("All required entries inside json parameter file.")    
     
     return settings
 
@@ -208,10 +217,10 @@ def CheckJson_path(mypath, settings, CreateNew = False):
         comp2 = mypath.lower()
         if comp1 != comp2:
             if CreateNew == False:
-                print("\n json path: \n", comp1)
-                print("\n given path: \n", comp2)
-                sys.exit("Given Json path does not match defined path in json file! ,\
-                         You might wanna delete the 'settings' row entirely from the json file.")
+                nd.logger.error("Given Json path does not match defined path in json file! You might wanna delete the 'settings' row entirely from the json file.")
+                nd.logger.error("json path: %s", comp1)
+                nd.logger.error("\given path: %s", comp2)
+                sys.exit()
             else:
                 settings["File"]["json"] = mypath
 
@@ -234,7 +243,8 @@ def CheckJson_specify_default_auto(settings):
         nd.handle_data.ReadJson(settings["File"]["DefaultParameterJsonFile"])
             
     except:
-        sys.exit("Default Json file probably not found. You can insert default at the key DefaultParameterJsonFile.")
+        nd.logger.error("Default Json file probably not found. You can insert default at the key DefaultParameterJsonFile.")
+        sys.exit()
        
     
     # set SaveFolder in case of auto     
@@ -248,7 +258,7 @@ def CheckJson_specify_default_auto(settings):
     if invalid == True:
         settings["Plot"]["SaveFolder"] = my_path
     
-    print("Figures are saved into: \n", settings["Plot"]["SaveFolder"])
+    nd.logger.info("Figures are saved into: %s", settings["Plot"]["SaveFolder"])
     
     
     
@@ -264,7 +274,7 @@ def CheckJson_specify_default_auto(settings):
         settings["Plot"]["SaveProperties"] = my_path
 
     
-    print("Properties are saved into: \n", settings["Plot"]["SaveProperties"])
+    nd.logger.info("Properties are saved into: %s", settings["Plot"]["SaveProperties"])
     
   
     # # set Logger in case of auto     
@@ -294,7 +304,7 @@ def CheckIfFolderGeneratable(my_path):
         except:
             my_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
             invalid = True
-            print("Path not accessible. Write on desktop. \n If you are not happy with this, try writing <auto> into the json key!")
+            nd.logger.warning("Path not accessible. Write on desktop. \n If you are not happy with this, try writing <auto> into the json key!")
 
     return invalid, my_path
     
@@ -305,11 +315,5 @@ def SetupLogger(settings):
     nd.Tools.LoggerSetLevel(settings["Logger"]["level"])
         
 
-    nd.logger.debug("Logger on")
-    nd.logger.info("Logger on")
-    nd.logger.warning("Logger on")
-    nd.logger.error("Logger on")
-    nd.logger.critical("Logger on")
-    
     
     

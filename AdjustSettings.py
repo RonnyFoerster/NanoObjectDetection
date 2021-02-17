@@ -335,8 +335,7 @@ def FindROI(rawframes_np):
     ylabel = "y [Px]"
     nd.visualize.Plot2DImage(my_max, title = title, xlabel = xlabel, ylabel = ylabel)
 
-    print('Choose the ROI of x and y for min and max value accoring your interest. '
-          'Insert the values in your json file.')
+    nd.logging.info('Choose the ROI of x and y for min and max value accoring your interest. Insert the values in your json file.')
 
 
 

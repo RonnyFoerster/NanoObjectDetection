@@ -37,19 +37,52 @@ from . import wlsice
 from . import visualize
 
 
-# set up the logger for the entire module
+# In[logger]  set up the logger for the entire module
 import logging
 try:
     del logger
 except:
     pass
+
+
+# https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
+class CustomFormatter(logging.Formatter):
+    """Logging Formatter to add colors and count warning / errors"""
+
+    # https://tforgione.fr/posts/ansi-escape-codes/
+    # font color "\x1B[38;2;R;G;Bm" with RGB numbers from 0-255
+
+    blue   = "\x1B[38;2;0;200;255m"
+    green  = "\x1B[38;2;0;255;0m"
+    yellow = "\x1B[38;2;255;255;0m"
+    orange = "\x1B[38;2;255;128;0m"
+    red    = "\x1B[38;2;255;50;0m"
+    reset  = "\x1b[0m"
+    format = "%(name)s-%(levelname)-8s: %(message)s (%(filename)s: %(lineno)d)"
+
+    FORMATS = {
+        logging.DEBUG: blue + format + reset,
+        logging.INFO: green + format + reset,
+        logging.WARNING: yellow + format + reset,
+        logging.ERROR: orange + format + reset,
+        logging.CRITICAL: red + format + reset
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+
+
 logger = logging.getLogger("nd")
-logger.setLevel(logging.INFO)
 logger.propagate = False
 
-formatter = logging.Formatter("%(levelname)s: %(name)s: %(module)s.%(funcName)s: %(message)s")
 
 stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.INFO)
-stream_handler.setFormatter(formatter)
+stream_handler.setFormatter(CustomFormatter())
 logger.addHandler(stream_handler)
+logger.setLevel(logging.DEBUG)
+
+# logger.debug("debug")
+# logger.info("info")
+# logger.warning("warning")

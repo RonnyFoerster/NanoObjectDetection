@@ -163,7 +163,7 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
     DoSimulation = settings["Simulation"]["SimulateData"]
     
     if DoSimulation == 1:
-        print("No data. The simulation is not done NOW, because it does not provide an image it provides already the particle positions. Thus it is done in               nd.get_trajectorie.FindSpots.")
+        nd.logger.warning("No data. The simulation is not done NOW, because it does not provide an image it provides already the particle positions. Thus it is done in  nd.get_trajectorie.FindSpots.")
         rawframes_np = 0
         
         
@@ -175,20 +175,22 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         use_num_frame = settings["File"]["use_num_frame"]
     
     
-        print('start reading in raw images. (That may take a while...)')
+        nd.logger.warning('start reading in raw images. (That may take a while...)')
         # select the read-in-routine by data type
         if data_type == 'tif_series':
             if data_folder_name == 0:
-                sys.exit('!!! data_folder_name required !!!')
+                nd.logger.error('!!! data_folder_name required !!!')
+                sys.exit()
                 
             else:
                 rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name,use_num_frame)
         
         elif data_type == 'tif_stack':
             if data_file_name == 0:
-                sys.exit('!!! data_file_name required !!!')
+                nd.logger.error('!!! data_file_name required !!!')
+                sys.exit()
             else:
-                print(data_file_name)
+                nd.logger.info("Read tif stack: %s", data_file_name)
                 rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
         
         elif data_type == 'fits':
@@ -200,11 +202,11 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         else:
             sys.exit('Data type %s' %data_type)
         
-        print('finishied reading in raw images =)')
+        nd.logger.info('finishied reading in raw images =)')
         
         
     if PerformSanityCheck == True:
-        print("Perform a sanity check for the raw data...")
+        nd.logger.info("Perform a sanity check for the raw data...")
         # little sanity check
         # check if camera has saved frames doubled
         CheckForRepeatedFrames(rawframes_np)
@@ -296,7 +298,8 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
         num_identical_frames = len(max_diff_value[max_diff_value == 0])
         
         if num_identical_frames > 0:
-            raise ValueError("%d consecutive images are identical (frame difference is: %d). Probably the camera did something stupid!" %(num_identical_frames,ii))
+            nd.logger.Warning("%s consecutive images are identical (frame difference is: %s). Probably the camera did something stupid!", num_identical_frames,ii)
+            raise ValueError()
         
         
 
@@ -350,23 +353,24 @@ def CheckForSaturation(rawframes_np,warnUser=True):
                     
                     # frame_saturated = np.sort(pos_saturated[0])
 
-                    print("\n Saturation suspected. Check your rawimages to find out if the are saturated \n")
+                    nd.logger.warning("Saturation suspected. Check your rawimages to find out if the are saturated")
+
                     # print some statistics
                     frames_total = rawframes_np.shape[0]
                     frames_sat = len(frames)
                     sat_ratio = frames_sat/frames_total*100
                     
-                    print("Number of frames: Total: %d, Saturated: %d (%d%%) \n" %(frames_total, frames_sat, sat_ratio))
+                    nd.logger.warning("Number of frames: Total: %s, Saturated: %s (%s%%) \n", frames_total, frames_sat, sat_ratio)
 
                     
-                    print("\n First 10 frames where saturation occurs: ", frames_first_10)
+                    nd.logger.info("First 10 frames where saturation occurs: %s", frames_first_10)
                     
                     rawframes_np[frames,:,:] = np.min(rawframes_np, axis = 0)
                     
-                    print("\n Replace a frame where saturation occurs with a background image! \n")
+                    nd.logger.warning("Replace a frame where saturation occurs with a background image!")
                     
             else:
-                print("enter y or n!")
+                nd.logger.warning("Input Error. Enter y or n!")
                 
     return rawframes_np
     
@@ -408,7 +412,7 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame):
     rawframes_np = []
 #    for fname in os.listdir(data_folder_name):
     for fname in sorted(os.listdir(data_folder_name)): #sorted in case it is unsorted
-        print(fname)
+        nd.logger.debug("read frame: %s", fname)
         is_tif = fnmatch.fnmatch(fname, '*.tif')
         is_tiff = fnmatch.fnmatch(fname, '*.tiff')
         if is_tif or is_tiff:
@@ -418,17 +422,17 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame):
             
             num_frames_count = num_frames_count + 1
             if num_frames_count >= use_num_frame: # break loop if number of frames is reached
-                print("Stop reading in after {} frames are read in".format(num_frames_count))
+                nd.logger.warning("Stop reading in after %s frames are read in", num_frames_count)
                 break
         else:
-            print('%s is not a >tif<  file. Skipped it.'%fname)
+            nd.logger.debug('%s is not a >tif<  file. Skipped it.', fname)
     
     rawframes_np = np.asarray(rawframes_np) # shape = (60000,28,28)
     
     #Two hints for the use of tiff series
-    print('\n Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
+    nd.logger.info('\n Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
     
-    print('\n Tiff series need much longer to be read in than a 3D tiff stack, which can be generated out of the tif-series by ImageJ (FIJI) or similar programs.')
+    nd.logger.info('\n Tiff series need much longer to be read in than a 3D tiff stack, which can be generated out of the tif-series by ImageJ (FIJI) or similar programs.')
     
     
     return rawframes_np
@@ -449,11 +453,11 @@ def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = No
     """ applies a ROI to a given image """ 
     
     if settings["ROI"]["Apply"] == 0:
-        print("ROI NOT applied")
+        nd.logger.info("ROI NOT applied")
         image_ROI = image
         
     else:
-        print("ROI IS applied")
+        nd.logger.info("ROI IS applied")
         x_min = settings["ROI"]['x_min']
         x_max = settings["ROI"]['x_max']
         y_min = settings["ROI"]['y_min']
@@ -467,8 +471,8 @@ def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = No
             data_folder_name = settings["File"]["data_folder_name"]
             SaveROIToTiffStack(image_ROI, data_folder_name)
         
-        print("Size rawdata (frames, height, length):", image.shape)
-        print("Size ROI (frames, height, length):", image_ROI.shape)
+        nd.logger.info("Size rawdata \n (frames, height, length): %s", image.shape)
+        nd.logger.info("Size ROI \n (frames, height, length): %s", image_ROI.shape)
     
     return image_ROI
 
