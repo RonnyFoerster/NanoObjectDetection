@@ -400,15 +400,18 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
     if settings["StationaryObjects"]["Analyze fixed spots"] == 1:
+        nd.logger.info("Remove trajectorie close to stationary objects")
+        
         # required minimum distance in pixels between moving and stationary particles
         min_distance = settings["StationaryObjects"]["Min distance to stationary object"]
-        print("Minimal distance to stationary object: ", min_distance)
+        nd.logger.info("Minimal distance to stationary object: %s", min_distance)
         
         # average data of each particle
         stationary_particles = t2_long_fix.groupby("particle").mean() 
 
         # loop through all stationary objects (contains position (x,y) and time of existence (frame))
         num_loop_elements = len(stationary_particles)
+        nd.logger.info("Number of stationary particles: %s", num_loop_elements)
         
         # num_cores = multiprocessing.cpu_count()
         # print("Remove spots in no go areas - parallel. Number of cores: ", num_cores)
@@ -419,7 +422,7 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
                     
         
         for loop_t2_long_fix in range(0,num_loop_elements):
-            print("RF: THIS IS A GOOD MOMENT TO PROGRAMM THIS INTO PARALLEL!")
+            nd.logger.warning("RF: THIS IS A GOOD MOMENT TO PROGRAMM THIS INTO PARALLEL!")
             
             nd.visualize.update_progress("Remove spots in no-go-areas", (loop_t2_long_fix+1)/num_loop_elements)
 
@@ -443,7 +446,7 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
             obj = obj[valid_distance]
 
     else:
-        print("!!! PARTICLES CAN ENTER NO GO AREA WITHOUT GETTING CUT !!!")
+        nd.logger.warning("Trajectories not removed if too close to stationary objects")
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
@@ -501,6 +504,7 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         # get signal at maximum
         signal_at_max = rawframes_rot[frame,pos_y,pos_x]
         if signal_at_max >= SaturatedPixelValue:
+            nd.logger.warning("Check if this is correct and insert more logging whats happening")
             sort_obj_moving = sort_obj_moving.iloc[:-1] # kick the overexposed object out
             counter += 1
 
@@ -510,7 +514,8 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         else:
             saturated_psf = False
 
-    nd.logger.warning("Deleted %s overexposed particle locations in %s frames.", (counter,framecount))
+    
+    
 
     obj_moving = sort_obj_moving
 
@@ -538,7 +543,7 @@ def close_gaps(t1):
     #t1_search_gap.head()
 
     if amount_valid_particles < 100:
-        print("Close the gaps in trajectory - sequential.")
+        nd.logger.info("Close the gaps in trajectory - sequential.")
         
         for i, loop_particle in enumerate(valid_particle_number):
             # select trajectory and close its gaps
@@ -553,9 +558,10 @@ def close_gaps(t1):
         
     else:
         num_cores = multiprocessing.cpu_count()
-        print("Close the gaps in trajectory - parallel. Number of cores: ", num_cores)
+        nd.logger.info("Close the gaps in trajectory - parallel. Number of cores: %s", num_cores)
     
-        output_list = Parallel(n_jobs=num_cores, verbose=5)(delayed(clopse_gaps_loop)(t1_search_gap[t1_search_gap.particle == loop_particle]) for loop_particle in valid_particle_number)
+        num_verbose = nd.handle_data.GetNumberVerbose()
+        output_list = Parallel(n_jobs=num_cores, verbose = num_verbose)(delayed(clopse_gaps_loop)(t1_search_gap[t1_search_gap.particle == loop_particle]) for loop_particle in valid_particle_number)
 
         #make list on panas to one big panda
         t1_gapless = pd.concat(output_list)
@@ -565,7 +571,9 @@ def close_gaps(t1):
     traj_total_data_points = len(t1_gapless[t1_gapless.RealData==True])
     traj_filled_data_points = len(t1_gapless[t1_gapless.RealData==False])
     
-    print("Total trajectory points: %d, Closed gaps: %d\n" %(traj_total_data_points, traj_filled_data_points))
+    percentage = traj_filled_data_points / traj_total_data_points * 100
+    
+    nd.logger.info("Total trajectory points: %d, Closed gaps: %d (%.2f%%)", traj_total_data_points, traj_filled_data_points, percentage)
     
 
 
@@ -686,9 +694,7 @@ def split_traj(t2_long, t3_gapless, ParameterJsonFile):
 
 
 
-def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_intensity_step = None,
-                             min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = False, NumParticles2Plot = 3,
-                             PlotAnimationFiltering = False, rawframes_ROI = -1):
+def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_intensity_step = None, min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = False, NumParticles2Plot = 3, PlotAnimationFiltering = False, rawframes_ROI = -1):
     """ split trajectories at high intensity jumps
 
     Assumption: An intensity jump is more likely to happen because of a wrong assignment in
@@ -743,15 +749,16 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
         # the ".at" is necessary to change the value not on a copy but on t1 itself
         # https://stackoverflow.com/questions/13842088/set-value-for-particular-cell-in-pandas-dataframe-using-index
 
-        t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.index < first_new_frame)),'particle'] = \
-        num_last_particle + 1
+        # old RF removed it 210218, because index should be frame
+        # t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.index < first_new_frame)),'particle'] = num_last_particle + 1
+        
+        # t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame < first_new_frame)),'particle'] = num_last_particle + 1
 
-        # old: when frame was still a column and not the index
-#        t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame < first_new_frame)),'particle'] = \
-#        num_last_particle + 1
+        # RF put that back to working
+        t4_cutted.loc[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame >= first_new_frame)),'particle'] = num_last_particle + 1
 
         # to remove the step which is now not here anymore
-        t4_cutted.loc[(t4_cutted.particle == particle_to_split) & (t4_cutted.index == first_new_frame),"rel_step"] = 0
+        t4_cutted.loc[(t4_cutted.particle == particle_to_split) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
         # old: when frame was still a column and not the index
 #        t4_cutted.loc[(t4_cutted.particle == particle_to_split) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
 
@@ -776,13 +783,17 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     # the second argument is the maximum amount of frames that a particle is supposed not to be seen in order
     # not to be filtered out.
     #t1=t1.rename(columns={'frame':'frame_as_column'})
-    print('Trajectories with risk of wrong assignments (i.e. before splitting):',t3_gapless['particle'].nunique())
-    print('Trajectories with reduced risk of wrong assignments (i.e. after splitting):', t4_cutted['particle'].nunique())
+    
+    num_before = t3_gapless['particle'].nunique()
+    num_after = t4_cutted['particle'].nunique()
+    
+    nd.logger.info('Trajectories with risk of wrong assignments (i.e. before splitting): %s', num_before)
+    nd.logger.info('Trajectories with reduced risk of wrong assignments (i.e. after splitting): %s', num_after)
     # Compare the number of particles in the unfiltered and filtered data. (Mona: what does "filter" mean here??)
 
-    print('Number of performed trajectory splits:', num_split_particles)
-    print('Number of concerned trajectories: %d (%d%%)' %(num_split_traj, ratio_split_traj))
-    print('Number of trajectories that became too short and were filtered out:', num_part_after_split-t4_cutted['particle'].nunique())
+    nd.logger.info('Number of performed trajectory splits: %s', num_split_particles)
+    nd.logger.info('Number of concerned trajectories: %d (%d%%)', num_split_traj, ratio_split_traj)
+    nd.logger.info('Number of trajectories that became too short and were filtered out: %s', num_part_after_split-t4_cutted['particle'].nunique())
 
     #'''
     #wrong_particles=beads_property[beads_property['max_step'] > max_rel_median_intensity_step].index.get_value
