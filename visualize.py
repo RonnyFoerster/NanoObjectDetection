@@ -498,7 +498,7 @@ def NumberOfBinsAuto(mydata, average_height = 4):
 
 
 
-def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None, weighting=False, showInfobox=True, fitNdist=False, showICplot=False):
+def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None, weighting=False, num_dist_max=2, showInfobox=True, fitNdist=False, showICplot=False):
     """ wrapper for plotting a histogram of particles sizes, 
     optionally with statistical information and distribution fit
     """
@@ -507,14 +507,16 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
     
     if weighting==True:
         # repeat each size value as often as the particle appears in the data
-        sizes = sizes_df_lin.diameter.repeat(np.array(sizes_df_lin['traj length'],dtype='int'))
+        # e.g. sizes=[5,4,7] with tracklengths=[2,3,2]
+        #      => sizes_weighted=[5,5,4,4,4,7,7]
+        sizes = sizes_df_lin.diameter.repeat(np.array(sizes_df_lin['valid frames'],dtype='int'))
         title = title + ', weighted by track length'
     else:
         if type(sizes_df_lin) is pd.DataFrame:
             sizes = sizes_df_lin.diameter
         else:
             sizes = sizes_df_lin # should be np.array or pd.Series type here
-        title = title + ', each track counted once'
+        title = title + ', each track counted once'     
         
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -550,22 +552,25 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
         
         if fitNdist == False: 
             # consider only one contributing particle size
-            nd.visualize.PlotReciprGauss1Size(ax, diam_grid, max_hist, sizes_df_lin)
+            nd.visualize.PlotReciprGauss1Size(ax, diam_grid, max_hist, sizes)
             
         else:
-            # use Gaussian mixture model (GMM) fitting to get best parameters
-            diam_means, diam_stds, weights = \
-                nd.visualize.PlotReciprGaussNSizes(ax, diam_grid, 
-                                                   max_hist, sizes_df_lin,
-                                                   weighting, showICplot)
+            # consider between 1 and num_dist_max contributing particle sizes
+            diam_means, diam_CI68s, weights = \
+                nd.visualize.PlotReciprGaussNSizes(ax, diam_grid, max_hist, sizes,
+                                                   num_dist_max=num_dist_max,
+                                                   showICplot=showICplot)
+                # weights should be the same, no matter if inverse or not (?!)
             
             if showInfobox==True:
-                nd.visualize.PlotInfoboxMN(ax, diam_means, diam_stds, weights)
+                nd.visualize.PlotInfoboxMN(ax, diam_means, diam_CI68s, weights)
             
     if Histogramm_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+    
+    return ax
 
 
 
@@ -574,7 +579,8 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
                 binning = None, fitNdist=False, num_dist_max=2, useAIC=True,
                 statsInfo=True, showInfobox=True, showICplot=False, 
                 fillplot=True, mycolor='C2', useCRLB=True):
-    """ calculate and plot the diameter probability density function of a particle ensemble as the sum of individual PDFs
+    """ calculate and plot the diameter probability density function of 
+    a particle ensemble as the sum of individual PDFs
     NB: each trajectory is considered individually, the tracklength determines
         the PDF widths
     
@@ -614,11 +620,11 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     prob_diam = np.zeros_like(diam_grid)
     
     # get mean and std of each inverse diameter
-    rel_error = (sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]).values
-    inv_diam = 1/sizes_df_lin["diameter"].values
-    inv_diam_std = inv_diam * rel_error
+    inv_diam, inv_diam_std = nd.statistics.InvDiameter(sizes_df_lin, settings, useCRLB)
+    
     
     for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
+        # law of inverse fcts
         # Y = 1/X --> PDF_Y(Y)=1/(Y^2) * PDF_X(1/Y)
         my_pdf = scipy.stats.norm(loop_mean,loop_std).pdf(1/diam_grid)
         my_pdf = 1/(diam_grid**2) * my_pdf
@@ -717,10 +723,15 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
     return prob_diam, diam_grid, ax
+    
+    
+    
+def myGauss(d,mean,std):
+    return 1/((2*np.pi)**0.5*std)*np.exp(-(d-mean)**2/(2.*std**2))
 
 
 
-def PlotReciprGauss1Size(ax, diam_grid, max_y, sizes_df_lin):
+def PlotReciprGauss1Size(ax, diam_grid, max_y, sizes):
     """ add reciprocal Gaussian function to a sizes histogram or PDF
     
     With mean and std of the inversed values, a Gaussian curve in the 
@@ -728,7 +739,7 @@ def PlotReciprGauss1Size(ax, diam_grid, max_y, sizes_df_lin):
     normalized to the maximum histogram/PDF value.
     """
     diam_inv_mean, diam_inv_std = \
-        nd.statistics.StatisticOneParticle(sizes_df_lin)
+        nd.statistics.StatisticOneParticle(sizes)
         
     diam_grid_inv = 1/diam_grid
     
@@ -744,27 +755,76 @@ def PlotReciprGauss1Size(ax, diam_grid, max_y, sizes_df_lin):
     
     
     
-def PlotReciprGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, weighting=False, useAIC=False, showICplot=False):
-    """ under construction... 
-    meant to plot the reciprocal fcts of Gaussian fits on top of a histogram/PDF
+def PlotReciprGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, useAIC=False, showICplot=False):
+    """ plot the reciprocal fcts of Gaussian fits on top of a histogram/PDF
     
     to do:
-        - fit GMM in reciprocal size space and convert (correctly!) back
+        - build a fct that includes both inv. and non-inv. fitting (?)
+        - make it working for PDF fitting as well
+        
+    diam_grid : np.ndarray; plotting grid [nm]
+    num_dist_max : int; max. number of size components to consider
+    useAIC : boolean; if True, use AIC, if False, use BIC
     """
+    inv_diam = 1000/sizes # 1/um
+    diam_grid_inv = 1000/diam_grid # 1/um
     
     # use Gaussian mixture model (GMM) fitting to get best parameters
-    diam_means, diam_stds, weights = \
-        nd.statistics.StatisticDistribution(sizes,
-                                            weighting=weighting,
+    # diam_means, diam_stds, weights = \
+    #     nd.statistics.StatisticDistribution(sizes, weighting=weighting,
+    #                                         num_dist_max=num_dist_max,
+    #                                         showICplot=showICplot, useAIC=useAIC)
+    inv_diam_means, inv_diam_stds, inv_weights = \
+        nd.statistics.StatisticDistribution(inv_diam, 
                                             num_dist_max=num_dist_max,
                                             showICplot=showICplot, useAIC=useAIC)
-
-    def myGauss(d,mean,std):
-        return 1/((2*np.pi)**0.5*std)*np.exp(-(d-mean)**2/(2.*std**2))
     
-    # compute individual Gaussian functions from GMM fitted parameters
+    # compute individual Gaussian functions from GMM fitted parameters (inv.space!)
+    # dist = np.array([weights[n]*myGauss(diam_grid,diam_means[n],diam_stds[n]) 
+    #                  for n in range(weights.size)])
+    dist = np.array([inv_weights[n]*myGauss(diam_grid_inv,inv_diam_means[n],
+                                            inv_diam_stds[n]) 
+                      for n in range(inv_weights.size)])
+    
+    # law of inverse fcts: convert back to sizes space
+    dist = ((diam_grid**2)/1000**2)**(-1) * dist
+    
+    # convert from 1/um to nm
+    diam_means = 1000/inv_diam_means
+    diam_CI68s = np.zeros([inv_weights.size,2])
+    for n,d in enumerate(dist.transpose()):
+        diam_CI68s[n] = nd.statistics.GetCI_Interval(d, diam_grid, 0.68) # STILL A BUG IN HERE
+    # weights should stay the same (!?)
+    
+    # calculate sum of all distributions
+    dsum = dist.sum(axis=0)
+    # normalize dsum to histogram/PDF max. value...
+    normFactor = max_y / dsum.max()
+    dsum = normFactor * dsum
+    dist = normFactor * dist # and the individual distributions accordingly
+    
+    ax.plot(diam_grid,dist.transpose(),ls='--')
+    ax.plot(diam_grid,dist.sum(axis=0),color='k')
+    
+    return diam_means, diam_CI68s, inv_weights
+
+
+
+def PlotGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, weighting=False, useAIC=False, showICplot=False):
+    """ plot Gaussian fits on top of a histogram/PDF
+    
+    probably a bit redundant... but at least it's working reliably
+    """    
+    # use Gaussian mixture model (GMM) fitting to get best parameters
+    diam_means, diam_stds, weights = \
+        nd.statistics.StatisticDistribution(sizes, weighting=weighting,
+                                            num_dist_max=num_dist_max,
+                                            showICplot=showICplot, useAIC=useAIC)
+    
+    # compute individual Gaussian functions from GMM fitted parameters (inv.space!)
     dist = np.array([weights[n]*myGauss(diam_grid,diam_means[n],diam_stds[n]) 
                      for n in range(weights.size)])
+    
     # calculate sum of all distributions
     dsum = dist.sum(axis=0)
     # normalize dsum to histogram/PDF max. value...
@@ -785,9 +845,7 @@ def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 
     Parameters
     ----------
     sizes : pandas.Series
-        DESCRIPTION.
-    binning : TYPE
-        DESCRIPTION.
+    binning : 
 
     Returns
     -------
@@ -796,7 +854,7 @@ def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 
 
     """
     from NanoObjectDetection.PlotProperties import axis_font, title_font
-    import NanoObjectDetection as nd
+    # import NanoObjectDetection as nd
 
 #    plt.figure()
     fig, ax = plt.subplots()
@@ -823,6 +881,9 @@ def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 
 def PlotInfobox1N(ax, sizes):
     """ add textbox to a plot containing statistical information 
     on the size distribution, assuming one single contributing particle size
+    
+    NB: Quantiles are used here in order to give an idea of the sigma-intervals
+        independent of any Gaussian fit.
     """
     from NanoObjectDetection.PlotProperties import axis_font
     
@@ -868,7 +929,7 @@ def PlotInfobox1N(ax, sizes):
 
 
 
-def PlotInfoboxMN(ax, diam_means, diam_stds, weights):
+def PlotInfoboxMN(ax, diam_means, diam_CI68, weights):
     """ add textbox to a plot containing statistical information 
     on the size distribution, assuming several contributing particle sizes
     """
@@ -879,19 +940,19 @@ def PlotInfoboxMN(ax, diam_means, diam_stds, weights):
     wtext = ''
     for n in range(weights.size):
         mtext += '{:.1f},'.format(diam_means[n])
-        stext += '{:.1f},'.format(diam_stds[n])
+        stext += '{:.1f},'.format(diam_CI68[n])
         wtext += '{:.1f},'.format(100*weights[n]) # [%]
     
     textstr = '\n'.join([
         r'$\mu$ = ['+mtext[:-1]+'] nm', # '[:-1]' removes the last ','
-        r'$\sigma$ = ['+stext[:-1]+'] nm', 
+        r'CI68 = ['+stext[:-1]+'] nm', 
         r'$\phi$ = ['+wtext[:-1]+'] %', ])
 
     props = dict(boxstyle='round', facecolor='honeydew', alpha=0.7)
                 
     x_text = 0.7 - (0.05*weights.size)
     ax.text(x_text, 0.95, textstr, transform=ax.transAxes, 
-            **{'fontname':'Arial', 'size':'14'}, #**axis_font, 
+            **{'fontname':'Arial', 'size':'15'}, #**axis_font, 
             verticalalignment='top', bbox=props)
     
 

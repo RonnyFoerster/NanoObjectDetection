@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 import NanoObjectDetection as nd
 
+from pdb import set_trace as bp #debugger
+
 
 
 def GetCI_Interval(probability, value, ratio_in_ci):
@@ -67,26 +69,26 @@ def InvDiameter(sizes_df_lin, settings, useCRLB=True):
 
     Returns
     -------
-    inv_diam, inv_diam_std : both pandas.Series
+    inv_diam, inv_diam_std : both numpy.ndarray
     """
     
-    inv_diam = 1/sizes_df_lin["diameter"] # pd.Series
-    
-    N_tmax = settings["MSD"]["lagtimes_max"] # int value
-    # should only be used if "Amount lagtimes auto" = 0 (!!)
-    
-    # MN 210227:
-    # replace N_f = sizes_df_lin["traj length"] by
-    try:
-        N_f = sizes_df_lin["valid frames"] # pd.Series 
-    except KeyError:
-        N_f = sizes_df_lin["traj length"]
+    inv_diam = 1/sizes_df_lin["diameter"].values # numpy.ndarray
     
     if useCRLB==True:
-        x = sizes_df_lin["red_x"] # pd.Series
-        rel_error = nd.Theory.CRLB(N_f, x) # RF 210113
-    else:
-        #    rel_error = sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]
+        # CRLB is already included in the diffusion std calculation (!)
+        rel_error = (sizes_df_lin["diffusion std"] / sizes_df_lin["diffusion"]).values
+        
+        # x = sizes_df_lin["red_x"] # pd.Series
+        # rel_error = nd.Theory.CRLB(N_f, x) # RF 210113
+    else:        
+        # MN 210227: replace "traj length" by "valid frames"
+        try:
+            N_f = sizes_df_lin["valid frames"] # pd.Series 
+        except KeyError:
+            N_f = sizes_df_lin["traj length"]
+            
+        N_tmax = settings["MSD"]["lagtimes_max"] # int value
+        # ... should only be used if "Amount lagtimes auto" = 0 (!!)
         
         # Qian 1991
         rel_error = np.sqrt((2*N_tmax)/(3*(N_f - N_tmax))) # pd.Series
@@ -106,7 +108,7 @@ def StatisticOneParticle(sizes):
     
     NOTE:
     mean diameter is ~1/(mean diffusion) not mean of all diameter values (!)
-    => inverse Gaussian distribution
+    => reciprocal Gaussian distribution
 
     Parameters
     ----------
@@ -129,15 +131,15 @@ def StatisticOneParticle(sizes):
     
     
 
-def StatisticDistribution(sizes_df_lin, num_dist_max=10, 
-                          weighting=True, showICplot=False, useAIC=True):
-    """ compute the best fit of a mixture distribution to a particle ensemble
+def StatisticDistribution(sizesInv, num_dist_max=10, showICplot=False, useAIC=False):
+    """ compute the best fit of a mixture distribution to a sizes/inv.sizes ensemble
     
     ATTENTION: scikit learn python package needed!
     Gaussian mixture models for different number of mixture components are 
     calculated via the expectation maximization algorithm. 
-    The model with the smallest AIC (Akaike information criterion)
-    value is chosen for computing the distribution parameters.
+    The model with the smallest AIC (Akaike information criterion) or BIC 
+    (Bayesian information criterion) value is chosen for computing the 
+    distribution parameters.
 
     NOTE: 
         Unlike in the "StatisticOneParticle" function, here the distribution 
@@ -145,49 +147,36 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
     
     Parameters
     ----------
-    sizes_df_lin: pd.DataFrame containing 'diameter' keyword 
-                  (and 'valid frames' if weighting==True)
-                  OR pd.Series
-                  OR np.array
+    sizesInv: np.array; sizes or inv.sizes values
     num_dist_max: int
-        maximum number of considered components in the mixture
-    weighting: boolean
-        introduce weights for the sizes according to the trajectory lengths
+        maximum number of considered components N in the mixture
     showICplot: boolean
         plot a figure with AIC and BIC over N
     
     Returns
     -------
-    diam_mean, diam_std, weights: np.arrays of length N_best
-        fitting parameters
+    means, stds, weights: np.arrays of length N_best
+        fitting parameters in descending order of the mean values
     
     credits to Jake VanderPlas
     https://www.astroml.org/book_figures/chapter4/fig_GMM_1D.html (15.12.2020)
     """
     from sklearn.mixture import GaussianMixture
     
-    if weighting==True:
-        sizes = sizes_df_lin.diameter.repeat(np.array(sizes_df_lin['valid frames'],dtype='int'))
-    else:
-        if type(sizes_df_lin) is pd.DataFrame:
-            sizes = sizes_df_lin.diameter
-        else:
-            sizes = sizes_df_lin # should be np.array or pd.Series type here
-    
     # special format needed here...
-    sizes = np.array(sizes,ndmin=2).transpose()
+    sizesInv = np.array(sizesInv,ndmin=2).transpose()
     
     N = np.arange(1,num_dist_max+1) # number of components for all models
     models = [None for i in range(len(N))]
 
     for i in range(len(N)):
-        models[i] = GaussianMixture(N[i],covariance_type='spherical').fit(sizes) 
+        models[i] = GaussianMixture(N[i],covariance_type='spherical').fit(sizesInv) 
         # default is 'full', but this is only needed for data dimensions >1
-        
+       
     # https://en.wikipedia.org/wiki/Akaike_information_criterion
-    AIC = [m.aic(sizes) for m in models]
+    AIC = [m.aic(sizesInv) for m in models]
     # https://en.wikipedia.org/wiki/Bayesian_information_criterion
-    BIC = [m.bic(sizes) for m in models]
+    BIC = [m.bic(sizesInv) for m in models]
     ''' Wikipedia:
         "The formula for the Bayesian information criterion (BIC) is similar 
         to the formula for AIC, but with a different penalty for the number 
@@ -197,12 +186,12 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
          n: number of observation points in the sample) '''
     
     if showICplot==True:
-        ax = nd.visualize.Plot2DPlot(N, AIC,
-                                     title = 'Akaike (-) and Bayesian (--)', 
-                                     xlabel = 'number of components', 
-                                     ylabel = 'information criterion',
-                                     mymarker = 'x', mylinestyle = '-')
-        ax.plot(N, BIC, 'x--')
+        ax0 = nd.visualize.Plot2DPlot(N, AIC,
+                                      title = 'Akaike (-) and Bayesian (--)', 
+                                      xlabel = 'number of components', 
+                                      ylabel = 'information criterion',
+                                      mymarker = 'x', mylinestyle = '-')
+        ax0.plot(N, BIC, 'x--')
     
     if useAIC==True:
         minICindex = np.argmin(AIC)
@@ -211,19 +200,19 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
     M_best = models[minICindex] # choose model where AIC is smallest
     print('Number of components considered: {}'.format(N[minICindex]))
 
-    diam_mean = M_best.means_.flatten()
-    diam_std = (M_best.covariances_.flatten())**0.5
+    means = M_best.means_.flatten()
+    stds = (M_best.covariances_.flatten())**0.5
     weights = M_best.weights_
     
-    # sort the parameters from lowest to highest mean value
-    sortedIndices = diam_mean.argsort()
-    diam_mean = diam_mean[sortedIndices]
-    diam_std = diam_std[sortedIndices]
+    # sort the parameters from highest to lowest mean value
+    sortedIndices = means.argsort()[::-1]
+    means = means[sortedIndices]
+    stds = stds[sortedIndices]
     weights = weights[sortedIndices]
     
     print('Number of iterations performed: {}'.format(M_best.n_iter_))
     
-    return diam_mean, diam_std, weights
+    return means, stds, weights
 
 
 

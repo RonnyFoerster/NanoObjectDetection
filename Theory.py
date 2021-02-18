@@ -7,9 +7,9 @@ Created on Wed Jun  3 08:44:12 2020
 collection of standard equations of physics, unit conversions etc.
 """
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
-from pdb import set_trace as bp #debugger
+# from pdb import set_trace as bp #debugger
 import psf
 import multiprocessing
 import NanoObjectDetection as nd
@@ -43,12 +43,16 @@ def LocalErrorMotion(sigma_psf, diffusion, t_exp, photons):
 
 
 def CRLB(N,x):
-    # N : number of frames
-    # x : reduced localization precision
-    
-    # Theoretical minimum values of eps = std(D)/D
-    # (Michalet & Berglund, 2012; eq. (12))
-    
+    """ compute the Cramer-Rao lower bound from experimental parameters
+    N : number of frames
+    x : reduced localization precision
+    according to Michalet & Berglund 2012, eq. (12)
+
+    Returns
+    -------
+    eps : float
+        relative error on diffusion (or size, resp.), i.e. eps = std(D)/D
+    """  
     eps = np.sqrt( 2/(N-1) * (1 + 2*np.sqrt(1+2*x)) )
     
     return eps

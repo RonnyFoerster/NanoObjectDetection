@@ -32,7 +32,7 @@ import multiprocessing
 
 import trackpy as tp
 
-# In[Functions]
+## In[Functions]
 def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 1, frames = 100, RatioDroppedFrames = 0, EstimationPrecision = 0, mass = 0, frames_per_second = 100, microns_per_pixel = 1, temp_water = 293, visc_water = 9.5e-16, seed_startpos=None, oldSim=False):
     """ configure the parameters for a randowm walk out of a JSON file, and generate
     it in a DataFrame
@@ -1524,6 +1524,22 @@ def DefocusCrossCorrelation(NA = 0.25, n=1, sampling_z = None, shape_z = None, u
 
     return mypsf, image, correl, loc_acu, signal, empsf
 
+
+
+def RandomSamplesFromDistribution(N,mean,CV,seed=None):
+    """ generate N randomly chosen sizes from a Gaussian distribution
+    with given mean and CV (coefficient of variation = std/mean)
+    """
+    # use Generator(PCG64) from numpy
+    if seed == None:
+        rng = np.random.default_rng()
+    else:
+        rng = np.random.default_rng(seed=seed)
+
+    sigma = CV*mean
+    sample = rng.normal(mean, sigma, N)
+    
+    return sample
 
 
 

@@ -1142,11 +1142,12 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
     
     msd_fit_para = [fit_values_slope[0], fit_values_offset[1]]    
     
-    # calculate reduced localication accuracy
+    # calculate reduced localization accuracy
     red_x = RedXOutOfMsdFit(msd_fit_para[0], msd_fit_para[1], t[0])
     
-    #Eq 12 in Michalet 2012    
-    std_diff_direct_lin = diff_direct_lin * np.sqrt((2+4*np.sqrt(1+2*red_x))/(amount_frames_lagt1-1))
+    # get diffusion error via relative error from eq.(12) in Michalet 2012
+    std_diff_direct_lin = diff_direct_lin * nd.Theory.CRLB(amount_frames_lagt1,red_x)
+    # * np.sqrt((2+4*np.sqrt(1+2*red_x))/(amount_frames_lagt1-1))
 
 
     # plot it if wanted    
