@@ -26,14 +26,12 @@ import NanoObjectDetection as nd
 def ReadJson(mypath):
     # read the json parameter file into a dictionary   
 
+    nd.logger.debug("Read Json file")
+
     with open(mypath) as json_file:
         settings = json.load(json_file)
     
     return settings
-
-   
-    
-
 
 
 
@@ -43,6 +41,9 @@ def WriteJson(mypath, settings):
     mypath: path to the json file
     settings
     """
+    
+    nd.logger.debug("Write Json file")
+    
     with open(mypath, 'w') as outfile:
         json.dump(settings, outfile, indent = 5)
 
@@ -167,7 +168,7 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
     DoSimulation = settings["Simulation"]["SimulateData"]
     
     if DoSimulation == 1:
-        print("No data. The simulation is not done NOW, because it does not provide an image it provides already the particle positions. Thus it is done in               nd.get_trajectorie.FindSpots.")
+        nd.logger.warning("No data. The simulation is not done NOW, because it does not provide an image it provides already the particle positions. Thus it is done in  nd.get_trajectorie.FindSpots.")
         rawframes_np = 0
         
         
@@ -179,20 +180,22 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         use_num_frame = settings["File"]["use_num_frame"]
     
     
-        print('start reading in raw images. (That may take a while...)')
+        nd.logger.warning('start reading in raw images. (That may take a while...)')
         # select the read-in-routine by data type
         if data_type == 'tif_series':
             if data_folder_name == 0:
-                sys.exit('!!! data_folder_name required !!!')
+                nd.logger.error('!!! data_folder_name required !!!')
+                sys.exit()
                 
             else:
                 rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name,use_num_frame)
         
         elif data_type == 'tif_stack':
             if data_file_name == 0:
-                sys.exit('!!! data_file_name required !!!')
+                nd.logger.error('!!! data_file_name required !!!')
+                sys.exit()
             else:
-                print(data_file_name)
+                nd.logger.info("Read tif stack: %s", data_file_name)
                 rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
         
         elif data_type == 'fits':
@@ -204,11 +207,11 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         else:
             sys.exit('Data type %s' %data_type)
         
-        print('finishied reading in raw images =)')
+        nd.logger.info('finishied reading in raw images =)')
         
         
     if PerformSanityCheck == True:
-        print("Perform a sanity check for the raw data...")
+        nd.logger.info("Perform a sanity check for the raw data...")
         # little sanity check
         # check if camera has saved frames doubled
         CheckForRepeatedFrames(rawframes_np)
@@ -216,7 +219,69 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         # check if camera is saturated
         rawframes_np = CheckForSaturation(rawframes_np)
 
+    # check bit depth if auto
+    if settings["Exp"]["bit-depth-fac"] == "auto":
+        bit_depth, min_value_distance = CalcBitDepth(rawframes_np)
+        settings["Exp"]["bit-depth-fac"] = min_value_distance
+        
+    # if settings["Exp"]["gain"] != "unknown":
+    #     settings["Exp"]["gain_corr"] = settings["Exp"]["gain"] / settings["Exp"]["bit-depth-fac"]
+
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)
+
     return rawframes_np
+
+
+def CalcBitDepth(image):
+    # calculates the bit-depth of the images, which might differ to the bits a pixel has (e.g. 16bit image, but just 12 bit in depth, meaning that value of 0,16,32 occur but not 1-15 or 17-31)
+    
+    nd.logger.info("Calculate the bit depth of the camera")
+    
+    # one image is enough for this
+    test = image[0,:,:]
+    
+    # 2d to 1d
+    test = test.flatten()
+    num_elements = len(test)
+    
+    wasted_bits = 0
+    
+    if np.max(test) <= 255:
+        num_bits = 8
+        nd.logger.info("8 bit image")
+    else:
+        # transfered in 16bit - but does it have a dynamic range of 16bit?    
+        finished_loop = False
+        
+        while finished_loop == False:
+        # minimum distance two values are appart
+            min_value_distance = 2**(wasted_bits)
+            # count elements with digit 0 at the end!
+            
+            # idea: if bits are waisted - this is visible in the modulo
+            # (e.g if only values like 0,8,16,24,32, occur, than the modulo to 2 is always 0)
+            num_no_mod = sum(test%min_value_distance == 0)
+            
+            if num_no_mod == num_elements:
+                # bits wasted - try next one
+                wasted_bits = wasted_bits + 1
+            else:
+                # true bit depth found
+                finished_loop = True
+                # test failed
+                wasted_bits = wasted_bits - 1
+        
+        bit_depth = 16 - wasted_bits
+                
+        if wasted_bits == 0:
+            nd.logger.info("16bit data - bit depth: {}".format(bit_depth))
+        else:
+            nd.logger.warning("16bit data - bit depth: {}".format(bit_depth))
+    
+    min_value_distance = 2**(wasted_bits)        
+    
+    return bit_depth, min_value_distance
+            
 
 
 def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
@@ -240,7 +305,8 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
         num_identical_frames = len(max_diff_value[max_diff_value == 0])
         
         if num_identical_frames > 0:
-            raise ValueError("%d consecutive images are identical (frame difference is: %d). Probably the camera did something stupid!" %(num_identical_frames,ii))
+            nd.logger.Warning("%s consecutive images are identical (frame difference is: %s). Probably the camera did something stupid!", num_identical_frames,ii)
+            raise ValueError()
         
         
 
@@ -282,10 +348,8 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     if warnUser==True:
         ValidInput = False
         while ValidInput == False:
-            IsSaturated = input('An intensity histogram should be plotted. '
-                                'The highest intensity bin should not be a peak. '
-                                'If you see such a peak, you probably have saturation. '
-                                'Do you have saturation [y/n]?')
+            nd.logger.info("An intensity histogram should be plotted. The highest intensity bin should not be a peak. If you see such a peak, you probably have saturation. But maybe you choose the exposure time to large on purpuse, ignore saturated areas, because your are interested in something very dim. In this case you should treat your data like you have no saturation.")
+            IsSaturated = input('Do you have saturation [y/n]?')
             
             if IsSaturated in ['y','n']:
                 ValidInput = True
@@ -297,42 +361,43 @@ def CheckForSaturation(rawframes_np,warnUser=True):
                     
                     # frame_saturated = np.sort(pos_saturated[0])
 
-                    print("\n Saturation suspected. Check your rawimages to find out if the are saturated \n")
+                    nd.logger.warning("Saturation suspected. Check your rawimages to find out if the are saturated")
+
                     # print some statistics
                     frames_total = rawframes_np.shape[0]
                     frames_sat = len(frames)
                     sat_ratio = frames_sat/frames_total*100
                     
-                    print("Number of frames: Total: %d, Saturated: %d (%d%%) \n" %(frames_total, frames_sat, sat_ratio))
+                    nd.logger.warning("Number of frames: Total: %s, Saturated: %s (%s%%) \n", frames_total, frames_sat, sat_ratio)
 
                     
-                    print("\n First 10 frames where saturation occurs: ", frames_first_10)
+                    nd.logger.info("First 10 frames where saturation occurs: %s", frames_first_10)
                     
                     rawframes_np[frames,:,:] = np.min(rawframes_np, axis = 0)
                     
-                    print("\n Replace a frame where saturation occurs with a background image! \n")
+                    nd.logger.warning("Replace a frame where saturation occurs with a background image!")
                     
             else:
-                print("enter y or n!")
+                nd.logger.warning("Input Error. Enter y or n!")
                 
     return rawframes_np
     
 
-def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
-    """ check if rawimages are saturated
+# def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
+#     """ check if rawimages are saturated
     
-    This is done by looking if the maximum value is 2^x with x an integer which sounds saturated
-    e.g. if the max value is 1024, this is suspicious
-    """
-    brightest_pixel = np.max(rawframes_np)
+#     This is done by looking if the maximum value is 2^x with x an integer which sounds saturated
+#     e.g. if the max value is 1024, this is suspicious
+#     """
+#     brightest_pixel = np.max(rawframes_np)
     
-    # is it a multiple of 2^x ... if so it sounds saturated
-    hot_pixel = float(np.log2(brightest_pixel + 1)).is_integer()
-    if hot_pixel == True:
-        if ignore_saturation == False:
-            sys.exit("Your data seems to be saturated")
-        else:
-            print("Your data seems to be saturated - but you dont care...")
+#     # is it a multiple of 2^x ... if so it sounds saturated
+#     hot_pixel = float(np.log2(brightest_pixel + 1)).is_integer()
+#     if hot_pixel == True:
+#         if ignore_saturation == False:
+#             sys.exit("Your data seems to be saturated")
+#         else:
+#             print("Your data seems to be saturated - but you dont care...")
     
     
 
@@ -355,7 +420,7 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame):
     rawframes_np = []
 #    for fname in os.listdir(data_folder_name):
     for fname in sorted(os.listdir(data_folder_name)): #sorted in case it is unsorted
-        print(fname)
+        nd.logger.debug("read frame: %s", fname)
         is_tif = fnmatch.fnmatch(fname, '*.tif')
         is_tiff = fnmatch.fnmatch(fname, '*.tiff')
         if is_tif or is_tiff:
@@ -365,17 +430,17 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame):
             
             num_frames_count = num_frames_count + 1
             if num_frames_count >= use_num_frame: # break loop if number of frames is reached
-                print("Stop reading in after {} frames are read in".format(num_frames_count))
+                nd.logger.warning("Stop reading in after %s frames are read in", num_frames_count)
                 break
         else:
-            print('%s is not a >tif<  file. Skipped it.'%fname)
+            nd.logger.debug('%s is not a >tif<  file. Skipped it.', fname)
     
     rawframes_np = np.asarray(rawframes_np) # shape = (60000,28,28)
     
     #Two hints for the use of tiff series
-    print('\n Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
+    nd.logger.info('\n Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
     
-    print('\n Tiff series need much longer to be read in than a 3D tiff stack, which can be generated out of the tif-series by ImageJ (FIJI) or similar programs.')
+    nd.logger.info('\n Tiff series need much longer to be read in than a 3D tiff stack, which can be generated out of the tif-series by ImageJ (FIJI) or similar programs.')
     
     
     return rawframes_np
@@ -396,11 +461,11 @@ def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = No
     """ applies a ROI to a given image """ 
     
     if settings["ROI"]["Apply"] == 0:
-        print("ROI NOT applied")
+        nd.logger.info("ROI NOT applied")
         image_ROI = image
         
     else:
-        print("ROI IS applied")
+        nd.logger.info("ROI IS applied")
         x_min = settings["ROI"]['x_min']
         x_max = settings["ROI"]['x_max']
         y_min = settings["ROI"]['y_min']
@@ -414,8 +479,8 @@ def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = No
             data_folder_name = settings["File"]["data_folder_name"]
             SaveROIToTiffStack(image_ROI, data_folder_name)
         
-        print("Size rawdata (frames, height, length):", image.shape)
-        print("Size ROI (frames, height, length):", image_ROI.shape)
+        nd.logger.info("Size rawdata \n (frames, height, length): %s", image.shape)
+        nd.logger.info("Size ROI \n (frames, height, length): %s", image_ROI.shape)
     
     return image_ROI
 
@@ -432,20 +497,20 @@ def UseSuperSampling(image_in, ParameterJsonFile, fac_xy = None, fac_frame = Non
     DoSimulation = settings["Simulation"]["SimulateData"]
     
     if DoSimulation == 1:
-        print("No data. Do a simulation later on")
+        nd.logger.info("No data. Do a simulation later on")
         image_super = 0
                 
     else:
         # supersampling  
         if settings["Subsampling"]["Apply"] == 0:
-            print("Supersampling NOT applied")
+            nd.logger.info("Supersampling NOT applied")
             fac_xy = 1
             fac_frame = 1
             
         else:
-            print("Supersampling IS applied")
             fac_xy = settings["Subsampling"]['fac_xy']
             fac_frame = settings["Subsampling"]['fac_frame']           
+            nd.logger.info("Supersampling IS applied. With factors %s in xy and %s in frame ", fac_xy, fac_frame)
             
         image_super = image_in[::fac_frame, ::fac_xy, ::fac_xy]
             
@@ -475,7 +540,7 @@ def SaveROIToTiffStack(image, data_folder_name):
     data_folder_name_tif = data_folder_name_roi + "\\subimage.tif"
 
 
-    print("Save ROI and/or supersampled image in: {0}".format(data_folder_name_tif))
+    nd.logger.info("Save ROI and/or supersampled image in: %s", data_folder_name_tif)
     io.imsave(data_folder_name_tif, image)
 
 
@@ -489,7 +554,7 @@ def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = N
     Do_rotation = settings["PreProcessing"]["Do_or_apply_data_rotation"]
     
     if Do_rotation == True:
-        print('Rotation of rawdata: start removing')
+        nd.logger.info('Rotation of rawdata: start removing')
         rot_angle = settings["PreProcessing"]["rot_angle"]
 
     
@@ -498,11 +563,11 @@ def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = N
         else:
             im_out = scipy.ndimage.interpolation.rotate(rawframes_np, angle = rot_angle, axes=(1, 2), reshape=True, output=None, order=1, mode='constant', cval=0.0, prefilter=True)
 
-        print("Rotation of rawdata: Applied with an angle of %d" %rot_angle)
+        nd.logger.info("Rotation of rawdata: Applied with an angle of %d" %rot_angle)
         
     else:
         im_out = rawframes_np
-        print("Rotation of rawdata: Not Applied")
+        nd.logger.info("Rotation of rawdata: Not Applied")
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
@@ -702,3 +767,21 @@ def GetVarOfSettings(settings, key, entry):
                     sys.exit("Well... you had your chances!")
                                                
     return value
+
+
+
+def GetNumberVerbose():
+    #decides how many outputs are done in each parallel multiprocessing run
+    
+    level = nd.logger.getEffectiveLevel()
+    
+    if level <= 10:
+        verbose = 11
+    elif level <= 20:
+        verbose = 5
+    else:
+        verbose = 1
+        
+    return verbose
+    
+    

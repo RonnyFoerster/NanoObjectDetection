@@ -23,6 +23,7 @@ import NanoObjectDetection as nd
 
 #abs_path = os.path.dirname(nd.__file__)
 
+
 #%% path of parameter file
 # this can be replaced by any json file
 ParameterJsonFile = r'Insert Json Path here, like: Z:\Datenauswertung\Ronny_Foerster\sdl_80nm\parameter.json'
@@ -47,17 +48,16 @@ rawframes_ROI = nd.handle_data.UseROI(rawframes_np, settings)
 # supersampling  
 rawframes_super = nd.handle_data.UseSuperSampling(rawframes_ROI, ParameterJsonFile)
 
+del rawframes_ROI
 
 #%% standard image preprocessing
 rawframes_pre, static_background = nd.PreProcessing.Main(rawframes_super, ParameterJsonFile)
-
-del rawframes_super
 
 
 #%% help with the parameters for finding objects 
 settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-nd.AdjustSettings.Main(rawframes_pre, ParameterJsonFile)
+nd.AdjustSettings.Main(rawframes_super, rawframes_pre, ParameterJsonFile)
     
 
 #%% find the objects
@@ -115,7 +115,7 @@ t6_final = nd.get_trajectorie.filter_stubs(t5_no_drift, ParameterJsonFile, Fixed
 
 sizes_df_lin, sizes_df_lin_rolling , any_successful_check = nd.CalcDiameter.Main2(t6_final, ParameterJsonFile, MSD_fit_Show = True)
 
-#sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True)
+#sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True, t_beforeDrift = t4_cutted)
 
 
 #%% visualize results

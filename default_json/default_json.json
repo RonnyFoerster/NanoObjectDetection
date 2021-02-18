@@ -6,7 +6,10 @@
           "fps": 922,
           "ExposureTime": 0.001,
           "Microns_per_pixel": 0.477,
+          "bit-depth-fac": "auto",
+          "img-scale-fac": "auto",
           "gain": "unknown",
+          "gain_corr": "unknown",
           "Temperature": 295.0,
           "Viscosity": 9.5e-16,
           "Viscosity_auto": 0,
@@ -23,6 +26,9 @@
           "use_num_frame": "all",
           "DefaultParameterJsonFile": "default",
           "json": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\default_json\\default_json.json"
+     },
+     "Logger": {
+          "level": "info"
      },
      "Simulation": {
           "SimulateData": 0,
@@ -152,10 +158,10 @@
           "Pearson_Show": 0,
           "Pearson_Save": 0,
           "fontsize": 14,
-          "SaveFolder": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\default_json\\analysis",
+          "SaveFolder": "auto",
           "Title": "Choose a title in the json file",
           "save_json": 1,
-          "SaveProperties": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\default_json\\analysis",
+          "SaveProperties": "auto",
           "save_data2csv": 1,
           "dpi": 300
      },

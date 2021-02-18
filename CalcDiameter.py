@@ -745,7 +745,9 @@ def UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_
             expTime = settings["Exp"]["ExposureTime"]
             NA = settings["Exp"]["NA"]
             wavelength = settings["Exp"]["lambda"]
-            gain = settings["Exp"]["gain"]
+            
+            #correct gain by bit depth which was corrected previous
+            gain = settings["Exp"]["gain_corr"]
             mass = eval_tm.mass.mean()
             # convert ADU into photons by camera gain
             photons = mass * gain
@@ -1415,7 +1417,7 @@ def ReducedLocalPrecision(settings, raw_mass, diffusion, DoRolling = False):
     
     NA = settings["Exp"]["NA"]
     lambda_nm = settings["Exp"]["lambda"]
-    gain = settings["Exp"]["gain"]
+    gain = settings["Exp"]["gain_corr"]
     
     # rayleigh_nm = 2 * 0.61 * lambda_nm / NA
     # rayleigh_um = rayleigh_nm / 1000

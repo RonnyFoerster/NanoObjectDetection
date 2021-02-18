@@ -36,7 +36,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
 
     DoSimulation = settings["Simulation"]["SimulateData"]
     if DoSimulation == 1:
-        print("================ A simulation is performed. ================")
+        nd.logger.info("A SIMULATION IS PERFORMED!")
         output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile,oldSim=oldSim)
 
     else:
@@ -55,13 +55,13 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
         output_empty = True
 
         while output_empty == True:
-            print("If you have problems with IOPUB data rate exceeded, take a look here: https://www.youtube.com/watch?v=B_YlLf6fa5A")
+            nd.logger.info("If you have problems with IOPUB data rate exceeded, take a look here: https://www.youtube.com/watch?v=B_YlLf6fa5A")
 
-            print("Minmass = ", minmass)
-            print("Separation = ", separation)
-            print("Diameter = ", diameter)
-            print("Max iterations = ", max_iterations)
-            print("PreProcessing of Trackpy = ", DoPreProcessing, "\n")
+            nd.logger.info("Minmass = %s", minmass)
+            nd.logger.info("Separation = %s", separation)
+            nd.logger.info("Diameter = %s", diameter)
+            nd.logger.info("Max iterations = %s", max_iterations)
+            nd.logger.info("PreProcessing of Trackpy = %s", DoPreProcessing)
 
 
             # convert image to uint16 otherwise trackpy performs a min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
@@ -73,15 +73,16 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
                 num_frames = frames_np.shape[0]
 
                 if num_frames < 100:
-                    print("Find the particles - seriell")
+                    nd.logger.info("Find the particles - seriell")
                     output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile)
 
                 else:
                     num_cores = multiprocessing.cpu_count()
-                    print("Find the particles - parallel. Number of cores: ", num_cores)
+                    nd.logger.info("Find the particles - parallel. Number of cores: %s", num_cores)
                     inputs = range(num_frames)
 
-                    output_list = Parallel(n_jobs=num_cores, verbose=5)(delayed(tp.batch)(frames_np[loop_frame:loop_frame+1,:,:].copy(), diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile) for loop_frame in inputs)
+                    num_verbose = nd.handle_data.GetNumberVerbose()
+                    output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(tp.batch)(frames_np[loop_frame:loop_frame+1,:,:].copy(), diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile) for loop_frame in inputs)
 
                     empty_frame = []
                     #parallel looses frame number, so we add it again
@@ -97,7 +98,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
                     # make list of pandas to one big pandas
                     output = pd.concat(output_list)
 
-                    print("Find the particles - finished")
+                    nd.logger.info("Find the particles - finished")
 
             else:
 #               print("WARNING UPDATE THIS!")
@@ -111,12 +112,12 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
             else:
                 # check if any particle is found. If not reduce minmass
                 if output.empty:
-                    print("Image is empty - reduce Minimal bead brightness")
+                    nd.logger.warning("Image is empty - reduce Minimal bead brightness")
                     minmass = minmass / 10
                     settings["Find"]["Minimal bead brightness"] = minmass
                 else:
                     output_empty = False
-                    print("Set all NaN in estimation precision to 0")
+                    nd.logger.info("Set all NaN in estimation precision to 0")
                     output.loc[np.isnan(output.ep), "ep"] = 0
                     output['abstime'] = output['frame'] / settings["MSD"]["effective_fps"]
 
@@ -129,7 +130,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
 
 #            params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
             if ExternalSlider == False:
-                print("Warning, RF trys something here...")
+                nd.logger.warning("Warning, RF trys something here...")
                 fig = plt.figure()
                 if frames_np.ndim == 3:
                     plt.imshow(frames_np[0,:,:])
@@ -155,7 +156,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
             if ExternalSlider == False:
                 settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
 
-                print("Ronny changed something here and did not had the time to check it")
+                nd.logger.warning("Ronny changed something here and did not had the time to check it")
                 #plt.close(fig)
 
     return output # usually pd.DataFrame with feature position data
@@ -214,15 +215,19 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
     else:
         max_displacement = settings["Link"]["Max displacement fix"]
 
-    # Switch the logging of for the moment
-    tp.quiet(suppress=True)
     # here comes the linking
-    print("Start linking particles to trajectories...")
+    nd.logger.info("Linking particles to trajectories: staring...")
 
+    if nd.logger.getEffectiveLevel() >= 20:
+        # Switch the logging of for the moment
+        tp.quiet(suppress=True)
+    
     t1_orig = tp.link_df(obj, max_displacement, memory=dark_time)
 
-    print("... finished.")
-    tp.quiet(suppress=False)
+    nd.logger.info("Linking particles to trajectories: ...finished")
+    if nd.logger.getEffectiveLevel() >= 20:
+        # Switch the logging of for the moment
+        tp.quiet(suppress=False)
 
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
@@ -246,21 +251,26 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
+    nd.logger.info("Remove to short trajectories.")
+
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
         # STATIONARY particles must have a specfic minimum length - otherwise it is noise
+        nd.logger.info("Apply to stationary particle")
         min_tracking_frames = settings["Link"]["Min tracking frames before drift"]
 
     elif (FixedParticles == False) and (BeforeDriftCorrection == True):
         # MOVING particles BEFORE DRIFT CORRECTION
         # moving particle must have a minimum length. However, for the drift correction, the too short trajectories are still full of information about flow and drift. Thus keep them for the moment but they wont make it to the final MSD evaluation
+        nd.logger.info("Apply to diffusing particles - BEFORE drift correction")
         min_tracking_frames = settings["Link"]["Min tracking frames before drift"]
 
     else:
         # MOVING particles AFTER DRIFT CORRECTION
+        nd.logger.info("Apply to diffusing particles - AFTER drift correction")
         min_tracking_frames = settings["Link"]["Min_tracking_frames"]
 
 
-    print("Minimum trajectorie length: ", min_tracking_frames)
+    nd.logger.info("Minimum trajectorie length: %s", min_tracking_frames)
 
     # only keep the trajectories with the given minimum length
     traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
@@ -268,7 +278,8 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
     # RF 190408 remove Frames because the are doupled and panda does not like it
     index_unequal_frame = traj_min_length[traj_min_length.index != traj_min_length.frame]
     if len(index_unequal_frame) > 0:
-        raise ValueError("TrackPy does something stupid. The index value (which should be the frame) is unequal to the frame")
+        nd.logger.error("TrackPy does something stupid. The index value (which should be the frame) is unequal to the frame")
+        raise ValueError()
     else:
         traj_min_length = traj_min_length.drop(columns="frame")
         traj_min_length = traj_min_length.reset_index()
@@ -284,6 +295,8 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
     if (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==True):
         #check if the histogram of each particle displacement is Gaussian shaped
         traj_min_length = CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorCheck)
+    elif (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==False):
+        nd.logger.warning("Test for unbrownian motion is skipped.")
 
 
     return traj_min_length # trajectory DataFrame
@@ -313,16 +326,17 @@ def DisplayNumDroppedTraj(traj_all, traj_min_length, FixedParticles, BeforeDrift
     # print some properties for the user
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
         # STATIONARY particles
-        print('Number of stationary objects (might be detected multiple times after being dark):', amount_valid_particles)
+        nd.logger.info('Number of stationary objects (might be detected multiple times after being dark): %s', amount_valid_particles)
 
     else:
         # MOVING particles
-        print("Too short trajectories removed!")
-        print("Before: %d, After: %d, Removed: %d (%d%%) \n" %(amount_particles,amount_valid_particles,amount_removed_traj,ratio_removed_traj))
+        nd.logger.info("Too short trajectories removed!")
+        nd.logger.info("Before: %s, After: %s, Removed: %s (%.2f%%) ", amount_particles, amount_valid_particles, amount_removed_traj, ratio_removed_traj)
 
 
         if amount_valid_particles == 0:
-            raise ValueError("All particles removed!")
+            nd.logger.error("All particles removed!")
+            raise ValueError
 
 
 def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorCheck):
@@ -330,8 +344,10 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
     Check each Trajectory if its pure Brownian motion by a Kolmogorow-Smirnow test
     """
     
+    nd.logger.info("Remove non-gaussian trajectories: starting...")
+    
     # add a new column to the final df
-    traj_min_length['stat_sign'] = 0 
+    traj_min_length['stat_sign'] = 0    
     
     for i,particleid in enumerate(valid_particle_number):
         # print("particleid: ", particleid)
@@ -348,9 +364,8 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
 
         if traj_has_error == True:
             #remove if traj has error
-            print("Drop particleID (because of unbrownian trajectory): ", particleid)
-            print("Significance: ", stat_sign)
-
+            nd.logger.info("Drop particleID: %s (Significance = %s)", particleid, stat_sign)
+            
             #drop particles with unbrownian trajectory
             # traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
             
@@ -368,8 +383,8 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
     num_lost = num_before - num_after
     dropped_ratio = num_lost / num_before * 100
 
-    print("\nResult of the Brownian motion (Kolmogorow-Smirnow) test:")
-    print("Before: %d, After: %d, Removed: %d (%d%%) \n" %(num_before, num_after , num_lost, dropped_ratio))
+    nd.logger.info("Remove non-gaussian trajectories: ...finished")
+    nd.logger.info("Before: %d, After: %d, Removed: %d (%d%%) ", (num_before, num_after , num_lost, dropped_ratio))
 
     return traj_min_length
 
@@ -495,7 +510,7 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         else:
             saturated_psf = False
 
-    print("Deleted {} overexposed particle locations in {} frames!".format(counter,framecount))
+    nd.logger.warning("Deleted %s overexposed particle locations in %s frames.", (counter,framecount))
 
     obj_moving = sort_obj_moving
 

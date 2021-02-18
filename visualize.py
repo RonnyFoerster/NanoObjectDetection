@@ -1038,7 +1038,7 @@ def export(save_folder_name, save_image_name, settings = None, use_dpi = None, d
 
     
     plt.savefig(entire_path_image, dpi= use_dpi, bbox_inches='tight')
-    print('Figure saved at: {}'.format(my_dir_name))
+    nd.logger.info('Figure saved at: {}'.format(my_dir_name))
 
 #    Image.open(entire_path_image).show()
 
@@ -1069,10 +1069,10 @@ def export(save_folder_name, save_image_name, settings = None, use_dpi = None, d
          
      # if plot is only displayed in order save it, close it now
     if ShowPlot == False:
-        print("Close plot since noone wants it")
+        nd.logger.info("Close plot since noone wants it")
         plt.close(plt.gcf())   
     elif ShowPlot == -1:
-        print("You can prevent the plot to be shown if you just wanna save it in the export function")
+        nd.logger.info("You can prevent the plot to be shown if you just wanna save it in the export function")
         
          
     return settings

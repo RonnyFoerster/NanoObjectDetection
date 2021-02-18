@@ -18,7 +18,7 @@ from pdb import set_trace as bp #debugger
 
 
 
-def Main(rawframes_pre, ParameterJsonFile):
+def Main(rawframes_super, rawframes_pre, ParameterJsonFile):
     """
     Runs the various routines for optimiting and estimating the localizing and trackpy parameters of trackpy
     """
@@ -31,19 +31,19 @@ def Main(rawframes_pre, ParameterJsonFile):
 
     # if beadsize is manual - the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
     if settings["Help"]["Bead size"] == "manual":
-        FindSpot(rawframes_pre, ParameterJsonFile)
+        FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile)
         
     # optimize PSF diameter
     SpotSize(rawframes_pre, ParameterJsonFile)  
     
     # optimize minmass to identify particle
-    num_particles_trackpy = FindSpot(rawframes_pre, ParameterJsonFile)
+    num_particles_trackpy = FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile)
  
         
 
-def AdjustSettings_Main(rawframes_pre, ParameterJsonFile):
-    print("Function not in use anymore. Use <Main> instead.")
-    Main(rawframes_pre, ParameterJsonFile)
+def AdjustSettings_Main(rawframes_super, rawframes_pre, ParameterJsonFile):
+    nd.logger.warning("Function not in use anymore. Use <Main> instead.")
+    Main(rawframes_super, rawframes_pre, ParameterJsonFile)
 
 
 def GetIntegerInput(MessageOnScreen):
@@ -139,7 +139,7 @@ def AskIfUserSatisfied(QuestionForUser):
   
 
 
-def FindSpot(rawframes_pre, ParameterJsonFile):
+def FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile):
     """
     Estimated the minmass value that trackpy uses in its feature finding routine
     The value have to be choosen such that dim featues are still reconized, while noise is not mistaken as a particle
@@ -150,7 +150,7 @@ def FindSpot(rawframes_pre, ParameterJsonFile):
         obj_first, settings, num_particles_trackpy = FindSpot_manual(rawframes_pre, ParameterJsonFile)
         
     elif settings["Help"]["Bead brightness"] == "auto":
-        minmass, num_particles_trackpy = nd.ParameterEstimation.EstimateMinmassMain(rawframes_pre, settings)
+        minmass, num_particles_trackpy = nd.ParameterEstimation.EstimateMinmassMain(rawframes_super, rawframes_pre, settings)
         settings["Find"]["Minimal bead brightness"] = minmass
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
@@ -158,7 +158,7 @@ def FindSpot(rawframes_pre, ParameterJsonFile):
         obj_all = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile)
         num_particles_trackpy = len(obj_all )
         
-        print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
+        nd.logging.warning("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
 
     return num_particles_trackpy
     
@@ -195,13 +195,13 @@ def FindSpot_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = False, ga
                 UserSatisfied = AskIfUserSatisfied(my_question)
                    
                 if UserSatisfied == True:
-                    print("Happy user =)")
+                    nd.logger.info("Happy user =)")
                 else:
                     # Find out what is wrong
                     method = AskMethodToImprove()
             
             if UserSatisfied == False:              
-                print("method:", method)
+                nd.logger.info("method: %s", method)
                 if method == 1:
                     settings["Find"]["Minimal bead brightness"] = \
                     GetIntegerInput("Reduce >Minimal bead brightness< from %d to (must be integer): "\
@@ -335,8 +335,7 @@ def FindROI(rawframes_np):
     ylabel = "y [Px]"
     nd.visualize.Plot2DImage(my_max, title = title, xlabel = xlabel, ylabel = ylabel)
 
-    print('Choose the ROI of x and y for min and max value accoring your interest. '
-          'Insert the values in your json file.')
+    nd.logging.info('Choose the ROI of x and y for min and max value accoring your interest. Insert the values in your json file.')
 
 
 
