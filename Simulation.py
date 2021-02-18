@@ -83,7 +83,7 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
     try:
         FoVlength = settings["Simulation"]["FoVlength"] # px
     except KeyError:
-        print('FoV length not found in json parameter file. Take default value: 1000px')
+        nd.logging.warning('FoV length not found in json parameter file. Take default value: 1000px')
         FoVlength = 1000
 
 
@@ -101,13 +101,13 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
         num_particles = [num_particles] * len(diameter) # adjust list lengths
     else:
         if not(len(num_particles)==len(diameter)):
-            print('Given diameters and number of particles are not equal. Please adjust.')
+            nd.logging.warning('Given diameters and number of particles are not equal. Please adjust.')
             # this provides the info... an error will be thrown later in the loop automatically
     if not(type(mass)==list):
         mass = [mass] * len(diameter) # adjust list lengths
     else:
         if not(len(mass)==len(diameter)):
-            print('Given diameters and mass values are not equal. Please adjust.')
+            nd.logging.warning('Given diameters and mass values are not equal. Please adjust.')
             # this provides the info... an error will be thrown later in the loop automatically
 
     output = pd.DataFrame()

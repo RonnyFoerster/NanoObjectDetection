@@ -120,7 +120,14 @@ def EstimateMinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
     # Find Particle by ZNNC
     num_particles_zncc = 0
     for ii, loop_frames in enumerate(use_frames):
-        print("loop_frames: ", loop_frames)
+        # to only print the first parallel loop later
+        if ii == 0:
+            # just make it a bit higher, because the other loops are set to 0
+            num_verbose = nd.handle_data.GetNumberVerbose() + 3
+        else:
+            num_verbose = 0
+        
+        nd.logger.info("Do cross-correlation. Frame %s from %s. Frame number: %s", (ii+1), num_frames, loop_frames)
         
         use_img = img1[loop_frames,:,:]
         use_img[mychannel == 0] = 1
@@ -129,7 +136,7 @@ def EstimateMinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
         
         # pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(img1[loop_frames,:,:] * mychannel, settings)        
         
-        pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(use_img, settings)
+        pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(use_img, settings, num_verbose)
         
         # configure frame saving format
         save_frames = np.tile(loop_frames,[num_particles_zncc_loop,1])
@@ -177,7 +184,7 @@ def EstimateMinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
 
 
 
-def FindParticlesByZNCC(img1, settings):
+def FindParticlesByZNCC(img1, settings, num_verbose = 5):
     """
     Find Particles by zero normalized cross-correclation
     """
@@ -197,7 +204,7 @@ def FindParticlesByZNCC(img1, settings):
     img1 = np.uint16(img1)
       
     # calculate zero normalized crosscorrelation of image and psf    
-    img_zncc = CorrelateImgAndPSF(img1_in, settings)
+    img_zncc = CorrelateImgAndPSF(img1_in, settings, num_verbose)
     
     # find objects in zncc
     correl_min = 0.60
@@ -209,12 +216,12 @@ def FindParticlesByZNCC(img1, settings):
     return pos_particles, num_particles_zncc, img_zncc
 
 
-def CorrelateImgAndPSF(img1, settings):
+def CorrelateImgAndPSF(img1, settings, num_verbose = 5):
     # estimated the minmass for trackpy
     # img1 is the image that is tested
     # if the image is convolved with the PSF to enhance the SNR, than img1 should be the convolved image
 
-    print("Correlate Img and PSF: Start")
+    # print("Correlate Img and PSF: Start")
         
     #get sigma of PSF
     sigma = EstimageSigmaPSF(settings)
@@ -273,7 +280,7 @@ def CorrelateImgAndPSF(img1, settings):
     inputs = range(u_min, u_max+1)   
       
     # parallel zncc
-    img_zncc_list = Parallel(n_jobs=num_cores, verbose = 5)(delayed(zncc_one_line)(img1.copy(), gauss_kernel, loop_u, n) for loop_u in inputs)
+    img_zncc_list = Parallel(n_jobs=num_cores, verbose = num_verbose)(delayed(zncc_one_line)(img1.copy(), gauss_kernel, loop_u, n) for loop_u in inputs)
            
     # resulting list to array
     img_zncc_roi = np.asarray(img_zncc_list)
@@ -282,7 +289,7 @@ def CorrelateImgAndPSF(img1, settings):
     # otherwise is the result shifted by u_min and v_min
     img_zncc[u_min:u_max+1:] = img_zncc_roi
 
-    print("Correlate Img and PSF: Finished")
+    # print("Correlate Img and PSF: Finished")
 
     return img_zncc
 
@@ -401,24 +408,35 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     minmass_optimum = 0
     
     # save the history
-    wrong_to_right_save = []
+    right_found_save = []
+    wrong_found_save = []
+    # wrong_to_right_save = []
     minmass_save = []
     
-    print("Separation: ", separation)
+    nd.logger.info("Separation: %s", separation)
     
     percentile = 0
-    print("percentile: ", percentile)
+    nd.logger.info("percentile: %s", percentile)
     
     # switch logger ouf for this optimization
-    tp.quiet(suppress=True)
+    if nd.logger.getEffectiveLevel() >= 20:
+        # Switch the logging of for the moment
+        tp.quiet(suppress=True)
+    
+    count_loops = 0
     
     # run the following till the optimization is aborted
-    while stop_optimizing == False:       
+    while stop_optimizing == False:     
         # here comes trackpy.
         # Trackpy is not running in parallel mode, since it loads quite long and we have only one frame here
         
-        print("\n minmass: ", minmass)
+        if count_loops%10 == 0:
+            #plot every ten iterations
+            nd.logger.info("Iteration: %s with minmass: %s", count_loops, minmass)
+        else:
+            nd.logger.debug("Iteration: %s with minmass: %s", count_loops, minmass)  
             
+        count_loops = count_loops + 1    
         
         output = tp.batch(img1, diameter, minmass = minmass, separation = separation, max_iterations = 10, preprocess = DoPreProcessing, percentile = percentile)
         # num of found particles by trackpy
@@ -428,7 +446,8 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             # sanity check
             if num_particles_trackpy < num_particles_zncc:
                 stop_optimizing = True
-                raise ValueError("Trackpy finds too few particles. Possible reasons: \n - start value of minmass is too low (unlikely) \n - specimen is too dense/too highly concentrated \n - Percentile filter gives you problems in tp.batch or tp.locate.")
+                nd.logger.error("Trackpy finds too few particles. Possible reasons: \n - start value of minmass is too low (unlikely) \n - specimen is too dense/too highly concentrated \n - Percentile filter gives you problems in tp.batch or tp.locate.")
+                raise ValueError("")
         
 
         # reset counters
@@ -445,18 +464,18 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
         else:
             num_particle_only_trackpy_finds = 0
  
-        print("Found particles (trackpy): ", num_particles_trackpy)
-        print("Found particles (zncc): ", num_particles_zncc)
+        nd.logger.debug("Found particles (trackpy): ", num_particles_trackpy)
+        nd.logger.debug("Found particles (zncc): ", num_particles_zncc)
         
         if num_particles_trackpy > (5 * num_particles_zncc):
             # if far too many particles are found the threshold must be increased significantly
-            print("5 times more feactures than expected. Enhance threshold!")
+            nd.logger.debug("5 times more feactures than expected. Enhance threshold!")
             
             # + 1 is required to ensure that minmass is increasing, although the value might be small
             minmass = np.int(minmass * 1.5) + 1
             
         elif num_particles_trackpy > (2 * num_particles_zncc):
-            print("2 times more feactures than expected. Enhance threshold!")
+            nd.logger.debug("2 times more feactures than expected. Enhance threshold!")
             minmass = np.int(minmass * 1.2) + 1
             
         else:
@@ -483,10 +502,10 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
                     # show position of first wrong particle. If more are plotted the console is just overfull
                     if First_wrong_assignment  == True:
                         First_wrong_assignment  = False
-                        print("Particle found in ZNCC but not with trackpy")
-                        print("Problem with particle: ", id_part)
-                        print("Position: ", pos)
-                        print("Closest point: ", closest_agreement)
+                        nd.logger.debug("Particle found in ZNCC but not with trackpy")
+                        nd.logger.debug("Problem with particle: ", id_part)
+                        nd.logger.debug("Position: ", pos)
+                        nd.logger.debug("Closest point: ", closest_agreement)
                     
                 else:
                     # This is what you want. Particle found by zncc and trackpy within a neighborhood.
@@ -502,28 +521,39 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             else:
                 wrong_to_right  = np.inf
             
-            wrong_to_right_save = np.append(wrong_to_right_save, wrong_to_right)
+            #save numbers for plotting later on
+
+            right_found_save = np.append(right_found_save, right_found)
+            wrong_found_save = np.append(wrong_found_save, wrong_found)
+            # wrong_to_right_save = np.append(wrong_to_right_save, wrong_to_right)
             minmass_save = np.append(minmass_save, minmass)
             
-            print("right_found: ", right_found)
-            print("wrong_found: ", wrong_found)
-            print("Wrong to right assignment: ", wrong_to_right)
+            nd.logger.debug("right_found: ", right_found)
+            nd.logger.debug("wrong_found: ", wrong_found)
+            nd.logger.debug("Wrong to right assignment: ", wrong_to_right)
             
-            print("Still optimizing...")
+            nd.logger.debug("Still optimizing...")
 
             # check how value is changing
 #            if Wrong_to_right > Wrong_to_right_optimum:
             if  (wrong_found == 0) | (num_particles_trackpy < 0.8 * num_particles_zncc):  
-                print("TrackPy finds much less particles than the zncc")
+                nd.logger.debug("TrackPy finds much less particles than the zncc")
                 
                 #value increasing so abort loop
                 stop_optimizing = True
                 
                 plt.figure()
+                plt.plot(minmass_save, right_found_save, label = 'right found')
+                plt.plot(minmass_save, wrong_found_save, label = 'wrong found')
+                plt.xlabel("Minmass")
+                plt.ylabel("Number particles")                
+                plt.legend()
+                
+                plt.figure()
+                wrong_to_right_save = wrong_found_save / right_found_save
                 plt.plot(minmass_save, wrong_to_right_save)
                 plt.xlabel("Minmass")
                 plt.ylabel("Wrong-to-right")
-                plt.figure()
                 
                 pos_minmass_optimum = np.where(wrong_to_right_save == np.min(wrong_to_right_save))[0][0]
                 minmass_optimum = minmass_save[pos_minmass_optimum]
@@ -536,11 +566,13 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     
     #leave a bit of space to not work at the threshold
     minmass_optimum = np.int(minmass_optimum * 0.90)
-    print("\n Optimized Minmass threshold is: ", minmass_optimum, "\n")
+    nd.logger.info("Optimized Minmass threshold is: %s", minmass_optimum)
 
     output = tp.batch(img1, diameter, minmass = minmass_optimum, separation = diameter, max_iterations = 10, preprocess = DoPreProcessing)
       
-    tp.quiet(suppress=False)
+    if nd.logger.getEffectiveLevel() >= 20:
+        # Switch the logging back on
+        tp.quiet(suppress=False)
     
     # num of found particles by trackpy
     num_particles_trackpy = len(output)
@@ -630,7 +662,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     # Estimate max diffusion
     MaxDiffusion_squm = DiameterToDiffusion(temp_water,visc_water,GuessLowestDiameter_m)
     
-    print("Maximum expected diffusion in squm per second:", np.round(MaxDiffusion_squm,2))
+    nd.logger.info("Maximum expected diffusion in squm per second: %s", np.round(MaxDiffusion_squm,2))
     
     MaxDiffusion_sqpx = MaxDiffusion_squm / (settings["Exp"]["Microns_per_pixel"]**2)
     # Think about sigma of the diffusion probability is sqrt(2Dt)
@@ -653,7 +685,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     # one is added because a bit of drift is always in
     Max_displacement = Max_displacement + 1
 
-    print("\n The distance a particle can maximal move (and identified as the same one) >Max displacement< is set to: ", Max_displacement)
+    np.logger.info("The distance a particle can maximal move (and identified as the same one) >Max displacement< is set to: %s", Max_displacement)
     settings["Link"]["Max displacement"] = Max_displacement 
 
 
@@ -672,7 +704,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
 
 
 
-    print("\n The minimum distance between two located particles >Separation data< is set to: ", Min_Separation)
+    nd.logger.info("The minimum distance between two located particles >Separation data< is set to: %s", Min_Separation)
     settings["Find"]["Separation data"] = Min_Separation 
 
 

@@ -26,6 +26,8 @@ import NanoObjectDetection as nd
 def ReadJson(mypath):
     # read the json parameter file into a dictionary   
 
+    nd.logger.debug("Read Json file")
+
     with open(mypath) as json_file:
         settings = json.load(json_file)
     
@@ -39,6 +41,9 @@ def WriteJson(mypath, settings):
     mypath: path to the json file
     settings
     """
+    
+    nd.logger.debug("Write Json file")
+    
     with open(mypath, 'w') as outfile:
         json.dump(settings, outfile, indent = 5)
 
@@ -230,6 +235,8 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
 def CalcBitDepth(image):
     # calculates the bit-depth of the images, which might differ to the bits a pixel has (e.g. 16bit image, but just 12 bit in depth, meaning that value of 0,16,32 occur but not 1-15 or 17-31)
     
+    nd.logger.info("Calculate the bit depth of the camera")
+    
     # one image is enough for this
     test = image[0,:,:]
     
@@ -341,7 +348,8 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     if warnUser==True:
         ValidInput = False
         while ValidInput == False:
-            IsSaturated = input('\n An intensity histogram should be plotted. The highest intensity bin should not be a peak. If you see such a peak, you probably have saturation. But maybe you choose the exposure time to large on purpuse, ignore saturated areas, because your are interested in something very dim. In this case you should treat your data like you have no saturation. \n\n Do you have saturation [y/n]?')
+            nd.logger.info("An intensity histogram should be plotted. The highest intensity bin should not be a peak. If you see such a peak, you probably have saturation. But maybe you choose the exposure time to large on purpuse, ignore saturated areas, because your are interested in something very dim. In this case you should treat your data like you have no saturation.")
+            IsSaturated = input('Do you have saturation [y/n]?')
             
             if IsSaturated in ['y','n']:
                 ValidInput = True
@@ -375,21 +383,21 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     return rawframes_np
     
 
-def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
-    """ check if rawimages are saturated
+# def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
+#     """ check if rawimages are saturated
     
-    This is done by looking if the maximum value is 2^x with x an integer which sounds saturated
-    e.g. if the max value is 1024, this is suspicious
-    """
-    brightest_pixel = np.max(rawframes_np)
+#     This is done by looking if the maximum value is 2^x with x an integer which sounds saturated
+#     e.g. if the max value is 1024, this is suspicious
+#     """
+#     brightest_pixel = np.max(rawframes_np)
     
-    # is it a multiple of 2^x ... if so it sounds saturated
-    hot_pixel = float(np.log2(brightest_pixel + 1)).is_integer()
-    if hot_pixel == True:
-        if ignore_saturation == False:
-            sys.exit("Your data seems to be saturated")
-        else:
-            print("Your data seems to be saturated - but you dont care...")
+#     # is it a multiple of 2^x ... if so it sounds saturated
+#     hot_pixel = float(np.log2(brightest_pixel + 1)).is_integer()
+#     if hot_pixel == True:
+#         if ignore_saturation == False:
+#             sys.exit("Your data seems to be saturated")
+#         else:
+#             print("Your data seems to be saturated - but you dont care...")
     
     
 
@@ -489,20 +497,20 @@ def UseSuperSampling(image_in, ParameterJsonFile, fac_xy = None, fac_frame = Non
     DoSimulation = settings["Simulation"]["SimulateData"]
     
     if DoSimulation == 1:
-        print("No data. Do a simulation later on")
+        nd.logger.info("No data. Do a simulation later on")
         image_super = 0
                 
     else:
         # supersampling  
         if settings["Subsampling"]["Apply"] == 0:
-            print("Supersampling NOT applied")
+            nd.logger.info("Supersampling NOT applied")
             fac_xy = 1
             fac_frame = 1
             
         else:
-            print("Supersampling IS applied")
             fac_xy = settings["Subsampling"]['fac_xy']
             fac_frame = settings["Subsampling"]['fac_frame']           
+            nd.logger.info("Supersampling IS applied. With factors %s in xy and %s in frame ", fac_xy, fac_frame)
             
         image_super = image_in[::fac_frame, ::fac_xy, ::fac_xy]
             
@@ -532,7 +540,7 @@ def SaveROIToTiffStack(image, data_folder_name):
     data_folder_name_tif = data_folder_name_roi + "\\subimage.tif"
 
 
-    print("Save ROI and/or supersampled image in: {0}".format(data_folder_name_tif))
+    nd.logger.info("Save ROI and/or supersampled image in: %s", data_folder_name_tif)
     io.imsave(data_folder_name_tif, image)
 
 
@@ -546,7 +554,7 @@ def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = N
     Do_rotation = settings["PreProcessing"]["Do_or_apply_data_rotation"]
     
     if Do_rotation == True:
-        print('Rotation of rawdata: start removing')
+        nd.logger.info('Rotation of rawdata: start removing')
         rot_angle = settings["PreProcessing"]["rot_angle"]
 
     
@@ -555,11 +563,11 @@ def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = N
         else:
             im_out = scipy.ndimage.interpolation.rotate(rawframes_np, angle = rot_angle, axes=(1, 2), reshape=True, output=None, order=1, mode='constant', cval=0.0, prefilter=True)
 
-        print("Rotation of rawdata: Applied with an angle of %d" %rot_angle)
+        nd.logger.info("Rotation of rawdata: Applied with an angle of %d" %rot_angle)
         
     else:
         im_out = rawframes_np
-        print("Rotation of rawdata: Not Applied")
+        nd.logger.info("Rotation of rawdata: Not Applied")
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
@@ -759,3 +767,21 @@ def GetVarOfSettings(settings, key, entry):
                     sys.exit("Well... you had your chances!")
                                                
     return value
+
+
+
+def GetNumberVerbose():
+    #decides how many outputs are done in each parallel multiprocessing run
+    
+    level = nd.logger.getEffectiveLevel()
+    
+    if level <= 10:
+        verbose = 11
+    elif level <= 20:
+        verbose = 5
+    else:
+        verbose = 1
+        
+    return verbose
+    
+    
