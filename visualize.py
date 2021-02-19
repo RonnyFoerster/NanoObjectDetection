@@ -130,6 +130,7 @@ def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha 
 
     plt.figure()
     plt.scatter(x_np,y_np, alpha = myalpha, linewidths  = 0)
+    plt.grid("on")
     plt.title(title, **title_font)
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
