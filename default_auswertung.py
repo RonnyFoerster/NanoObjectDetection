@@ -79,7 +79,7 @@ obj_moving = nd.get_trajectorie.RemoveSpotsInNoGoAreas(obj_all, t2_stationary, P
 
 
 #%% remove overexposed objects
-obj_moving = nd.get_trajectorie.RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_ROI)
+obj_moving = nd.get_trajectorie.RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_super)
   
 
 #%% form trajectories of valid particle positions
