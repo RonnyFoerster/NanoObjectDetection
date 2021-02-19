@@ -97,6 +97,9 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
 
                     # make list of pandas to one big pandas
                     output = pd.concat(output_list)
+                    
+                    # reset the index which starts at every frame again
+                    output = output.reset_index(drop=True)
 
                     nd.logger.info("Find the particles - finished")
 
@@ -556,6 +559,9 @@ def close_gaps(t1):
             else:
                 t1_gapless = pd.concat([t1_gapless, t1_loop])
         
+        # reset the indexing because this is lost in concat
+        t1_gapless = t1_gapless.reset_index(drop = True)
+        
     else:
         num_cores = multiprocessing.cpu_count()
         nd.logger.info("Close the gaps in trajectory - parallel. Number of cores: %s", num_cores)
@@ -565,6 +571,10 @@ def close_gaps(t1):
 
         #make list on panas to one big panda
         t1_gapless = pd.concat(output_list)
+        
+        # check this later when applied in a data set
+        # index should have no double entries
+        nd.logger.warning("CHECK IF THE INDEXING IS RIGHT IN HERE!")
 
 
     # do some plotting for the user
@@ -701,6 +711,9 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6)
     or heavy substructures/intensity holes in the laser mode.
     """
+    
+    nd.logger.info("Split particles trajectory at too high intensity jumps.")
+    
     t4_cutted = t3_gapless.copy()
 
     max_rel_median_intensity_step = settings["Split"]["Max rel median intensity step"]
@@ -716,13 +729,17 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     #split_particle_at = split_particle_at[['frame_as_column','particle']]
 
     # how many splits of trajectories are needed
-    num_split_particles = split_particle_at.shape[0]
+    num_splits = split_particle_at.shape[0]
     # how many trajectories are concerned
     num_split_traj = split_particle_at['particle'].nunique()
-    ratio_split_traj = num_split_traj / t3_gapless['particle'].nunique() * 100
+    num_particles = t3_gapless['particle'].nunique()
+    ratio_split_traj = num_split_traj / num_particles * 100
 
     # currently last bead (so the number of the new bead is defined and unique)
     num_last_particle = np.max(t3_gapless['particle'])
+
+    nd.logger.info('Number of trajectories with problems: %d out of %d (%d%%)', num_split_traj, num_particles, ratio_split_traj) 
+
 
     # loop variable in case of plotting
     if PlotTrajWhichNeedACut == True:
@@ -730,8 +747,8 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
 
     # now split the beads at the gap into two beads
 
-    for x in range(0,num_split_particles):
-        nd.visualize.update_progress("Split trajectories at high intensity jumps", (x+1) / num_split_particles)
+    for x in range(0,num_splits):
+        nd.visualize.update_progress("Split trajectories at high intensity jumps", (x+1) / num_splits)
         #print('split trajectorie',x ,'out of ',num_split_particles)
 
         # NOW DO A PRECISE CHECK OF THE MASS
@@ -758,7 +775,7 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
         t4_cutted.loc[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame >= first_new_frame)),'particle'] = num_last_particle + 1
 
         # to remove the step which is now not here anymore
-        t4_cutted.loc[(t4_cutted.particle == particle_to_split) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
+        t4_cutted.loc[(t4_cutted.particle == num_last_particle + 1) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
         # old: when frame was still a column and not the index
 #        t4_cutted.loc[(t4_cutted.particle == particle_to_split) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
 
@@ -772,31 +789,21 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
                 nd.visualize.CutTrajectorieAtStep(t3_gapless, particle_to_split, max_rel_median_intensity_step)
 
 
-    num_part_after_split = t4_cutted['particle'].nunique()
-
-    # get rid of too short tracks - again because some have been splitted
-    #t1=t1.rename(columns={'frame_as_column':'frame'})
+    num_after_split = t4_cutted['particle'].nunique()
 
     t4_cutted = tp.filter_stubs(t4_cutted, min_tracking_frames_before_drift) # filtering out of artifacts that are seen for a short time only
-    t4_cutted = t4_cutted.drop(columns="frame")
-    t4_cutted = t4_cutted.reset_index()
-    # the second argument is the maximum amount of frames that a particle is supposed not to be seen in order
-    # not to be filtered out.
-    #t1=t1.rename(columns={'frame':'frame_as_column'})
     
     num_before = t3_gapless['particle'].nunique()
-    num_after = t4_cutted['particle'].nunique()
+    num_after_stub = t4_cutted['particle'].nunique()
+    num_stubbed = num_after_split - num_after_stub
+
+
+    nd.logger.info('Number of trajectories: before: %s; after: %s', num_before, num_after_stub)
     
-    nd.logger.info('Trajectories with risk of wrong assignments (i.e. before splitting): %s', num_before)
-    nd.logger.info('Trajectories with reduced risk of wrong assignments (i.e. after splitting): %s', num_after)
-    # Compare the number of particles in the unfiltered and filtered data. (Mona: what does "filter" mean here??)
+    nd.logger.debug('Number of trajectories (before filter stubs): before: %s; after: %s', num_before, num_after_split)    
+    nd.logger.debug('Number of performed splits: %s', num_splits)    
+    nd.logger.debug('Number of trajectories that became too short and were filtered out: %s', num_stubbed)
 
-    nd.logger.info('Number of performed trajectory splits: %s', num_split_particles)
-    nd.logger.info('Number of concerned trajectories: %d (%d%%)', num_split_traj, ratio_split_traj)
-    nd.logger.info('Number of trajectories that became too short and were filtered out: %s', num_part_after_split-t4_cutted['particle'].nunique())
-
-    #'''
-    #wrong_particles=beads_property[beads_property['max_step'] > max_rel_median_intensity_step].index.get_value
 
 
     if PlotAnimationFiltering == True:
@@ -810,9 +817,15 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
             nd.visualize.AnimateProcessedRawDate(rawframes_ROI, t2_long)
 
 
+    # remove the not RealData
+    # In other words: remove the interpolated data points again, which have been introduced to make a proper intensity jump analyis. However, the interpolated x and y points would disturb the MSD analysis, because they are not measured
+    
     t4_cutted = t4_cutted.loc[t4_cutted["RealData"] == True ]
 
     t4_cutted = t4_cutted.drop(columns="RealData")
+
+    # resets the index after all this concating and deleting
+    t4_cutted = t4_cutted.reset_index(drop = True)
 
     return t4_cutted, settings
 
