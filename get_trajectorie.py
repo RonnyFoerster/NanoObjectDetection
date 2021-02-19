@@ -737,6 +737,8 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
 
     # currently last bead (so the number of the new bead is defined and unique)
     num_last_particle = np.max(t3_gapless['particle'])
+    
+    free_particle_id = num_last_particle + 1
 
     nd.logger.info('Number of trajectories with problems: %d out of %d (%d%%)', num_split_traj, num_particles, ratio_split_traj) 
 
@@ -749,38 +751,23 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
 
     for x in range(0,num_splits):
         nd.visualize.update_progress("Split trajectories at high intensity jumps", (x+1) / num_splits)
-        #print('split trajectorie',x ,'out of ',num_split_particles)
-
-        # NOW DO A PRECISE CHECK OF THE MASS
+        nd.logger.debug('split trajectorie %s out of %s', x, num_splits)
 
         # get index, number of particle which need splitting
         # and at which frame the split has to be done
         split_particle = split_particle_at.iloc[x]
         particle_to_split = split_particle['particle']
         first_new_frame = split_particle['frame']
-    #    first_new_frame = split_particle['frame_as_column']
 
+        # give any frame after the <first_new_frame> a new particle id
+        t4_cutted.loc[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame >= first_new_frame)),'particle'] = free_particle_id
 
-        # to see if there is a gap --> t1_search_gap[t1_search_gap['particle']==particle_to_split]['mass']
-        # select right particle with following frames
-        # the ".at" is necessary to change the value not on a copy but on t1 itself
-        # https://stackoverflow.com/questions/13842088/set-value-for-particular-cell-in-pandas-dataframe-using-index
+        # generate new available and free particle id
+        free_particle_id = free_particle_id + 1;
 
-        # old RF removed it 210218, because index should be frame
-        # t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.index < first_new_frame)),'particle'] = num_last_particle + 1
-        
-        # t4_cutted.at[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame < first_new_frame)),'particle'] = num_last_particle + 1
+        # to remove the (to high) intensity step which is now not here anymore
+        t4_cutted.loc[(t4_cutted.particle == free_particle_id) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
 
-        # RF put that back to working
-        t4_cutted.loc[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame >= first_new_frame)),'particle'] = num_last_particle + 1
-
-        # to remove the step which is now not here anymore
-        t4_cutted.loc[(t4_cutted.particle == num_last_particle + 1) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
-        # old: when frame was still a column and not the index
-#        t4_cutted.loc[(t4_cutted.particle == particle_to_split) & (t4_cutted.frame == first_new_frame),"rel_step"] = 0
-
-        # num_last_particle ++
-        num_last_particle = num_last_particle + 1;
 
         # just for visualization
         if PlotTrajWhichNeedACut == True:
@@ -821,7 +808,6 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     # In other words: remove the interpolated data points again, which have been introduced to make a proper intensity jump analyis. However, the interpolated x and y points would disturb the MSD analysis, because they are not measured
     
     t4_cutted = t4_cutted.loc[t4_cutted["RealData"] == True ]
-
     t4_cutted = t4_cutted.drop(columns="RealData")
 
     # resets the index after all this concating and deleting
