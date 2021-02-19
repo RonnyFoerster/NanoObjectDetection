@@ -387,7 +387,7 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
     dropped_ratio = num_lost / num_before * 100
 
     nd.logger.info("Remove non-gaussian trajectories: ...finished")
-    nd.logger.info("Before: %d, After: %d, Removed: %d (%d%%) ", (num_before, num_after , num_lost, dropped_ratio))
+    nd.logger.info("Before: %d, After: %d, Removed: %d (%d%%) ", num_before, num_after , num_lost, dropped_ratio)
 
     return traj_min_length
 
@@ -693,11 +693,11 @@ def split_traj(t2_long, t3_gapless, ParameterJsonFile):
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-    t4_cutted, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
+    t4_cutted, t4_cutted_no_gaps, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
     # close gaps to have a continous trajectory
-    t4_cutted_no_gaps = nd.get_trajectorie.close_gaps(t4_cutted)
+    # t4_cutted_no_gaps = nd.get_trajectorie.close_gaps(t4_cutted)
 
 
     return t4_cutted, t4_cutted_no_gaps
@@ -804,16 +804,21 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
             nd.visualize.AnimateProcessedRawDate(rawframes_ROI, t2_long)
 
 
-    # remove the not RealData
-    # In other words: remove the interpolated data points again, which have been introduced to make a proper intensity jump analyis. However, the interpolated x and y points would disturb the MSD analysis, because they are not measured
+    # copy of continous trajectory (including interpolations) for plotting only
+    t4_cutted_no_gaps = t4_cutted.copy()
     
+    # In other words: remove the interpolated data points again, which have been introduced to make a proper intensity jump analyis. However, the interpolated x and y points would disturb the MSD analysis, because they are not measured
     t4_cutted = t4_cutted.loc[t4_cutted["RealData"] == True ]
+    
+    # remove the not RealData, because it is not needed anymore
     t4_cutted = t4_cutted.drop(columns="RealData")
+    t4_cutted_no_gaps = t4_cutted_no_gaps.drop(columns="RealData")
 
     # resets the index after all this concating and deleting
     t4_cutted = t4_cutted.reset_index(drop = True)
+    t4_cutted_no_gaps = t4_cutted_no_gaps.reset_index(drop = True)
 
-    return t4_cutted, settings
+    return t4_cutted, t4_cutted_no_gaps, settings
 
 
 

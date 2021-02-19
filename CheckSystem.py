@@ -25,24 +25,24 @@ def CheckAll(ParameterJsonFile):
     """ main function
     """
     
-    nd.logger.info("Check Packages of Python - starting")
+    nd.logger.info("Check Packages of Python: starting...")
     
     CheckPython()
     CheckTrackpy()
     CheckPanda()
     # CheckLatex()
     
-    print("\n\n check inserted json parameter file: ")
+    nd.logger.info("Check inserted json parameter file: starting...")
     settings = CheckJson_Exist(ParameterJsonFile)
     settings = CheckJson_path(ParameterJsonFile, settings, CreateNew = False)
     settings = CheckJson_specify_default_auto(settings)
     settings = CheckJson_Entries(settings)
     
+    nd.logger.info("Check Packages and json: ...finished")
+    
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
     SetupLogger(settings)
-    
-    nd.logger.info("Check Packages of Python: finished")
     
     
 def CheckPython():
