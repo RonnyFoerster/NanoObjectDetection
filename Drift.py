@@ -43,10 +43,13 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
     ApplyDriftCorrection = settings["Drift"]["Apply"]    
     
     if ApplyDriftCorrection == 0:
-        print("No drift correction applied. Sure???")
+        nd.logger.warning("No drift correction applied.")
         t_no_drift = t_drift
         
     else:
+        nd.logger.info("Drift correction: starting...")
+        
+        
         
         if settings["Help"]["Drift"] == "auto":
             #estimate how many frames it needs to have enough particle to make the drift estimation
@@ -67,13 +70,14 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
         
         if Do_transversal_drift_correction == False:
             # Attention: This ignores laminar flow, but needs fewer frames (and thus time) to get a good estimation
-            
+
             t_no_drift, my_drift = GlobalEstimation(t_drift, drift_smoothing_frames)
 
             # plot the calculated drift
             if PlotGlobalDrift == True:
                 nd.visualize.PlotGlobalDrift(my_drift, settings, save=SaveDriftPlots) 
         
+            
         
         else:
             t_no_drift, total_drift, calc_drift, number_blocks, y_range  = TransversalEstimation(settings, t_drift, drift_smoothing_frames, rolling_window_size, min_particle_per_block)
@@ -97,7 +101,7 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
             # if PlotDriftCorrectedTraj == True:
             #     nd.visualize.DriftCorrectedTraj(tm_sub)
         
-        print('drift correction --> finished')
+        nd.logger.info("Drift correction: ...finished")
 
 
     return t_no_drift
@@ -109,8 +113,8 @@ def GlobalEstimation(t_drift, drift_smoothing_frames):
     Estimates the drift for all particles in a frame together
     Attention: This ignores laminar flow, but needs fewer frames (and thus time) to get a good estimation
     """
-    print('Mode: global drift correction')
-    
+    nd.logger.info("Mode: global drift correction (frame per frame)")
+            
     # calculate the overall drift (e.g. drift of setup or flow of particles)
     my_drift = tp.compute_drift(t_drift, drift_smoothing_frames) 
     
@@ -137,9 +141,10 @@ def TransversalEstimation(settings, t_drift, drift_smoothing_frames, rolling_win
     RF: Creation of y-sub-zones and calculation of drift
     SW 180717: Subtraction of drift from trajectories
     """
+    nd.logger.info("Mode: transversal drift correction (laminar flow)")
+
     
-    print('Mode: transversal drift correction')
-    print('That code should work but not ideal sure. Have a look if you rely on it!')
+    nd.logger.warning('That code should work but not ideal sure. Have a look if you rely on it!')
             
     
     # how many particles are needed to perform a drift correction
@@ -365,7 +370,7 @@ def TransversalEstimation(settings, t_drift, drift_smoothing_frames, rolling_win
 
 def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None, min_particle_per_block = None, min_tracking_frames = None, PlotGlobalDrift = True, SaveDriftPlots = True, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False):
     
-    print("This is an old function. Use nd.Drift.Main from now on. It is still executed.")
+    nd.logger.warning("This is an old function. Use nd.Drift.Main from now on. It is still executed.")
     
     t5_no_drift = Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None, min_particle_per_block = None, min_tracking_frames = None, PlotGlobalDrift = True, SaveDriftPlots = True, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False)
     

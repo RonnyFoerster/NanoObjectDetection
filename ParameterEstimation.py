@@ -685,7 +685,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     # one is added because a bit of drift is always in
     Max_displacement = Max_displacement + 1
 
-    np.logger.info("The distance a particle can maximal move (and identified as the same one) >Max displacement< is set to: %s", Max_displacement)
+    nd.logger.info("The distance a particle can maximal move (and identified as the same one) >Max displacement< is set to: %s", Max_displacement)
     settings["Link"]["Max displacement"] = Max_displacement 
 
 
