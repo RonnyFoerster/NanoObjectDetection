@@ -245,7 +245,7 @@ def SpotSize(rawframes_pre, ParameterJsonFile):
         settings["Find"]["Estimated particle size"] = SpotSize_auto(settings)
         
     else:
-        print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
+        nd.logger.warning("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings)  
     

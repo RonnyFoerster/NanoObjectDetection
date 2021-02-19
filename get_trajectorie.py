@@ -630,6 +630,10 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
 
     note: "mass_smooth" and "rel_step" columns are introduced here
     """
+    
+    #Calc the derivative. If that one is to large (intensity jump) that means that the particle linking did something stupid.
+    
+    nd.logger.info("Calculate the intensities derivative.")
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 

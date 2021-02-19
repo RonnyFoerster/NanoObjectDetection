@@ -43,7 +43,11 @@ def CheckAll(ParameterJsonFile):
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
     SetupLogger(settings)
-    
+ 
+
+def LogWhereEnvIs():
+    nd.logger.info("Have a look into the 'PythonEnvironments' Folder in the nd-package.")
+ 
     
 def CheckPython():
     """ check if the python version is right
@@ -57,6 +61,7 @@ def CheckPython():
     else:
         nd.logger.critical("Python minimum version: %s", python_minimum_versions)
         nd.logger.critical("Your python version: %s", python_version)
+        LogWhereEnvIs()
         sys.exit("Change your python version accordingly, or insert your python version in python_allowed_versions")
     
 
@@ -72,6 +77,7 @@ def CheckTrackpy():
     else:
         nd.logger.critical("Trackpy minimum versions: %s", tp_minimum_versions)
         nd.logger.critical("Your trackpy versions: %s", tp_version)
+        LogWhereEnvIs()
         sys.exit("Change your trackpy version accoringly, or insert your trackpy version in tp_allowed_versions")
        
     # checks the internal fast processing routines
@@ -85,13 +91,14 @@ def CheckPanda():
     pd_maximum_versions = '0.23.4'
     pd_version = pd.__version__
     
-    if version.parse(pd_version) <= version.parse(pd_maximum_versions):
+    if version.parse(pd_version) >= version.parse(pd_maximum_versions):
         nd.logger.info("Pandas version valid: %s", pd_version)
     else:
         nd.logger.critical("Pandas maximum versions: %s", pd_maximum_versions)
         nd.logger.critical("Your pandas versions: %s", pd_version)
-        nd.warning("New panda versions do not work since https://github.com/soft-matter/trackpy/issues/529#issue-410397797")
-        nd.warning("Try: Downgrading your system in Anaconda promt using >>> conda install pandas=0.23.4 <<<")
+        nd.logger.warning("New panda versions do not work since https://github.com/soft-matter/trackpy/issues/529#issue-410397797")
+        nd.logger.warning("Try: Downgrading your system in Anaconda promt using >>> conda install pandas=0.23.4 <<<")
+        LogWhereEnvIs()
         sys.exit("Change your pandas version accoringly, or insert your pandas version in pd_maximum_versions")       
 
 

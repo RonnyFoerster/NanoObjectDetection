@@ -330,7 +330,7 @@ def FindParticles(img_zncc, correl_min):
 def FindChannel(rawframes_super):
     # returns a boolean saying where the channel (and thus the particle) is
     
-    print("Find the channel - start")
+    nd.logger.info("Find the channel: starting...")
     
     # # a channel can only be, where 90% of the time light is detected (water bg signal)
     # mychannel_raw = np.percentile(rawframes_super, q = 90, axis = 0) != 0
@@ -347,7 +347,7 @@ def FindChannel(rawframes_super):
     
     plt.imshow(mychannel)
     
-    print("Find the channel - finished")    
+    nd.logger.info("Find the channel: ...finished")    
     
     return mychannel
 

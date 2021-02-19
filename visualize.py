@@ -678,10 +678,10 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
                     semilogx = False, FillArea = fillplot, Color = mycolor)
     
     
-    print("\n\n mean diameter: ",
+    nd.logger.info("mean diameter: %s",
           np.round(np.mean(nd.statistics.GetCI_Interval(prob_diam, diam_grid, 0.001)),1))
-    print("68CI interval: ", 
-          np.round(nd.statistics.GetCI_Interval(prob_diam, diam_grid, 0.68),1),"\n\n")
+    nd.logger.info("68CI interval: %s", 
+          np.round(nd.statistics.GetCI_Interval(prob_diam, diam_grid, 0.68),1))
 
     
     if settings["Plot"]["Histogramm_Fit_1_Particle"] == 1:

@@ -49,7 +49,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
     # LOOP THROUGH ALL THE PARTICLES
     for i,particleid in enumerate(particle_list_value):
         if processOutput == True:
-            print("\nParticle number: ",  round(particleid))
+            nd.logger.debug("Particle number: %s",  int(particleid))
 
         # select trajectory to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
@@ -82,7 +82,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
                           
     
     if len(sizes_df_lin) == 0:
-        print("No particle made it to the end!!!")
+        nd.logger.warning("No particle made it to the end!")
         
     else:
         ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin)
@@ -118,7 +118,7 @@ def sizes_df_lin2csv(settings, sizes_df_lin):
     save_file_name = "sizes_df_lin"
     my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
     sizes_df_lin.to_csv(entire_path_file)
-    print('Data stored in: {}'.format(my_dir_name))
+    nd.logger.info('Data stored in: %s', format(my_dir_name))
 
 
 
@@ -180,7 +180,7 @@ def OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_succes
         elif counter < max_counter: #iterate again
             counter = counter + 1           
         else: # abort since it does not converge
-            print("Does not converge")
+            nd.logger.debug("Does not converge")
             OptimizingStatus = "Abort"
 
 
@@ -289,7 +289,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
     # LOOP THROUGH ALL THE PARTICLES
     for i,particleid in enumerate(particle_list_value):
         if processOutput == True:
-            print("\nParticle number: ",  round(particleid))
+            nd.logger.debug("Particle number: %s",  int(particleid))
 
         # select trajectory to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
@@ -334,8 +334,8 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
                 if traj_has_error == True:
                     OptimizingStatus = "Abort"
                     if processOutput == True:
-                        print("Trajectory has error. Particle ID: ", particleid)
-                        print("Kolmogorow-Smirnow test significance: ", stat_sign)
+                        nd.logger.debug("Trajectory has error. Particle ID: %s", particleid)
+                        nd.logger.debug("Kolmogorow-Smirnow test significance: ", stat_sign)
                     error_counter += 1
                     
                 else:    
@@ -363,7 +363,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
                 # decide if the previous loop is executed again
                 if counter >= max_counter:
                     # abort since it does not converge
-                    print("Does not converge")
+                    nd.logger.debug("Does not converge")
                     OptimizingStatus = "Abort"
                 else:
                     # run again till it converges or max number of iterations is exceeded
@@ -390,7 +390,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
     # ============= here ends the long loop over all trajectories =============
         
     if len(sizes_df_lin) == 0:
-        print("No particle made it to the end!!!")
+        nd.logger.warning("No particle made it to the end!!!")
         
     else:
         AdjustMSDPlot(MSD_fit_Show)
@@ -410,7 +410,7 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
             save_file_name = "sizes_df_lin"
             my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
             sizes_df_lin.to_csv(entire_path_file)
-            print('Data stored in: {}'.format(my_dir_name))
+            nd.logger.info('Data stored in: %s', format(my_dir_name))
         
         nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
@@ -618,10 +618,10 @@ def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
         # special rule for simulated data of very long track lengths
         if settings["Simulation"]["SimulateData"] == 1:
             if traj_length > 10:
-                print("Use 100 Lagtimes as a starting value, instead of TrajLength/100")
+                nd.logger.debug("Use 100 Lagtimes as a starting value, instead of TrajLength/100")
                 lagtimes_max = 10
         
-        print("Currently considered lagtimes (offset, slope):", lagtimes_max)              
+        nd.logger.debug("Currently considered lagtimes (offset, slope):", lagtimes_max)              
     else:
         max_counter = 1
         lagtimes_min = settings["MSD"]["lagtimes_min"]
@@ -700,7 +700,7 @@ def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotEr
     
     if processOutput == True:
         # print("Trajectory has error. Particle ID: ", particleid)
-        print("Kolmogorow-Smirnow test significance: ", stat_sign)
+        nd.logger.debug("Kolmogorow-Smirnow test significance: ", stat_sign)
     
     
     return traj_has_error, stat_sign, dx
@@ -753,7 +753,7 @@ def UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_
             photons = mass * gain
             red_x = nd.Theory.RedXOutOfTheory(diff_direct_lin, expTime, t_frame, NA, wavelength, photons)
         else:
-            print("ERROR in json settings[MSD][Estimate_X]. This should be either Exp or Theory!")
+            nd.logger.warning("ERROR in json settings[MSD][Estimate_X]. This should be either Exp or Theory!")
 
 
         # set it to zero if negative
@@ -789,7 +789,7 @@ def UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_
         OptimizingStatus = "Successful"
     else:
         OptimizingStatus = "Continue"
-        print("Current considered lagtimes (offset, slope):", lagtimes_max)  
+        nd.logger.debug("Current considered lagtimes (offset, slope): %s", lagtimes_max)  
        
     return lagtimes_max, OptimizingStatus
 
@@ -810,7 +810,7 @@ def Estimate_X(settings, slope, offset, t_frame):
         red_x = nd.Theory.RedXOutOfTheory(diffusion, expTime, t_frame, NA, wavelength, photons)
         
     else:
-        print("ERROR in json settings[MSD][Estimate_X]. This should be either Exp or Theory!")
+        nd.logger.warning("ERROR in json settings[MSD][Estimate_X]. This should be either Exp or Theory!")
         
         
     return red_x
@@ -933,9 +933,9 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
     # fulfill the condition of enough statistically independent data points
     if length_of_traj < (max_lagtimes_max *(1 + amount_summands)):
         enough_values = "TooShortTraj"
-        print("Trajectory is too short to have enough data points.")
-        print("\nIts length must be larger than (amount_summands + 1) * lagtimes_max.")
-        print("\nConsider optimizing parameters Min_tracking_frames, amount_summands, lagtimes_max.")
+        nd.logger.debug("Trajectory is too short to have enough data points.")
+        nd.logger.debug("It's length must be larger than (amount_summands + 1) * lagtimes_max.")
+        nd.logger.debug("Consider optimizing parameters Min_tracking_frames, amount_summands, lagtimes_max.")
 
     else:
         # set up a matrix (DataFrame) of correct size to put in all needed 
@@ -975,12 +975,10 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
         # i.e. not enough statistically independent data present
         if amount_frames_lagt_max < (max_lagtimes_max *(1+amount_summands) + 1):
             enough_values = "TooManyHoles"
-            print("Too many holes in trajectory to have enough data points. "
-                  "\nNumber of data points must be larger than (amount_summands * lagtimes_max). "
-                  "\nConsider optimizing parameters Dark time, Min_tracking_frames, amount_summands, lagtimes_max")
-            print("amount_frames_lagt_max: ", amount_frames_lagt_max)
-            print("amount_summands: ", amount_summands)
-            print("lagtimes_max: ", max_lagtimes_max)
+            nd.logger.debug("Too many holes in trajectory to have enough data points. Number of data points must be larger than (amount_summands * lagtimes_max). Consider optimizing parameters Dark time, Min_tracking_frames, amount_summands, lagtimes_max")
+            nd.logger.debug("amount_frames_lagt_max: %s", amount_frames_lagt_max)
+            nd.logger.debug("amount_summands: %s", amount_summands)
+            nd.logger.debug("lagtimes_max: %s", max_lagtimes_max)
 
         else:
             enough_values = True    
@@ -1217,7 +1215,7 @@ def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None
                 
         else:
             diamter_corr = diameter
-            print("WARNING: STATIONARY PARTICLE STILL INSIDE")
+            nd.logger.warning("Stationary particle still inside")
 #            sys.exit("Here is something wrong: The diameter is calculated to be larger than the core diameter. \
 #                     Possible Reasons: \
 #                     \n 1 - drift correctes motion instead of drift because to few particles inside. \
@@ -1254,14 +1252,14 @@ def EstimateHindranceFactor(diam_direct_lin, fibre_diameter_nm, DoPrint = True):
 #        print(my_iter, 'diamter:',diam_direct_lin,'corr_visc:',corr_visc,'corr diameter:',diam_direct_lin_corr)
         
         if my_iter > 100:
-            print("Iteration does not converge. Abort !!!")
+            nd.logger.debug("Iteration does not converge. Abort !!!")
             bp()
             input("PRESS ENTER TO CONTINUE.")
             diam_direct_lin_corr = diam_direct_lin_corr_old
 
     if DoPrint == True:
 #        print("After iteration %d: Starting Diameter: %.1f nm; corr. viscosity: %.3f; corr. diameter: %.2nmf" % (my_iter, round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
-        print("Starting Diameter: %.1fnm; hindrance factor: %.3f; Corrected Diameter: %.2fnm" % (round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2)))
+        nd.logger.debug("Starting Diameter: %.1fnm; hindrance factor: %.3f; Corrected Diameter: %.2fnm", round(diam_direct_lin,1), round(corr_visc,3), round(diam_direct_lin_corr,2))
 
 
     return diam_direct_lin_corr
