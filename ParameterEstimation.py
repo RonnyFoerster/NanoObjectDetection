@@ -195,7 +195,7 @@ def FindParticlesByZNCC(img1, settings, num_verbose = 5):
     #if so - convolve the rawimage with the PSF
     if ImgConvolvedWithPSF == True:
         gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
-        img1_in = nd.PreProcessing.ConvolveWithPSF(img1, gauss_kernel_rad)        
+        img1_in = nd.PreProcessing.ConvolveWithPSF_2D(img1, gauss_kernel_rad)        
     else:
         img1_in = img1
         
