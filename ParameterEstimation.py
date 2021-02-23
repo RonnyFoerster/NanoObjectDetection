@@ -703,7 +703,6 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     Min_Separation = int(np.ceil(Min_Separation_diff + Min_Separation_PSF))
 
 
-
     nd.logger.info("The minimum distance between two located particles >Separation data< is set to: %s", Min_Separation)
     settings["Find"]["Separation data"] = Min_Separation 
 

@@ -37,7 +37,7 @@ def Main(rawframes_super, rawframes_pre, ParameterJsonFile):
     SpotSize(rawframes_pre, ParameterJsonFile)  
     
     # optimize minmass to identify particle
-    num_particles_trackpy = FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile)
+    FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile)
  
         
 
