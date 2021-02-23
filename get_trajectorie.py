@@ -374,7 +374,7 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
 
         # put the misplacement vector into the Kolmogorow-Smirnow significance test
         traj_has_error, stat_sign, dx = \
-        nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.01,  PlotErrorIfTestFails = PlotErrorCheck, ID=particleid)
+        nd.CalcDiameter.KolmogorowSmirnowTest(nan_tm, traj_length, MinSignificance = 0.01,  PlotErrorIfTestFails = PlotErrorCheck, ID=particleid)
 
         if traj_has_error == True:
             #remove if traj has error
