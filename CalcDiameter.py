@@ -51,7 +51,6 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
         
 
- 
         # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
         sizes_df_particle, OptimizingStatus = OptimizeMSD(eval_tm, settings, yEval, any_successful_check, t_beforeDrift = t_beforeDrift)
 
@@ -59,14 +58,9 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
             any_successful_check = True
             # after the optimization is done -save the result in a large pandas.DataFrame
             sizes_df_lin = sizes_df_lin.append(sizes_df_particle)
-
-
-        #     # plot MSD if wanted
-        #     if MSD_fit_Show == True:
-        #         AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, MSD_fit_Show = True)
                           
     
-    if len(sizes_df_lin) == 0:
+    if any_successful_check == False:
         nd.logger.warning("No particle made it to the end!")
         
     else:
@@ -308,10 +302,6 @@ def GetVisc(settings):
         visc_water = settings["Exp"]["Viscocity"]
         
     return settings, visc_water
-
-
-
-
 
 
 
