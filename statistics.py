@@ -145,11 +145,16 @@ def StatisticOneParticle(sizes):
     if type(sizes) is pd.DataFrame:
         sizes = sizes.diameter
     
+    # percentage of values that is within 1 or 2 sigma (for the normal distr.)
+    s1 = 0.682689492
+    s2 = 0.954499736
+    
     inv_sizes = 1000/sizes # 1/um
     diam_inv_mean, diam_inv_std, diam_inv_median = GetMeanStdMedian(inv_sizes)
-    diam_inv_CI68 = (np.quantile(inv_sizes,0.5-0.68/2), np.quantile(inv_sizes,0.5+0.68/2))
+    diam_inv_CI68 = np.array([np.quantile(inv_sizes,0.5-s1/2), np.quantile(inv_sizes,0.5+s1/2)])
+    diam_inv_CI95 = np.array([np.quantile(inv_sizes,0.5-s2/2), np.quantile(inv_sizes,0.5+s2/2)])
     
-    return diam_inv_mean, diam_inv_std, diam_inv_median, diam_inv_CI68
+    return diam_inv_mean, diam_inv_std, diam_inv_median, diam_inv_CI68, diam_inv_CI95
     
     
 
@@ -220,7 +225,7 @@ def StatisticDistribution(sizesInv, num_dist_max=10, showICplot=False, useAIC=Fa
     else:
         minICindex = np.argmin(BIC)
     M_best = models[minICindex] # choose model where AIC is smallest
-    print('Number of components considered: {}'.format(N[minICindex]))
+    nd.logger.info('Number of components considered: {}'.format(N[minICindex]))
 
     means = M_best.means_.flatten()
     stds = (M_best.covariances_.flatten())**0.5
@@ -232,7 +237,7 @@ def StatisticDistribution(sizesInv, num_dist_max=10, showICplot=False, useAIC=Fa
     stds = stds[sortedIndices]
     weights = weights[sortedIndices]
     
-    print('Number of iterations performed: {}'.format(M_best.n_iter_))
+    nd.logger.info('Number of iterations performed: {}'.format(M_best.n_iter_))
     
     return means, stds, weights
 

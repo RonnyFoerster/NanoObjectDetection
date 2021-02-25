@@ -534,9 +534,22 @@ def NumberOfBinsAuto(mydata, average_height = 4):
 
 
 
-def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None, weighting=False, num_dist_max=2, showInfobox=True, fitNdist=False, showICplot=False):
+def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, 
+                       histogramm_max = None, Histogramm_min_max_auto = None, 
+                       binning = None, weighting=False, num_dist_max=2, fitInvSizes=True,
+                       showInfobox=True, fitNdist=False, showICplot=False):
     """ wrapper for plotting a histogram of particles sizes, 
-    optionally with statistical information and distribution fit
+    optionally with statistical information or distribution model in sizes
+    or inverse sizes space
+    
+    Parameters
+    ----------
+    weighting : count each track once or as often as it appears in all frames
+    num_dist_max : maximum number of size components N considered in the distribution model
+    fitInvSizes : optimize model for the inverse sizes
+    showInfobox : add infobox with statistical information on the distribution
+    fitNdist : fit Gaussian mixture model or simply plot an equivalent recipr. Gaussian
+    showICplot : separately plot AIC and BIC over N for all considered models
     """
     
     title = 'Amount of trajectories analyzed = %r' % len(sizes_df_lin)
@@ -571,13 +584,17 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
         histogramm_min = np.round(np.min(sizes) - 5, -1)
         histogramm_max = np.round(np.max(sizes) + 5, -1)
         
-    histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
-    histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
+    histogramm_min, settings = \
+        nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
+    histogramm_max, settings = \
+        nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
 
     xlabel = 'Diameter [nm]'
     ylabel = 'Absolute occurrence'
 
-    values_hist, ax = nd.visualize.PlotDiameterHistogramm(sizes, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
+    values_hist, ax = \
+        nd.visualize.PlotDiameterHistogramm(sizes, binning, histogramm_min, 
+                                            histogramm_max, title, xlabel, ylabel)
     
     if (showInfobox==True) and (fitNdist==False):
         nd.visualize.PlotInfobox1N(ax, sizes)
@@ -587,19 +604,25 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
         max_hist = values_hist.max()
         
         if fitNdist == False: 
+            nd.logger.info("Show equivalent (reciprocal) Gaussian in the plot.")
             # consider only one contributing particle size
-            nd.visualize.PlotReciprGauss1Size(ax, diam_grid, max_hist, sizes)
+            mean, median, CV = \
+                nd.visualize.PlotReciprGauss1Size(ax, diam_grid, max_hist, sizes, fitInvSizes)
+            nd.logger.info("Parameters: mean={:.2f}, median={:.2f}, CV={:.2f}".format(mean,median,100*CV))
             
         else:
+            nd.logger.info("Model the inverse sizes distribution as a mixture of Gaussians.")
             # consider between 1 and num_dist_max contributing particle sizes
-            diam_means, diam_CI68s, weights = \
+            diam_means, CVs, weights = \
                 nd.visualize.PlotReciprGaussNSizes(ax, diam_grid, max_hist, sizes,
+                                                   fitInvSizes, # CONTINUE HERE !!!!!!!!!!!!!!!!!!!
                                                    num_dist_max=num_dist_max,
                                                    showICplot=showICplot)
-                # weights should be the same, no matter if inverse or not (?!)
+                # weights should be the same, no matter if inverse or not
+                # CVs as well (at least approximately)
             
             if showInfobox==True:
-                nd.visualize.PlotInfoboxMN(ax, diam_means, diam_CI68s, weights)
+                nd.visualize.PlotInfoboxMN(ax, diam_means, CVs, weights)
             
     if Histogramm_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
@@ -868,37 +891,64 @@ def myGauss(d,mean,std):
 
 
 
-def PlotReciprGauss1Size(ax, diam_grid, max_y, sizes):
-    """ add reciprocal Gaussian function to a sizes histogram (or PDF)
+def PlotReciprGauss1Size(ax, diam_grid, max_y, sizes, fitInvSizes):
+    """ add (reciprocal) Gaussian function to a sizes histogram (or PDF)
     
     NB: No fit is computed here, only an equivalent distribution with the same
         mean and std as the original "sizes" values.
     
-    With mean and std of the inversed values, a Gaussian curve in the 
-    reciprocal size space is computed, back-transformed and
-    normalized to the maximum histogram/PDF value.
+    if fitInvSizes==True:
+        With mean and std of the inversed values, a Gaussian curve in the 
+        reciprocal size space is computed, back-transformed and
+        normalized to the maximum histogram/PDF value.
+    else:
+        Mean and std are taken directly from sizes data and Gaussian is plotted
+        (NOT a reciprocal in this case).
     """
-    diam_inv_mean, diam_inv_std, diam_inv_median, diam_inv_CI68 = \
-        nd.statistics.StatisticOneParticle(sizes)
+    diam_grid_stepsize = diam_grid[1] - diam_grid[0] # equidistant grid (!)
+    
+    if fitInvSizes:
+        mycolor = 'C3'
         
-    diam_grid_inv = 1000/diam_grid # 1/um
-    
-    prob_diam_inv_1size = \
-        scipy.stats.norm(diam_inv_mean,diam_inv_std).pdf(diam_grid_inv)
-    
-    # law of inverse fcts:
-    prob_diam_inv_1size = 1/(diam_grid**2) * prob_diam_inv_1size
-    # normalization:    
-    prob_diam_inv_1size = prob_diam_inv_1size / prob_diam_inv_1size.max() * max_y
+        diam_inv_mean, diam_inv_std, diam_inv_median, diam_inv_CI68, diam_inv_CI95 = \
+            nd.statistics.StatisticOneParticle(sizes)
+            
+        diam_grid_inv = 1000/diam_grid # 1/um
+        
+        prob_diam_inv_1size = \
+            scipy.stats.norm(diam_inv_mean,diam_inv_std).pdf(diam_grid_inv)
+        
+        # law of inverse fcts:
+        prob_diam_1size = 1/(diam_grid**2) * prob_diam_inv_1size
+        
+        # normalize to integral=1
+        prob_diam_1size = prob_diam_1size/(sum(prob_diam_1size)*diam_grid_stepsize)
+        
+        # mean = 1000/diam_inv_mean # incorrect
+        mean = sum(prob_diam_1size*diam_grid)*diam_grid_stepsize
+        median = 1000/diam_inv_median
+        CV = diam_inv_std/diam_inv_mean
+        
+    else:
+        mycolor = 'C2'
+        mean, std, median = nd.statistics.GetMeanStdMedian(sizes)
+        CV = std/mean
+        
+        prob_diam_1size = \
+            scipy.stats.norm(mean,std).pdf(diam_grid)
+            
+    # scale it up to match histogram (or PDF) plot
+    prob_diam_1size = prob_diam_1size / prob_diam_1size.max() * max_y
     
     # print('median={}, CI68=[{},{}]'.format(1000/diam_inv_median,1000/diam_inv_CI68[0],1000/diam_inv_CI68[1]))
-    ax.plot(diam_grid,prob_diam_inv_1size)
-    return diam_inv_mean, diam_inv_median, diam_inv_CI68
+    ax.plot(diam_grid,prob_diam_1size,color=mycolor)
+    return mean, median, CV
     
     
     
-def PlotReciprGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, useAIC=False, showICplot=False):
-    """ plot the reciprocal fcts of Gaussian fits on top of a histogram/PDF
+def PlotReciprGaussNSizes(ax, diam_grid, max_y, sizes, fitInvSizes,  # to do: integrate PlotGaussNSizes in here
+                          num_dist_max=2, useAIC=False, showICplot=False):
+    """ plot the reciprocal fcts of Gaussian fits on top of a histogram
     
     to do:
         - build a fct that includes both inv. and non-inv. fitting (?)
@@ -920,6 +970,7 @@ def PlotReciprGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, useAIC=Fa
         nd.statistics.StatisticDistribution(inv_diam, 
                                             num_dist_max=num_dist_max,
                                             showICplot=showICplot, useAIC=useAIC)
+    CVs = inv_diam_stds/inv_diam_means
     
     # compute individual Gaussian functions from GMM fitted parameters (inv.space!)
     # dist = np.array([weights[n]*myGauss(diam_grid,diam_means[n],diam_stds[n]) 
@@ -932,11 +983,11 @@ def PlotReciprGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, useAIC=Fa
     dist = ((diam_grid**2)/1000**2)**(-1) * dist
     
     # convert from 1/um to nm
-    diam_means = 1000/inv_diam_means
-    diam_CI68s = np.zeros([inv_weights.size,2])
-    for n,d in enumerate(dist.transpose()):
-        diam_CI68s[n] = nd.statistics.GetCI_Interval(d, diam_grid, 0.68) # STILL A BUG IN HERE
-    # weights should stay the same (!?)
+    diam_means = 1000/inv_diam_means # MN: I'M NOT SURE IF THIS IS FULLY CORRECT
+    # diam_CI68s = np.zeros([inv_weights.size,2])
+    # for n,d in enumerate(dist.transpose()):
+    #     diam_CI68s[n] = nd.statistics.GetCI_Interval(d, diam_grid, 0.68) # STILL A BUG IN HERE
+    # weights should stay the same
     
     # calculate sum of all distributions
     dsum = dist.sum(axis=0)
@@ -948,7 +999,7 @@ def PlotReciprGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, useAIC=Fa
     ax.plot(diam_grid,dist.transpose(),ls='--')
     ax.plot(diam_grid,dist.sum(axis=0),color='k')
     
-    return diam_means, diam_CI68s, inv_weights
+    return diam_means, CVs, inv_weights
 
 
 
@@ -981,7 +1032,6 @@ def PlotGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, weighting=False
 
 
 
-
 def PlotInfobox1N(ax, sizes):
     """ add textbox to a plot containing statistical information 
     on the size distribution, assuming one single contributing particle size
@@ -991,24 +1041,16 @@ def PlotInfobox1N(ax, sizes):
     """
     from NanoObjectDetection.PlotProperties import axis_font
     
-    _, _, my_median = nd.statistics.GetMeanStdMedian(sizes)
+    diam_inv_mean, diam_inv_std, diam_inv_median, diam_inv_CI68, diam_inv_CI95 = \
+        nd.statistics.StatisticOneParticle(sizes)
+    my_median = 1000/diam_inv_median
+    CV = diam_inv_std/diam_inv_mean
+    diam_68 = 1000/diam_inv_CI68[::-1] # invert order
+    diam_95 = 1000/diam_inv_CI95[::-1]
+    # my_mean = 1000/diam_inv_mean # MN: This is misleading, I think
+    my_mean = sizes.mean()
+    nd.logger.warning("Instead of the converted mean of the inverse sizes, the mean sizes value is displayed in the infobox.")
     
-    diam_inv_mean, diam_inv_std = nd.statistics.StatisticOneParticle(sizes)
-    my_mean = 1/diam_inv_mean
-    
-    # percentage of values that is within 1 or 2 sigma (for the normal distr.):
-    sigma1 = 0.682689492
-    sigma2 = 0.954499736
-    
-    if type(sizes) is pd.DataFrame:
-        sizes = sizes.diameter
-    elif not(type(sizes) is pd.Series):
-        sizes = pd.Series(sizes) # assume np.array
-        
-    # use quantiles to describe the sigma-intervals
-    # (this accounts for the skewness of the distribution)
-    diam_68 = [sizes.quantile(0.5 - sigma1/2), sizes.quantile(0.5 + sigma1/2)]
-    diam_95 = [sizes.quantile(0.5 - sigma2/2), sizes.quantile(0.5 + sigma2/2)]
 # #   old version (uses the assumption of a Gaussian fct):
 #     diam_68 = [1/(diam_inv_mean + 1*diam_inv_std), 1/(diam_inv_mean - 1*diam_inv_std)]
 #     diam_95 = [1/(diam_inv_mean + 2*diam_inv_std), 1/(diam_inv_mean - 2*diam_inv_std)]
@@ -1016,9 +1058,10 @@ def PlotInfobox1N(ax, sizes):
     
     textstr = '\n'.join([
     r'$\mathrm{median}=  %.1f$ nm' % (my_median),
-    r'$\mu_{\mathrm{inv}} = %.1f$ nm' % (my_mean),
-    r'$1 \sigma_{\mathrm{q}} = [%.1f; %.1f]$ nm' %(diam_68[0], diam_68[1]), 
-    r'$2 \sigma_{\mathrm{q}} = [%.1f; %.1f]$ nm' %(diam_95[0], diam_95[1]), ])
+    # r'$\mu_{\mathrm{inv}} = %.1f$ nm' % (my_mean),
+    r'$\mu = %.1f$ nm, CV$_{\mathrm{inv}}$ = %.3f' % (my_mean, CV),
+    r'$1 \sigma_{\mathrm{q}} = [%.1f, %.1f]$ nm' %(diam_68[0], diam_68[1]), 
+    r'$2 \sigma_{\mathrm{q}} = [%.1f, %.1f]$ nm' %(diam_95[0], diam_95[1]), ])
     
     props = dict(boxstyle='round', facecolor='honeydew', alpha=0.7)
     
@@ -1852,4 +1895,3 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, PDF_min_max_auto = None,
 #     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
 #     return prob_diam, diam_grid, ax
-    return PDF, grid, ax, fit
