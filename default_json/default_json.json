@@ -151,6 +151,7 @@
           "DiameterPDF_min_max_auto": 1,
           "PDF_min": 0.0,
           "PDF_max": 1000.0,
+          "PDF_show_fit": 0,
           "DiamOverTraj_Show": 0,
           "DiamOverTraj_Save": 0,
           "Correlation_Show": 0,

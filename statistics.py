@@ -16,16 +16,24 @@ from pdb import set_trace as bp #debugger
 
 
 
-def GetCI_Interval(probability, value, ratio_in_ci):
-    """ get the confidence interval (CI) of a probability density function
+def GetCI_Interval(probability, grid, ratio_in_ci):
+    """ get the confidence interval (CI) of a probability density function (PDF)
     
-    probability = PDF (y) values
-    probability = x - values
-    ratio_in_ci = confidence intercall (CI)
+    NB: This should work on both equidistant and non-equidistant grids.
+    
+    probability : PDF (y) values
+    grid : x values
+    ratio_in_ci : confidence interval (CI)
     """
+    grid_steps = abs(grid[:-1]-grid[1:])
+    if grid_steps[0] > grid_steps[-1]: # duplicate smallest entry (either the first or the last)
+        grid_steps = np.append(grid_steps, grid_steps[-1]) 
+    else:
+        grid_steps = np.append(grid_steps, grid_steps[0])
+    
     
     #cumulated probabilty sum
-    cum_sum = np.cumsum(probability)
+    cum_sum = np.cumsum(probability*grid_steps)
     
     # lower and upper limit of CI (staring at 50% of the cumulated probabilty sum)
     cum_min = 0.5 - (ratio_in_ci/2)
@@ -36,8 +44,8 @@ def GetCI_Interval(probability, value, ratio_in_ci):
     pos_max = np.int(np.where(cum_sum > cum_max)[0][0])
     
     # get the x values where the CI is
-    value_min = value[pos_min]
-    value_max = value[pos_max]
+    value_min = grid[pos_min]
+    value_max = grid[pos_max]
         
     return value_min,value_max
 
@@ -52,8 +60,21 @@ def GetMeanStdMedian(data):
 
 
 
+def GetMeanStdMedianCIfromPDF(PDF, grid, grid_stepsizes):
+    mean = sum(PDF*grid*grid_stepsizes)
+    var = sum(PDF*grid**2*grid_stepsizes) - mean**2
+    std = var**0.5 
+    median = np.mean(nd.statistics.GetCI_Interval(PDF, grid, 0))
+    CI68 = nd.statistics.GetCI_Interval(PDF, grid, 0.68) 
+    CI95 = nd.statistics.GetCI_Interval(PDF, grid, 0.95) 
+    return mean, std, median, CI68, CI95
+
+
+
 def InvDiameter(sizes_df_lin, settings, useCRLB=True):
     """ calculates inverse diameter values and estimates of their stds
+    
+    NOTE: If diameters are in nm, inv. diameters are returned in 1/um (!).
     
     assumption: 
         relative error = std/mean = CRLB
@@ -72,7 +93,7 @@ def InvDiameter(sizes_df_lin, settings, useCRLB=True):
     inv_diam, inv_diam_std : both numpy.ndarray
     """
     
-    inv_diam = 1/sizes_df_lin["diameter"].values # numpy.ndarray
+    inv_diam = 1000/sizes_df_lin["diameter"].values # numpy.ndarray
     
     if useCRLB==True:
         # CRLB is already included in the diffusion std calculation (!)
@@ -103,7 +124,7 @@ def InvDiameter(sizes_df_lin, settings, useCRLB=True):
 
 
 def StatisticOneParticle(sizes):
-    """ calculate the inverse mean and std of a particle diameter ensemble,
+    """ calculate the inverse statistical quantities of a particle diameter ensemble,
     assuming only one contributing size
     
     NOTE:
@@ -119,15 +140,16 @@ def StatisticOneParticle(sizes):
         
     Returns
     -------
-    diam_inv_mean, diam_inv_std : both float
+    diam_inv_mean, diam_inv_std, diam_inv_median, diam_inv_CI68 : (tuple of) float
     """
     if type(sizes) is pd.DataFrame:
         sizes = sizes.diameter
     
-    diam_inv_mean = (1/sizes).mean()
-    diam_inv_std  = (1/sizes).std()
+    inv_sizes = 1000/sizes # 1/um
+    diam_inv_mean, diam_inv_std, diam_inv_median = GetMeanStdMedian(inv_sizes)
+    diam_inv_CI68 = (np.quantile(inv_sizes,0.5-0.68/2), np.quantile(inv_sizes,0.5+0.68/2))
     
-    return diam_inv_mean, diam_inv_std
+    return diam_inv_mean, diam_inv_std, diam_inv_median, diam_inv_CI68
     
     
 

@@ -575,18 +575,18 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
 
 
 
-def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None, 
-                histogramm_max = None, Histogramm_min_max_auto = None, 
-                binning = None, fitNdist=False, num_dist_max=2, useAIC=True,
+def DiameterPDF(ParameterJsonFile, sizes_df_lin, PDF_min_max_auto = None, 
+                fitNdist=False, num_dist_max=2, useAIC=True,
                 statsInfo=True, showInfobox=True, showICplot=False, 
-                fillplot=True, mycolor='C2', useCRLB=True):
+                fillplot=True, mycolor='C2', plotStats=False, useCRLB=True):
     """ calculate and plot the diameter probability density function of 
     a particle ensemble as the sum of individual PDFs
     NB: each trajectory is considered individually, the tracklength determines
         the PDF widths
     
     assumption: 
-        relative error = std/mean = sqrt( 2*N_tmax/(3*N_f - N_tmax) )
+        relative error = std/mean either given by CRLB (if useCRLB==True) or by 
+        sqrt( 2*N_tmax/(3*N_f - N_tmax) ) 
         with N_tmax : number of considered lagtimes
              N_f : number of frames of the trajectory (=tracklength)
 
@@ -611,17 +611,23 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     
     
     # calculate mean and std of the ensemble (inverse!) and the grid for plotting
-    # THE INVERSE DIAMETER IS USED BECAUSE IT HAS A GAUSSIAN DISTRIBUTED ERROR; WHILE THE DIAMETER ITSELF DOES NOT HAVE SUCH AN EASY PROBABILTY DENSITY FUNCTION (PDF)
+    # THE INVERSE DIAMETER IS USED BECAUSE IT HAS A GAUSSIAN DISTRIBUTED ERROR; 
+    # WHILE THE DIAMETER ITSELF DOES NOT HAVE SUCH AN EASY PROBABILTY DENSITY FUNCTION (PDF)
     # CALCULATE IT IN THE INVERSE REGIME FIRST; AND CALCULATE BACK TO DIAMETER SPACE
     diam_inv_mean, diam_inv_std = nd.statistics.StatisticOneParticle(sizes_df_lin)
-    diam_grid = np.linspace(0.1,1000,10000) # prepare grid for plotting
+    
+    diam_grid = np.linspace(0.1,1000,10000) # prepare grid for plotting (equidistant)
+    # diam_grid = np.linspace(1,1000,20000) # prepare grid for plotting (equidistant)
+    diam_grid_stepsize = diam_grid[1] - diam_grid[0]
     # diam_grid_inv = 1/diam_grid
     
     # array that save the PDF
     prob_diam = np.zeros_like(diam_grid)
     
     # get mean and std of each inverse diameter
-    inv_diam, inv_diam_std = nd.statistics.InvDiameter(sizes_df_lin, settings, useCRLB)
+    inv_diam, inv_diam_std = nd.statistics.InvDiameter(sizes_df_lin, settings, useCRLB) # 1/um
+    inv_diam = 0.001* inv_diam # 1/nm
+    inv_diam_std = 0.001*inv_diam_std # 1/nm
     
     
     for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
@@ -636,25 +642,25 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
         # sum it all up
         prob_diam = prob_diam + my_pdf    
     
-    # normalize the summed pdf to 1
-    prob_diam = prob_diam / np.sum(prob_diam)
+    # normalize the summed pdf to integral=1
+    prob_diam = prob_diam / (np.sum(prob_diam) * diam_grid_stepsize)
     
     # get statistical quantities
     diam_median = np.median(nd.statistics.GetCI_Interval(prob_diam, diam_grid, 0))
-    diam_mean = np.average(diam_grid, weights = prob_diam)
+    # diam_mean = np.average(diam_grid, weights = prob_diam) # MN: this seems only justified on equidistant grids
+    diam_mean = sum(prob_diam*diam_grid)*diam_grid_stepsize
     lim_68CI = nd.statistics.GetCI_Interval(prob_diam, diam_grid, 0.68) 
     lim_95CI = nd.statistics.GetCI_Interval(prob_diam, diam_grid, 0.95)
     num_trajectories = len(sizes_df_lin) 
         
     
     # set the x limits in the plot
-    Histogramm_min_max_auto = settings["Plot"]["DiameterPDF_min_max_auto"]
-    if Histogramm_min_max_auto == 1:
+    PDF_min_max_auto = settings["Plot"]["DiameterPDF_min_max_auto"]
+    if PDF_min_max_auto == 1:
         PDF_min, PDF_max = nd.statistics.GetCI_Interval(prob_diam, diam_grid, 0.999)
         # PDF_min, PDF_max = nd.statistics.GetCI_Interval(prob_inv_diam, diam_grid, 0.999)
         PDF_min = int(np.floor(PDF_min))
         PDF_max = int(np.ceil(PDF_max))
-        #histogramm_min = 0
     else:
         PDF_min = settings["Plot"]['PDF_min'] 
         PDF_max = settings["Plot"]['PDF_max'] 
@@ -662,7 +668,7 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
         
     # info box for the plot
     if statsInfo==True:    
-        title = str("Mean: {:2.3g} nm; Median: {:2.3g} nm; Trajectories: {:3.0f}; \n CI68: [{:2.3g} : {:2.3g}] nm;  CI95: [{:2.3g} : {:2.3g}] nm".format(diam_mean, diam_median, num_trajectories, lim_68CI[0], lim_68CI[1],lim_95CI[0], lim_95CI[1]))
+        title = str("{:.0f} trajectories; mean: {:.2f}, median: {:.1f}, \n CI68: [{:.1f} : {:.1f}],  CI95: [{:.1f} : {:.1f}] nm".format(num_trajectories, diam_mean, diam_median, lim_68CI[0], lim_68CI[1],lim_95CI[0], lim_95CI[1]))
     else:
         title = str("Trajectories: {:.0f}".format(num_trajectories))
         
@@ -675,8 +681,16 @@ def DiameterPDF(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
 
     # plot it!
     ax = Plot2DPlot(diam_grid, prob_diam, title, xlabel, ylabel, mylinestyle = "-",  
-                    mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0], 
+                    mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0,0.01], 
                     semilogx = False, FillArea = fillplot, Color = mycolor)
+    
+    if plotStats: # plot lines for mean, median and CI68-interval
+        ax.vlines([diam_mean, diam_median], 0, 1,
+                  transform=ax.get_xaxis_transform(), 
+                  colors=mycolor, alpha=0.8)
+        ax.vlines([lim_68CI[0], lim_68CI[1]], 0, 1, 
+                  transform=ax.get_xaxis_transform(), 
+                  colors=mycolor, alpha=0.6)
     
     
     mean_diameter = np.round(np.mean(nd.statistics.GetCI_Interval(prob_diam, diam_grid, 0.001)),1)
@@ -734,16 +748,19 @@ def myGauss(d,mean,std):
 
 
 def PlotReciprGauss1Size(ax, diam_grid, max_y, sizes):
-    """ add reciprocal Gaussian function to a sizes histogram or PDF
+    """ add reciprocal Gaussian function to a sizes histogram (or PDF)
+    
+    NB: No fit is computed here, only an equivalent distribution with the same
+        mean and std as the original "sizes" values.
     
     With mean and std of the inversed values, a Gaussian curve in the 
     reciprocal size space is computed, back-transformed and
     normalized to the maximum histogram/PDF value.
     """
-    diam_inv_mean, diam_inv_std = \
+    diam_inv_mean, diam_inv_std, diam_inv_median, diam_inv_CI68 = \
         nd.statistics.StatisticOneParticle(sizes)
         
-    diam_grid_inv = 1/diam_grid
+    diam_grid_inv = 1000/diam_grid # 1/um
     
     prob_diam_inv_1size = \
         scipy.stats.norm(diam_inv_mean,diam_inv_std).pdf(diam_grid_inv)
@@ -752,8 +769,10 @@ def PlotReciprGauss1Size(ax, diam_grid, max_y, sizes):
     prob_diam_inv_1size = 1/(diam_grid**2) * prob_diam_inv_1size
     # normalization:    
     prob_diam_inv_1size = prob_diam_inv_1size / prob_diam_inv_1size.max() * max_y
-
+    
+    # print('median={}, CI68=[{},{}]'.format(1000/diam_inv_median,1000/diam_inv_CI68[0],1000/diam_inv_CI68[1]))
     ax.plot(diam_grid,prob_diam_inv_1size)
+    return diam_inv_mean, diam_inv_median, diam_inv_CI68
     
     
     

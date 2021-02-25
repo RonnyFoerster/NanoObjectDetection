@@ -376,6 +376,353 @@ def DiameterPDF_transparent(ParameterJsonFile, sizes_df_lin, histogramm_min = No
 
 
 
+def calcInversePDF(grid, sizes_df_lin, settings, useCRLB):
+    """ compute the probability density function (PDF) of the sizes ensemble 
+    on a given grid in the inverse sizes space
+    
+    NB: Due to the Gaussian/normal distributed uncertainty in the diffusion space,
+        the PDF is always first calculated in the inverse sizes space and then
+        back-converted.
+    """
+    import NanoObjectDetection as nd
+    from scipy.stats import norm
+    
+    grid_steps = abs(grid[:-1]-grid[1:])
+    if grid_steps[0] > grid_steps[-1]: # duplicate smallest entry (either the first or the last)
+        grid_steps = np.append(grid_steps, grid_steps[-1]) 
+    else:
+        grid_steps = np.append(grid_steps, grid_steps[0])
+    
+    # # numerical grid (equidistant)
+    # inv_grid = np.linspace(1,1000,999*100+1) # 1/um
+    # inv_grid_stepsize = inv_grid[1] - inv_grid[0] 
+    
+    # initialize array to save the PDF
+    PDF_inv = np.zeros_like(grid)
+    
+    # get mean and std of each inverse diameter
+    inv_diams, inv_diam_stds = nd.statistics.InvDiameter(sizes_df_lin, settings, useCRLB) # 1/um
+    
+    # calculate individual PDFs for each particle and sum them up
+    for inv_d, inv_std in zip(inv_diams,inv_diam_stds):
+        PDF_inv = PDF_inv + norm(inv_d,inv_std).pdf(grid)    
+    
+    # normalize to integral=1
+    PDF_inv = PDF_inv/sum(PDF_inv * grid_steps) 
+    
+    return PDF_inv, grid_steps # 1/um
+
+
+
+def convertPDFtoSizesSpace(PDF_inv, inv_grid):
+    """ convert PDF on 1/um-grid back into one in sizes space on a nm-grid
+    """
+    grid = 1000/inv_grid # nm
+    grid_steps = abs(grid[:-1]-grid[1:])
+    if grid_steps[0] > grid_steps[-1]: # duplicate smallest entry (either the first or the last)
+        grid_steps = np.append(grid_steps, grid_steps[-1]) 
+    else:
+        grid_steps = np.append(grid_steps, grid_steps[0])
+    
+    # law of inverse fcts: Y = 1/X --> PDF_Y(Y) = 1/(Y^2) * PDF_X(1/Y)
+    PDF = 1/(grid**2) * PDF_inv
+    
+    # normalize to integral=1 again
+    PDF = PDF/sum(PDF*grid_steps)
+    
+    return PDF, grid, grid_steps
+
+
+
+def fitGaussian(PDF, grid, grid_steps, mean_start):
+    """ calculate least-squares fit of a Gaussian function to a given PDF
+    
+    Assumption: PDF integrated over grid = 1
+    """
+    from scipy.optimize import curve_fit
+    
+    # define Gaussian fct (integral normalized to 1)
+    def myGauss(d,mean,std):
+        return 1/((2*np.pi)**0.5*std)*np.exp(-(d-mean)**2/(2.*std**2))
+    
+    popt, pcov = curve_fit(myGauss, grid, PDF, p0=[mean_start,1])
+    
+    fit = myGauss(grid, *popt) # values of the fit
+    resid = PDF - fit # residuals
+    residIntegral = sum(abs(resid)*grid_steps) # absolute resids integrated
+    
+    SQR = (resid**2).sum() # sum of squared residuals (SQR) = N*MSE (mean square error)
+    # total sum of squares ("Gesamtstreuung") SQT
+    SQT = sum((PDF - PDF.mean())**2) # = N*variance
+    
+    # coefficient of determination ("Bestimmheitsmaß") R^2 
+    # (NB: def. here is the same as for the coefficient of efficiency in Legates1999)
+    R2 = 1 - SQR/SQT # = 1 - MSE/variance
+    
+    mean, std = popt
+    
+    return fit, mean, std, residIntegral, R2
+
+
+
+def fitGaussianMixture(PDF, grid, grid_steps):
+    """ calculate least-squares fit of a superpositions of 2 Gaussian functions 
+    to a given PDF
+    """
+    from scipy.optimize import curve_fit
+    
+    # define mixture of 2 Gaussian fcts (integral normalized to 1)
+    def myGaussMix(d,m1,m2,s1,s2,w):
+        gauss1 = w/((2*np.pi)**0.5*s1)*np.exp(-(d-m1)**2/(2.*s1**2))
+        gauss2 = (1-w)/((2*np.pi)**0.5*s2)*np.exp(-(d-m2)**2/(2.*s2**2))
+        return gauss1 + gauss2
+    
+    popt, pcov = curve_fit(myGaussMix, grid, PDF)#, p0=[mean_start,1])
+    
+    fit = myGaussMix(grid, *popt) # values of the fit
+    resid = PDF - fit # residuals
+    residIntegral = sum(abs(resid)*grid_steps) # absolute resids integrated
+    
+    SQR = (resid**2).sum() # sum of squared residuals (SQR) = N*MSE (mean square error)
+    # total sum of squares ("Gesamtstreuung") SQT
+    SQT = sum((PDF - PDF.mean())**2) # = N*variance
+    
+    # coefficient of determination ("Bestimmheitsmaß") R^2 
+    # (NB: def. here is the same as for the coefficient of efficiency in Legates1999)
+    R2 = 1 - SQR/SQT # = 1 - MSE/variance
+    
+    # mean, std = popt
+    
+    return fit, residIntegral, R2, popt
+
+
+
+def PlotInfoboxFit(ax,residIntegral,R2,fit_mean,fit_median,fit_68CI):
+    """ add textbox to a plot containing fit results,
+    assuming one single contributing particle size
+    """
+    if fit_68CI[0] > fit_68CI[1]:
+        fit_68CI = fit_68CI[1],fit_68CI[0] # change order
+    
+    textstr = '\n'.join([r'FIT:',
+    r'$\mathrm{median}=  %.2f$ nm' % (fit_median),
+    r'$\mu = %.2f$ nm' % (fit_mean),
+    r'$1 \sigma = [%.2f, %.2f]$ nm' %(fit_68CI[0],fit_68CI[1]), 
+    r'$R^2 = {:.3f},$ resid.int. ${:.1f}$%'.format(R2, 100*residIntegral), ])
+    
+    props = dict(boxstyle='round', facecolor='honeydew', alpha=0.7)
+    
+    ax.text(0.51, 0.95, textstr, transform=ax.transAxes, 
+            fontsize=14, verticalalignment='top', bbox=props)
+
+
+
+def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True,
+                    fitInInvSpace=True, invGridEquidist=True, PDF_min_max_auto = None, 
+                    fitNdist=False, num_dist_max=2, statsInfoTitle=True, showFitInfobox=True, 
+                    fillplot=True, mycolor='C3', plotVlines=False, useCRLB=True):
+    """ calculate and plot the diameter probability density function of 
+    a particle ensemble as the sum of individual PDFs
+    NB: each trajectory is considered individually, the tracklength determines
+        the PDF widths
+        
+    HERE WE CALCULATE TRUE FITS
+
+    Parameters
+    ----------
+    fitNdist : boolean, optional
+        If True, a GMM is fitted to the data. The default is False.
+    num_dist_max : integer, optional
+        Maximum number of Gaussians to fit. Default is 2.
+
+    Returns
+    -------
+    prob_inv_diam
+    diam_grid
+    ax
+    """
+    import NanoObjectDetection as nd
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    DiameterPDF_Show = settings["Plot"]['DiameterPDF_Show']
+    DiameterPDF_Save = settings["Plot"]['DiameterPDF_Save']
+    
+    # define numerical grid
+    if invGridEquidist:
+        inv_grid = np.linspace(1,1000,999*100+1) # 1/um
+        # inv_grid_stepsize = inv_grid[1] - inv_grid[0] 
+    else:
+        s_grid = np.linspace(0.1,1000,10000) # nm
+        inv_grid = 1000/s_grid[::-1] # 1/um; grid in increasing order
+    
+    # get inverse PDF
+    PDF_inv, inv_grid_stepsizes = calcInversePDF(inv_grid, sizes_df_lin, settings, useCRLB)
+    
+    # get statistical quantities
+    diam_mean, _, diam_median, lim_68CI, lim_95CI = \
+        nd.statistics.GetMeanStdMedianCIfromPDF(PDF_inv, inv_grid, inv_grid_stepsizes)
+
+    num_trajectories = len(sizes_df_lin) 
+    
+    if plotInSizesSpace: # otherwise, PDF is plotted on inverse grid
+        mycolor = 'C2'
+        prefix = 'D'
+        unit = 'nm'
+        PDF, grid, grid_stepsizes = PDF_inv, inv_grid, inv_grid_stepsizes # save for fitting later
+        PDF_inv, inv_grid, inv_grid_stepsizes = convertPDFtoSizesSpace(PDF_inv, inv_grid)
+        
+        diam_median = 1000/diam_median
+        lim_68CI = 1000/lim_68CI[1], 1000/lim_68CI[0]
+        lim_95CI = 1000/lim_95CI[1], 1000/lim_95CI[0]
+        # med = np.median(nd.statistics.GetCI_Interval(PDF_inv, inv_grid, 0))
+        # CI68 = nd.statistics.GetCI_Interval(PDF_inv, inv_grid, 0.68) # same values as above
+        diam_mean = sum(PDF_inv*inv_grid*inv_grid_stepsizes) # definition of mean/expected value on continuous data
+        # diam_mean = 1000/diam_mean # this is NOT the same value (!)
+    else:
+        prefix = 'Inv. d'
+        unit = '1/$\mu$m'
+        
+    # set the x limits in the plot
+    if PDF_min_max_auto is None:
+        PDF_min_max_auto = settings["Plot"]["DiameterPDF_min_max_auto"]
+    if PDF_min_max_auto == 1:
+        PDF_min, PDF_max = nd.statistics.GetCI_Interval(PDF_inv, inv_grid, 0.999)
+        # PDF_min, PDF_max = nd.statistics.GetCI_Interval(prob_inv_diam, diam_grid, 0.999)
+        PDF_min = int(np.floor(PDF_min))
+        PDF_max = int(np.ceil(PDF_max))
+        if plotInSizesSpace:
+            PDF_min, PDF_max = PDF_max, PDF_min # switch
+    else:
+        PDF_min = settings["Plot"]['PDF_min'] 
+        PDF_max = settings["Plot"]['PDF_max'] 
+        
+        
+    # define plot labeling and axes limits
+    if statsInfoTitle:    
+        title = str("{:.0f} trajectories; mean: {:.2f}, median: {:.2f},\nCI68: [{:.2f}, {:.2f}], CI95: [{:.2f}, {:.2f}] ".format(num_trajectories,diam_mean,diam_median,*lim_68CI,*lim_95CI) + unit)
+    else:
+        title = str("{:.0f} trajectories".format(num_trajectories))
+    xlabel = prefix +"iameter ["+unit+"]"
+    ylabel = "Probability [a.u.]"
+    x_lim = [PDF_min, PDF_max]
+    # y_lim = [0, 1.1*np.max(prob_inv_diam)]
+    y_lim = [0, 1.1*np.max(PDF_inv)]
+#    sns.reset_orig()
+
+    # plot it!
+    ax = nd.visualize.Plot2DPlot(inv_grid, PDF_inv, title, xlabel, ylabel, mylinestyle = "-",  
+                                 mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0,0.01], 
+                                 semilogx = False, FillArea = fillplot, Color = mycolor)
+    
+    if plotVlines: # plot lines for mean, median and CI-intervals
+        ax.vlines([diam_mean], 0, [PDF_inv[np.isclose(inv_grid,diam_mean,rtol=0.002)].mean()],
+                  # transform=ax.get_xaxis_transform(), 
+                  colors='black', alpha=0.3)
+        ax.vlines([diam_median], 0, [PDF_inv[np.where(inv_grid==diam_median)]],
+                  # transform=ax.get_xaxis_transform(), 
+                  colors=mycolor, alpha=0.8)
+        ax.vlines([lim_68CI[0], lim_68CI[1]], 0, 
+                  [PDF_inv[np.where(inv_grid==lim_68CI[0])], PDF_inv[np.where(inv_grid==lim_68CI[1])]],
+                  # transform=ax.get_xaxis_transform(), 
+                  colors=mycolor, alpha=0.8, ls='--')
+        ax.vlines([lim_95CI[0], lim_95CI[1]], 0, 
+                  [PDF_inv[np.where(inv_grid==lim_95CI[0])], PDF_inv[np.where(inv_grid==lim_95CI[1])]],
+                  # transform=ax.get_xaxis_transform(), 
+                  colors=mycolor, alpha=0.8, ls=':')
+    
+    nd.logger.info("mean diameter: {:.3f}".format(diam_mean))
+    nd.logger.info("median diameter: {:.3f}".format(diam_median))
+    nd.logger.info("68CI interval: {:.3f}, {:.3f}".format(*lim_68CI))
+    nd.logger.info("95CI interval: {:.3f}, {:.3f}".format(*lim_95CI))
+    # nd.logger.info("... in "+unit)
+
+    fit = 'undone'
+    if settings["Plot"]["PDF_show_fit"] == 1:
+        max_PDF = PDF_inv.max()
+        
+        if fitNdist == False: # consider only one contributing particle size   
+            
+            if (fitInInvSpace^plotInSizesSpace):# '^' is the exclusive 'or' operator ('xor')
+                # case that plotting and fitting is to happen in the same space
+                # => fit Gaussian directly
+                
+                fit, mean, std, residIntegral, R2 = \
+                    nd.sandbox.fitGaussian(PDF_inv, inv_grid, inv_grid_stepsizes, diam_mean)
+                _, _, fit_median, fit_68CI, _ = \
+                    nd.statistics.GetMeanStdMedianCIfromPDF(fit, inv_grid, inv_grid_stepsizes)
+                    
+                ax.plot(inv_grid, fit)
+                
+                if showFitInfobox:
+                    PlotInfoboxFit(ax,residIntegral,R2,mean,fit_median,fit_68CI)
+                
+                nd.logger.info("Fit results: mean = {:.2f}, std = {:.3f}".format(mean,std))
+                nd.logger.info("Fit quality: residual integral = {:.4f}, R**2 = {:.4f}".format(residIntegral,R2))
+                    
+            elif (fitInInvSpace and plotInSizesSpace): # fit Gaussian in the inv. space and back-convert it
+                    
+                # OLD VERSION
+                # # plot reciprocal Gaussian equivalent to the original sizes ensemble
+                # nd.visualize.PlotReciprGauss1Size(ax, inv_grid, max_PDF, sizes_df_lin)
+                
+                fit, mean, std, residIntegral, R2 = \
+                    nd.sandbox.fitGaussian(PDF, grid, grid_stepsizes, diam_mean)
+                    
+                fit, _, _ = convertPDFtoSizesSpace(fit, grid)
+                fit_mean, _, fit_median, fit_68CI, _ = \
+                    nd.statistics.GetMeanStdMedianCIfromPDF(fit, inv_grid, inv_grid_stepsizes)
+                
+                ax.plot(inv_grid, fit, 'C3')
+                if showFitInfobox:
+                    PlotInfoboxFit(ax,residIntegral,R2,fit_mean,fit_median,fit_68CI)
+                
+                nd.logger.info("Fit results: mean = {:.3f}, median = {:.3f}, CI68 = [{:.3f},{:.3f}]".format(fit_mean,fit_median,fit_68CI[0],fit_68CI[1]))
+                nd.logger.info("Fit quality: residual integral = {:.4f}, R**2 = {:.4f}".format(residIntegral,R2))
+                    
+            else: 
+                nd.logger.warning("Fitting a distribution in sizes space and plotting it in the inversed is not implemented.")
+                nd.logger.info("No fit was performed.")
+                        
+                
+            
+        else: # consider multiple contributing particles sizes
+            print('to do ...')
+            
+            
+            # # MN: THE FOLLOWING IS A BIT EXPERIMENTAL... NEEDS REVIEW!!!
+            # # reduce the grid from 10000 to 1000 values
+            # diamsR = diam_grid[::10]
+            # probsR = prob_diam[::10] * 6E5 # scale up to be able to use the values as integers
+            # probsN = probsR.round()
+            # # create (large!) array with repeated diameter values, cf. weighting scheme
+            # sizesPDF = diamsR.repeat(np.array(probsN,dtype='int'))
+            
+            # diam_means, diam_stds, weights = \
+            #     nd.visualize.PlotReciprGaussNSizes(ax, diamsR, max_PDF, sizesPDF,
+            #                                        showICplot=showICplot, useAIC=useAIC,
+            #                                        num_dist_max=num_dist_max)
+            
+            # if showFitInfobox:
+            #     nd.visualize.PlotInfoboxMN(ax, diam_means, diam_stds, weights)
+    
+    if DiameterPDF_Save:
+        save_folder_name = settings["Plot"]["SaveFolder"]
+        
+        settings = nd.visualize.export(save_folder_name, "Diameter_Probability", settings,
+                                       data = sizes_df_lin, ShowPlot = DiameterPDF_Show)
+        
+        data = np.transpose(np.asarray([inv_grid, PDF_inv]))
+        nd.visualize.save_plot_points(data, save_folder_name, 'Diameter_Probability_Data')
+        
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)
+    
+    return PDF_inv, inv_grid, ax, fit
+
+
+
+
+
+
 # def AnimateTracksOnRawData(t2_long,rawframes_ROI,settings,max_frm=100,frm_start=0,gamma=1.0):
 #     """ animate trajectories on top of raw data
     
