@@ -40,7 +40,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
         output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile,oldSim=oldSim)
 
     else:
-
+        # get the parameters
         ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
         DoPreProcessing = (ImgConvolvedWithPSF == False)
 
@@ -55,7 +55,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
         output_empty = True
 
         while output_empty == True:
-            nd.logger.info("If you have problems with IOPUB data rate exceeded, take a look here: https://www.youtube.com/watch?v=B_YlLf6fa5A")
+            nd.logger.debug("If you have problems with IOPUB data rate exceeded, take a look here: https://www.youtube.com/watch?v=B_YlLf6fa5A")
 
             nd.logger.info("Minmass = %s", minmass)
             nd.logger.info("Separation = %s", separation)
@@ -65,54 +65,17 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
 
 
             # convert image to uint16 otherwise trackpy performs a min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
-            frames_np[frames_np < 0] = 0
-            frames_np = np.uint16(frames_np)
+            
+            if isinstance(frames_np, np.float) == True:
+                np.logger.warning("Given image is of datatype float. It is converted to int32. That is prone to errors for poor SNR; slow and memory waisting.")
+                frames_np = np.int32(frames_np)
 
+            #ExternalSlider is a bad way of finding out if Spyder or JupyterLab is running
             if ExternalSlider == False:
                 # HERE HAPPENS THE LOCALIZATION OF THE PARTICLES
-                num_frames = frames_np.shape[0]
-
-                if num_frames < 100:
-                    nd.logger.info("Find the particles - seriell")
-                    output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile)
-
-                else:
-                    num_cores = multiprocessing.cpu_count()
-                    nd.logger.info("Find the particles - parallel. Number of cores: %s", num_cores)
-                    inputs = range(num_frames)
-
-                    num_verbose = nd.handle_data.GetNumberVerbose()
-                    output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(tp.batch)(frames_np[loop_frame:loop_frame+1,:,:].copy(), diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile) for loop_frame in inputs)
-
-                    empty_frame = []
-                    #parallel looses frame number, so we add it again
-                    for frame_id,_ in enumerate(output_list):
-                        output_list[frame_id].frame = frame_id
-                        if len(output_list[frame_id]) == 0:
-                            empty_frame.append(frame_id)
-
-                    # go through empty frames (start from the back deleting otherwise indexing fails)
-                    for frame_id in (np.flip(empty_frame)):
-                        del output_list[frame_id]
-
-                    # make list of pandas to one big pandas
-                    output = pd.concat(output_list)
-                    
-                    # reset the index which starts at every frame again
-                    output = output.reset_index(drop=True)
-
-                    nd.logger.info("Find the particles - finished")
-
-            else:
-#               print("WARNING UPDATE THIS!")
-                output = tp.batch(frames_np, diameter, minmass = minmass, separation = (diameter, separation), max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
-
-
-            if ExternalSlider == True:
-                # leave without iteration, this is done outside by a slider
-                output_empty = False
-
-            else:
+                
+                output = FindSpots_tp(frames_np, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = True)
+                
                 # check if any particle is found. If not reduce minmass
                 if output.empty:
                     nd.logger.warning("Image is empty - reduce Minimal bead brightness")
@@ -122,48 +85,96 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
                     output_empty = False
                     nd.logger.info("Set all NaN in estimation precision to 0")
                     output.loc[np.isnan(output.ep), "ep"] = 0
-                    output['abstime'] = output['frame'] / settings["MSD"]["effective_fps"]
+                    output['abstime'] = output['frame'] / settings["MSD"]["effective_fps"]       
 
+            else:
+                nd.logger.warning("This needs an update!")
+                output = tp.batch(frames_np, diameter, minmass = minmass, separation = (diameter, separation), max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
+
+                # leave without iteration, this is done outside by a slider
+                output_empty = False
 
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
-
         if SaveFig == True:
-            from NanoObjectDetection.PlotProperties import axis_font, title_font
-
-#            params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
-            if ExternalSlider == False:
-                nd.logger.warning("Warning, RF trys something here...")
-                fig = plt.figure()
-                if frames_np.ndim == 3:
-                    plt.imshow(frames_np[0,:,:])
-                else:
-                    plt.imshow(frames_np[:,:])
-            else:
-                fig = plt.figure()
-                plt.figure(figsize = [20,20])
-                plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma), cmap = "gray")
-
-            if ExternalSlider == False:
-                plt.scatter(output["x"],output["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
-            else:
-                plt.scatter(output["x"],output["y"], s = 500, facecolors='none', edgecolors='r', linewidths=2)
-
-            plt.title("Identified Particles in first frame", **title_font)
-            plt.xlabel("long. Position [Px]", **axis_font)
-#            plt.ylabel("trans. Position [Px]", **axis_font)
-            save_folder_name = settings["Plot"]["SaveFolder"]
-            save_image_name = 'Optimize_First_Frame'
-
-
-            if ExternalSlider == False:
-                settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
-
-                nd.logger.warning("Ronny changed something here and did not had the time to check it")
-                #plt.close(fig)
+            FindSpots_plotting(frames_np, output, settings, gamma, ExternalSlider)
 
     return output # usually pd.DataFrame with feature position data
 
+
+def FindSpots_plotting(frames_np, output, settings, gamma, ExternalSlider):
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
+
+    # params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
+    if ExternalSlider == False:
+        nd.logger.warning("Warning, RF trys something here...")
+        fig = plt.figure()
+        if frames_np.ndim == 3:
+            plt.imshow(frames_np[0,:,:])
+        else:
+            plt.imshow(frames_np[:,:])
+    else:
+        fig = plt.figure()
+        plt.figure(figsize = [20,20])
+        plt.imshow(nd.handle_data.DispWithGamma(frames_np[0,:,:] ,gamma = gamma), cmap = "gray")
+
+    if ExternalSlider == False:
+        plt.scatter(output["x"],output["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
+    else:
+        plt.scatter(output["x"],output["y"], s = 500, facecolors='none', edgecolors='r', linewidths=2)
+
+    plt.title("Identified Particles in first frame", **title_font)
+    plt.xlabel("long. Position [Px]", **axis_font)
+#            plt.ylabel("trans. Position [Px]", **axis_font)
+    save_folder_name = settings["Plot"]["SaveFolder"]
+    save_image_name = 'Optimize_First_Frame'
+
+
+    if ExternalSlider == False:
+        settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
+
+        nd.logger.warning("Ronny changed something here and did not had the time to check it")
+        #plt.close(fig)
+
+
+
+def FindSpots_tp(frames_np, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = True):
+    # run trackpy with the given parameters seriell or parallel (faster after "long" loading time)
+    
+    num_frames = frames_np.shape[0]
+
+    if (DoParallel == False) or (num_frames < 100):
+        nd.logger.info("Find the particles - seriell: starting....")
+        output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile)
+
+    else:
+        num_cores = multiprocessing.cpu_count()
+        nd.logger.info("Find the particles - parallel (Number of cores: %s): starting....", num_cores)
+        inputs = range(num_frames)
+
+        num_verbose = nd.handle_data.GetNumberVerbose()
+        output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(tp.batch)(frames_np[loop_frame:loop_frame+1,:,:].copy(), diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile) for loop_frame in inputs)
+
+        empty_frame = []
+        #parallel looses frame number, so we add it again
+        for frame_id,_ in enumerate(output_list):
+            output_list[frame_id].frame = frame_id
+            if len(output_list[frame_id]) == 0:
+                empty_frame.append(frame_id)
+
+        # go through empty frames (start from the back deleting otherwise indexing fails)
+        for frame_id in (np.flip(empty_frame)):
+            del output_list[frame_id]
+
+        # make list of pandas to one big pandas
+        output = pd.concat(output_list)
+        
+        # reset the index which starts at every frame again
+        output = output.reset_index(drop=True)
+
+    nd.logger.info("Find the particles - finished")
+      
+    return output
 
 
 def QGridPandas(my_pandas):
@@ -363,7 +374,7 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
 
         # put the misplacement vector into the Kolmogorow-Smirnow significance test
         traj_has_error, stat_sign, dx = \
-        nd.CalcDiameter.CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.01,  PlotErrorIfTestFails = PlotErrorCheck, ID=particleid)
+        nd.CalcDiameter.KolmogorowSmirnowTest(nan_tm, traj_length, MinSignificance = 0.01,  PlotErrorIfTestFails = PlotErrorCheck, ID=particleid)
 
         if traj_has_error == True:
             #remove if traj has error

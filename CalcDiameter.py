@@ -20,14 +20,13 @@ import scipy.constants
 
 def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, 
           processOutput = True, t_beforeDrift = None):
+    """
+    Main function to retrieve the diameter ouf of an trajectory
+    """
     
     # read the parameters
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-    # get parameters
-    temp_water, amount_lagtimes_auto, MSD_fit_Show, MSD_fit_Save, do_rolling = GetSettingsParameters(settings)
-
-    """ 0.) """
     # preprocess trajectories if defined in json
     # (e.g. only use longest or split too long trajectories)
     t6_final_use, settings = SelectTrajectories(t6_final, settings)
@@ -37,61 +36,135 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
 
     #setup return variable
     sizes_df_lin=pd.DataFrame(columns={'diameter','particle'})       
-    sizes_df_lin_rolling = pd.DataFrame()   
     
+    nd.logger.warning("Variable sizes_df_lin_rolling is not longer calculated. That might be inserted later again. If you have this return variable in your CalcDiameter.Main(2) function that might cause an error.")
+        
     #boolean for plotting stuff
     any_successful_check = False
-    
-    # #boolean output if msd evaluation contributes to final result
-    # successfull_fit = []
 
 
     # LOOP THROUGH ALL THE PARTICLES
     for i,particleid in enumerate(particle_list_value):
-        if processOutput == True:
-            nd.logger.debug("Particle number: %s",  int(particleid))
+        nd.logger.debug("Particle number: %s",  int(particleid))
 
         # select trajectory to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
         
-        try:
-            t_bDrift = t_beforeDrift[t_beforeDrift.particle==particleid]
-        except:
-            t_bDrift = None
-        
-        
-        """ 1.) """
-        # define which lagtimes are used to fit the (first) MSD data
-        # if "auto" than max_counter defines the number of iteration steps
-        lagtimes_min, lagtimes_max, max_counter = MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm)
-        
-        
-        # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
-        nan_tm_sq, amount_frames_lagt1, traj_length, OptimizingStatus, any_successful_check, stat_sign, msd_fit_para, diff_direct_lin, lagtimes_max = \
-            OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_successful_check, MSD_fit_Show, max_counter)
 
+        # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
+        sizes_df_particle, OptimizingStatus = OptimizeMSD(eval_tm, settings, yEval, any_successful_check, t_beforeDrift = t_beforeDrift)
 
         if OptimizingStatus == "Successful":
+            any_successful_check = True
             # after the optimization is done -save the result in a large pandas.DataFrame
-            # summarize
-            sizes_df_lin = ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, t_beforeDrift = t_bDrift)
-    
-            # plot MSD if wanted
-            if MSD_fit_Show == True:
-                AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, MSD_fit_Show = True)
+            sizes_df_lin = sizes_df_lin.append(sizes_df_particle)
                           
     
-    if len(sizes_df_lin) == 0:
+    if any_successful_check == False:
         nd.logger.warning("No particle made it to the end!")
         
     else:
-        ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin)
-
-        # that is not done anymore    
-        sizes_df_lin_rolling = "Undone"
-        
+        ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin)       
     
-    return sizes_df_lin, sizes_df_lin_rolling, any_successful_check
+    return sizes_df_lin, any_successful_check
+
+
+
+def GetSettingsParameters(settings):
+    """ get required parameters out of the settings
+    """
+    temp_water = settings["Exp"]["Temperature"]
+    amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
+    MSD_fit_Show = settings["Plot"]['MSD_fit_Show']
+    MSD_fit_Save = settings["Plot"]['MSD_fit_Save']
+    do_rolling = settings["Time"]["DoRolling"]
+ 
+    # sanity checks    
+    if MSD_fit_Save == True:
+        MSD_fit_Show = True
+        
+    if amount_lagtimes_auto == 1:
+        if settings["Exp"]["gain"] == "unknown":
+            raise ValueError("Number of considered lagtimes can't be estimated "
+                             "automatically, if gain is unknown. Measure gain, or change 'Amount lagtime auto' values to 0.")
+    if temp_water < 250:
+        raise Exception("Temperature is below 250K! Check if the temperature is inserted in K not in C!")
+   
+    return temp_water, amount_lagtimes_auto, MSD_fit_Show, MSD_fit_Save, do_rolling
+
+
+
+def SelectTrajectories(t6_final, settings):
+    """ select a subset of particle trajectories, e.g. only the longest
+    """
+    
+    EvalOnlyLongestTraj = settings["MSD"]["EvalOnlyLongestTraj"]
+    Min_traj_length = settings["Link"]["Min_tracking_frames"]
+    Max_traj_length = settings["Split"]["Max_traj_length"]
+    
+    if EvalOnlyLongestTraj == 1:
+        longest_particle, longest_traj = nd.handle_data.GetTrajLengthAndParticleNumber(t6_final)
+    
+        settings["Split"]["ParticleWithLongestTrajBeforeSplit"] = longest_particle
+    
+        t6_final_use = t6_final[t6_final["particle"] == longest_particle].copy()
+    else:
+        t6_final_use = t6_final.copy()
+        
+    # split too long trajectories
+    if Max_traj_length is None:
+        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectory(t6_final_use, settings)
+    else:
+        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectory(t6_final_use, settings, Min_traj_length, Max_traj_length)
+        
+
+    return t6_final_use, settings
+
+
+
+def MSDFitLagtimes(settings, eval_tm, amount_lagtimes_auto = None):
+    """ define how many lagtimes are considered for the fit 
+    (initial values for optimization only!)
+    
+    amount_lagtimes_auto:   boolean that defines whether to set the number of lagtimes automatically
+    eval_tm:                trajectory data of a single particle
+    """ 
+    if amount_lagtimes_auto == None:
+        amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
+    
+    if amount_lagtimes_auto == 1:            
+        # maximum iteration
+        max_counter = 10
+       
+        # the lower lagtimes are always considered no matter how noise they are 
+        # (X. Michalet 2010, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3055791/ )
+        
+        traj_length = len(eval_tm)
+        
+        lagtimes_min = 1
+        lagtimes_max = np.int(traj_length/10)
+        
+        # lagtimes must be 2 at least
+        if lagtimes_max == 1:
+            lagtimes_max = 2
+        
+        # special rule for simulated data of very long track lengths
+        if settings["Simulation"]["SimulateData"] == 1:
+            if traj_length > 10:
+                nd.logger.warning("Ronny is not sure if this satisfies every user!")
+                nd.logger.debug("Use 100 Lagtimes as a starting value, instead of TrajLength/100")
+                lagtimes_max = 10
+        
+        nd.logger.debug("Currently considered lagtimes (offset, slope): %s", lagtimes_max)              
+    else:
+        max_counter = 1
+        lagtimes_min = settings["MSD"]["lagtimes_min"]
+        lagtimes_max = settings["MSD"]["lagtimes_max"]
+
+    # lagtimes max is different for offset and slope
+    lagtimes_max = [lagtimes_max, lagtimes_max]
+
+    return lagtimes_min, lagtimes_max, max_counter
 
 
 
@@ -122,7 +195,19 @@ def sizes_df_lin2csv(settings, sizes_df_lin):
 
 
 
-def OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_successful_check, MSD_fit_Show, max_counter):
+def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, MSD_fit_Show = None, max_counter = None, lagtimes_min = None, lagtimes_max = None, t_beforeDrift = None):
+    """
+    Calculates the MSD, finds the optimal number of fitting points (iterativly) and fits the MSD-curve
+    """
+    
+    if t_beforeDrift is not None:
+        particleid = eval_tm["particle"].iloc[0]
+        t_beforeDrift = t_beforeDrift[t_beforeDrift.particle==particleid]
+
+    
+    # get the start Parameters of the MSD fitting if not all given
+    if (lagtimes_min == None) or (lagtimes_max == None) or (max_counter == None):
+        lagtimes_min, lagtimes_max, max_counter = MSDFitLagtimes(settings, eval_tm)
     
     amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
     
@@ -132,9 +217,7 @@ def OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_succes
         
     # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
     while OptimizingStatus == "Continue":
-    
-        """ 2.) """
-        # calculate MSD
+        """  1 - calculate MSD """
         nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
         CalcMSD(eval_tm, settings, lagtimes_min = lagtimes_min, 
                 lagtimes_max = lagtimes_max, yEval = yEval)
@@ -144,27 +227,18 @@ def OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_succes
             OptimizingStatus = "Abort"
             
         else:
-            # open a window to plot MSD into
-            any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
-            
-            """ 3.) """
-            try: # ... if KS test was done before already
-                stat_sign = eval_tm['stat_sign'].mean() # note: always the same value anyways
-                if stat_sign >= 0.01:
-                    traj_has_error = False
-                else:
-                    traj_has_error = True
-            except KeyError:
-                # check if datapoints in first lagtime are normal distributed
-                traj_has_error, stat_sign, _ = CheckIfTrajectoryHasError(nan_tm, traj_length, 
-                                                                         MinSignificance = 0.01)
+            # ... if Kolmogorow Smirnow Test was done before already
+            if 'stat_sign' in (eval_tm.keys()):
+                stat_sign = eval_tm['stat_sign'].mean() # same value for all
+            else:
+            # check if datapoints in first lagtime are normal distributed
+                _, stat_sign, _ = KolmogorowSmirnowTest(nan_tm, traj_length)
                 
-            # only continue if trajectory is good
-            if traj_has_error == True:
+            # only continue of trajectory shows brownian (gaussian) motion
+            if stat_sign < 0.01:
                 OptimizingStatus = "Abort"
-                
             else:    
-                """ 4.) """
+                """ Avg each lagtime and fit the MSD Plot """
                 # calc MSD and fit linear function through it
                 msd_fit_para, diff_direct_lin, diff_std = \
                 AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1)
@@ -174,276 +248,37 @@ def OptimizeMSD(eval_tm, settings, lagtimes_min, lagtimes_max, yEval, any_succes
                     lagtimes_max, OptimizingStatus = UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_lagt1, lagtimes_max)
                
         
-        # Check if a new iteration shall be done
-        if max_counter == 1: # dont do optimization
-            OptimizingStatus = "Successful"        
-        elif counter < max_counter: #iterate again
-            counter = counter + 1           
-        else: # abort since it does not converge
-            nd.logger.debug("Does not converge")
-            OptimizingStatus = "Abort"
-
-
-    return nan_tm_sq, amount_frames_lagt1, traj_length, OptimizingStatus, any_successful_check, stat_sign, msd_fit_para, diff_direct_lin, lagtimes_max
-
-
-
-def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, 
-         frames_per_second = None, amount_summands = None, amount_lagtimes = None, 
-         amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, 
-         EvalOnlyLongestTraj = 0, Max_traj_length = None, yEval = False, 
-         processOutput=True, t_beforeDrift=None):
-    """ calculate diameters of individual particles via mean squared displacement analysis
-    
-    Procedure:
-    0.) filter trajectories (optional)
-    1.) set the amount of lag-times (globally or individually)
-    2.) construct matrix with squared displacement values for all defined lag-times 
-        (for each trajectory)
-    3.) check if displacement values are normal distributed (Kolmogorow-Smirnow test)
-    4.) calculate mean of the squared displacement values ...
-    
-    # [documentation still under construction...]
-    # 3.) calculate mean and variance of lag-times for each particle
-    # 4.) regress each particle individually linearly: MSD per lag-time 
-    # 5.) slope of regression used to calculate size of particle
-    # 6.) standard error of lagtime=1 used as error on slope
-    
-
-    Parameters
-    ----------
-    t6_final : pandas.DataFrame
-        Trajectory data.
-    ParameterJsonFile : path
-        Location of the json parameter file.
-    obj_all : pandas.DataFrame
-        Object location data.
-    microns_per_pixel : float, optional
-        Pixel to micrometer conversion number (usually contained in json parameter file). 
-        The default is None.
-    frames_per_second : float, optional
-        Framerate at which the trajectories were taken. (usually contained in json parameter file)
-        The default is None.
-    amount_summands : int, optional
-        If the MSD for a given lag-time is calculated by less than this amount of summands, 
-        the corresponding lag-time is disregarded in the fit. The default is None.
-    amount_lagtimes : int, optional
-        Number of lag-times to be considered.
-        If the particle has less than this amount of valid lag-times to fit, 
-        the particle is not taken into account. The default is None.
-    amount_lagtimes_auto : 0, 1 or None, optional
-        DESCRIPTION. The default is None.
-    Histogramm_Show : bool, optional
-        DESCRIPTION. The default is True.
-    MSD_fit_Show : bool, optional
-        DESCRIPTION. The default is False.
-    EvalOnlyLongestTraj : 0 or 1, optional
-        If set to 1, only the longest trajectory in t6_final is evaluated. The default is 0.
-    Max_traj_length : int, optional
-        If longer trajectories are present, they get cut at this value. The default is None.
-    yEval : bool, optional
-        If set to True, the MSD analysis is done along the transverse (y) axis
-        instead of along the fiber (x). The default is False.
-    processOutput : bool, optional
-        Get some more info printout during processing. The default is True.
-    t_beforeDrift : pandas.DataFrame or None, optional
-        Trajectory data needed to calculate the initial positions "x/y in first frame"
-        before drift correction. If not given, the values from t6_final are taken and
-        are usually not identical to the values in the rawdata. The default is None.
-
-    Returns
-    -------
-    sizes_df_lin : pandas.DataFrame
-        DESCRIPTION.
-    sizes_df_lin_rolling : pandas.DataFrame
-        DESCRIPTION.
-    any_successful_check : bool
-        If Ture, at least one trajectory could be evaluated.
-
-    """
-    # read the parameters
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-
-    # get parameters
-    temp_water, amount_lagtimes_auto, MSD_fit_Show, MSD_fit_Save, do_rolling = GetSettingsParameters(settings)
-
-    """ 0.) """
-    # preprocess trajectories if defined in json
-    # (e.g. only use longest or split too long trajectories)
-    t6_final_use, settings = SelectTrajectories(t6_final, settings)
-
-    # list of particles id
-    particle_list_value = list(t6_final_use.particle.drop_duplicates())
-
-    #setup return variable
-    sizes_df_lin=pd.DataFrame(columns={'diameter','particle'})       
-    sizes_df_lin_rolling = pd.DataFrame()   
-    
-    #boolean for plotting stuff
-    any_successful_check = False
-    
-    # #boolean output if msd evaluation contributes to final result
-    # successfull_fit = []
-
-
-    # LOOP THROUGH ALL THE PARTICLES
-    for i,particleid in enumerate(particle_list_value):
-        if processOutput == True:
-            nd.logger.debug("Particle number: %s",  int(particleid))
-
-        # select trajectory to analyze
-        eval_tm = t6_final_use[t6_final_use.particle==particleid]
-        if t_beforeDrift is None:
-            t_bDrift = None
-        else:
-            t_bDrift = t_beforeDrift[t_beforeDrift.particle==particleid]
-        
-        """ 1.) """
-        # define which lagtimes are used to fit the MSD data
-        # if "auto" than max_counter defines the number of iteration steps
-        lagtimes_min, lagtimes_max, max_counter = MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm)
-        
-        # boolean to leave optimization counter of the loop    
-        OptimizingStatus = "Continue"
-        counter = 0
-        error_counter = 0
-
-        
-        # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
-        while OptimizingStatus == "Continue":
-            
-            """ 2.) """
-            # calculate MSD
-            nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
-            CalcMSD(eval_tm, settings, lagtimes_min = lagtimes_min, 
-                    lagtimes_max = lagtimes_max, yEval = yEval)
-
-            # just continue if there are enough data points
-            if enough_values in ["TooShortTraj", "TooManyHoles"]:
-                OptimizingStatus = "Abort"
-                
-            else:
-                # open a window to plot MSD into
-                any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
-                
-                """ 3.) """
-                # check if datapoints in first lagtime are normal distributed
-                traj_has_error, stat_sign, dx = CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.01)
-                
-                # only continue if trajectory is good, otherwise plot the error
-                if traj_has_error == True:
-                    OptimizingStatus = "Abort"
-                    if processOutput == True:
-                        nd.logger.debug("Trajectory has error. Particle ID: %s", particleid)
-                        nd.logger.debug("Kolmogorow-Smirnow test significance: ", stat_sign)
-                    error_counter += 1
-                    
-                else:    
-                    """ 4.) """
-                    # calc MSD and fit linear function through it
-                    msd_fit_para, diff_direct_lin, diff_std = \
-                    AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = False)
-                            
-                    # recalculate fitting range p_min
-                    if amount_lagtimes_auto == 1:
-                        lagtimes_max, OptimizingStatus = UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_lagt1, lagtimes_max)
-
-                    # do it time resolved                    
-                    if do_rolling == True:
-                        bp()
-                        diff_direct_lin_rolling = \
-                        AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = True)                        
-
-
-            if max_counter == 1:
-                # dont do optimization
-                OptimizingStatus = "Successful"
-            
-            else:
-                # decide if the previous loop is executed again
-                if counter >= max_counter:
-                    # abort since it does not converge
+                # Check if a new iteration shall be done
+                if max_counter == 1: # dont do optimization
+                    OptimizingStatus = "Successful"        
+                elif counter < max_counter: #iterate again
+                    counter = counter + 1           
+                else: # abort since it does not converge
                     nd.logger.debug("Does not converge")
                     OptimizingStatus = "Abort"
-                else:
-                    # run again till it converges or max number of iterations is exceeded
-                    counter = counter + 1
 
 
-        if OptimizingStatus == "Successful":
-            # after the optimization is done -save the result in a large pandas.DataFrame
-            # summarize
-            sizes_df_lin = ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = False, t_beforeDrift=t_bDrift)
+    # save all the results of the particle into a pandas
+    sizes_df_particle=pd.DataFrame(columns={'diameter','particle'})  
     
-            # plot MSD if wanted
-            if MSD_fit_Show == True:
-                AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, 
-                             amount_frames_lagt1, DoRolling = False, MSD_fit_Show = True)
-                       
-            # do it time resolved                    
-            if do_rolling == True:
-                bp()                        
-                sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling,
-                                                           diff_direct_lin, traj_length, lagtimes_max,
-                                                           amount_frames_lagt1, stat_sign, msd_fit_para,
-                                                           DoRolling = True)
-    # ============= here ends the long loop over all trajectories =============
-        
-    if len(sizes_df_lin) == 0:
-        nd.logger.warning("No particle made it to the end!!!")
-        
-    else:
-        AdjustMSDPlot(MSD_fit_Show)
-        
-        sizes_df_lin = sizes_df_lin.set_index('particle')
+    if OptimizingStatus == "Successful":
+        # open a window to plot for the MSD if not open yet
+        any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
+                
+        sizes_df_particle = ConcludeResultsMain(settings, eval_tm, sizes_df_particle, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = False, t_beforeDrift = t_beforeDrift)
     
-        if do_rolling == True:
-            sizes_df_lin_rolling = sizes_df_lin_rolling.set_index('frame')
-        else:
-            sizes_df_lin_rolling = "Undone"
     
-        if MSD_fit_Save == True:
-            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD_Fit", settings, ShowPlot = settings["Plot"]["MSD_fit_Show"])
-        
-        if settings["Plot"]["save_data2csv"] == True:
-            save_folder_name = settings["Plot"]["SaveFolder"]
-            save_file_name = "sizes_df_lin"
-            my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
-            sizes_df_lin.to_csv(entire_path_file)
-            nd.logger.info('Data stored in: %s', format(my_dir_name))
-        
-        nd.handle_data.WriteJson(ParameterJsonFile, settings) 
-
+        # plot MSD if wanted
+        if MSD_fit_Show == None:
+            MSD_fit_Show = settings["Plot"]['MSD_fit_Show']
     
-    return sizes_df_lin, sizes_df_lin_rolling, any_successful_check
+        # plot MSD if wanted
+        if MSD_fit_Show == True:
+            AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, MSD_fit_Show = True)
 
 
+    return sizes_df_particle, OptimizingStatus
 
-def GetSettingsParameters(settings):
-    """ get required parameters out of the settings
-    """
-    temp_water = settings["Exp"]["Temperature"]
-    amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
-    MSD_fit_Show = settings["Plot"]['MSD_fit_Show']
-    MSD_fit_Save = settings["Plot"]['MSD_fit_Save']
-    do_rolling = settings["Time"]["DoRolling"]
- 
-    # sanity checks    
-    if MSD_fit_Save == True:
-        MSD_fit_Show = True
-        
-    if amount_lagtimes_auto == 1:
-        if settings["Exp"]["gain"] == "unknown":
-            raise ValueError("Number of considered lagtimes can't be estimated "
-                             "automatically, if gain is unknown. Measure gain, or change 'Amount lagtime auto' values to 0.")
-    if temp_water < 250:
-        raise Exception("Temperature is below 250K! Check if the temperature is inserted in K not in C!")
-   
-    return temp_water, amount_lagtimes_auto, MSD_fit_Show, MSD_fit_Save, do_rolling
-
-
-
-# 
 
 
 
@@ -470,48 +305,6 @@ def GetVisc(settings):
 
 
 
-def SelectTrajectories(t6_final, settings):
-    """ select a subset of particle trajectories, e.g. only the longest
-
-    Parameters
-    ----------
-    t6_final : pandas.DataFrame
-        DESCRIPTION.
-    settings : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    t6_final_use : pandas.DataFrame
-        DESCRIPTION.
-    settings : TYPE
-        DESCRIPTION.
-    """
-    
-    EvalOnlyLongestTraj = settings["MSD"]["EvalOnlyLongestTraj"]
-    Min_traj_length = settings["Link"]["Min_tracking_frames"]
-    Max_traj_length = settings["Split"]["Max_traj_length"]
-    
-    if EvalOnlyLongestTraj == 1:
-        longest_particle, longest_traj = nd.handle_data.GetTrajLengthAndParticleNumber(t6_final)
-    
-        settings["Split"]["ParticleWithLongestTrajBeforeSplit"] = longest_particle
-    
-        t6_final_use = t6_final[t6_final["particle"] == longest_particle].copy()
-    else:
-        t6_final_use = t6_final.copy()
-        
-    # split too long trajectories
-    if Max_traj_length is None:
-        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectory(t6_final_use, settings)
-    else:
-        t6_final_use = nd.get_trajectorie.split_traj_at_long_trajectory(t6_final_use, settings, Min_traj_length, Max_traj_length)
-        
-
-    return t6_final_use, settings
-
-
-
 def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
     """ extract information from trajectory DataFrame of a single particle
     
@@ -520,26 +313,6 @@ def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
     eval_tm : pandas.DataFrame
         ... ideally containing all information about a single trajectory.
 
-    Returns
-    -------
-    start_frame : TYPE
-        DESCRIPTION.
-    mean_mass : TYPE
-        DESCRIPTION.
-    mean_size : TYPE
-        DESCRIPTION.
-    mean_ecc : TYPE
-        DESCRIPTION.
-    mean_signal : TYPE
-        DESCRIPTION.
-    mean_raw_mass : TYPE
-        DESCRIPTION.
-    mean_ep : TYPE
-        DESCRIPTION.
-    max_step : TYPE
-        DESCRIPTION.
-    true_particle : TYPE
-        DESCRIPTION.
 
     """
     start_frame = int(eval_tm.iloc[0].frame)
@@ -591,71 +364,14 @@ def CreateNewMSDPlot(any_successful_check, MSD_fit_Show):
     return any_successful_check
 
 
-
-def MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm):
-    """ define how many lagtimes are considered for the fit 
-    (initial values for optimization only!)
-    
-    amount_lagtimes_auto:   boolean that defines whether to set the number of lagtimes automatically
-    eval_tm:                trajectory data of a single particle
-    """ 
-    if amount_lagtimes_auto == 1:            
-        # maximum iteration
-        max_counter = 10
-       
-        # the lower lagtimes are always considered no matter how noise they are 
-        # (X. Michalet 2010, https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3055791/ )
-        
-        traj_length = len(eval_tm)
-        
-        lagtimes_min = 1
-        lagtimes_max = np.int(traj_length/10)
-        
-        # lagtimes must be 2 at least
-        if lagtimes_max == 1:
-            lagtimes_max = 2
-        
-        # special rule for simulated data of very long track lengths
-        if settings["Simulation"]["SimulateData"] == 1:
-            if traj_length > 10:
-                nd.logger.debug("Use 100 Lagtimes as a starting value, instead of TrajLength/100")
-                lagtimes_max = 10
-        
-        nd.logger.debug("Currently considered lagtimes (offset, slope):", lagtimes_max)              
-    else:
-        max_counter = 1
-        lagtimes_min = settings["MSD"]["lagtimes_min"]
-        lagtimes_max = settings["MSD"]["lagtimes_max"]
-
-    # lagtimes max is different for offset and slope
-    lagtimes_max = [lagtimes_max, lagtimes_max]
-
-    return lagtimes_min, lagtimes_max, max_counter
-
-
-
 def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, PlotAlways = False, ID='unknown', processOutput = False):
-    """ perform a Kolmogorow-Smirnow test on the displacement values of a trajectory
+    nd.logger.error("Function name is old. Use KolmogorowSmirnowTest instead")
     
-    Parameters
-    ----------
-    nan_tm : TYPE
-        DESCRIPTION.
-    traj_length : TYPE
-        DESCRIPTION.
-    MinSignificance : TYPE, optional
-        DESCRIPTION. The default is 0.1.
-    PlotErrorIfTestFails : TYPE, optional
-        DESCRIPTION. The default is False.
-    PlotAlways : TYPE, optional
-        DESCRIPTION. The default is False.
-    ID : TYPE, optional
-        DESCRIPTION. The default is 'unknown'.
+    return KolmogorowSmirnowTest(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, PlotAlways = False, ID='unknown', processOutput = False)
 
-    Returns
-    -------
-    traj_has_error, stat_sign, dx
 
+def  KolmogorowSmirnowTest(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, PlotAlways = False, ID='unknown', processOutput = False):
+    """ perform a Kolmogorow-Smirnow test on the displacement values of a trajectory
     """
     
     # get movement between two CONSECUTIVE frames
@@ -1179,26 +895,6 @@ def FitMSDRolling(lagt_direct, amount_frames_lagt1, mean_displ_direct, mean_disp
 def DiffusionToDiameter(diffusion, UseHindranceFac = 0, fibre_diameter_nm = None, temp_water = 295, visc_water = 9.5e-16, DoRolling = False):
     """ convert diffusion value to hydrodynamic diameter 
     (optionally) with taking the hindrance factor into account
-
-    Parameters
-    ----------
-    diffusion : TYPE
-        DESCRIPTION.
-    UseHindranceFac : TYPE, optional
-        DESCRIPTION. The default is 0.
-    fibre_diameter_nm : TYPE, optional
-        DESCRIPTION. The default is None.
-    temp_water : TYPE, optional
-        DESCRIPTION. The default is 295.
-    visc_water : TYPE, optional
-        DESCRIPTION. The default is 9.5e-16.
-    DoRolling : TYPE, optional
-        DESCRIPTION. The default is False.
-
-    Returns
-    -------
-    diameter_corr
-
     """
     const_Boltz = scipy.constants.Boltzmann 
     
@@ -1302,7 +998,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
                            red_x, max_step, true_particle, stat_sign = stat_sign,
                            start_x=start_x, start_y=start_y)
     else:
-        bp()
+        nd.logger.error("This is not implemented yet.")
 
     return sizes_df_lin
 
@@ -1620,6 +1316,244 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
                           weighting=True, showICplot=False, useAIC=True):
     sys.exit("StatisticDistribution has moved to statistics.py! Please change if you see this")
     
+    
+
+def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, 
+         frames_per_second = None, amount_summands = None, amount_lagtimes = None, 
+         amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, 
+         EvalOnlyLongestTraj = 0, Max_traj_length = None, yEval = False, 
+         processOutput=True, t_beforeDrift=None):
+    
+    
+    nd.logger.warning("This is an old function. Call Main2 instead...")
+    sizes_df_lin, sizes_df_lin_rolling, any_successful_check = Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, processOutput = True, t_beforeDrift = None)
+    
+    
+    
+    # """ calculate diameters of individual particles via mean squared displacement analysis
+    
+    # Procedure:
+    # 0.) filter trajectories (optional)
+    # 1.) set the amount of lag-times (globally or individually)
+    # 2.) construct matrix with squared displacement values for all defined lag-times 
+    #     (for each trajectory)
+    # 3.) check if displacement values are normal distributed (Kolmogorow-Smirnow test)
+    # 4.) calculate mean of the squared displacement values ...
+    
+    # # [documentation still under construction...]
+    # # 3.) calculate mean and variance of lag-times for each particle
+    # # 4.) regress each particle individually linearly: MSD per lag-time 
+    # # 5.) slope of regression used to calculate size of particle
+    # # 6.) standard error of lagtime=1 used as error on slope
+    
+
+    # Parameters
+    # ----------
+    # t6_final : pandas.DataFrame
+    #     Trajectory data.
+    # ParameterJsonFile : path
+    #     Location of the json parameter file.
+    # obj_all : pandas.DataFrame
+    #     Object location data.
+    # microns_per_pixel : float, optional
+    #     Pixel to micrometer conversion number (usually contained in json parameter file). 
+    #     The default is None.
+    # frames_per_second : float, optional
+    #     Framerate at which the trajectories were taken. (usually contained in json parameter file)
+    #     The default is None.
+    # amount_summands : int, optional
+    #     If the MSD for a given lag-time is calculated by less than this amount of summands, 
+    #     the corresponding lag-time is disregarded in the fit. The default is None.
+    # amount_lagtimes : int, optional
+    #     Number of lag-times to be considered.
+    #     If the particle has less than this amount of valid lag-times to fit, 
+    #     the particle is not taken into account. The default is None.
+    # amount_lagtimes_auto : 0, 1 or None, optional
+    #     DESCRIPTION. The default is None.
+    # Histogramm_Show : bool, optional
+    #     DESCRIPTION. The default is True.
+    # MSD_fit_Show : bool, optional
+    #     DESCRIPTION. The default is False.
+    # EvalOnlyLongestTraj : 0 or 1, optional
+    #     If set to 1, only the longest trajectory in t6_final is evaluated. The default is 0.
+    # Max_traj_length : int, optional
+    #     If longer trajectories are present, they get cut at this value. The default is None.
+    # yEval : bool, optional
+    #     If set to True, the MSD analysis is done along the transverse (y) axis
+    #     instead of along the fiber (x). The default is False.
+    # processOutput : bool, optional
+    #     Get some more info printout during processing. The default is True.
+    # t_beforeDrift : pandas.DataFrame or None, optional
+    #     Trajectory data needed to calculate the initial positions "x/y in first frame"
+    #     before drift correction. If not given, the values from t6_final are taken and
+    #     are usually not identical to the values in the rawdata. The default is None.
+
+    # Returns
+    # -------
+    # sizes_df_lin : pandas.DataFrame
+    #     DESCRIPTION.
+    # sizes_df_lin_rolling : pandas.DataFrame
+    #     DESCRIPTION.
+    # any_successful_check : bool
+    #     If Ture, at least one trajectory could be evaluated.
+
+    # """
+    # # read the parameters
+    # settings = nd.handle_data.ReadJson(ParameterJsonFile)
+
+    # # get parameters
+    # temp_water, amount_lagtimes_auto, MSD_fit_Show, MSD_fit_Save, do_rolling = GetSettingsParameters(settings)
+
+    # """ 0.) """
+    # # preprocess trajectories if defined in json
+    # # (e.g. only use longest or split too long trajectories)
+    # t6_final_use, settings = SelectTrajectories(t6_final, settings)
+
+    # # list of particles id
+    # particle_list_value = list(t6_final_use.particle.drop_duplicates())
+
+    # #setup return variable
+    # sizes_df_lin=pd.DataFrame(columns={'diameter','particle'})       
+    # sizes_df_lin_rolling = pd.DataFrame()   
+    
+    # #boolean for plotting stuff
+    # any_successful_check = False
+    
+    # # #boolean output if msd evaluation contributes to final result
+    # # successfull_fit = []
+
+
+    # # LOOP THROUGH ALL THE PARTICLES
+    # for i,particleid in enumerate(particle_list_value):
+    #     if processOutput == True:
+    #         nd.logger.debug("Particle number: %s",  int(particleid))
+
+    #     # select trajectory to analyze
+    #     eval_tm = t6_final_use[t6_final_use.particle==particleid]
+    #     if t_beforeDrift is None:
+    #         t_bDrift = None
+    #     else:
+    #         t_bDrift = t_beforeDrift[t_beforeDrift.particle==particleid]
+        
+    #     """ 1.) """
+    #     # define which lagtimes are used to fit the MSD data
+    #     # if "auto" than max_counter defines the number of iteration steps
+    #     lagtimes_min, lagtimes_max, max_counter = MSDFitLagtimes(settings, amount_lagtimes_auto, eval_tm)
+        
+    #     # boolean to leave optimization counter of the loop    
+    #     OptimizingStatus = "Continue"
+    #     counter = 0
+    #     error_counter = 0
+
+        
+    #     # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
+    #     while OptimizingStatus == "Continue":
+            
+    #         """ 2.) """
+    #         # calculate MSD
+    #         nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
+    #         CalcMSD(eval_tm, settings, lagtimes_min = lagtimes_min, 
+    #                 lagtimes_max = lagtimes_max, yEval = yEval)
+
+    #         # just continue if there are enough data points
+    #         if enough_values in ["TooShortTraj", "TooManyHoles"]:
+    #             OptimizingStatus = "Abort"
+                
+    #         else:
+    #             # open a window to plot MSD into
+    #             any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
+                
+    #             """ 3.) """
+    #             # check if datapoints in first lagtime are normal distributed
+    #             traj_has_error, stat_sign, dx = CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.01)
+                
+    #             # only continue if trajectory is good, otherwise plot the error
+    #             if traj_has_error == True:
+    #                 OptimizingStatus = "Abort"
+    #                 if processOutput == True:
+    #                     nd.logger.debug("Trajectory has error. Particle ID: %s", particleid)
+    #                     nd.logger.debug("Kolmogorow-Smirnow test significance: ", stat_sign)
+    #                 error_counter += 1
+                    
+    #             else:    
+    #                 """ 4.) """
+    #                 # calc MSD and fit linear function through it
+    #                 msd_fit_para, diff_direct_lin, diff_std = \
+    #                 AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = False)
+                            
+    #                 # recalculate fitting range p_min
+    #                 if amount_lagtimes_auto == 1:
+    #                     lagtimes_max, OptimizingStatus = UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_lagt1, lagtimes_max)
+
+    #                 # do it time resolved                    
+    #                 if do_rolling == True:
+    #                     bp()
+    #                     diff_direct_lin_rolling = \
+    #                     AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = True)                        
+
+
+    #         if max_counter == 1:
+    #             # dont do optimization
+    #             OptimizingStatus = "Successful"
+            
+    #         else:
+    #             # decide if the previous loop is executed again
+    #             if counter >= max_counter:
+    #                 # abort since it does not converge
+    #                 nd.logger.debug("Does not converge")
+    #                 OptimizingStatus = "Abort"
+    #             else:
+    #                 # run again till it converges or max number of iterations is exceeded
+    #                 counter = counter + 1
+
+
+    #     if OptimizingStatus == "Successful":
+    #         # after the optimization is done -save the result in a large pandas.DataFrame
+    #         # summarize
+    #         sizes_df_lin = ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = False, t_beforeDrift=t_bDrift)
+    
+    #         # plot MSD if wanted
+    #         if MSD_fit_Show == True:
+    #             AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, 
+    #                          amount_frames_lagt1, DoRolling = False, MSD_fit_Show = True)
+                       
+    #         # do it time resolved                    
+    #         if do_rolling == True:
+    #             bp()                        
+    #             sizes_df_lin_rolling = ConcludeResultsMain(settings, eval_tm, diff_direct_lin_rolling,
+    #                                                        diff_direct_lin, traj_length, lagtimes_max,
+    #                                                        amount_frames_lagt1, stat_sign, msd_fit_para,
+    #                                                        DoRolling = True)
+    # # ============= here ends the long loop over all trajectories =============
+        
+    # if len(sizes_df_lin) == 0:
+    #     nd.logger.warning("No particle made it to the end!!!")
+        
+    # else:
+    #     AdjustMSDPlot(MSD_fit_Show)
+        
+    #     sizes_df_lin = sizes_df_lin.set_index('particle')
+    
+    #     if do_rolling == True:
+    #         sizes_df_lin_rolling = sizes_df_lin_rolling.set_index('frame')
+    #     else:
+    #         sizes_df_lin_rolling = "Undone"
+    
+    #     if MSD_fit_Save == True:
+    #         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD_Fit", settings, ShowPlot = settings["Plot"]["MSD_fit_Show"])
+        
+    #     if settings["Plot"]["save_data2csv"] == True:
+    #         save_folder_name = settings["Plot"]["SaveFolder"]
+    #         save_file_name = "sizes_df_lin"
+    #         my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
+    #         sizes_df_lin.to_csv(entire_path_file)
+    #         nd.logger.info('Data stored in: %s', format(my_dir_name))
+        
+    #     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
+
+    
+    # return sizes_df_lin, sizes_df_lin_rolling, any_successful_check    
+
 
 # def GetFiberDiameter(settings):
 #     """ take or calculate the fiber channel diameter

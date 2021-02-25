@@ -377,16 +377,51 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
                                           histogramm_max, title, xlabel, ylabel)
   
     if Histogramm_Save == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings,
-                                       data = sizes_df_lin)
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm_Time", settings, data = sizes_df_lin)
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
 
 
-def PlotDiameter2DHistogramm(sizes_df_lin, binning, 
-                             histogramm_min = 0, histogramm_max = 10000, 
-                             title = '', xlabel = '', ylabel = ''):
+def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 10000, title = '', xlabel = '', ylabel = ''):
+    """ plot a histogram of particles sizes
+
+    Parameters
+    ----------
+    sizes : pandas.Series
+    binning : 
+
+    Returns
+    -------
+    values_hist : 
+    ax : AxesSubplot object
+
+    """
+    from NanoObjectDetection.PlotProperties import axis_font, title_font
+    # import NanoObjectDetection as nd
+
+#    plt.figure()
+    fig, ax = plt.subplots()
+    diameters = sizes
+    show_diameters = diameters[(diameters >= histogramm_min) & (diameters <= histogramm_max)]
+    values_hist, positions_hist = np.histogram(sizes, bins = binning)
+    # histogram of sizes, only taking into account 
+    sns.distplot(show_diameters, bins=binning, rug=True, kde=False) 
+    #those that are below threshold size as defined in the initial parameters
+#    plt.rc('text', usetex=True)
+    plt.rc('text', usetex=False)
+    plt.title(title, **title_font)
+    #   plt.ylabel(r'absolute occurrence')
+    plt.ylabel(ylabel, **axis_font)
+    plt.xlabel(xlabel, **axis_font)
+    plt.grid(True)
+ 
+    ax.set_xlim(histogramm_min, histogramm_max)
+
+    return values_hist, ax
+
+
+def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm_max = 10000, title = '', xlabel = '', ylabel = ''):
     """ plot histogram evolution over time
     
     The figure consists of 3 subplots: 
@@ -486,7 +521,7 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning,
     axHistx.set_xlim(axScatter.get_xlim())
     axHisty.set_ylim(axScatter.get_ylim())
     
-    plt.show()      
+    # plt.show()      
 
     
 
@@ -858,44 +893,6 @@ def PlotGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, weighting=False
     
     return diam_means, diam_stds, weights
 
-
-
-def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 10000, title = '', xlabel = '', ylabel = ''):
-    """ plot a histogram of particles sizes
-
-    Parameters
-    ----------
-    sizes : pandas.Series
-    binning : 
-
-    Returns
-    -------
-    values_hist : 
-    ax : AxesSubplot object
-
-    """
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
-    # import NanoObjectDetection as nd
-
-#    plt.figure()
-    fig, ax = plt.subplots()
-    diameters = sizes
-    show_diameters = diameters[(diameters >= histogramm_min) & (diameters <= histogramm_max)]
-    values_hist, positions_hist = np.histogram(sizes, bins = binning)
-    # histogram of sizes, only taking into account 
-    sns.distplot(show_diameters, bins=binning, rug=True, kde=False) 
-    #those that are below threshold size as defined in the initial parameters
-#    plt.rc('text', usetex=True)
-    plt.rc('text', usetex=False)
-    plt.title(title, **title_font)
-    #   plt.ylabel(r'absolute occurrence')
-    plt.ylabel(ylabel, **axis_font)
-    plt.xlabel(xlabel, **axis_font)
-    plt.grid(True)
- 
-    ax.set_xlim(histogramm_min, histogramm_max)
-
-    return values_hist, ax
 
 
 

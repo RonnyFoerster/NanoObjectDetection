@@ -195,7 +195,7 @@ def FindParticlesByZNCC(img1, settings, num_verbose = 5):
     #if so - convolve the rawimage with the PSF
     if ImgConvolvedWithPSF == True:
         gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
-        img1_in = nd.PreProcessing.ConvolveWithPSF(img1, gauss_kernel_rad)        
+        img1_in = nd.PreProcessing.ConvolveWithPSF_2D(img1, gauss_kernel_rad)        
     else:
         img1_in = img1
         
@@ -701,7 +701,6 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     Min_Separation_PSF = 6 * sigma_PSF_px
 
     Min_Separation = int(np.ceil(Min_Separation_diff + Min_Separation_PSF))
-
 
 
     nd.logger.info("The minimum distance between two located particles >Separation data< is set to: %s", Min_Separation)

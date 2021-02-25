@@ -379,7 +379,7 @@ def RollingPercentilFilter(rawframes_np, settings, PlotIt = True):
 
 
 
-def ConvolveWithPSF(image_frame, gauss_kernel_rad):
+def ConvolveWithPSF_2D(image_frame, gauss_kernel_rad):
     """
     convolves a 2d image with a gaussian kernel by multipliying in fourierspace
     """
@@ -392,12 +392,53 @@ def ConvolveWithPSF(image_frame, gauss_kernel_rad):
 
 
 
-def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False, PlotIt = True):  
-    nd.logger.info('Enhance SNR by convolving image with PSF: starting...')
-     
-    PSF_Type = "Gauss"
+def ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True):
+    """
+    convolves a 3d image with a gaussian kernel. Select seriell or parallel type of 2D execution
+    """
+
+    #get number of frames for iteration    
+    num_frames = rawframes_np.shape[0] 
+
+    if DoParallel == False:
+        nd.logger.warning("OLD METHOD - Do it seriell")
+
+        # create space to save it in
+        rawframes_filtered = np.zeros_like(rawframes_np)
+        
+        nd.logger.debug("Do FT of: %s frames. That might take a while", num_frames)
+        for loop_frames in range(num_frames):
+            rawframes_filtered[loop_frames,:,:] = ConvolveWithPSF_2D(rawframes_np[loop_frames,:,:], gauss_kernel_rad)
+            
+            # show the progres every 100 frames            
+            if np.mod(loop_frames,100) == 0:
+                print("Number of frames done: ", loop_frames)
+              
+    else:
+        nd.logger.info("Do it parallel")
+        
+        # setup and execute parallel processing of the filterung
+        num_cores = multiprocessing.cpu_count()
+        nd.logger.info("Number of parallel cores: ", num_cores)
+        
+        inputs = range(num_frames)
     
+        rawframes_filtered_list = Parallel(n_jobs=num_cores, verbose = 5)(delayed(ConvolveWithPSF_2D)(rawframes_np[loop_frame,:,:].copy(), gauss_kernel_rad) for loop_frame in inputs)
+    
+        # make it into a proper array
+        rawframes_filtered = np.asarray(rawframes_filtered_list)
+        
+        nd.logger.info("Parallel finished")
+        
+    
+    return rawframes_filtered
+
+
+
+
+def ConvolveWithPSF_Parameter(PSF_Type, settings):
     # set parameters depending on PSF type.
+    
     if PSF_Type == "Gauss":
         # Standard Gaussian PSF
         # estimate PSF by experimental settings
@@ -410,64 +451,50 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
         nd.logger.info("Gauss Kernel in px:", gauss_kernel_rad)
     
     elif PSF_Type == "Airy":
-        CalcAiryDisc(settings, rawframes_np[0,:,:])
-        
+        # CalcAiryDisc(settings, rawframes_np[0,:,:])
+        gauss_kernel_rad = 0    
         nd.logger.error("RF: Implements the AIRY DISC")
         # Calculate the Airy disc for the given experimental parameters
         # this is for data with little or now aberrations
+    
+     
+    json_path = settings["File"]["json"]   
+    nd.handle_data.WriteJson(json_path, settings)
+     
+    return gauss_kernel_rad
 
-    if rawframes_np.ndim == 2:
-        rawframes_filtered = ConvolveWithPSF(rawframes_np, gauss_kernel_rad)
+
+def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False, PlotIt = True):  
+    # Convolve the rawdata by the PSF to reduce noise while maintaining the signal. This is the main function
+    
+    nd.logger.info('Enhance SNR by convolving image with PSF: starting...')
+
+    #gets the gaussian kernel size for the convolution- other types not implemented yet     
+    PSF_Type = "Gauss"
+    gauss_kernel_rad = ConvolveWithPSF_Parameter(PSF_Type, settings)
+
+    ImageIs2D = (rawframes_np.ndim == 2)
+
+    if ImageIs2D:
+        rawframes_filtered = ConvolveWithPSF_2D(rawframes_np, gauss_kernel_rad)
         
     else:
         #3D case requires efficent looping over the frames
         
-        #get number of frames for iteration    
-        num_frames = rawframes_np.shape[0] 
-    
-        if 1==0:
-            nd.logger.warning("OLD METHOD - Do it seriell")
-    
-            # save space to save it in
-            rawframes_filtered = np.zeros_like(rawframes_np)
-            
-            print("Do FT of:", num_frames, "frames. That might take a while")
-            for loop_frames in range(num_frames):
-                rawframes_filtered[loop_frames,:,:] = ConvolveWithPSF(rawframes_np[loop_frames,:,:], gauss_kernel_rad)
-                
-                # show the progres every 100 frames            
-                if np.mod(loop_frames,100) == 0:
-                    print("Number of frames done: ", loop_frames)
-                  
-        else:
-            nd.logger.info("Do it parallel")
-            
-            # setup and execute parallel processing of the filterung
-            num_cores = multiprocessing.cpu_count()
-            nd.logger.info("Number of parallel cores: ", num_cores)
-            
-            inputs = range(num_frames)
-        
-            rawframes_filtered_list = Parallel(n_jobs=num_cores, verbose = 5)(delayed(ConvolveWithPSF)(rawframes_np[loop_frame,:,:].copy(), gauss_kernel_rad) for loop_frame in inputs)
-        
-            # make it into a proper array
-            rawframes_filtered = np.asarray(rawframes_filtered_list)
-            
-            nd.logger.info("Parallel finished")
+        rawframes_filtered = ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True)
                 
 
     # Do some plotting if requries  
-    if ExternalSlider == False:
-        if ShowFirstFrame == True:
-            if rawframes_filtered.ndim == 2:
-                disp_data = rawframes_filtered
-            else:
-                disp_data = rawframes_filtered[0,:,:]
-                
-            nd.visualize.Plot2DImage(disp_data,title = "Filtered image", xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
+    if (ExternalSlider == False) and (ShowFirstFrame == True):
+        if ImageIs2D:
+            disp_data = rawframes_filtered
+        else:
+            disp_data = rawframes_filtered[0,:,:]
+            
+        nd.visualize.Plot2DImage(disp_data,title = "Filtered image", xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
 
     if PlotIt == True:
-        if rawframes_filtered.ndim == 2:
+        if ImageIs2D:
             nd.visualize.Plot2DImage(rawframes_np[:,0:500], title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
         else:
             nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
@@ -476,6 +503,7 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
     nd.logger.info('Enhance SNR by convolving image with PSF: ...finished')
 
     return rawframes_filtered, settings
+
 
 
 def CalcAiryDisc(settings, img):

@@ -6,26 +6,20 @@ Created on Fri Jun 21 13:39:56 2019
 """
 
 # Standard Libraries
-from __future__ import division, unicode_literals, print_function # For compatibility with Python 2 and 3
-from importlib import reload # only used for debugging --> reload(package_name)
+from __future__ import division, unicode_literals, print_function # For compatibility of Python 2 and 3
+# from importlib import reload # only used for debugging --> reload(package_name)
 
 # for easy debugging
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-#import sys
-#sys.path.insert(0,r'C:\Users\foersterronny\AppData\Local\Continuum\anaconda3\lib\site-packages')
-
 # own Library
 import NanoObjectDetection as nd
-#import os
-
-#abs_path = os.path.dirname(nd.__file__)
 
 
 #%% path of parameter file
-# this can be replaced by any json file
+# this must be replaced by any json file
 ParameterJsonFile = r'Insert Json Path here, like: Z:\Datenauswertung\Ronny_Foerster\sdl_80nm\parameter.json'
 
 
