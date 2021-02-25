@@ -46,7 +46,7 @@ def GetCI_Interval(probability, grid, ratio_in_ci):
     # get the x values where the CI is
     value_min = grid[pos_min]
     value_max = grid[pos_max]
-        
+    
     return value_min,value_max
 
 
@@ -235,6 +235,131 @@ def StatisticDistribution(sizesInv, num_dist_max=10, showICplot=False, useAIC=Fa
     print('Number of iterations performed: {}'.format(M_best.n_iter_))
     
     return means, stds, weights
+
+
+
+def CalcInversePDF(grid, sizes_df_lin, settings, useCRLB):
+    """ compute the probability density function (PDF) of the sizes ensemble 
+    on a given grid in the inverse sizes space
+    
+    NB: Due to the Gaussian/normal distributed uncertainty in the diffusion space,
+        the PDF is always first calculated in the inverse sizes space and then
+        back-converted.
+        Each trajectory is considered individually, the tracklength determines
+        the PDF widths (via CRLB or Qian91).
+    """
+    import NanoObjectDetection as nd
+    from scipy.stats import norm
+    
+    grid_steps = abs(grid[:-1]-grid[1:])
+    if grid_steps[0] > grid_steps[-1]: # duplicate smallest entry (either the first or the last)
+        grid_steps = np.append(grid_steps, grid_steps[-1]) 
+    else:
+        grid_steps = np.append(grid_steps, grid_steps[0])
+    
+    # initialize array to save the PDF
+    PDF_inv = np.zeros_like(grid)
+    
+    # get mean and std of each inverse diameter
+    inv_diams, inv_diam_stds = nd.statistics.InvDiameter(sizes_df_lin, settings, useCRLB) # 1/um
+    
+    # calculate individual PDFs for each particle and sum them up
+    for inv_d, inv_std in zip(inv_diams,inv_diam_stds):
+        PDF_inv = PDF_inv + norm(inv_d,inv_std).pdf(grid)    
+    
+    # normalize to integral=1
+    PDF_inv = PDF_inv/sum(PDF_inv * grid_steps) 
+    
+    return PDF_inv, grid_steps # 1/um
+
+
+
+def ConvertPDFtoSizesSpace(PDF_inv, inv_grid):
+    """ convert PDF on 1/um-grid back into one in sizes space on a nm-grid
+    """
+    grid = 1000/inv_grid # nm
+    grid_steps = abs(grid[:-1]-grid[1:])
+    if grid_steps[0] > grid_steps[-1]: # duplicate smallest entry (either the first or the last)
+        grid_steps = np.append(grid_steps, grid_steps[-1]) 
+    else:
+        grid_steps = np.append(grid_steps, grid_steps[0])
+    
+    # law of inverse fcts: Y = 1/X --> PDF_Y(Y) = 1/(Y^2) * PDF_X(1/Y)
+    PDF = 1/(grid**2) * PDF_inv
+    
+    # normalize to integral=1 again
+    PDF = PDF/sum(PDF*grid_steps)
+    
+    if grid[0] > grid[-1]: # invert order
+        grid = grid[::-1]
+        grid_steps = grid_steps[::-1]
+        PDF = PDF[::-1]
+    
+    return PDF, grid, grid_steps
+
+
+
+def FitGaussian(PDF, grid, grid_steps, mean_start):
+    """ calculate least-squares fit of a Gaussian function to a given PDF
+    
+    Assumption: PDF integrated over grid = 1
+    """
+    from scipy.optimize import curve_fit
+    
+    # define Gaussian fct (integral normalized to 1)
+    def myGauss(d,mean,std):
+        return 1/((2*np.pi)**0.5*std)*np.exp(-(d-mean)**2/(2.*std**2))
+    
+    popt, pcov = curve_fit(myGauss, grid, PDF, p0=[mean_start,1])
+    
+    fit = myGauss(grid, *popt) # values of the fit
+    resid = PDF - fit # residuals
+    residIntegral = sum(abs(resid)*grid_steps) # absolute resids integrated
+    
+    SQR = (resid**2).sum() # sum of squared residuals (SQR) = N*MSE (mean square error)
+    # total sum of squares ("Gesamtstreuung") SQT
+    SQT = sum((PDF - PDF.mean())**2) # = N*variance
+    
+    # coefficient of determination ("Bestimmheitsmaß") R^2 
+    # (NB: def. here is the same as for the coefficient of efficiency in Legates1999)
+    R2 = 1 - SQR/SQT # = 1 - MSE/variance
+    
+    mean, std = popt
+    
+    return fit, mean, std, residIntegral, R2
+
+
+
+def FitGaussianMixture(PDF, grid, grid_steps, mean_max):
+    """ calculate least-squares fit of a superpositions of 2 Gaussian functions 
+    to a given PDF
+    """
+    from scipy.optimize import curve_fit
+    
+    # define mixture of 2 Gaussian fcts (integral normalized to 1)
+    def myGaussMix(d,m1,m2,s1,s2,w):
+        gauss1 = w/((2*np.pi)**0.5*s1)*np.exp(-(d-m1)**2/(2.*s1**2))
+        gauss2 = (1-w)/((2*np.pi)**0.5*s2)*np.exp(-(d-m2)**2/(2.*s2**2))
+        return gauss1 + gauss2
+    
+    popt, pcov = curve_fit(myGaussMix, grid, PDF, 
+                           bounds=(0, [mean_max, mean_max, mean_max/2, mean_max/2, 1]))#, p0=[mean_start,1])
+    
+    fit = myGaussMix(grid, *popt) # values of the fit
+    resid = PDF - fit # residuals
+    residIntegral = sum(abs(resid)*grid_steps) # absolute resids integrated
+    
+    SQR = (resid**2).sum() # sum of squared residuals (SQR) = N*MSE (mean square error)
+    # total sum of squares ("Gesamtstreuung") SQT
+    SQT = sum((PDF - PDF.mean())**2) # = N*variance
+    
+    # coefficient of determination ("Bestimmheitsmaß") R^2 
+    # (NB: def. here is the same as for the coefficient of efficiency in Legates1999)
+    R2 = 1 - SQR/SQT # = 1 - MSE/variance
+    
+    # mean, std = popt
+    
+    return fit, residIntegral, R2, popt
 
 
 
