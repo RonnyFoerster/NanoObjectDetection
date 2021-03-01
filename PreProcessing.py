@@ -448,7 +448,7 @@ def ConvolveWithPSF_Parameter(PSF_Type, settings):
         # set PSF Kernel
         gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
             
-        nd.logger.info("Gauss Kernel in px:", gauss_kernel_rad)
+        nd.logger.info("Gauss Kernel in px: %s", gauss_kernel_rad)
     
     elif PSF_Type == "Airy":
         # CalcAiryDisc(settings, rawframes_np[0,:,:])
