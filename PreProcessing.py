@@ -419,7 +419,7 @@ def ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True):
         
         # setup and execute parallel processing of the filterung
         num_cores = multiprocessing.cpu_count()
-        nd.logger.info("Number of parallel cores: ", num_cores)
+        nd.logger.info("Number of parallel cores: %s", num_cores)
         
         inputs = range(num_frames)
     
