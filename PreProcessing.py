@@ -214,7 +214,7 @@ def SubtractCameraOffset(rawframes_np, settings, PlotIt = True):
     # Whenever there is a change in intensity, e.g. by fluctuations in incoupling,the lightsource etc., this affects mututally background and signal
     rawframes_np=rawframes_np-offsetCount
     
-    nd.logger.info("Camera offset is: ", offsetCount)
+    nd.logger.info("Camera offset is: %s", offsetCount)
     
     if PlotIt == True:
         # show rawimage
