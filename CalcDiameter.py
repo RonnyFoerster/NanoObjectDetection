@@ -66,6 +66,8 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
     else:
         ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin)       
     
+    nd.logger.info("WARNING sizes_df_lin_rolling is removed!!!")
+    
     return sizes_df_lin, any_successful_check
 
 

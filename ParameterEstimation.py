@@ -358,6 +358,14 @@ def EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF = True):
     #theoretical sigma of the PSF
     sigma = EstimageSigmaPSF(settings)
     
+    # NA = settings["Exp"]["NA"]
+    # mylambda = settings["Exp"]["lambda"]
+    # Microns_per_pixel = settings["Exp"]["Microns_per_pixel"]
+    
+    # sigma_nm = nd.Theory.SigmaPSF(NA, mylambda)
+    # sigma_um = sigma_nm / 1000
+    # sigma = sigma_um / Microns_per_pixel
+    
     # create the gaussian kernel
     if ImgConvolvedWithPSF == True:
         # if rawdata is convolved with PSF than imaged point scatteres are smeared
@@ -464,8 +472,8 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
         else:
             num_particle_only_trackpy_finds = 0
  
-        nd.logger.debug("Found particles (trackpy): ", num_particles_trackpy)
-        nd.logger.debug("Found particles (zncc): ", num_particles_zncc)
+        nd.logger.debug("Found particles (trackpy): %s", num_particles_trackpy)
+        nd.logger.debug("Found particles (zncc): %s", num_particles_zncc)
         
         if num_particles_trackpy > (5 * num_particles_zncc):
             # if far too many particles are found the threshold must be increased significantly
@@ -503,9 +511,9 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
                     if First_wrong_assignment  == True:
                         First_wrong_assignment  = False
                         nd.logger.debug("Particle found in ZNCC but not with trackpy")
-                        nd.logger.debug("Problem with particle: ", id_part)
-                        nd.logger.debug("Position: ", pos)
-                        nd.logger.debug("Closest point: ", closest_agreement)
+                        nd.logger.debug("Problem with particle: %s", id_part)
+                        nd.logger.debug("Position: %s", pos)
+                        nd.logger.debug("Closest point: %s", closest_agreement)
                     
                 else:
                     # This is what you want. Particle found by zncc and trackpy within a neighborhood.
@@ -528,9 +536,9 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             # wrong_to_right_save = np.append(wrong_to_right_save, wrong_to_right)
             minmass_save = np.append(minmass_save, minmass)
             
-            nd.logger.debug("right_found: ", right_found)
-            nd.logger.debug("wrong_found: ", wrong_found)
-            nd.logger.debug("Wrong to right assignment: ", wrong_to_right)
+            nd.logger.debug("right_found: %s", right_found)
+            nd.logger.debug("wrong_found: %s", wrong_found)
+            nd.logger.debug("Wrong to right assignment: %s", wrong_to_right)
             
             nd.logger.debug("Still optimizing...")
 

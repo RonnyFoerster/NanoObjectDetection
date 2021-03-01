@@ -24,7 +24,7 @@ from tqdm import tqdm# progress bar
 
 def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
               minmass=None, maxsize=None, separation=None, max_iterations = 10,
-              SaveFig = False, gamma = 0.8, ExternalSlider = False, oldSim=False):
+              SaveFig = False, gamma = 0.8, ExternalSlider = False, oldSim=False, DoParallel = True):
     """ wrapper for trackpy routine tp.batch, which spots particles
 
     important parameters:
@@ -62,6 +62,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
             nd.logger.info("Diameter = %s", diameter)
             nd.logger.info("Max iterations = %s", max_iterations)
             nd.logger.info("PreProcessing of Trackpy = %s", DoPreProcessing)
+            nd.logger.info("Percentile = %s", percentile)
 
 
             # convert image to uint16 otherwise trackpy performs a min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
@@ -74,7 +75,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
             if ExternalSlider == False:
                 # HERE HAPPENS THE LOCALIZATION OF THE PARTICLES
                 
-                output = FindSpots_tp(frames_np, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = True)
+                output = FindSpots_tp(frames_np, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = DoParallel)
                 
                 # check if any particle is found. If not reduce minmass
                 if output.empty:
