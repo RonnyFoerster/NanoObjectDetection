@@ -61,7 +61,6 @@ def GetMeanStdMedian(data):
 
 
 def GetMeanStdMedianCIfromPDF(PDF, grid, grid_stepsizes):
-    """ get statistical quantities from normalized (!) PDF """
     mean = sum(PDF*grid*grid_stepsizes)
     var = sum(PDF*grid**2*grid_stepsizes) - mean**2
     std = var**0.5 
@@ -232,8 +231,8 @@ def StatisticDistribution(sizesInv, num_dist_max=10, showICplot=False, useAIC=Fa
     stds = (M_best.covariances_.flatten())**0.5
     weights = M_best.weights_
     
-    # sort the parameters from lowest to highest mean value
-    sortedIndices = means.argsort()#[::-1]
+    # sort the parameters from highest to lowest mean value
+    sortedIndices = means.argsort()[::-1]
     means = means[sortedIndices]
     stds = stds[sortedIndices]
     weights = weights[sortedIndices]
@@ -281,8 +280,7 @@ def CalcInversePDF(grid, sizes_df_lin, settings, useCRLB):
 
 
 def ConvertPDFtoSizesSpace(PDF_inv, inv_grid):
-    """ convert PDF on 1/um-grid back into one in sizes space on a nm-grid,
-    including normalization to integral=1 and sorting the grid
+    """ convert PDF on 1/um-grid back into one in sizes space on a nm-grid
     """
     grid = 1000/inv_grid # nm
     grid_steps = abs(grid[:-1]-grid[1:])
