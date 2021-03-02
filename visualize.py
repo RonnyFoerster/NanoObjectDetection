@@ -383,8 +383,7 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
 
 
 
-def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 10000, 
-                           title = '', xlabel = '', ylabel = '', mycol='C0'):
+def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 10000, title = '', xlabel = '', ylabel = ''):
     """ plot a histogram of particles sizes
 
     Parameters
@@ -407,8 +406,7 @@ def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 
     show_diameters = diameters[(diameters >= histogramm_min) & (diameters <= histogramm_max)]
     values_hist, positions_hist = np.histogram(sizes, bins = binning)
     # histogram of sizes, only taking into account 
-    sns.distplot(show_diameters, bins=binning, rug=True, rug_kws={"alpha": 0.4}, 
-                 kde=False,color=mycol) 
+    sns.distplot(show_diameters, bins=binning, rug=True, kde=False) 
     #those that are below threshold size as defined in the initial parameters
 #    plt.rc('text', usetex=True)
     plt.rc('text', usetex=False)
@@ -421,7 +419,6 @@ def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 
     ax.set_xlim(histogramm_min, histogramm_max)
 
     return values_hist, ax
-
 
 
 def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogramm_max = 10000, title = '', xlabel = '', ylabel = ''):
@@ -540,7 +537,7 @@ def NumberOfBinsAuto(mydata, average_height = 4):
 def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, 
                        histogramm_max = None, Histogramm_min_max_auto = None, 
                        binning = None, weighting=False, num_dist_max=2, fitInvSizes=True,
-                       showInfobox=True, fitNdist=False, showICplot=False, showInvHist=False):
+                       showInfobox=True, fitNdist=False, showICplot=False):
     """ wrapper for plotting a histogram of particles sizes, 
     optionally with statistical information or distribution model in sizes
     or inverse sizes space
@@ -598,53 +595,41 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     values_hist, ax = \
         nd.visualize.PlotDiameterHistogramm(sizes, binning, histogramm_min, 
                                             histogramm_max, title, xlabel, ylabel)
-    if showInvHist:
-        inv_diams = 1000/sizes # 1/um
-        values_invHist, ax0 = PlotDiameterHistogramm(inv_diams, 40, histogramm_min = inv_diams.min(), 
-                                                     histogramm_max = inv_diams.max(), 
-                                                     xlabel='Inv. diameter [1/$\mu$m]', 
-                                                     ylabel=ylabel, title=title, mycol='C3')
-    else:
-        ax0 = 'none'
     
     if (showInfobox==True) and (fitNdist==False):
         nd.visualize.PlotInfobox1N(ax, sizes)
     
     if settings["Plot"]["Histogramm_Fit_1_Particle"] == 1:
-        diam_grid = np.linspace(histogramm_min,histogramm_max,1000) # equidistant grid
-        grid_stepsizes = (diam_grid[1]-diam_grid[0])*np.ones_like(diam_grid)
+        diam_grid = np.linspace(histogramm_min,histogramm_max,1000)
         max_hist = values_hist.max()
         
         if fitNdist == False: 
             nd.logger.info("Show equivalent (reciprocal) Gaussian in the plot.")
             # consider only one contributing particle size
             mean, median, CV = \
-                nd.visualize.PlotReciprGauss1Size(ax, diam_grid, grid_stepsizes, 
-                                                  max_hist, sizes, fitInvSizes)
+                nd.visualize.PlotReciprGauss1Size(ax, diam_grid, max_hist, sizes, fitInvSizes)
             nd.logger.info("Parameters: mean={:.2f}, median={:.2f}, CV={:.2f}".format(mean,median,100*CV))
             
         else:
-            nd.logger.info("Model the (inverse) sizes distribution as a mixture of Gaussians.")
+            nd.logger.info("Model the inverse sizes distribution as a mixture of Gaussians.")
             # consider between 1 and num_dist_max contributing particle sizes
-            diam_means, CVs, weights, medians = \
-                nd.visualize.PlotReciprGaussNSizes(ax, diam_grid, grid_stepsizes,
-                                                   max_hist, sizes, fitInvSizes, 
+            diam_means, CVs, weights = \
+                nd.visualize.PlotReciprGaussNSizes(ax, diam_grid, max_hist, sizes,
+                                                   fitInvSizes, # CONTINUE HERE !!!!!!!!!!!!!!!!!!!
                                                    num_dist_max=num_dist_max,
-                                                   showICplot=showICplot, axInv=ax0,
-                                                   max_hist_inv=values_hist.max(), 
-                                                   showInvHist=showInvHist)
+                                                   showICplot=showICplot)
                 # weights should be the same, no matter if inverse or not
                 # CVs as well (at least approximately)
             
             if showInfobox==True:
-                nd.visualize.PlotInfoboxMN(ax, diam_means, CVs, weights, medians)
+                nd.visualize.PlotInfoboxMN(ax, diam_means, CVs, weights)
             
     if Histogramm_Save == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
-    return ax, ax0
+    return ax
 
 
 
@@ -718,7 +703,9 @@ def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True,
     if plotInSizesSpace: # convert grid and PDF to sizes space
         prefix = 'D'
         unit = 'nm'
+        # PDF_s, s_grid, s_grid_stepsizes = PDF, grid, grid_stepsizes # save for fitting later
         PDF_s, s_grid, s_grid_stepsizes = nd.statistics.ConvertPDFtoSizesSpace(PDF_i, i_grid)
+        
         s_median = 1000/i_median
         s_CI68 = 1000/i_CI68[1], 1000/i_CI68[0]
         s_CI95 = 1000/i_CI95[1], 1000/i_CI95[0]
@@ -809,7 +796,7 @@ def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True,
                 ax.plot(grid, fit, color=fitcolor)
                 
                 if showFitInfobox:
-                    nd.visualize.PlotInfoboxMN(ax,[f_mean],[f_CV],[1],[f_median],unit,residIntegral)
+                    nd.visualize.PlotInfoboxMN(ax, [f_mean], [f_CV], [1], unit, residIntegral)
                 
                 nd.logger.info("Fit results: mean = {:.2f}, CV = {:.3f}".format(f_mean,f_CV))
                 nd.logger.info("Fit quality: residual integral = {:.4f}, R**2 = {:.4f}".format(residIntegral,R2))
@@ -869,7 +856,7 @@ def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True,
                         ax.plot(grid, f, color=fitcolor, ls='--')
                 
                 if showFitInfobox:
-                    nd.visualize.PlotInfoboxMN(ax,f_means,f_CVs,(w,1-w),f_medians,unit,residIntegral)
+                    nd.visualize.PlotInfoboxMN(ax, f_means, f_CVs, (w,1-w), unit, residIntegral)
                     
                 nd.logger.info("Fit results: means = {:.2f}, {:.2f}; CVs = {:.1f},{:.1f} %; weights = {:.1f}, {:.1f} 5".format(f_means[0],f_means[1],100*f_CVs[0],100*f_CVs[1],w*100,(1-w)*100)) 
                 nd.logger.info("Fit quality: residual integral = {:.4f}, R**2 = {:.4f}".format(residIntegral,R2))
@@ -904,7 +891,7 @@ def myGauss(d,mean,std):
 
 
 
-def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsizes, max_y, sizes, fitInvSizes):
+def PlotReciprGauss1Size(ax, diam_grid, max_y, sizes, fitInvSizes):
     """ add (reciprocal) Gaussian function to a sizes histogram (or PDF)
     
     NB: No fit is computed here, only an equivalent distribution with the same
@@ -918,7 +905,7 @@ def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsizes, max_y, sizes, fitIn
         Mean and std are taken directly from sizes data and Gaussian is plotted
         (NOT a reciprocal in this case).
     """
-    # diam_grid_stepsize = diam_grid[1] - diam_grid[0] # equidistant grid (!)
+    diam_grid_stepsize = diam_grid[1] - diam_grid[0] # equidistant grid (!)
     
     if fitInvSizes:
         mycolor = 'C3'
@@ -940,11 +927,8 @@ def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsizes, max_y, sizes, fitIn
         # mean = 1000/diam_inv_mean # incorrect
         mean = sum(prob_diam_1size*diam_grid)*diam_grid_stepsize
         median = 1000/diam_inv_median
-        CV = diam_inv_std/diam_inv_mean # from inverse space (!)
-        # _, _, _, CI68, _ = \
-        #     nd.statistics.GetMeanStdMedianCIfromPDF(prob_diam_1size, diam_grid,
-        #                                             diam_grid_stepsize*np.ones_like(diam_grid))
-        # print(CI68)
+        CV = diam_inv_std/diam_inv_mean
+        
     else:
         mycolor = 'C2'
         mean, std, median = nd.statistics.GetMeanStdMedian(sizes)
@@ -962,131 +946,89 @@ def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsizes, max_y, sizes, fitIn
     
     
     
-def PlotReciprGaussNSizes(ax, diam_grid, grid_stepsizes, max_y, sizes, fitInvSizes,
-                          num_dist_max=2, useAIC=False, showICplot=False, axInv='none', 
-                          max_hist_inv=1, showInvHist=False):
-    """ plot the (reciprocal) fcts of Gaussian fits on top of a histogram
+def PlotReciprGaussNSizes(ax, diam_grid, max_y, sizes, fitInvSizes,  # to do: integrate PlotGaussNSizes in here
+                          num_dist_max=2, useAIC=False, showICplot=False):
+    """ plot the reciprocal fcts of Gaussian fits on top of a histogram
+    
+    to do:
+        - build a fct that includes both inv. and non-inv. fitting (?)
+        - make it working for PDF fitting as well
         
     diam_grid : np.ndarray; plotting grid [nm]
     num_dist_max : int; max. number of size components to consider
     useAIC : boolean; if True, use AIC, if False, use BIC
     """
-    # inv_diams = 1000/sizes # 1/um
-    # diam_grid_inv = 1000/diam_grid # 1/um
+    inv_diam = 1000/sizes # 1/um
+    diam_grid_inv = 1000/diam_grid # 1/um
     
     # use Gaussian mixture model (GMM) fitting to get best parameters
-    if fitInvSizes:
-        inv_diams = 1000/sizes # 1/um
-        diam_grid_inv = 1000/diam_grid[::-1] # 1/um; in increasing order
-        grid, data = diam_grid_inv, inv_diams
-        # inv_diam_means, inv_diam_stds, inv_weights = \
-        #     nd.statistics.StatisticDistribution(inv_diams, num_dist_max=num_dist_max,
-        #                                         showICplot=showICplot, useAIC=useAIC)
-        # if showInvHist:
-        #     values_invHist, ax0 = PlotDiameterHistogramm(inv_diams, 40, histogramm_min = inv_diams.min(), 
-        #                                                  histogramm_max = inv_diams.max(), 
-        #                                                  xlabel = 'Inv. diameter [1/$\mu$m]', 
-        #                                                  ylabel = 'Counts', mycol='C3')
-    
-    else:
-        grid, data = diam_grid, sizes
-        # diam_means, diam_stds, diam_weights = \
-        #     nd.statistics.StatisticDistribution(sizes, #weighting=weighting,
-        #                                         num_dist_max=num_dist_max,
-        #                                         showICplot=showICplot, useAIC=useAIC)
-    means, stds, weights = \
-        nd.statistics.StatisticDistribution(data, num_dist_max=num_dist_max,
+    # diam_means, diam_stds, weights = \
+    #     nd.statistics.StatisticDistribution(sizes, weighting=weighting,
+    #                                         num_dist_max=num_dist_max,
+    #                                         showICplot=showICplot, useAIC=useAIC)
+    inv_diam_means, inv_diam_stds, inv_weights = \
+        nd.statistics.StatisticDistribution(inv_diam, 
+                                            num_dist_max=num_dist_max,
                                             showICplot=showICplot, useAIC=useAIC)
-    CVs = stds/means
-    # compute individual Gaussian functions from GMM fitted parameters 
-    dist = np.array([weights[n]*myGauss(grid,means[n],stds[n]) 
-                     for n in range(weights.size)])
+    CVs = inv_diam_stds/inv_diam_means
     
-    if fitInvSizes:
-        if showInvHist:
-            # calculate sum of all distributions
-            dsum = dist.sum(axis=0)
-            # normalize dsum to histogram/PDF max. value...
-            normFactor = max_hist_inv / dsum.max()
-            dsum = normFactor * dsum
-            dist = normFactor * dist # and the individual distributions accordingly
-            
-            axInv.plot(grid,dist.transpose(),ls='--')
-            axInv.plot(grid,dist.sum(axis=0),color='k')
-            PlotInfoboxMN(axInv, means, CVs, weights, means, unit='1/$\mu$m', resInt='')
-        
-        # convert the individual PDFs back to sizes space
-        pdfs = []
-        for d,w in zip(dist,weights):
-            pdf, grid, steps = nd.statistics.ConvertPDFtoSizesSpace(d, diam_grid_inv)
-            pdfs.append(pdf) # all normalized to integral=1 (!)
-        
-        print('CVs from CI68')
-        # means = 1000/means # MN: Misleading!
-        means, stds, medians, CI68s, dist = [], [], [], [], []
-        for p,pdf in enumerate(pdfs):
-            mea, std, medi, CI68, _ = \
-                nd.statistics.GetMeanStdMedianCIfromPDF(pdf, grid, steps)
-                # nd.statistics.GetMeanStdMedianCIfromPDF(pdf, diam_grid, grid_stepsizes)
-            means.append(mea)
-            stds.append(std)
-            medians.append(medi)
-            CI68s.append(CI68)
-            print((CI68[1]-CI68[0])/(2*mea))
-            dist.append(pdf*weights[p]) # weight the individual PDFs to get correct sum
-        means, medians, dist = np.array(means), np.array(medians), np.array(dist)
-    else:
-        medians = means # always true for fully symmetric fcts
-        
+    # compute individual Gaussian functions from GMM fitted parameters (inv.space!)
+    # dist = np.array([weights[n]*myGauss(diam_grid,diam_means[n],diam_stds[n]) 
+    #                  for n in range(weights.size)])
+    dist = np.array([inv_weights[n]*myGauss(diam_grid_inv,inv_diam_means[n],
+                                            inv_diam_stds[n]) 
+                      for n in range(inv_weights.size)])
+    
+    # law of inverse fcts: convert back to sizes space
+    dist = ((diam_grid**2)/1000**2)**(-1) * dist
+    
+    # convert from 1/um to nm
+    diam_means = 1000/inv_diam_means # MN: I'M NOT SURE IF THIS IS FULLY CORRECT
+    # diam_CI68s = np.zeros([inv_weights.size,2])
+    # for n,d in enumerate(dist.transpose()):
+    #     diam_CI68s[n] = nd.statistics.GetCI_Interval(d, diam_grid, 0.68) # STILL A BUG IN HERE
+    # weights should stay the same
     
     # calculate sum of all distributions
     dsum = dist.sum(axis=0)
-    # normalize dsum to histogram/PDF max. value... (for similar-scale plotting)
+    # normalize dsum to histogram/PDF max. value...
     normFactor = max_y / dsum.max()
     dsum = normFactor * dsum
-    dist = normFactor * dist # ... and the individual distributions accordingly
+    dist = normFactor * dist # and the individual distributions accordingly
     
-    ax.plot(grid,dist.transpose(),ls='--')
-    ax.plot(grid,dist.sum(axis=0),color='k')
+    ax.plot(diam_grid,dist.transpose(),ls='--')
+    ax.plot(diam_grid,dist.sum(axis=0),color='k')
     
-    # sort the parameters from lowest to highest mean value
-    sortedIndices = means.argsort()#[::-1]
-    means = means[sortedIndices]
-    medians = medians[sortedIndices]
-    # stds = stds[sortedIndices]
-    CVs = CVs[sortedIndices]
-    weights = weights[sortedIndices]
-    
-    return means, CVs, weights, medians
+    return diam_means, CVs, inv_weights
 
 
 
-# def PlotGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, weighting=False, useAIC=False, showICplot=False):
-#     """ plot Gaussian fits on top of a histogram/PDF
+def PlotGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, weighting=False, useAIC=False, showICplot=False):
+    """ plot Gaussian fits on top of a histogram/PDF
     
-#     probably a bit redundant... but at least it's working reliably
-#     """    
-#     # use Gaussian mixture model (GMM) fitting to get best parameters
-#     diam_means, diam_stds, weights = \
-#         nd.statistics.StatisticDistribution(sizes, weighting=weighting,
-#                                             num_dist_max=num_dist_max,
-#                                             showICplot=showICplot, useAIC=useAIC)
+    probably a bit redundant... but at least it's working reliably
+    """    
+    # use Gaussian mixture model (GMM) fitting to get best parameters
+    diam_means, diam_stds, weights = \
+        nd.statistics.StatisticDistribution(sizes, weighting=weighting,
+                                            num_dist_max=num_dist_max,
+                                            showICplot=showICplot, useAIC=useAIC)
     
-#     # compute individual Gaussian functions from GMM fitted parameters 
-#     dist = np.array([weights[n]*myGauss(diam_grid,diam_means[n],diam_stds[n]) 
-#                      for n in range(weights.size)])
+    # compute individual Gaussian functions from GMM fitted parameters (inv.space!)
+    dist = np.array([weights[n]*myGauss(diam_grid,diam_means[n],diam_stds[n]) 
+                     for n in range(weights.size)])
     
-#     # calculate sum of all distributions
-#     dsum = dist.sum(axis=0)
-#     # normalize dsum to histogram/PDF max. value...
-#     normFactor = max_y / dsum.max()
-#     dsum = normFactor * dsum
-#     dist = normFactor * dist # and the individual distributions accordingly
+    # calculate sum of all distributions
+    dsum = dist.sum(axis=0)
+    # normalize dsum to histogram/PDF max. value...
+    normFactor = max_y / dsum.max()
+    dsum = normFactor * dsum
+    dist = normFactor * dist # and the individual distributions accordingly
     
-#     ax.plot(diam_grid,dist.transpose(),ls='--')
-#     ax.plot(diam_grid,dist.sum(axis=0),color='k')
+    ax.plot(diam_grid,dist.transpose(),ls='--')
+    ax.plot(diam_grid,dist.sum(axis=0),color='k')
     
-#     return diam_means, diam_stds, weights
+    return diam_means, diam_stds, weights
 
 
 
@@ -1126,7 +1068,7 @@ def PlotInfobox1N(ax, sizes):
 #    ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=14,
 #        , bbox=props)
     ax.text(0.55, 0.95, textstr, transform=ax.transAxes, 
-            **axis_font, verticalalignment='top', bbox=props)#, va='center')
+            **axis_font, verticalalignment='top', bbox=props)
     
 #    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 #    ax.text(0.05, 0.95, title, transform=ax.transAxes, fontsize=14,
@@ -1134,16 +1076,14 @@ def PlotInfobox1N(ax, sizes):
 
 
 
-def PlotInfoboxMN(ax, means, CVs, weights, medians, unit='nm', resInt=''):
+def PlotInfoboxMN(ax, means, CVs, weights, unit='nm', resInt=''):
     """ add textbox to a plot containing statistical information 
     on the size distribution, assuming one or several contributing particle sizes
     """    
-    medtxt = ''
     mtext = ''
     stext = ''
     wtext = ''
-    for med,m,CV,w in zip(medians,means,CVs,weights):
-        medtxt += '{:.1f}, '.format(med)
+    for m,CV,w in zip(means,CVs,weights):
         mtext += '{:.1f}, '.format(m)
         # try:
         #     stext += '[{:.1f},{:.1f}],'.format(*diam_CI68)
@@ -1155,7 +1095,6 @@ def PlotInfoboxMN(ax, means, CVs, weights, medians, unit='nm', resInt=''):
         wtext += '{:.1f}, '.format(100*w) # [%]
     
     textstr = '\n'.join([
-        r'median = ['+medtxt[:-2]+'] '+unit,
         r'$\mu$ = ['+mtext[:-2]+'] '+unit, # '[:-1]' removes the last ','
         # sname+' = ['+stext[:-1]+'] '+unit, 
         'CV = ['+stext[:-2]+'] %',
