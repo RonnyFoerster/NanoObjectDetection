@@ -186,6 +186,8 @@ def CheckJson_Entries(settings):
             nd.logger.info("Parameter settings['%s'] not found" ,(loop_key_lv1))
             settings[loop_key_lv1] = settings_default[loop_key_lv1]
             nd.logger.info("Copy default value.")
+            
+            MissingEntry = True
         
         for loop_key_lv2 in list_key_lv2:
             

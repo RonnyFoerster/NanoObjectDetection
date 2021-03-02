@@ -211,7 +211,20 @@ def MinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
     # optimize the minmass in trackpy, sothat the results of ncc and trackpy agree best
     # minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
     
-    minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
+    minmass, num_particles_trackpy, not_needed = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
+    
+    
+    
+    nd.logger.critical("Ronny debugs here!!!")
+    num_cores = multiprocessing.cpu_count()
+    # nd.logger.info("Find the particles - parallel (Number of cores: %s): starting....", num_cores)
+    inputs = range(3,17,2)
+
+    num_verbose = nd.handle_data.GetNumberVerbose()
+    output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(OptimizeMinmassInTrackpy)(img1[use_frames], loop_diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile) for loop_diameter in inputs)
+    
+    # minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
+    
     
     
     # plot the stuff - optionally
@@ -587,16 +600,17 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     minmass_optimum = np.int(minmass_optimum * 0.90)
     nd.logger.info("Optimized Minmass threshold is: %s", minmass_optimum)
 
-    output = tp.batch(img1, diameter, minmass = minmass_optimum, separation = diameter, max_iterations = 10, preprocess = DoPreProcessing)
+    obj_all = tp.batch(img1, diameter, minmass = minmass_optimum, separation = diameter, max_iterations = 10, preprocess = DoPreProcessing)
       
     if nd.logger.getEffectiveLevel() >= 20:
         # Switch the logging back on
         tp.quiet(suppress=False)
     
     # num of found particles by trackpy
-    num_particles_trackpy = len(output)
+    num_particles_trackpy = len(obj_all)
 
-    return minmass_optimum, num_particles_trackpy
+
+    return minmass_optimum, num_particles_trackpy, obj_all
 
 
 

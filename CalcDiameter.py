@@ -201,7 +201,7 @@ def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, MSD_fit_Show = N
     """
     Calculates the MSD, finds the optimal number of fitting points (iterativly) and fits the MSD-curve
     """
-    
+        
     if t_beforeDrift is not None:
         particleid = eval_tm["particle"].iloc[0]
         t_beforeDrift = t_beforeDrift[t_beforeDrift.particle==particleid]
@@ -265,7 +265,7 @@ def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, MSD_fit_Show = N
     
     if OptimizingStatus == "Successful":
         # open a window to plot for the MSD if not open yet
-        any_successful_check = CreateNewMSDPlot(any_successful_check, MSD_fit_Show)
+        any_successful_check = CreateNewMSDPlot(any_successful_check, settings)
                 
         sizes_df_particle = ConcludeResultsMain(settings, eval_tm, sizes_df_particle, diff_direct_lin, traj_length, lagtimes_max, amount_frames_lagt1, stat_sign, msd_fit_para, DoRolling = False, t_beforeDrift = t_beforeDrift)
     
@@ -356,11 +356,15 @@ def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
 
 
 
-def CreateNewMSDPlot(any_successful_check, MSD_fit_Show):
+def CreateNewMSDPlot(any_successful_check, settings):
     """ for first time call, open a new plot window for the MSD ensemble fit """
     if any_successful_check == False:
         any_successful_check = True
-        if MSD_fit_Show == True:
+        
+        MSD_fit_Show = settings["Plot"]["MSD_fit_Show"]
+        MSD_fit_Save = settings["Plot"]["MSD_fit_Save"]
+        
+        if (MSD_fit_Show == True) or (MSD_fit_Save == True):
             plt.figure()
 
     return any_successful_check

@@ -179,7 +179,7 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         data_file_name = settings["File"]["data_file_name"]
         use_num_frame = settings["File"]["use_num_frame"]
     
-    
+        
         nd.logger.warning('start reading in raw images. (That may take a while...)')
         # select the read-in-routine by data type
         if data_type == 'tif_series':
@@ -195,7 +195,6 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
                 nd.logger.error('!!! data_file_name required !!!')
                 sys.exit()
             else:
-                nd.logger.info("Read tif stack: %s", data_file_name)
                 rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
         
         elif data_type == 'fits':
@@ -404,6 +403,8 @@ def CheckForSaturation(rawframes_np,warnUser=True):
 def ReadTiffStack2Numpy(data_file_name):
     """ read a tiff stack in """
 
+    nd.logger.info('read file: %s', data_file_name)
+
     rawframes_np = io.imread(data_file_name)
         
     return rawframes_np 
@@ -412,6 +413,8 @@ def ReadTiffStack2Numpy(data_file_name):
 
 def ReadTiffSeries2Numpy(data_folder_name, use_num_frame):
     """ read a tiff series in """
+    
+    nd.logger.info('read file: %s', data_folder_name)
     
     if use_num_frame == "all":
         use_num_frame = 1000000000
