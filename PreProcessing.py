@@ -214,7 +214,7 @@ def SubtractCameraOffset(rawframes_np, settings, PlotIt = True):
     # Whenever there is a change in intensity, e.g. by fluctuations in incoupling,the lightsource etc., this affects mututally background and signal
     rawframes_np=rawframes_np-offsetCount
     
-    nd.logger.info("Camera offset is: ", offsetCount)
+    nd.logger.info("Camera offset is: %s", offsetCount)
     
     if PlotIt == True:
         # show rawimage
@@ -419,7 +419,7 @@ def ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True):
         
         # setup and execute parallel processing of the filterung
         num_cores = multiprocessing.cpu_count()
-        nd.logger.info("Number of parallel cores: ", num_cores)
+        nd.logger.info("Number of parallel cores: %s", num_cores)
         
         inputs = range(num_frames)
     
@@ -448,7 +448,7 @@ def ConvolveWithPSF_Parameter(PSF_Type, settings):
         # set PSF Kernel
         gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
             
-        nd.logger.info("Gauss Kernel in px:", gauss_kernel_rad)
+        nd.logger.info("Gauss Kernel in px: %s", gauss_kernel_rad)
     
     elif PSF_Type == "Airy":
         # CalcAiryDisc(settings, rawframes_np[0,:,:])

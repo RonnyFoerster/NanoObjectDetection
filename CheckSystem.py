@@ -250,7 +250,7 @@ def CheckJson_specify_default_auto(settings):
         nd.handle_data.ReadJson(settings["File"]["DefaultParameterJsonFile"])
             
     except:
-        nd.logger.error("Default Json file probably not found. You can insert default at the key DefaultParameterJsonFile.")
+        nd.logger.error("Default Json file probably not found. You must insert default at the key DefaultParameterJsonFile and run this section AGAIN!")
         sys.exit()
        
     

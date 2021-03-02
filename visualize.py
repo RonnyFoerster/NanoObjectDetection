@@ -1209,6 +1209,9 @@ def CreateFileAndFolderName(folder_name, file_name, d_type = 'png'):
     and file name (including data) to save stuff in there 
     '''
     
+    if folder_name == "auto":
+        nd.logger.error("Folder name not given and still auto. Specify folder or run CheckSystem.")
+    
     dir_name = '%s\\{date:%y%m%d}\\'.format( date=datetime.datetime.now()) %folder_name
 
     if len(dir_name) > 259:
