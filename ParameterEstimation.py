@@ -74,22 +74,34 @@ def zncc(img1, img2):
 
 
 
-def EstimageSigmaPSF(settings):
+def EstimageSigmaPSF(settings, method = "new"):
     #estimate best sigma
-    #https://en.wikipedia.org/wiki/Numerical_aperture
-    NA = settings["Exp"]["NA"]
-    n  = settings["Exp"]["n_immersion"]
     
-    # fnumber
-    N = 1/(2*np.tan(np.arcsin(NA / n)))
+    if method == "new":
+        NA = settings["Exp"]["NA"]
+        lambda_nm = settings["Exp"]["lambda"]
+        sigma_nm = nd.Theory.SigmaPSF(NA, lambda_nm)
     
-    # approx PSF by gaussian
-    # https://en.wikipedia.org/wiki/Airy_disk
-    lambda_nm = settings["Exp"]["lambda"]
-    sigma_nm = 0.45 * lambda_nm * N
+    elif method == "old":
+        #https://en.wikipedia.org/wiki/Numerical_aperture
+        NA = settings["Exp"]["NA"]
+        n  = settings["Exp"]["n_immersion"]
+            
+        # fnumber
+        N = 1/(2*np.tan(np.arcsin(NA / n)))
+        
+        # approx PSF by gaussian
+        # https://en.wikipedia.org/wiki/Airy_disk
+        lambda_nm = settings["Exp"]["lambda"]
+        sigma_nm = 0.45 * lambda_nm * N
+        
+    else:
+        nd.logger.error("Input value of method must be new or old")
+    
+    
     sigma_um = sigma_nm / 1000
     sigma_px = sigma_um / settings["Exp"]["Microns_per_pixel"]
-    
+ 
     return sigma_px   
 
 
@@ -353,22 +365,19 @@ def FindChannel(rawframes_super):
 
     
 
-def EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF = True):   
+def EstimateDiameterForTrackpy(settings):   
     
     #theoretical sigma of the PSF
     sigma = EstimageSigmaPSF(settings)
     
-    # NA = settings["Exp"]["NA"]
-    # mylambda = settings["Exp"]["lambda"]
-    # Microns_per_pixel = settings["Exp"]["Microns_per_pixel"]
+    nd.logger.critical("CHECK IF CHANGES ARE CORRECT!")
     
-    # sigma_nm = nd.Theory.SigmaPSF(NA, mylambda)
-    # sigma_um = sigma_nm / 1000
-    # sigma = sigma_um / Microns_per_pixel
-    
+    ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
+
     # create the gaussian kernel
     if ImgConvolvedWithPSF == True:
         # if rawdata is convolved with PSF than imaged point scatteres are smeared
+        # remember that variance at up. so convolving a gauss with itself leads to a doubled variance
         sigma = sigma * np.sqrt(2)
 
     #2,5 sigma is 99% of the intensity - visibile diameter

@@ -242,7 +242,7 @@ def SpotSize(rawframes_pre, ParameterJsonFile):
         settings["Find"]["Estimated particle size"] = SpotSize_manual(rawframes_pre, settings)
         
     elif settings["Help"]["Bead size"] == "auto":
-        settings["Find"]["Estimated particle size"] = SpotSize_auto(settings)
+        settings["Find"]["Estimated particle size"] = nd.ParameterEstimation.EstimateDiameterForTrackpy(settings)
         
     else:
         nd.logger.warning("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
@@ -314,16 +314,7 @@ def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
     
     return try_diameter
  
- 
- 
-def SpotSize_auto(settings):
-    
-    ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
-    diameter = nd.ParameterEstimation.EstimateDiameterForTrackpy(settings, ImgConvolvedWithPSF)
-      
-    return diameter
-   
- 
+
 
 def FindROI(rawframes_np):
     """ show the maximum value of all images to reveal where the ROI is
