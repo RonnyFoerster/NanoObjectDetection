@@ -604,8 +604,10 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
                                                      histogramm_max = inv_diams.max(), 
                                                      xlabel='Inv. diameter [1/$\mu$m]', 
                                                      ylabel=ylabel, title=title, mycol='C3')
+        max_invHist = values_invHist.max()
     else:
         ax0 = 'none'
+        max_invHist = 1
     
     if (showInfobox==True) and (fitNdist==False):
         nd.visualize.PlotInfobox1N(ax, sizes)
@@ -631,7 +633,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
                                                    max_hist, sizes, fitInvSizes, 
                                                    num_dist_max=num_dist_max,
                                                    showICplot=showICplot, axInv=ax0,
-                                                   max_hist_inv=values_hist.max(), 
+                                                   max_hist_inv=max_invHist, 
                                                    showInvHist=showInvHist)
                 # weights should be the same, no matter if inverse or not
                 # CVs as well (at least approximately)
@@ -831,6 +833,7 @@ def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True,
                     
                     m1, m2, s1, s2, w = popt
                     f_means = [m1, m2]
+                    f_medians = f_means # true for this symmetric case
                     f_CVs = [s1/m1, s2/m2]
                     fitcolor='C0'
                     
@@ -904,7 +907,7 @@ def myGauss(d,mean,std):
 
 
 
-def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsizes, max_y, sizes, fitInvSizes):
+def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsize, max_y, sizes, fitInvSizes):
     """ add (reciprocal) Gaussian function to a sizes histogram (or PDF)
     
     NB: No fit is computed here, only an equivalent distribution with the same
@@ -1171,6 +1174,7 @@ def PlotInfoboxMN(ax, means, CVs, weights, medians, unit='nm', resInt=''):
     props = dict(boxstyle='round', facecolor='honeydew', alpha=0.7)
                 
     x_text = 0.65 - (0.05*len(weights))
+    # x_text = 0.05
     ax.text(x_text, 0.95, textstr, transform=ax.transAxes, 
             **{'fontname':'Arial', 'size':'15'}, #**axis_font, 
             verticalalignment='top', bbox=props)
