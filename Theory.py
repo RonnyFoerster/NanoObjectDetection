@@ -26,6 +26,12 @@ def SigmaPSF(NA, mylambda):
     
     return sigma
 
+
+def RayleighPSF(NA, mylambda):
+    # Radius of the first ring of the PSF
+    radius = 0.61 * mylambda/ NA
+    
+    return radius
     
 
 def LocalErrorStatic(sigma_psf, photons):

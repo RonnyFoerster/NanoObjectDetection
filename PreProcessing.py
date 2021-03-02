@@ -443,7 +443,7 @@ def ConvolveWithPSF_Parameter(PSF_Type, settings):
         # Standard Gaussian PSF
         # estimate PSF by experimental settings
         if settings["PreProcessing"]["KernelSize"] == 'auto':        
-            settings["PreProcessing"]["KernelSize"] = nd.ParameterEstimation.EstimageSigmaPSF(settings)
+            settings["PreProcessing"]["KernelSize"] = nd.ParameterEstimation.SigmaPSF(settings)
         
         # set PSF Kernel
         gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]

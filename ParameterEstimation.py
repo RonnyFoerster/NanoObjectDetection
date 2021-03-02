@@ -74,7 +74,7 @@ def zncc(img1, img2):
 
 
 
-def EstimageSigmaPSF(settings, method = "new"):
+def SigmaPSF(settings, method = "new"):
     #estimate best sigma
     
     if method == "new":
@@ -106,7 +106,40 @@ def EstimageSigmaPSF(settings, method = "new"):
 
 
 
-def EstimateMinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
+def DiameterForTrackpy(settings):   
+    
+    NA = settings["Exp"]["NA"]
+    lambda_nm = settings["Exp"]["lambda"]
+    
+    # radius_nm = nd.Theory.RayleighPSF(NA, lambda_nm)
+    sigma_nm = nd.Theory.SigmaPSF(NA, lambda_nm)
+    
+    #2 sigma contains 95% of the photons. Rayleigh ring does not work properly
+    radius_nm = 2*sigma_nm 
+    
+    radius_um = radius_nm / 1000
+    radius_px = radius_um / settings["Exp"]["Microns_per_pixel"]
+    diameter_px = 2 * radius_px
+    
+    if settings["PreProcessing"]["EnhanceSNR"] == 1:
+        #gauss convolved by gauss of same size to enhance SNR. Result is a gauss with twice the variance
+        diameter_px = np.sqrt(2) * diameter_px
+    
+    diameter_tp = int(np.ceil(diameter_px))
+    
+    if (diameter_tp%2) == 0:
+        # value must be odd for trackpy
+        diameter_tp = diameter_tp + 1
+        
+    nd.logger.debug("2-Sigma intervall (0.95 of the energy) within a radius of : %.2f px", radius_px)
+    nd.logger.debug("Diameter for trackpy: %s px", diameter_tp)
+    
+    
+    return diameter_tp
+
+
+
+def MinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
 
     """
     Estimate the minmass parameter trackpy requires to locate particles
@@ -236,7 +269,7 @@ def CorrelateImgAndPSF(img1, settings, num_verbose = 5):
     # print("Correlate Img and PSF: Start")
         
     #get sigma of PSF
-    sigma = EstimageSigmaPSF(settings)
+    sigma = SigmaPSF(settings)
     
     ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
     
@@ -363,38 +396,7 @@ def FindChannel(rawframes_super):
     
     return mychannel
 
-    
 
-def EstimateDiameterForTrackpy(settings):   
-    
-    #theoretical sigma of the PSF
-    sigma = EstimageSigmaPSF(settings)
-    
-    nd.logger.critical("CHECK IF CHANGES ARE CORRECT!")
-    
-    ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
-
-    # create the gaussian kernel
-    if ImgConvolvedWithPSF == True:
-        # if rawdata is convolved with PSF than imaged point scatteres are smeared
-        # remember that variance at up. so convolving a gauss with itself leads to a doubled variance
-        sigma = sigma * np.sqrt(2)
-
-    #2,5 sigma is 99% of the intensity - visibile diameter
-    #sigma is the radius so times two to get the diameter
-    diameter = 2.5 * 2 * sigma
-    
-    #get odd integer (rather to large than to small)
-    diameter  = np.int(np.ceil(diameter))
-    
-    if np.mod(diameter,2) == 0:
-        diameter = diameter + 1
-    
-    print("\n Estimated diameter: ", diameter)
-    
-    return diameter
-          
-    
 
 def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = True, percentile = 64):
     """

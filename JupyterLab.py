@@ -462,7 +462,7 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
                                               ExternalSlider = True, gamma = gamma)
             
         elif settings["Help"]["Bead size"] == "auto":
-            minmass, num_particles_trackpy = nd.ParameterEstimation.EstimateMinmassMain(rawframes_pre, settings)
+            minmass, num_particles_trackpy = nd.ParameterEstimation.MinmassMain(rawframes_pre, settings)
             settings["Find"]["Minimal bead brightness"] = minmass
             
         else:

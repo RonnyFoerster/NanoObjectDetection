@@ -150,7 +150,7 @@ def FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile):
         obj_first, settings, num_particles_trackpy = FindSpot_manual(rawframes_pre, ParameterJsonFile)
         
     elif settings["Help"]["Bead brightness"] == "auto":
-        minmass, num_particles_trackpy = nd.ParameterEstimation.EstimateMinmassMain(rawframes_super, rawframes_pre, settings)
+        minmass, num_particles_trackpy = nd.ParameterEstimation.MinmassMain(rawframes_super, rawframes_pre, settings)
         settings["Find"]["Minimal bead brightness"] = minmass
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
@@ -242,7 +242,7 @@ def SpotSize(rawframes_pre, ParameterJsonFile):
         settings["Find"]["Estimated particle size"] = SpotSize_manual(rawframes_pre, settings)
         
     elif settings["Help"]["Bead size"] == "auto":
-        settings["Find"]["Estimated particle size"] = nd.ParameterEstimation.EstimateDiameterForTrackpy(settings)
+        settings["Find"]["Estimated particle size"] = nd.ParameterEstimation.DiameterForTrackpy(settings)
         
     else:
         nd.logger.warning("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
