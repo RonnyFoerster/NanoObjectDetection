@@ -125,6 +125,7 @@ def DiameterForTrackpy(settings):
         #gauss convolved by gauss of same size to enhance SNR. Result is a gauss with twice the variance
         diameter_px = np.sqrt(2) * diameter_px
     
+    # must be int
     diameter_tp = int(np.ceil(diameter_px))
     
     if (diameter_tp%2) == 0:
@@ -139,7 +140,7 @@ def DiameterForTrackpy(settings):
 
 
 
-def MinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
+def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, DoDiameter = False):
 
     """
     Estimate the minmass parameter trackpy requires to locate particles
@@ -148,6 +149,8 @@ def MinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
     2 - Optimize trackpy parameters such, that it obtains the same result than ZNCC
     showPlots: number of frames that are shown
     """    
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     # estimate where the channel is
     mychannel = FindChannel(img1_raw)
@@ -197,13 +200,13 @@ def MinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
     
 
     # load diameter from settings
-    diameter = settings["Find"]["Estimated particle size"]
+    diameter = settings["Find"]["tp_diameter"]
     
     # load separation from settings
-    separation = settings["Find"]["Separation data"]
+    separation = settings["Find"]["tp_separation"]
     
     # load the percentile filter value
-    percentile = settings["Find"]["PercentileThreshold"]    
+    percentile = settings["Find"]["tp_percentile"]    
     
     # Trackpy does bandpass filtering as "preprocessing". If the rawdata is already convolved by the PSF this additional bandpass does not make any sense. Switch of the preprocessing if rawdata is already convolved by the PSF
     DoPreProcessing = (ImgConvolvedWithPSF == False)
@@ -211,27 +214,68 @@ def MinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
     # optimize the minmass in trackpy, sothat the results of ncc and trackpy agree best
     # minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
     
-    minmass, num_particles_trackpy, not_needed = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
+    if DoDiameter == False:
+        minmass, num_particles_trackpy, not_needed = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
     
+        settings["Find"]["tp_minmass"] = minmass
     
+    else:
+        nd.logger.critical("Ronny debugs here!!!")
+        num_cores = multiprocessing.cpu_count()
+        # nd.logger.info("Find the particles - parallel (Number of cores: %s): starting....", num_cores)
+        
+        diam_theory = nd.ParameterEstimation.DiameterForTrackpy(settings)
+        
+        # search around theoretical value
+        min_diam = diam_theory - 6
+        if min_diam < 3:
+            min_diam = 3
+        
+        max_diam = diam_theory + 8 + 1
+        
+        inputs = range(min_diam, max_diam, 2)
     
-    nd.logger.critical("Ronny debugs here!!!")
-    num_cores = multiprocessing.cpu_count()
-    # nd.logger.info("Find the particles - parallel (Number of cores: %s): starting....", num_cores)
-    inputs = range(3,18,2)
+        num_verbose = nd.handle_data.GetNumberVerbose()
+        save_level = nd.logger.getEffectiveLevel()
+        nd.logger.setLevel(30)
+        
+        output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(OptimizeMinmassInTrackpy)(img1[use_frames], loop_diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile, DoLog = False) for loop_diameter in inputs)
+        
+        nd.logger.setLevel(save_level)
+        
+        for ii,jj in enumerate(inputs):
+            tp.subpx_bias(output_list[ii][2])
+            plt.title("y - diameter = %i" %(jj))
+    
+        #Pause sothat python can show the plots before waiting for an input
+        plt.pause(3)
+    
+        valid_input = False
+        
+        while valid_input == False:
+            nd.logger.info("The histogramm should be flat. They should not have a dip in the middle! ")
+            
+            try:
+                diameter = input("Which diameter is best [dtype interger]: ")        
+                diameter = int(diameter)
+                
+                # position of best diameter inside range
+                range_pos = int(np.where(np.asarray(inputs) == diameter)[0])
+        
+                # select ideal minmass from list
+                minmass = output_list[range_pos][0]
+                
+                valid_input = True
+                    
+            except:
+                nd.logger.error("Try again. Dtype must be int and one of the available frames from %i to %i", inputs[0], inputs[-1])
+    
 
-    num_verbose = nd.handle_data.GetNumberVerbose()
-    output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(OptimizeMinmassInTrackpy)(img1[use_frames], loop_diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile) for loop_diameter in inputs)
+        settings["Find"]["tp_minmass"] = minmass
+        settings["Find"]["tp_diameter"] = diameter
     
-    for ii,jj in enumerate(inputs):
-        ax = tp.subpx_bias(output_list[ii][2])
-        plt.title("y - diameter = %i" %(jj))
-    
-    print("check result")
-    
-    # minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
-    
-    
+        nd.logger.info("Minmass for trackpy estimate to: %i", minmass)
+        nd.logger.info("Diameter for trackpy estimate to: %i", diameter)
     
     # plot the stuff - optionally
     for ii, loop_frames in enumerate(use_frames[:NumShowPlots]):
@@ -243,9 +287,27 @@ def MinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
             plt.figure()
             PlotImageProcessing(use_img1, use_img_zncc, use_pos_particles)
 
-    
-    return minmass, num_particles_trackpy
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)  
 
+    return settings
+
+
+
+def AskBestDiameter(QuestionForUser):
+    """ ask if user is satisfied
+    """
+    valid_answer = False
+    while valid_answer == False:
+        answer = input(QuestionForUser + ' (y/n) :')
+        if answer in ('y','n') == False:
+            print("Warning: press y or n")
+        else:
+            valid_answer = True
+            if answer == 'y':
+                UserSatisfied = True
+            else:
+                UserSatisfied = False
+    return UserSatisfied
 
 
 def FindParticlesByZNCC(img1, settings, num_verbose = 5):
@@ -417,11 +479,13 @@ def FindChannel(rawframes_super):
 
 
 
-def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = True, percentile = 64):
+def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = True, percentile = 64, DoLog = True):
     """
     the particles are found accurately by zncc, which is accurate but time consuming
     trackpy is faster but needs proper threshold to find particles - minmass
     start with a low threshold and increase it till the found particles by zncc are lost
+    
+    DoLog is required, because this function is sometimes called in parallel, where the logging fails
     """
     
     #start value
@@ -451,10 +515,10 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     # wrong_to_right_save = []
     minmass_save = []
     
-    nd.logger.info("Separation: %s", separation)
+    if DoLog: nd.logger.info("Separation: %s", separation)
     
     percentile = 0
-    nd.logger.info("percentile: %s", percentile)
+    if DoLog: nd.logger.info("percentile: %s", percentile)
     
     # switch logger ouf for this optimization
     if nd.logger.getEffectiveLevel() >= 20:
@@ -470,9 +534,9 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
         
         if count_loops%10 == 0:
             #plot every ten iterations
-            nd.logger.info("Iteration: %s with minmass: %s", count_loops, minmass)
+            if DoLog: nd.logger.info("Iteration: %s with minmass: %s", count_loops, minmass)
         else:
-            nd.logger.debug("Iteration: %s with minmass: %s", count_loops, minmass)  
+            if DoLog: nd.logger.debug("Iteration: %s with minmass: %s", count_loops, minmass)  
             
         count_loops = count_loops + 1    
         
@@ -484,7 +548,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             # sanity check
             if num_particles_trackpy < num_particles_zncc:
                 stop_optimizing = True
-                nd.logger.error("Trackpy finds too few particles. Possible reasons: \n - start value of minmass is too low (unlikely) \n - specimen is too dense/too highly concentrated \n - Percentile filter gives you problems in tp.batch or tp.locate.")
+                if DoLog: nd.logger.error("Trackpy finds too few particles. Possible reasons: \n - start value of minmass is too low (unlikely) \n - specimen is too dense/too highly concentrated \n - Percentile filter gives you problems in tp.batch or tp.locate.")
                 raise ValueError("")
         
 
@@ -502,18 +566,18 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
         else:
             num_particle_only_trackpy_finds = 0
  
-        nd.logger.debug("Found particles (trackpy): %s", num_particles_trackpy)
-        nd.logger.debug("Found particles (zncc): %s", num_particles_zncc)
+        if DoLog: nd.logger.debug("Found particles (trackpy): %s", num_particles_trackpy)
+        if DoLog: nd.logger.debug("Found particles (zncc): %s", num_particles_zncc)
         
         if num_particles_trackpy > (5 * num_particles_zncc):
             # if far too many particles are found the threshold must be increased significantly
-            nd.logger.debug("5 times more feactures than expected. Enhance threshold!")
+            if DoLog: nd.logger.debug("5 times more feactures than expected. Enhance threshold!")
             
             # + 1 is required to ensure that minmass is increasing, although the value might be small
             minmass = np.int(minmass * 1.5) + 1
             
         elif num_particles_trackpy > (2 * num_particles_zncc):
-            nd.logger.debug("2 times more feactures than expected. Enhance threshold!")
+            if DoLog: nd.logger.debug("2 times more feactures than expected. Enhance threshold!")
             minmass = np.int(minmass * 1.2) + 1
             
         else:
@@ -540,10 +604,10 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
                     # show position of first wrong particle. If more are plotted the console is just overfull
                     if First_wrong_assignment  == True:
                         First_wrong_assignment  = False
-                        nd.logger.debug("Particle found in ZNCC but not with trackpy")
-                        nd.logger.debug("Problem with particle: %s", id_part)
-                        nd.logger.debug("Position: %s", pos)
-                        nd.logger.debug("Closest point: %s", closest_agreement)
+                        if DoLog: nd.logger.debug("Particle found in ZNCC but not with trackpy")
+                        if DoLog: nd.logger.debug("Problem with particle: %s", id_part)
+                        if DoLog: nd.logger.debug("Position: %s", pos)
+                        if DoLog: nd.logger.debug("Closest point: %s", closest_agreement)
                     
                 else:
                     # This is what you want. Particle found by zncc and trackpy within a neighborhood.
@@ -566,16 +630,16 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             # wrong_to_right_save = np.append(wrong_to_right_save, wrong_to_right)
             minmass_save = np.append(minmass_save, minmass)
             
-            nd.logger.debug("right_found: %s", right_found)
-            nd.logger.debug("wrong_found: %s", wrong_found)
-            nd.logger.debug("Wrong to right assignment: %s", wrong_to_right)
+            if DoLog: nd.logger.debug("right_found: %s", right_found)
+            if DoLog: nd.logger.debug("wrong_found: %s", wrong_found)
+            if DoLog: nd.logger.debug("Wrong to right assignment: %s", wrong_to_right)
             
-            nd.logger.debug("Still optimizing...")
+            if DoLog: nd.logger.debug("Still optimizing...")
 
             # check how value is changing
 #            if Wrong_to_right > Wrong_to_right_optimum:
             if  (wrong_found == 0) | (num_particles_trackpy < 0.8 * num_particles_zncc):  
-                nd.logger.debug("TrackPy finds much less particles than the zncc")
+                if DoLog: nd.logger.debug("TrackPy finds much less particles than the zncc")
                 
                 #value increasing so abort loop
                 stop_optimizing = True
@@ -604,7 +668,7 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
     
     #leave a bit of space to not work at the threshold
     minmass_optimum = np.int(minmass_optimum * 0.90)
-    nd.logger.info("Optimized Minmass threshold is: %s", minmass_optimum)
+    if DoLog: nd.logger.info("Optimized Minmass threshold is: %s", minmass_optimum)
 
     obj_all = tp.batch(img1, diameter, minmass = minmass_optimum, separation = diameter, max_iterations = 10, preprocess = DoPreProcessing)
       
@@ -743,7 +807,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
 
 
     nd.logger.info("The minimum distance between two located particles >Separation data< is set to: %s", Min_Separation)
-    settings["Find"]["Separation data"] = Min_Separation 
+    settings["Find"]["tp_separation"] = Min_Separation 
 
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)

@@ -25,21 +25,40 @@ def Main(rawframes_super, rawframes_pre, ParameterJsonFile):
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
+    mode_separation = settings["Help"]["Separation"]
+    mode_diameter   = settings["Help"]["Bead size"]
+    mode_minmass    = settings["Help"]["Bead brightness"]
+
+    #sanity check
+    if mode_separation not in ["manual", "auto"]: nd.logger.error("Need auto or manual in settings[Help][Separation]")    
+    if mode_diameter not in ["manual", "auto"]: nd.logger.error("Need auto or manual in settings[Help][Bead size]")    
+    if mode_minmass not in ["manual", "auto"]: nd.logger.error("Need auto or manual in settings[Help][Bead brightness]")
+
     # optimized the distance a particle can move between two frames and how close to beads can be without risk of wrong assignment
-    if settings["Help"]["Separation"] == "auto":
+    if mode_separation == "auto":
         nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        
 
-    # if beadsize is manual - the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
-    if settings["Help"]["Bead size"] == "manual":
-        FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile)
-        
-    # optimize PSF diameter
-    SpotSize(rawframes_pre, ParameterJsonFile)  
-    
-    # optimize minmass to identify particle
-    FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile)
  
+    # Diameter and minmass are connected and must be calculated as a team
+    if (mode_diameter == "manual") or (mode_minmass == "manual"):
+        # calculate them a bit iterative
+        DoDiameter = False
         
+        if mode_diameter == "manual":
+            # the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
+            FindMinmass(rawframes_super, rawframes_pre, ParameterJsonFile, DoDiameter = False)
+            
+        # optimize PSF diameter
+        FindDiameter(rawframes_pre, ParameterJsonFile)  
+
+    else:
+        #run the full auto routine and optimize both together
+        DoDiameter = True
+            
+    # optimize minmass to identify particle
+    FindMinmass(rawframes_super, rawframes_pre, ParameterJsonFile, DoDiameter = DoDiameter)
+        
+                
 
 def AdjustSettings_Main(rawframes_super, rawframes_pre, ParameterJsonFile):
     nd.logger.warning("Function not in use anymore. Use <Main> instead.")
@@ -139,33 +158,30 @@ def AskIfUserSatisfied(QuestionForUser):
   
 
 
-def FindSpot(rawframes_super, rawframes_pre, ParameterJsonFile):
+def FindMinmass(rawframes_super, rawframes_pre, ParameterJsonFile, DoDiameter = False):
     """
     Estimated the minmass value that trackpy uses in its feature finding routine
     The value have to be choosen such that dim featues are still reconized, while noise is not mistaken as a particle
     """    
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    if (settings["Help"]["Bead brightness"] == "manual") or (settings["Help"]["Bead brightness"] == 1):
-        obj_first, settings, num_particles_trackpy = FindSpot_manual(rawframes_pre, ParameterJsonFile)
+    if settings["Help"]["Bead brightness"] in ["manual", 1]:
+        FindMinmass_manual(rawframes_pre, ParameterJsonFile)
         
     elif settings["Help"]["Bead brightness"] == "auto":
-        minmass, num_particles_trackpy = nd.ParameterEstimation.MinmassMain(rawframes_super, rawframes_pre, settings)
-        settings["Find"]["Minimal bead brightness"] = minmass
+        settings = nd.ParameterEstimation.MinmassAndDiameterMain(rawframes_super, rawframes_pre, ParameterJsonFile, DoDiameter = DoDiameter)
+        
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
-    else:
-        obj_all = nd.get_trajectorie.FindSpots(rawframes_pre[0:1,:,:], ParameterJsonFile)
-        num_particles_trackpy = len(obj_all )
-        
+    else:        
         nd.logging.warning("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
 
-    return num_particles_trackpy
+    return
     
     
       
     
-def FindSpot_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = False, gamma = 0.4):    
+def FindMinmass_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = False, gamma = 0.4):    
     """
     Main function to optimize the parameters for particle identification
     It runs the bead finding routine and ask the user what problem he has
@@ -203,35 +219,34 @@ def FindSpot_manual(rawframes_pre, ParameterJsonFile, ExternalSlider = False, ga
             if UserSatisfied == False:              
                 nd.logger.info("method: %s", method)
                 if method == 1:
-                    settings["Find"]["Minimal bead brightness"] = \
+                    settings["Find"]["tp_minmass"] = \
                     GetIntegerInput("Reduce >Minimal bead brightness< from %d to (must be integer): "\
-                                      %settings["Find"]["Minimal bead brightness"])
+                                      %settings["Find"]["tp_minmass"])
         
                 elif method == 2:
-                    settings["Find"]["Minimal bead brightness"] = \
+                    settings["Find"]["tp_minmass"] = \
                     GetIntegerInput("Enhance >Minimal bead brightness< from %d to (must be integer): "\
-                                      %settings["Find"]["Minimal bead brightness"])
+                                      %settings["Find"]["tp_minmass"])
         
                 elif method == 3:
-                    settings["Find"]["Separation data"] = \
+                    settings["Find"]["tp_separation"] = \
                     GetNumericalInput("Reduce >Separation data< from %d to (must be integer): "\
-                                      %settings["Find"]["Separation data"])
+                                      %settings["Find"]["tp_separation"])
                     
                 else:
-                    settings["Find"]["Separation data"] = \
+                    settings["Find"]["tp_separation"] = \
                     GetNumericalInput("Enhance >Separation data< from %d to (must be integer): "\
-                                      %settings["Find"]["Separation data"])
+                                      %settings["Find"]["tp_separation"])
                 
                 nd.handle_data.WriteJson(ParameterJsonFile, settings)  
     
-    #get number of located particles by trackpy
-    num_particles_trackpy = len(obj_first)
+
     
-    return obj_first, settings, num_particles_trackpy
+    return settings
     
 
 
-def SpotSize(rawframes_pre, ParameterJsonFile):
+def FindDiameter(rawframes_pre, ParameterJsonFile):
     """
     select if Diameter value in trackpy is estiamted manual or automatically
     """
@@ -239,10 +254,10 @@ def SpotSize(rawframes_pre, ParameterJsonFile):
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     if (settings["Help"]["Bead size"] == "manual") or (settings["Help"]["Bead size"] == 1):
-        settings["Find"]["Estimated particle size"] = SpotSize_manual(rawframes_pre, settings)
+        settings["Find"]["tp_diameter"] = FindDiameter_manual(rawframes_pre, settings)
         
     elif settings["Help"]["Bead size"] == "auto":
-        settings["Find"]["Estimated particle size"] = nd.ParameterEstimation.DiameterForTrackpy(settings)
+        settings["Find"]["tp_diameter"] = nd.ParameterEstimation.DiameterForTrackpy(settings)
         
     else:
         nd.logger.warning("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
@@ -251,7 +266,7 @@ def SpotSize(rawframes_pre, ParameterJsonFile):
     
 
 
-def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
+def FindDiameter_manual(rawframes_pre, settings, AutoIteration = True):
     """
     Optimize the diameter of the Particles
     Start with a very low diameter (3px) and run Trackpy on the first 100 frames. 
@@ -259,15 +274,15 @@ def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
     If the distribution is not flat, the diameter is increase till its ok.
     """
         
-    separation = settings["Find"]["Separation data"]
-    minmass    = settings["Find"]["Minimal bead brightness"]
+    separation = settings["Find"]["tp_separation"]
+    minmass    = settings["Find"]["tp_minmass"]
 
     UserSatisfied = False
     
     if AutoIteration == True:
         try_diameter = [3.0 ,3.0]
     else:
-        try_diameter = settings["Find"]["Estimated particle size"]
+        try_diameter = settings["Find"]["tp_diameter"]
     
     if len(rawframes_pre) > 100:
         rawframes_pre = rawframes_pre[0:100,:,:]
@@ -303,7 +318,7 @@ def SpotSize_manual(rawframes_pre, settings, AutoIteration = True):
             
 
     
-#    settings["Find"]["Estimated particle size"] = try_diameter
+#    settings["Find"]["tp_diameter"] = try_diameter
     
 #    nd.handle_data.WriteJson(ParameterJsonFile, settings)  
     

@@ -66,7 +66,7 @@
           "RollingPercentilFilter_rolling_step": 10,
           "RollingPercentilFilter_rolling_length": 200,
           "RollingPercentilFilter_percentile_filter": 80,
-          "ClipNegativeValue": 0,
+          "ClipNegativeValue": 1,
           "Do_or_apply_data_rotation": 0,
           "rot_angle": 0,
           "EnhanceSNR": 1,
@@ -81,11 +81,11 @@
           "Drift": "auto"
      },
      "Find": {
-          "Estimated particle size": 13,
-          "Minimal bead brightness": 500.0,
+          "tp_diameter": 13,
+          "tp_minmass": 500.0,
           "SaturatedPixelValue": 65000,
-          "Separation data": 15,
-          "PercentileThreshold": 20
+          "tp_separation": 15,
+          "tp_percentile": 20
      },
      "Link": {
           "Dark time": 1,
