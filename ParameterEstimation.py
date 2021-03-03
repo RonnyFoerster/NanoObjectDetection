@@ -218,10 +218,16 @@ def MinmassMain(img1_raw, img1, settings, NumShowPlots = 1):
     nd.logger.critical("Ronny debugs here!!!")
     num_cores = multiprocessing.cpu_count()
     # nd.logger.info("Find the particles - parallel (Number of cores: %s): starting....", num_cores)
-    inputs = range(3,17,2)
+    inputs = range(3,18,2)
 
     num_verbose = nd.handle_data.GetNumberVerbose()
     output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(OptimizeMinmassInTrackpy)(img1[use_frames], loop_diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile) for loop_diameter in inputs)
+    
+    for ii,jj in enumerate(inputs):
+        ax = tp.subpx_bias(output_list[ii][2])
+        plt.title("y - diameter = %i" %(jj))
+    
+    print("check result")
     
     # minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
     
