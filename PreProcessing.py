@@ -127,13 +127,13 @@ def MakeInt16(rawframes_np, settings):
         # SIGNED dtype needed
         img_scale_fac = max_int16/max_value
         rawframes_np = np.round(rawframes_np * img_scale_fac)
-        rawframes_np = rawframes_np.astype("int16", copy = False)
+        rawframes_np = rawframes_np.astype("int16")
         nd.logger.info("DType: int16")
     else :
         # UNSIGNED dtype possible
         img_scale_fac = max_uint16/max_value
         rawframes_np = np.round(rawframes_np * img_scale_fac)
-        rawframes_np = rawframes_np.astype("uint16", copy = False)
+        rawframes_np = rawframes_np.astype("uint16")
         nd.logger.info("DType: uint16")
         
     settings["Exp"]["img-scale-fac"] = img_scale_fac
