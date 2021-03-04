@@ -164,6 +164,29 @@ def CheckJson_Exist(ParameterJsonFile):
 def CheckJson_Entries(settings):
     # check if all required entires exist, otherwise copy from json
     
+    #check if old keys should be renamed
+    if "Estimated particle size" in settings["Find"].keys():
+        settings["Find"]["tp_diameter"] = settings["Find"]["Estimated particle size"]
+        del settings["Find"]["Estimated particle size"]
+        nd.logger.warning("Replace key <Estimated particle size> by <tp_diameter>")
+        
+    if "Minimal bead brightness" in settings["Find"].keys():
+        settings["Find"]["tp_minmass"] = settings["Find"]["Minimal bead brightness"]
+        del settings["Find"]["Minimal bead brightness"]
+        nd.logger.warning("Replace key <Minimal bead brightness> by <tp_minmass>")
+        
+    if "Separation data" in settings["Find"].keys():
+        settings["Find"]["tp_separation"] = settings["Find"]["Separation data"]
+        del settings["Find"]["Separation data"]
+        nd.logger.warning("Replace key <Separation data> by <tp_separation>")
+    
+    if "PercentileThreshold" in settings["Find"].keys():
+        settings["Find"]["tp_percentile"] = settings["Find"]["PercentileThreshold"]
+        del settings["Find"]["PercentileThreshold"]
+        nd.logger.warning("Replace key <PercentileThreshold> by <tp_percentile>")
+    
+    
+    
     # memory if sth was wrong
     MissingEntry = False
     

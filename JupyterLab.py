@@ -390,22 +390,22 @@ def ChooseFindObjParameters(rawframes_pre, ParameterJsonFile):
             description='Help bead diameter')
 
     diameter_slider = IntSlider(min = 1, max = 31, step = 2, \
-                          value = settings["Find"]["Estimated particle size"],\
+                          value = settings["Find"]["tp_diameter"],\
                          # value = 15,\
                          description = "Diameter of bead [Px]")      
     
     def OptimizeBeadDiameter(mode, diameter):
 
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        settings["Find"]["Estimated particle size"] = diameter
+        settings["Find"]["tp_diameter"] = diameter
         settings["Help"]["Bead size"] = mode
                 
         if mode  == "manual":
-            settings["Find"]["Estimated particle size"] = \
+            settings["Find"]["tp_diameter"] = \
             nd.AdjustSettings.SpotSize_manual(rawframes_pre, settings, AutoIteration = False)
             
         elif settings["Help"]["Bead size"] == "auto":
-            settings["Find"]["Estimated particle size"] = nd.AdjustSettings.SpotSize_auto(settings)
+            settings["Find"]["tp_diameter"] = nd.AdjustSettings.SpotSize_auto(settings)
             
         else:
             print("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")

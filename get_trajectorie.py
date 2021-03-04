@@ -28,8 +28,8 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
     """ wrapper for trackpy routine tp.batch, which spots particles
 
     important parameters:
-    separation = settings["Find"]["Separation data"] ... minimum distance of spotes objects
-    minmass    = settings["Find"]["Minimal bead brightness"]   ... minimum brightness of an object in order to be saved
+    separation = settings["Find"]["tp_separation"] ... minimum distance of spotes objects
+    minmass    = settings["Find"]["tp_minmass"]   ... minimum brightness of an object in order to be saved
     """
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -44,13 +44,13 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
         ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
         DoPreProcessing = (ImgConvolvedWithPSF == False)
 
-        separation = settings["Find"]["Separation data"]
-        minmass    = settings["Find"]["Minimal bead brightness"]
-        percentile = settings["Find"]["PercentileThreshold"]
+        separation = settings["Find"]["tp_separation"]
+        minmass    = settings["Find"]["tp_minmass"]
+        percentile = settings["Find"]["tp_percentile"]
 
 
         if diameter == None:
-            diameter = settings["Find"]["Estimated particle size"]
+            diameter = settings["Find"]["tp_diameter"]
 
         output_empty = True
 
@@ -81,7 +81,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
                 if output.empty:
                     nd.logger.warning("Image is empty - reduce Minimal bead brightness")
                     minmass = minmass / 10
-                    settings["Find"]["Minimal bead brightness"] = minmass
+                    settings["Find"]["tp_minmass"] = minmass
                 else:
                     output_empty = False
                     nd.logger.info("Set all NaN in estimation precision to 0")
@@ -200,7 +200,7 @@ def AnalyzeMovingSpots(frames_np, ParameterJsonFile):
 
     diameter = settings["Find"]["Estimated moving particle size"]
     if diameter == "auto":
-        diameter_fixed = settings["Find"]["Estimated particle size"]
+        diameter_fixed = settings["Find"]["tp_diameter"]
 
         # use the double size for the smeared particles
         diameter = (np.asarray(diameter_fixed)*2+1).tolist()
@@ -935,9 +935,9 @@ def split_traj_at_long_trajectory(t4_cutted, settings, Min_traj_length = None, M
 #
 #    settings = nd.handle_data.ReadJson(ParameterJsonFile)
 #
-#    diameter = settings["Find"]["Estimated particle size"]
-#    minmass = settings["Find"]["Minimal bead brightness"]
-#    separation = settings["Find"]["Separation data"]
+#    diameter = settings["Find"]["tp_diameter"]
+#    minmass = settings["Find"]["tp_minmass"]
+#    separation = settings["Find"]["tp_separation"]
 #
 #    obj = nd.get_trajectorie.batch_np(rawframes_ROI[0:1,:,:], ParameterJsonFile, diameter = diameter,
 #                                      minmass = minmass, separation = separation)
@@ -993,7 +993,7 @@ def split_traj_at_long_trajectory(t4_cutted, settings, Min_traj_length = None, M
 
 #     num_sat_px = sat_px.shape[0]
 #     # minimum allowed distance to saturated area
-#     min_distance = settings["Find"]["Separation data"]
+#     min_distance = settings["Find"]["tp_separation"]
 
 #     min_distance = 10
 
