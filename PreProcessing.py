@@ -84,9 +84,7 @@ def Main(rawframes_np, ParameterJsonFile):
         else:
             nd.logger.info('Image Rotation: not applied')
             
-          
-        # DTYPE CANT BE FLOAT FOR TRACKPY! Decive int datatype below
-        # rawframes_np = np.round(rawframes_np)
+            
             
         # 7 - CLIP NEGATIVE VALUE
         if settings["PreProcessing"]["ClipNegativeValue"] == 1:
@@ -336,6 +334,7 @@ def ConvolveWithPSF_2D(image_frame, gauss_kernel_rad):
     PSF_Type = "Gauss"
     if PSF_Type == "Gauss":
         image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
+
     
     return image_frame_filtered
 
