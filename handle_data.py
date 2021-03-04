@@ -283,7 +283,7 @@ def CalcBitDepth(image):
             
 
 
-def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
+def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5], last_frame = 1000):
     """ check if images appear several times
     
     Check the pixel-wise difference and check if the maximum occuring difference is 0. 
@@ -291,11 +291,20 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5]):
     in a wider distance (that happend already). 
     
     diff_frames:    distance between two analyzed frames
+    
+    last_frame: last frame that is considered for calculation
     """
+    
+    # last frame cannot exceed number of existing frames
+    num_frames = rawframes_np.shape[0]
+    if num_frames  < last_frame:
+        last_frame = num_frames 
+        
+    nd.logger.info("Check first %i frames for repeated frames (camera error)", (last_frame))       
     
     for ii in diff_frame:      
         #check if images are saved doubled
-        mydiff = rawframes_np[0:-ii,:,:] - rawframes_np[ii:,:,:]
+        mydiff = rawframes_np[0:last_frame-ii,:,:] - rawframes_np[ii:last_frame,:,:]
         
         #pixel value that differs most
         max_diff_value = np.max(np.abs(mydiff), axis = (1,2))
@@ -314,6 +323,8 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     
     Saturation is visible in the intensity histogramm has a peak in the highest intensity bin.
     """
+    nd.logger.info("Check for saturated frames")
+    
     min_value = np.min(rawframes_np)
     max_value = np.max(rawframes_np)
     
@@ -381,6 +392,8 @@ def CheckForSaturation(rawframes_np,warnUser=True):
                 
     return rawframes_np
     
+
+
 
 # def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
 #     """ check if rawimages are saturated
@@ -458,6 +471,20 @@ def ReadFits2Numpy(data_file_name):
     
     return rawframes_np
 
+
+
+def RoiAndSuperSampling(settings, ParameterJsonFile, rawframes_np):
+    # execute ROI and supersampling after each other to save memory
+    if settings["Help"]["ROI"] == 1:
+        nd.AdjustSettings.FindROI(rawframes_np)
+
+    rawframes_ROI = UseROI(rawframes_np, settings)
+    
+    # supersampling  
+    rawframes_super = UseSuperSampling(rawframes_ROI, ParameterJsonFile)
+    
+    return rawframes_super
+    
 
 
 def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = None, frame_min = None, frame_max = None):

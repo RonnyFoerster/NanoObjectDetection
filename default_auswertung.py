@@ -34,15 +34,9 @@ rawframes_np = nd.handle_data.ReadData2Numpy(ParameterJsonFile)
 #%% choose ROI if wanted
 # ROI (includes a help how to find it)
 settings = nd.handle_data.ReadJson(ParameterJsonFile)
-if settings["Help"]["ROI"] == 1:
-            nd.AdjustSettings.FindROI(rawframes_np)
 
-rawframes_ROI = nd.handle_data.UseROI(rawframes_np, settings)
+rawframes_super = nd.handle_data.RoiAndSuperSampling(settings, ParameterJsonFile, rawframes_np)
 
-# supersampling  
-rawframes_super = nd.handle_data.UseSuperSampling(rawframes_ROI, ParameterJsonFile)
-
-del rawframes_ROI
 
 #%% standard image preprocessing
 rawframes_pre, static_background = nd.PreProcessing.Main(rawframes_super, ParameterJsonFile)
