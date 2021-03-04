@@ -941,7 +941,9 @@ def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsize, max_y, sizes, fitInv
         prob_diam_1size = prob_diam_1size/(sum(prob_diam_1size)*diam_grid_stepsize)
         
         # mean = 1000/diam_inv_mean # incorrect
-        mean = sum(prob_diam_1size*diam_grid)*diam_grid_stepsize
+        # mean = sum(prob_diam_1size*diam_grid)*diam_grid_stepsize
+        # RONNY WAS HERE AND INSERTED THE [0] after diam_grid_stepsize
+        mean = sum(prob_diam_1size*diam_grid)*diam_grid_stepsize[0]
         median = 1000/diam_inv_median
         CV = diam_inv_std/diam_inv_mean # from inverse space (!)
         # _, _, _, CI68, _ = \
