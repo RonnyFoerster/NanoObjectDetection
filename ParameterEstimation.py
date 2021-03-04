@@ -166,7 +166,7 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     img_zncc, num_particles_zncc, pos_particles = FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames)
     
 
-    OptimizeMinmassInTrackpyMain(settings, img1, num_particles_zncc, pos_particles, DoDiameter)
+    OptimizeMinmassInTrackpyMain(settings, img_in_zncc, num_particles_zncc, pos_particles, DoDiameter)
 
     
     # plot the stuff - optionally
