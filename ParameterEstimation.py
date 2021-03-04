@@ -155,15 +155,45 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     # estimate where the channel is
     mychannel = FindChannel(img1_raw)
     
-    #check if raw data is convolved by PSF to reduce noise
-    ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
-    
     # select several frames to make the parameter estimation with
-    num_frames = 10
+    num_frames = settings["Help"]["TryFrames"]
     
     use_frames = (np.round(np.linspace(0,img1.shape[0]-1, num_frames))).astype(int)
     
-    img_zncc = np.zeros_like(img1[use_frames,:,:], dtype = 'float')
+    img_in_zncc = img1[use_frames,:,:]
+    
+    # RUN THE PARTICLE FINDING ROUTINE BY ZNCC
+    img_zncc, num_particles_zncc, pos_particles = FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames)
+    
+
+    OptimizeMinmassInTrackpyMain(settings, img1, num_particles_zncc, pos_particles, DoDiameter)
+
+    
+    # plot the stuff - optionally
+    for ii, loop_frames in enumerate(use_frames[:NumShowPlots]):
+        use_img1 = img_in_zncc[ii,:,:]
+        use_img_zncc = img_zncc[ii,:,:]
+        use_pos_particles = pos_particles[pos_particles[:,2] == loop_frames, 0:2]
+        
+        if len(use_pos_particles) > 0:
+            plt.figure()
+            PlotImageProcessing(use_img1, use_img_zncc, use_pos_particles)
+
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)  
+
+    return settings
+
+
+
+def FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames):
+    """
+    Find the particles by a zero-normalized cross correlation
+    This function looks for pattern not for intensity
+    """
+    
+    img_zncc = np.zeros_like(img_in_zncc, dtype = 'float')
+    
+    num_frames = len(use_frames)
     
     # Find Particle by ZNNC
     num_particles_zncc = 0
@@ -177,12 +207,13 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
         
         nd.logger.info("Do cross-correlation. Frame %s from %s. Frame number: %s", (ii+1), num_frames, loop_frames)
         
-        use_img = img1[loop_frames,:,:]
-        use_img[mychannel == 0] = 1
+        # select image of the loop
+        use_img = img_in_zncc[ii,:,:]
+        
+        # only allow particles where the channel is estimated to be
+        use_img[mychannel == 0] = 0
         
         plt.imshow(use_img)
-        
-        # pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(img1[loop_frames,:,:] * mychannel, settings)        
         
         pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(use_img, settings, num_verbose)
         
@@ -196,101 +227,9 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
             pos_particles = pos_particles_loop
         else:
             pos_particles = np.concatenate((pos_particles, pos_particles_loop), axis = 0)
-            
-    
 
-    # load diameter from settings
-    diameter = settings["Find"]["tp_diameter"]
-    
-    # load separation from settings
-    separation = settings["Find"]["tp_separation"]
-    
-    # load the percentile filter value
-    percentile = settings["Find"]["tp_percentile"]    
-    
-    # Trackpy does bandpass filtering as "preprocessing". If the rawdata is already convolved by the PSF this additional bandpass does not make any sense. Switch of the preprocessing if rawdata is already convolved by the PSF
-    DoPreProcessing = (ImgConvolvedWithPSF == False)
-    
-    # optimize the minmass in trackpy, sothat the results of ncc and trackpy agree best
-    # minmass, num_particles_trackpy = OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
-    
-    if DoDiameter == False:
-        minmass, num_particles_trackpy, not_needed = OptimizeMinmassInTrackpy(img1[use_frames], diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
-    
-        settings["Find"]["tp_minmass"] = minmass
-    
-    else:
-        nd.logger.critical("Ronny debugs here!!!")
-        num_cores = multiprocessing.cpu_count()
-        # nd.logger.info("Find the particles - parallel (Number of cores: %s): starting....", num_cores)
-        
-        diam_theory = nd.ParameterEstimation.DiameterForTrackpy(settings)
-        
-        # search around theoretical value
-        min_diam = diam_theory - 6
-        if min_diam < 3:
-            min_diam = 3
-        
-        max_diam = diam_theory + 8 + 1
-        
-        inputs = range(min_diam, max_diam, 2)
-    
-        num_verbose = nd.handle_data.GetNumberVerbose()
-        save_level = nd.logger.getEffectiveLevel()
-        nd.logger.setLevel(30)
-        
-        output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(OptimizeMinmassInTrackpy)(img1[use_frames], loop_diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile, DoLog = False) for loop_diameter in inputs)
-        
-        nd.logger.setLevel(save_level)
-        
-        for ii,jj in enumerate(inputs):
-            tp.subpx_bias(output_list[ii][2])
-            plt.title("y - diameter = %i" %(jj))
-    
-        #Pause sothat python can show the plots before waiting for an input
-        plt.pause(3)
-    
-        valid_input = False
-        
-        while valid_input == False:
-            nd.logger.info("The histogramm should be flat. They should not have a dip in the middle! ")
-            
-            try:
-                diameter = input("Which diameter is best [dtype interger]: ")        
-                diameter = int(diameter)
-                
-                # position of best diameter inside range
-                range_pos = int(np.where(np.asarray(inputs) == diameter)[0])
-        
-                # select ideal minmass from list
-                minmass = output_list[range_pos][0]
-                
-                valid_input = True
-                    
-            except:
-                nd.logger.error("Try again. Dtype must be int and one of the available frames from %i to %i", inputs[0], inputs[-1])
-    
 
-        settings["Find"]["tp_minmass"] = minmass
-        settings["Find"]["tp_diameter"] = diameter
-    
-        nd.logger.info("Minmass for trackpy estimate to: %i", minmass)
-        nd.logger.info("Diameter for trackpy estimate to: %i", diameter)
-    
-    # plot the stuff - optionally
-    for ii, loop_frames in enumerate(use_frames[:NumShowPlots]):
-        use_img1 = img1[loop_frames,:,:]
-        use_img_zncc = img_zncc[ii,:,:]
-        use_pos_particles = pos_particles[pos_particles[:,2] == loop_frames, 0:2]
-        
-        if len(use_pos_particles) > 0:
-            plt.figure()
-            PlotImageProcessing(use_img1, use_img_zncc, use_pos_particles)
-
-    nd.handle_data.WriteJson(ParameterJsonFile, settings)  
-
-    return settings
-
+    return img_zncc, num_particles_zncc, pos_particles
 
 
 def AskBestDiameter(QuestionForUser):
@@ -476,6 +415,94 @@ def FindChannel(rawframes_super):
     nd.logger.info("Find the channel: ...finished")    
     
     return mychannel
+
+
+
+def OptimizeMinmassInTrackpyMain(settings, img1, num_particles_zncc, pos_particles, DoDiameter):
+    # prepare calling OptimizeMinmassInTrackpy
+   
+    # load settings
+    diameter = settings["Find"]["tp_diameter"]
+    separation = settings["Find"]["tp_separation"]
+    percentile = settings["Find"]["tp_percentile"]
+    ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
+        
+    # Trackpy does bandpass filtering as "preprocessing". If the rawdata is already convolved by the PSF this additional bandpass does not make any sense. Switch of the preprocessing if rawdata is already convolved by the PSF
+    DoPreProcessing = (ImgConvolvedWithPSF == False)
+    
+ 
+    if DoDiameter == False:
+        nd.logger.info("Optimize trackpy parameter MINMASS: starting...")
+        
+        minmass, num_particles_trackpy, not_needed = OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile)
+    
+        settings["Find"]["tp_minmass"] = minmass
+    
+        nd.logger.info("Optimize trackpy parameter MINMASS: ...finished")
+    
+    else:
+        nd.logger.info("Optimize trackpy parameter MINMASS and DIAMETER: starting...")
+        
+        # try several diameters. ideal job for doing this in parallal
+        num_cores = multiprocessing.cpu_count()
+        nd.logger.info("This is done in parallel (Number of cores: %s)", num_cores)
+        
+        # set the diameter worth trying
+        # theoreical value of diameter
+        diam_theory = nd.ParameterEstimation.DiameterForTrackpy(settings)
+        
+        # minium diameter
+        min_diam = diam_theory - 6
+        if min_diam < 3:
+            min_diam = 3
+        
+        # maximum diameter
+        max_diam = diam_theory + 8 + 1
+        
+        inputs = range(min_diam, max_diam, 2)
+    
+        num_verbose = nd.handle_data.GetNumberVerbose()
+        
+        # Do it parallel
+        output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(OptimizeMinmassInTrackpy)(img1, loop_diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile, DoLog = False) for loop_diameter in inputs)
+
+        
+        for ii,jj in enumerate(inputs):
+            tp.subpx_bias(output_list[ii][2])
+            plt.title("y - diameter = %i" %(jj))
+    
+        #Pause sothat python can show the plots before waiting for an input
+        plt.pause(3)
+    
+        valid_input = False
+        
+        # ask the user which diameter is best
+        while valid_input == False:
+            nd.logger.info("The histogramm should be flat. They should not have a dip in the middle! ")
+            
+            try:
+                diameter = input("Which diameter is best [dtype interger]: ")        
+                diameter = int(diameter)
+                
+                # position of best diameter inside range
+                range_pos = int(np.where(np.asarray(inputs) == diameter)[0])
+        
+                # select ideal minmass from list
+                minmass = output_list[range_pos][0]
+                
+                valid_input = True
+                    
+            except:
+                nd.logger.error("Try again. Dtype must be int and one of the available frames from %i to %i", inputs[0], inputs[-1])
+    
+        # save result
+        settings["Find"]["tp_minmass"] = minmass
+        settings["Find"]["tp_diameter"] = diameter
+    
+        nd.logger.info("Minmass for trackpy estimate to: %i", minmass)
+        nd.logger.info("Diameter for trackpy estimate to: %i", diameter)
+
+        nd.logger.info("Optimize trackpy parameter MINMASS and DIAMETER: ...finished")
 
 
 
