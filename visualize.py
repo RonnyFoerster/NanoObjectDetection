@@ -907,7 +907,7 @@ def myGauss(d,mean,std):
 
 
 
-def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsize, max_y, sizes, fitInvSizes):
+def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsizes, max_y, sizes, fitInvSizes):
     """ add (reciprocal) Gaussian function to a sizes histogram (or PDF)
     
     NB: No fit is computed here, only an equivalent distribution with the same
@@ -938,12 +938,11 @@ def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsize, max_y, sizes, fitInv
         prob_diam_1size = 1/(diam_grid**2) * prob_diam_inv_1size
         
         # normalize to integral=1
-        prob_diam_1size = prob_diam_1size/(sum(prob_diam_1size)*diam_grid_stepsize)
+        prob_diam_1size = prob_diam_1size/sum(prob_diam_1size*diam_grid_stepsizes)
         
         # mean = 1000/diam_inv_mean # incorrect
         # mean = sum(prob_diam_1size*diam_grid)*diam_grid_stepsize
-        # RONNY WAS HERE AND INSERTED THE [0] after diam_grid_stepsize
-        mean = sum(prob_diam_1size*diam_grid)*diam_grid_stepsize[0]
+        mean = sum(prob_diam_1size*diam_grid*diam_grid_stepsizes)
         median = 1000/diam_inv_median
         CV = diam_inv_std/diam_inv_mean # from inverse space (!)
         # _, _, _, CI68, _ = \
@@ -1174,9 +1173,13 @@ def PlotInfoboxMN(ax, means, CVs, weights, medians, unit='nm', resInt=''):
         textstr += '\nresid.integr. = {:.2f} %'.format(100*resInt)
 
     props = dict(boxstyle='round', facecolor='honeydew', alpha=0.7)
-                
-    x_text = 0.65 - (0.05*len(weights))
-    # x_text = 0.05
+    
+    # choose median from strongest contribution (= position of highest peak)
+    mMax = medians[np.where(weights==weights.max())]
+    if mMax < (sum(ax.get_xlim())/2): # highest peak left from plot center
+        x_text = 0.65 - (0.05*len(weights)) # display text box on the right
+    else:
+        x_text = 0.05 # otherwise: on the left
     ax.text(x_text, 0.95, textstr, transform=ax.transAxes, 
             **{'fontname':'Arial', 'size':'15'}, #**axis_font, 
             verticalalignment='top', bbox=props)

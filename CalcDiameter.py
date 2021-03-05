@@ -37,15 +37,15 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
     #setup return variable
     sizes_df_lin=pd.DataFrame(columns={'diameter','particle'})       
     
-    nd.logger.warning("Variable sizes_df_lin_rolling is not longer calculated. That might be inserted later again. If you have this return variable in your CalcDiameter.Main(2) function that might cause an error.")
+    nd.logger.warning("Variable sizes_df_lin_rolling is not longer calculated. That might be inserted later again. If you have this return variable in your CalcDiameter.Main2 function that will cause an error.")
         
     #boolean for plotting stuff
     any_successful_check = False
 
-
+    partTotal = len(particle_list_value)
     # LOOP THROUGH ALL THE PARTICLES
     for i,particleid in enumerate(particle_list_value):
-        nd.logger.debug("Particle number: %s",  int(particleid))
+        nd.logger.debug("Particle ID: {:.0f} ({:.0f}/{:.0f})".format(particleid,i,partTotal))
 
         # select trajectory to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
