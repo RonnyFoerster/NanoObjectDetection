@@ -75,8 +75,8 @@
      "Help": {
           "ROI": 0,
           "Bead brightness": "auto",
-          "Bead size": "manual",
-          "TryFrames": 10,
+          "Bead size": "auto",
+          "TryFrames": 2,
           "Separation": "auto",
           "GuessLowestDiameter_nm": 50,
           "Drift": "auto"

@@ -236,10 +236,10 @@ def FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames):
     ideal_min_frames = int(np.round(ideal_min_frames)+1)
         
     if num_particles_zncc < 25:
-        nd.logger.error("Less than 10 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+        nd.logger.error("Less than 25 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
 
     elif num_particles_zncc < 100:
-        nd.logger.warning("Less than 10 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+        nd.logger.warning("Less than 100 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
     
 
     return img_zncc, num_particles_zncc, pos_particles
@@ -517,6 +517,14 @@ def OptimizeMinmassInTrackpyMain(settings, img1, num_particles_zncc, pos_particl
 
         nd.logger.info("Optimize trackpy parameter MINMASS and DIAMETER: ...finished")
 
+        #make the plotting of some internal functions in case of debug
+        if nd.logger.getEffectiveLevel() < 20:
+            nd.logger.debug("Plot some additional stuff for information")
+            OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile, DoLog = False)
+        else:
+            nd.logger.info("If you want to see some extra plots, change to the debug mode")
+        
+
 
 
 def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = True, percentile = 64, DoLog = True):
@@ -685,15 +693,15 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
                 stop_optimizing = True
                 
                 plt.figure()
-                plt.plot(minmass_save, right_found_save, label = 'right found')
-                plt.plot(minmass_save, wrong_found_save, label = 'wrong found')
+                plt.plot(minmass_save, right_found_save, '.-', label = 'right found')
+                plt.plot(minmass_save, wrong_found_save, '.-', label = 'wrong found')
                 plt.xlabel("Minmass")
                 plt.ylabel("Number particles")                
                 plt.legend()
                 
                 plt.figure()
                 wrong_to_right_save = wrong_found_save / right_found_save
-                plt.plot(minmass_save, wrong_to_right_save)
+                plt.plot(minmass_save, wrong_to_right_save, '.-')
                 plt.xlabel("Minmass")
                 plt.ylabel("Wrong-to-right")
                 
