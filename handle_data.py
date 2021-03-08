@@ -31,6 +31,9 @@ def ReadJson(mypath):
     with open(mypath) as json_file:
         settings = json.load(json_file)
     
+    # set the logger
+    nd.Tools.LoggerSetLevel(settings["Logger"]["level"])
+    
     return settings
 
 

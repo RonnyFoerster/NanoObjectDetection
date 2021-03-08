@@ -23,7 +23,7 @@ from pdb import set_trace as bp #debugger
 
 
 
-def LoggerSetLevel(level):
+def LoggerSetLevel(level, TryLogger = False):
     #set the level when a logging message is plotted
        
     if level == "debug":
@@ -37,13 +37,14 @@ def LoggerSetLevel(level):
     elif level == "critical":
         nd.logger.setLevel(logging.CRITICAL)
     else:
-        nd.logger.error("Level unknown. Choose debug, info, warning, error, critical in the json file.")
+        nd.logger.error("Level unknown. Choose debug, info, warning, error or critical in the json file.")
 
-    nd.logger.debug("TEST LOGGER MODE: <debug> ON")
-    nd.logger.info("TEST LOGGER MODE: <info> ON")
-    nd.logger.warning("TEST LOGGER MODE: <warning> ON")
-    nd.logger.error("TEST LOGGER MODE: <error> ON")
-    nd.logger.critical("TEST LOGGER MODE: <critical> ON")
+    if TryLogger == True:
+        nd.logger.debug("TEST LOGGER MODE: <debug> ON")
+        nd.logger.info("TEST LOGGER MODE: <info> ON")
+        nd.logger.warning("TEST LOGGER MODE: <warning> ON")
+        nd.logger.error("TEST LOGGER MODE: <error> ON")
+        nd.logger.critical("TEST LOGGER MODE: <critical> ON")
 
 
 def CameraCalibration(folder_dark,folder_bright,subsampling = 0):

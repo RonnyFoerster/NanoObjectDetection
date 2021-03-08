@@ -42,7 +42,7 @@ def CheckAll(ParameterJsonFile):
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
-    SetupLogger(settings)
+    SetupLogger(settings, TryLogger = True)
  
 
 def LogWhereEnvIs():
@@ -342,9 +342,9 @@ def CheckIfFolderGeneratable(my_path):
     
 
     
-def SetupLogger(settings):    
+def SetupLogger(settings, TryLogger = False):    
     #set the logger level
-    nd.Tools.LoggerSetLevel(settings["Logger"]["level"])
+    nd.Tools.LoggerSetLevel(settings["Logger"]["level"], TryLogger = TryLogger)
         
 
     
