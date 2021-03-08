@@ -249,9 +249,9 @@ def CheckJson_path(mypath, settings, CreateNew = False):
         comp2 = mypath.lower()
         if comp1 != comp2:
             if CreateNew == False:
-                nd.logger.error("Given Json path does not match defined path in json file! You might wanna delete the 'settings' row entirely from the json file.")
+                nd.logger.error("Given Json path does not match defined path in json file! You might wanna delete the 'settings' 'json' entry entirely from the json file.")
                 nd.logger.error("json path: %s", comp1)
-                nd.logger.error("\given path: %s", comp2)
+                nd.logger.error("given path: %s", comp2)
                 sys.exit()
             else:
                 settings["File"]["json"] = mypath
