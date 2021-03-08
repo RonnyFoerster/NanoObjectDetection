@@ -101,7 +101,7 @@ t6_final = nd.get_trajectorie.filter_stubs(t5_no_drift, ParameterJsonFile, Fixed
 #%% calculate the MSD and process to diffusion and diameter
 # sizes_df_lin, sizes_df_lin_rolling , any_successful_check = nd.CalcDiameter.Main(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True, t_beforeDrift = t4_cutted)
 
-sizes_df_lin, sizes_df_lin_rolling , any_successful_check = nd.CalcDiameter.Main2(t6_final, ParameterJsonFile, MSD_fit_Show = True)
+sizes_df_lin, any_successful_check = nd.CalcDiameter.Main2(t6_final, ParameterJsonFile, MSD_fit_Show = True)
 
 #sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True, t_beforeDrift = t4_cutted)
 
