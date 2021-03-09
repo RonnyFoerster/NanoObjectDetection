@@ -465,12 +465,12 @@ def OptimizeMinmassInTrackpyMain(settings, img1, num_particles_zncc, pos_particl
         diam_theory = nd.ParameterEstimation.DiameterForTrackpy(settings)
         
         # minium diameter
-        min_diam = diam_theory - 6
+        min_diam = diam_theory - 2
         if min_diam < 3:
             min_diam = 3
         
         # maximum diameter
-        max_diam = diam_theory + 8 + 1
+        max_diam = diam_theory + 12 + 1
         
         inputs = range(min_diam, max_diam, 2)
     
