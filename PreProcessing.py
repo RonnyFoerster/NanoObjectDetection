@@ -35,6 +35,7 @@ def Main(rawframes_np, ParameterJsonFile):
 
     
     # required float instead of int and make negative value (bg subtraction) possible
+    nd.logger.info("convert image into float32 for following image processing")
     rawframes_np = np.float32(rawframes_np)
     
     if DoSimulation == 1:
@@ -168,7 +169,7 @@ def SubtractCameraOffset(rawframes_np, settings, PlotIt = True):
     
     # I'm now subtracting the offset (only the offset, not the full background) from the complete data. Assumption:
     # Whenever there is a change in intensity, e.g. by fluctuations in incoupling,the lightsource etc., this affects mututally background and signal
-    rawframes_np=rawframes_np-offsetCount
+    rawframes_np = np.subtract(rawframes_np, offsetCount, out = rawframes_np)
     
     nd.logger.info("Camera offset is: %s", offsetCount)
     
@@ -197,7 +198,8 @@ def RemoveLaserfluctuation(rawframes_np, settings, PlotIt = True):
     # Mean-counts of a given frame
     tot_intensity, rel_intensity = nd.handle_data.total_intensity(rawframes_np, Laserfluctuation_Show)
     
-    rawframes_np = rawframes_np / rel_intensity[:, None, None]
+    # rawframes_np = rawframes_np / rel_intensity[:, None, None]
+    rawframes_np = np.divide(rawframes_np, rel_intensity[:, None, None], out = rawframes_np)
 
 
     if Laserfluctuation_Save == True:
@@ -288,7 +290,8 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     static_background = np.asarray(static_background_list)
 
     # Remove the background
-    rawframes_np_no_bg = rawframes_np - static_background 
+    # rawframes_np_no_bg = rawframes_np - static_background 
+    rawframes_np = np.subtract(rawframes_np, static_background, out = rawframes_np)
 
 
     if ExternalSlider == False:
@@ -304,7 +307,7 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     
     nd.logger.info('Remove static background: ...finished')
     
-    return rawframes_np_no_bg, static_background
+    return rawframes_np, static_background
     
 
 
