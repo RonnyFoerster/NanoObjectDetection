@@ -305,6 +305,8 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5], last_frame = 
         
     nd.logger.info("Check first %i frames for repeated frames (camera error)", (last_frame))       
     
+    found_rep_frame = False
+    
     for ii in diff_frame:      
         #check if images are saved doubled
         mydiff = rawframes_np[0:last_frame-ii,:,:] - rawframes_np[ii:last_frame,:,:]
@@ -319,6 +321,8 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5], last_frame = 
             nd.logger.Warning("%s consecutive images are identical (frame difference is: %s). Probably the camera did something stupid!", num_identical_frames,ii)
             raise ValueError()
         
+    if found_rep_frame == False:
+          nd.logger.info("... no Camera error detected")       
         
 
 def CheckForSaturation(rawframes_np,warnUser=True):

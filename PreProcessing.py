@@ -124,14 +124,18 @@ def MakeInt16(rawframes_np, settings):
     if min_value < 0:
         # SIGNED dtype needed
         img_scale_fac = max_int16/max_value
-        rawframes_np = np.round(rawframes_np * img_scale_fac)
+        rawframes_np = np.multiply(rawframes_np, img_scale_fac, out = rawframes_np)
+        rawframes_np = np.round(rawframes_np, out = rawframes_np)
         rawframes_np = rawframes_np.astype("int16")
+        
         nd.logger.info("DType: int16")
     else :
         # UNSIGNED dtype possible
         img_scale_fac = max_uint16/max_value
-        rawframes_np = np.round(rawframes_np * img_scale_fac)
+        rawframes_np = np.multiply(rawframes_np, img_scale_fac, out = rawframes_np)
+        rawframes_np = np.round(rawframes_np, out = rawframes_np)
         rawframes_np = rawframes_np.astype("uint16")
+        
         nd.logger.info("DType: uint16")
         
     settings["Exp"]["img-scale-fac"] = img_scale_fac
@@ -144,7 +148,12 @@ def MakeInt16(rawframes_np, settings):
     return rawframes_np, settings
 
 
-# 
+
+def TryInt16(rawframes_np):
+    rawframes_np = np.round(rawframes_np)
+    rawframes_np = rawframes_np.astype("uint16")
+    
+    return rawframes_np
                 
 
 def SubtractCameraOffset(rawframes_np, settings, PlotIt = True):
@@ -422,6 +431,12 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
     gauss_kernel_rad = ConvolveWithPSF_Parameter(PSF_Type, settings)
 
     ImageIs2D = (rawframes_np.ndim == 2)
+    # save for later
+    if PlotIt == True:
+        if ImageIs2D:
+            show_im = rawframes_np[:,0:500]
+        else:
+            show_im = rawframes_np[0,:,0:500]
 
     if ImageIs2D:
         rawframes_filtered = ConvolveWithPSF_2D(rawframes_np, gauss_kernel_rad)
@@ -429,28 +444,25 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
     else:
         #3D case requires efficent looping over the frames
         
-        rawframes_filtered = ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True)
+        # rawframes_filtered = ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True)
+        rawframes_np = ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True)
                 
 
     # Do some plotting if requries  
     if (ExternalSlider == False) and (ShowFirstFrame == True):
         if ImageIs2D:
-            disp_data = rawframes_filtered
+            disp_data = rawframes_np
         else:
-            disp_data = rawframes_filtered[0,:,:]
+            disp_data = rawframes_np[0,:,:]
             
         nd.visualize.Plot2DImage(disp_data,title = "Filtered image", xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
 
     if PlotIt == True:
-        if ImageIs2D:
-            nd.visualize.Plot2DImage(rawframes_np[:,0:500], title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
-        else:
-            nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
-
+        nd.visualize.Plot2DImage(show_im, title = "Raw Image (convolved by PSF) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
 
     nd.logger.info('Enhance SNR by convolving image with PSF: ...finished')
-
-    return rawframes_filtered, settings
+    
+    return rawframes_np, settings
 
 
 
