@@ -385,6 +385,8 @@ def ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True):
     
         rawframes_filtered_list = Parallel(n_jobs=num_cores, verbose = 5)(delayed(ConvolveWithPSF_2D)(rawframes_np[loop_frame,:,:].copy(), gauss_kernel_rad) for loop_frame in inputs)
     
+        nd.logger.info("Collect parallel results.")
+    
         # make it into a proper array
         rawframes_filtered = np.asarray(rawframes_filtered_list)
         
