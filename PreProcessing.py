@@ -38,6 +38,7 @@ def Main(rawframes_np, ParameterJsonFile):
     nd.logger.info("convert image into float32 for following image processing")
     rawframes_np = np.float32(rawframes_np)
     
+    
     if DoSimulation == 1:
         nd.logger.info("No data. Do a simulation later on")
         rawframes_np = 0
@@ -384,7 +385,7 @@ def ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True):
         inputs = range(num_frames)
     
         rawframes_filtered_list = Parallel(n_jobs=num_cores, verbose = 5)(delayed(ConvolveWithPSF_2D)(rawframes_np[loop_frame,:,:].copy(), gauss_kernel_rad) for loop_frame in inputs)
-    
+            
         nd.logger.info("Collect parallel results.")
     
         # make it into a proper array

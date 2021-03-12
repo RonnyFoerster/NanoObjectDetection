@@ -379,7 +379,7 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
 
         if traj_has_error == True:
             #remove if traj has error
-            nd.logger.info("Drop particleID: %s (Significance = %s)", particleid, stat_sign)
+            nd.logger.info("Drop particleID: %s (Significance = %.6f)", particleid, stat_sign)
             
             #drop particles with unbrownian trajectory
             # traj_min_length = traj_min_length[traj_min_length.particle!=particleid]

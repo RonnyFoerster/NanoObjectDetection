@@ -149,6 +149,9 @@ def MSDFitLagtimes(settings, eval_tm, amount_lagtimes_auto = None):
         # lagtimes must be 2 at least
         if lagtimes_max == 1:
             lagtimes_max = 2
+
+        if lagtimes_max > 100:
+            lagtimes_max = 100
         
         # special rule for simulated data of very long track lengths
         if settings["Simulation"]["SimulateData"] == 1:
