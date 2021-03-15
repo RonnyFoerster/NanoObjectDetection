@@ -219,7 +219,8 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         CheckForRepeatedFrames(rawframes_np)
         
         # check if camera is saturated
-        rawframes_np = CheckForSaturation(rawframes_np)
+        rawframes_np, max_value = CheckForSaturation(rawframes_np)
+        settings["Find"]["SaturatedPixelValue"] = max_value
 
     # check bit depth if auto
     if settings["Exp"]["bit-depth-fac"] == "auto":
@@ -332,7 +333,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     """
     nd.logger.info("Check for saturated frames")
     
-    min_value = np.min(rawframes_np)
+    # sets the value a pixel has when it is saturated
     max_value = np.max(rawframes_np)
     
     # find coordinates of maximum values
@@ -370,13 +371,10 @@ def CheckForSaturation(rawframes_np,warnUser=True):
             
             if IsSaturated in ['y','n']:
                 ValidInput = True
+                if IsSaturated  == "n":
+                    max_value == 'No Saturation'
+                
                 if IsSaturated  == "y":
-                    # #Plot the coordinates where saturation happens the first time
-                    # is_saturated = rawframes_np == max_value
-                    
-                    # pos_saturated = np.where(is_saturated)
-                    
-                    # frame_saturated = np.sort(pos_saturated[0])
 
                     nd.logger.warning("Saturation suspected. Check your rawimages to find out if the are saturated")
 
@@ -397,7 +395,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
             else:
                 nd.logger.warning("Input Error. Enter y or n!")
                 
-    return rawframes_np
+    return rawframes_np, max_value
     
 
 
