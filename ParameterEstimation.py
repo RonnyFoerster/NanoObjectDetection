@@ -520,7 +520,7 @@ def OptimizeMinmassInTrackpyMain(settings, img1, num_particles_zncc, pos_particl
         #make the plotting of some internal functions in case of debug
         if nd.logger.getEffectiveLevel() < 20:
             nd.logger.debug("Plot some additional stuff for information")
-            OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile, DoLog = False)
+            OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile, DoLog = True)
         else:
             nd.logger.info("If you want to see some extra plots, change to the debug mode")
         

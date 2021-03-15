@@ -306,6 +306,11 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5], last_frame = 
         
     nd.logger.info("Check first %i frames for repeated frames (camera error)", (last_frame))       
     
+    # dont use full frame if it is too large
+    if rawframes_np.shape[2] >= 500:
+        nd.logger.info("Only use first 500 pixels in x")
+        rawframes_np = rawframes_np[:,:,:500]
+    
     found_rep_frame = False
     
     for ii in diff_frame:      
