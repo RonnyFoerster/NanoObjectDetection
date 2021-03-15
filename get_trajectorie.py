@@ -502,37 +502,40 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
 
     SaturatedPixelValue = settings["Find"]["SaturatedPixelValue"]
 
-    # bring objects in order of ascending intensity values ("mass")
-    sort_obj_moving = obj_moving.sort_values("raw_mass")
+    if SaturatedPixelValue == 'No Saturation':
+        nd.logger.info("No saturated pixel")
+        
+    else:
+        nd.logger.info("Remove objects that have saturated pixels")
 
-    counter = 0
-    framecount = 0
-    framelist = []
-
-    saturated_psf = True
-    while saturated_psf:
-        # get pos and frame of spot with highest mass
-        pos_x = np.int(sort_obj_moving.iloc[-1]["x"])
-        pos_y = np.int(sort_obj_moving.iloc[-1]["y"])
-        frame = np.int(sort_obj_moving.iloc[-1]["frame"])
-
-        # get signal at maximum
-        signal_at_max = rawframes_rot[frame,pos_y,pos_x]
-        if signal_at_max >= SaturatedPixelValue:
-            nd.logger.warning("Check if this is correct and insert more logging whats happening")
-            sort_obj_moving = sort_obj_moving.iloc[:-1] # kick the overexposed object out
-            counter += 1
-
-            if not(frame in framelist):
-                framecount += 1
-                framelist.append(frame)
-        else:
-            saturated_psf = False
-
+        # bring objects in order of ascending intensity values ("mass")
+        sort_obj_moving = obj_moving.sort_values("raw_mass")
     
+        counter = 0
+        framecount = 0
+        framelist = []
     
+        saturated_psf = True
+        while saturated_psf:
+            # get pos and frame of spot with highest mass
+            pos_x = np.int(sort_obj_moving.iloc[-1]["x"])
+            pos_y = np.int(sort_obj_moving.iloc[-1]["y"])
+            frame = np.int(sort_obj_moving.iloc[-1]["frame"])
+    
+            # get signal at maximum
+            signal_at_max = rawframes_rot[frame,pos_y,pos_x]
+            if signal_at_max >= SaturatedPixelValue:
+                nd.logger.warning("Check if this is correct and insert more logging whats happening")
+                sort_obj_moving = sort_obj_moving.iloc[:-1] # kick the overexposed object out
+                counter += 1
+    
+                if not(frame in framelist):
+                    framecount += 1
+                    framelist.append(frame)
+            else:
+                saturated_psf = False
 
-    obj_moving = sort_obj_moving
+        obj_moving = sort_obj_moving
 
     return obj_moving
 

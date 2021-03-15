@@ -339,7 +339,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     nd.logger.info("Check for saturated frames")
     
     # sets the value a pixel has when it is saturated
-    max_value = np.max(rawframes_np)
+    max_value = int(np.max(rawframes_np))
     
     # find coordinates of maximum values
     pos = np.where(rawframes_np == max_value)
@@ -380,8 +380,9 @@ def CheckForSaturation(rawframes_np,warnUser=True):
                     max_value == 'No Saturation'
                 
                 if IsSaturated  == "y":
-
-                    nd.logger.warning("Saturation suspected. Check your rawimages to find out if the are saturated")
+                    nd.logger.warning("Saturation suspected. Check your rawimages to find out if they are saturated")
+                    
+                    nd.logger.warning("Pixel saturate at value: %.0f", max_value)
 
                     # print some statistics
                     frames_total = rawframes_np.shape[0]
@@ -391,7 +392,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
                     nd.logger.warning("Number of frames: Total: %s, Saturated: %s (%s%%) \n", frames_total, frames_sat, sat_ratio)
 
                     
-                    nd.logger.info("First 10 frames where saturation occurs: %s", frames_first_10)
+                    nd.logger.warning("First 10 frames where saturation occurs: %s", frames_first_10)
                     
                     rawframes_np[frames,:,:] = np.min(rawframes_np, axis = 0)
                     
