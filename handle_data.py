@@ -370,36 +370,38 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     
     if warnUser==True:
         ValidInput = False
-        while ValidInput == False:
-            nd.logger.info("An intensity histogram should be plotted. The highest intensity bin should not be a peak. If you see such a peak, you probably have saturation. But maybe you choose the exposure time to large on purpuse, ignore saturated areas, because your are interested in something very dim. In this case you should treat your data like you have no saturation.")
-            IsSaturated = input('Do you have saturation [y/n]?')
+        
+        IsSaturated = nd.handle_data.GetInput("An intensity histogram should be plotted. The highest intensity bin should not be a peak. If you see such a peak, you probably have saturation. But maybe you choose the exposure time to large on purpuse, ignore saturated areas, because your are interested in something very dim. In this case you should treat your data like you have no saturation.", ["y", "n"])
+        
+
+        if IsSaturated  == "n":
+            max_value = 'No Saturation'
+        
+        if IsSaturated  == "y":
+            nd.logger.warning("Saturation suspected. Check your rawimages to find out if they are saturated")
             
-            if IsSaturated in ['y','n']:
-                ValidInput = True
-                if IsSaturated  == "n":
-                    max_value = 'No Saturation'
-                
-                if IsSaturated  == "y":
-                    nd.logger.warning("Saturation suspected. Check your rawimages to find out if they are saturated")
-                    
-                    nd.logger.warning("Pixel saturate at value: %.0f", max_value)
+            nd.logger.warning("Pixel saturate at value: %.0f", max_value)
 
-                    # print some statistics
-                    frames_total = rawframes_np.shape[0]
-                    frames_sat = len(frames)
-                    sat_ratio = frames_sat/frames_total*100
-                    
-                    nd.logger.warning("Number of frames: Total: %s, Saturated: %s (%s%%) \n", frames_total, frames_sat, sat_ratio)
+            # print some statistics
+            frames_total = rawframes_np.shape[0]
+            frames_sat = len(frames)
+            sat_ratio = frames_sat/frames_total*100
+            
+            nd.logger.warning("Number of frames: Total: %s, Saturated: %s (%s%%) \n", frames_total, frames_sat, sat_ratio)
 
-                    
-                    nd.logger.warning("First 10 frames where saturation occurs: %s", frames_first_10)
-                    
-                    rawframes_np[frames,:,:] = np.min(rawframes_np, axis = 0)
-                    
-                    nd.logger.warning("Replace a frame where saturation occurs with a background image!")
+            
+            nd.logger.warning("First 10 frames where saturation occurs: %s", frames_first_10)
+            
+            SetBackground = nd.handle_data.GetInput("Shall frames with a SINGLE overexposed frame set to background image (choose >n< if unsure)", ["y", "n"])
+            
+            if SetBackground == "y":
+                rawframes_np[frames,:,:] = np.min(rawframes_np, axis = 0)
+            
+                nd.logger.warning("Replace a frame where saturation occurs with a background image!")
                     
             else:
-                nd.logger.warning("Input Error. Enter y or n!")
+                nd.logger.info("Saturated pixels are excluded from evaluation later on!")
+
                 
     return rawframes_np, max_value
     
@@ -825,4 +827,22 @@ def GetNumberVerbose():
         
     return verbose
     
+    
+def GetInput(InputText, ListAllowedValues):
+    "This function checks if inserted value of the input function are valid"
+    
+    valid = False
+    
+    while valid == False:
+        value = input(str(InputText + " (options: " + str(ListAllowedValues) + "): "))
+        
+        if value in ListAllowedValues:
+            nd.logger.debug("Input accepted")
+            valid = True
+            
+        else:        
+            nd.logger.warning("Input declined.Allowed values: %s", ListAllowedValues)
+    
+    
+    return value
     
