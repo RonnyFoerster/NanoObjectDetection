@@ -377,7 +377,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
             if IsSaturated in ['y','n']:
                 ValidInput = True
                 if IsSaturated  == "n":
-                    max_value == 'No Saturation'
+                    max_value = 'No Saturation'
                 
                 if IsSaturated  == "y":
                     nd.logger.warning("Saturation suspected. Check your rawimages to find out if they are saturated")

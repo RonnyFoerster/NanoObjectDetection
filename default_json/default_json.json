@@ -78,7 +78,7 @@
           "Bead size": "auto",
           "TryFrames": 2,
           "Separation": "auto",
-          "GuessLowestDiameter_nm": 50,
+          "GuessLowestDiameter_nm": "unknown",
           "Drift": "auto"
      },
      "Find": {

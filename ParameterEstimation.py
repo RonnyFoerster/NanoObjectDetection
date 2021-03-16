@@ -14,7 +14,7 @@ import multiprocessing
 from scipy.ndimage import label, generate_binary_structure
 import trackpy as tp
 import scipy.constants
-
+import time
 
 def GaussianKernel(sigma, fac = 6, x_size = None,y_size = None):
     #https://martin-thoma.com/zero-mean-normalized-cross-correlation/
@@ -164,9 +164,8 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     
     # RUN THE PARTICLE FINDING ROUTINE BY ZNCC
     img_zncc, num_particles_zncc, pos_particles = FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames)
-    
 
-    OptimizeMinmassInTrackpyMain(settings, img_in_zncc, num_particles_zncc, pos_particles, DoDiameter)
+    settings = OptimizeMinmassInTrackpyMain(settings, img_in_zncc, num_particles_zncc, pos_particles, DoDiameter)
 
     
     # plot the stuff - optionally
@@ -237,10 +236,13 @@ def FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames):
         
     if num_particles_zncc < 25:
         nd.logger.error("Less than 25 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+        
+        time.sleep(10) # give 10 seconds of sleep to show this message properly
 
     elif num_particles_zncc < 100:
         nd.logger.warning("Less than 100 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
     
+        time.sleep(10) # give 10 seconds of sleep to show this message properly
 
     return img_zncc, num_particles_zncc, pos_particles
 
@@ -524,7 +526,7 @@ def OptimizeMinmassInTrackpyMain(settings, img1, num_particles_zncc, pos_particl
         else:
             nd.logger.info("If you want to see some extra plots, change to the debug mode")
         
-
+    return settings
 
 
 def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = True, percentile = 64, DoLog = True):
@@ -804,8 +806,12 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
 
     # ask for the smallest expected diameter, which sets the largest expected diffusion
     if GuessLowestDiameter_nm == None:
-        GuessLowestDiameter_nm = int(input("What is the lower limit of diameter (in nm) you expect?\n"))
+        GuessLowestDiameter_nm = settings["Help"]["GuessLowestDiameter_nm"]
+        
+        if GuessLowestDiameter_nm  == "unknown":
+            GuessLowestDiameter_nm = int(input("What is the lower limit of diameter (in nm) you expect?\n"))
     
+    nd.logger.info("Expected lowest diameter: %.0f nm", GuessLowestDiameter_nm)
     
     settings["Help"]["GuessLowestDiameter_nm"] = GuessLowestDiameter_nm
     GuessLowestDiameter_m  = GuessLowestDiameter_nm / 1e9

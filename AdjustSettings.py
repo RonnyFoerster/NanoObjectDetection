@@ -289,13 +289,14 @@ def FindDiameter_manual(rawframes_pre, settings, AutoIteration = True):
     
     
     while UserSatisfied == False:
-        print('UserSatisfied? : ', UserSatisfied)
-        print('Try diameter:' , np.asarray(try_diameter))
+        nd.logger.debug('UserSatisfied? : %i', UserSatisfied)
+        nd.logger.info("Try diameter: %i", try_diameter[0])
 #        obj_all = nd.get_trajectorie.batch_np(rawframes_rot, ParameterJsonFile, UseLog = False, diameter = try_diameter)
         obj_all = tp.batch(rawframes_pre, diameter = try_diameter, minmass = minmass, separation = separation)
               
 
         if obj_all.empty == True:
+            nd.logger.warning("No Object found.")
             UserSatisfied = False
         else:
             tp.subpx_bias(obj_all)
