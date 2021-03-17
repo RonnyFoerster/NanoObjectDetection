@@ -138,7 +138,8 @@ def CheckJson_Exist(ParameterJsonFile):
     except FileNotFoundError:
         nd.logger.warning("No Json File found in \n %s ", ParameterJsonFile)
 
-        CopyJson = input("Copy standard json (y/n)? ")
+        CopyJson = nd.handle_data.GetInput("Copy standard json?", ["y", "n"])
+        
         if CopyJson == 'y':
             nd.logger.info("Try copying standard json file")
             nd_path = os.path.dirname(nd.__file__)

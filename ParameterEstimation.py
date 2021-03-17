@@ -414,15 +414,33 @@ def FindChannel(rawframes_super):
     
     # # a channel can only be, where 90% of the time light is detected (water bg signal)
     # mychannel_raw = np.percentile(rawframes_super, q = 90, axis = 0) != 0
+
+    nd.logger.debug("Do the median filter along time dimension")
+    num_cores = multiprocessing.cpu_count()
+    nd.logger.info("Do that parallel. Number of cores: %s", num_cores)    
+    
+    num_lines = rawframes_super.shape[1]
+    
+    inputs = range(num_lines)
+
+    num_verbose = nd.handle_data.GetNumberVerbose()
+
+    # execute background estimation in parallel for each line
+    mychannel_raw_list = Parallel(n_jobs=num_cores, verbose = num_verbose)(delayed(np.median)(rawframes_super[:,loop_line,:].copy(), axis = 0) for loop_line in inputs)
+
+    # list to numpy
+    mychannel_raw = np.asarray(mychannel_raw_list)
     
     # a channel can only be, where 50% of the time light is detected (water bg signal)
-    mychannel_raw = np.median(rawframes_super, axis = 0) != 0
+    mychannel_raw = (mychannel_raw != 0)
     
     
     #remove salt and pepper
+    nd.logger.debug("Remove Salt and Pepper noise")
     mychannel_no_sp = scipy.ndimage.morphology.binary_opening(mychannel_raw, iterations = 2)
-        
+       
     # fill holes and area close to the edge of the channel where little water is scattered
+    nd.logger.debug("Do Dilation for hole closing")
     mychannel = scipy.ndimage.morphology.binary_dilation(mychannel_no_sp, iterations = 15)
     
     plt.imshow(mychannel)

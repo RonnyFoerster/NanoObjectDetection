@@ -392,7 +392,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
             
             nd.logger.warning("First 10 frames where saturation occurs: %s", frames_first_10)
             
-            SetBackground = nd.handle_data.GetInput("Shall frames with a SINGLE overexposed frame set to background image (choose >n< if unsure)", ["y", "n"])
+            SetBackground = nd.handle_data.GetInput("Shall frames with a SINGLE overexposed pixel set to background image (choose >n< if unsure)", ["y", "n"])
             
             if SetBackground == "y":
                 rawframes_np[frames,:,:] = np.min(rawframes_np, axis = 0)
@@ -793,7 +793,7 @@ def GetVarOfSettings(settings, key, entry):
             ReadDefault = 'invalid'
             while (ReadDefault in ["y", "n"]) == False:
                 # Do until input is useful
-                ReadDefault = input("Shall default value %s been used [y/n]?" %default_value)
+                ReadDefault = nd.handle_data.GetInput("Shall default value %s been used?" %default_value, ["y", "n"])
             
             if ReadDefault == "y":
                 value = default_value
@@ -802,7 +802,8 @@ def GetVarOfSettings(settings, key, entry):
                 SetYourself = 'invalid'
                 while (SetYourself in ["y", "n"]) == False:
                     # Do until input is useful
-                    ReadDefault = input("Do you wanna set the value yourself [y/n]?")
+                    ReadDefault = nd.handle_data.GetInput("Do you wanna set the value yourself?", ["y", "n"])
+
                  
                 if ReadDefault == "y":
                     value = input("Ok. Set the value of settings['%s']['%s']: " %(key, entry))
@@ -843,6 +844,13 @@ def GetInput(InputText, ListAllowedValues):
         else:        
             nd.logger.warning("Input declined.Allowed values: %s", ListAllowedValues)
     
+    # make int if string is an int
+    try:
+        value = int(value)
+        nd.logger.debug("Input converted into int")
+    except:
+        nd.logger.debug("Input stays string")
     
+        
+        
     return value
-    

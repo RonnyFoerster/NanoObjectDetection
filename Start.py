@@ -19,22 +19,17 @@ from tkinter import filedialog
 
 def NewEvaluation():
     # where is the data?
-    good_answer = False
-    while good_answer == False:
-        datatype = input("Is your data stored in : \n 1 - a single file (tif-stack) or \n 2 - multiple files (tif-series) ? \n")
-        if datatype in ["1","2"]:
-            # select the data
-            data_file_name = filedialog.askopenfilename(title = "Please select the file", filetypes = (("*tif-files", "*.tif"),("*tiff-files", "*.tiff")))
-            good_answer = True 
-            
-            # select data type
-            if datatype == "1":
-                data_type = "tif_stack"
-            else:
-                data_type = "tif_series"
-                        
-        else:
-            print("Please press 1 or 2.")
+    
+    datatype = nd.handle_data.GetInput("Is your data stored in : \n 1 - a single file (tif-stack) or \n 2 - multiple files (tif-series) ?", ["1", "2"])
+
+    # select data type
+    if datatype == 1:
+        data_type = "tif_stack"
+    else:
+        data_type = "tif_series"
+    
+    # select the data
+    data_file_name = filedialog.askopenfilename(title = "Please select the file", filetypes = (("*tif-files", "*.tif"),("*tiff-files", "*.tiff")))
 
     # get data folder
     data_folder_name = os.path.dirname(data_file_name)
@@ -61,31 +56,40 @@ def NewEvaluation():
     with open(mypath) as json_file:
         settings = json.load(json_file)
     
-    pre_select = int(input("Please select a number: \n The following setups are implemented \
+    pre_select = nd.handle_data.GetInput("Please select a number: \
+          \n The following setups are implemented \
           \n 1 - new \
           \n 2 - Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera \
           \n 3 - Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera \
           \n 4 - Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera \
           \n 5 - Zeiss 20x 0_40 epiplan Objective with Basler AC4096-40um_camera\
           \n 6 - Zeiss 10x 0_20 epiplan Objective with Basler AC4096-40um_camera\
-        \n\n"))
+        \n\n"
+        , ["1", "2", "3", "4", "5", "6"])
+    
     
     if pre_select in [2,3,4,5,6]:
+        nd_path = os.path.dirname(nd.__file__)
+        
         if pre_select == 2:
-            print("Load: Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera")
-            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
+            nd.logger.info("Load: Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera")
+            path_json_origin = nd_path + "\\default_json\\Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
+            
         elif pre_select == 3:
-            print("Load: Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera")
-            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
+            nd.logger.info("Load: Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera")
+            path_json_origin = nd_path + "\\default_json\\Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
+            
         elif pre_select == 4:
-            print("Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera")
-            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera.json"
+            nd.logger.info("Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera")
+            path_json_origin = nd_path + "\\default_json\\Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera.json"
+            
         elif pre_select == 5:
-            print("Zeiss 20x 0_40 epiplan Objective with Basler AC4096-40um_camera")
-            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\default_json_20x 0_40 epiplan Objective with Basler cam.json"
+            nd.logger.info("Zeiss 20x 0_40 epiplan Objective with Basler AC4096-40um_camera")
+            path_json_origin = nd_path + "\\default_json\\default_json_20x 0_40 epiplan Objective with Basler cam.json"
+            
         elif pre_select == 6:
-            print("Zeiss 10x 0_20 epiplan Objective with Basler AC4096-40um_camera")
-            path_json_origin = os.path.dirname(nd.__file__) + "\\default_json\\default_json_10x 0_20 epiplan Objective with Basler cam.json"
+            nd.logger.info("Zeiss 10x 0_20 epiplan Objective with Basler AC4096-40um_camera")
+            path_json_origin = nd_path + "\\default_json\\default_json_10x 0_20 epiplan Objective with Basler cam.json"
         
             
             
@@ -104,7 +108,7 @@ def NewEvaluation():
         settings["Exp"]["gain"]              = float(input("gain (if unknown type 0) = "))
         settings["Exp"]["Temperature"]       = float(input("Temperature [K] (22C = 295K) = "))
         if settings["Exp"]["gain"] == 0:
-            settings["Exp"]["gain"]           = "unknown"
+            settings["Exp"]["gain"] = "unknown"
      
     print("Please insert experimental parameters: \n")
     settings["Exp"]["lambda"]            = float(input("lambda [nm] = "))
@@ -129,17 +133,13 @@ def NewEvaluation():
 
     # print("Here come the help functions:")
     
-    help_options = int(input("\nWhich help functions do you want to use? \
+    help_options = nd.handle_data.GetInput("\nWhich help functions do you want to use? \
             \n 0 - none \
             \n 1 - auto \
-            \n 2 - select myself \n"))
-    
-    if (help_options in [0,1,2]) == False:
-        print("Invalid input. Apply auto.")
-        help_options = 1
-    
+            \n 2 - select yourself \n", ["0", "1", "2"])
+                
     if help_options == 0:
-        print("Switch all help functions off.")
+        nd.logger.info("Switch all help functions off.")
         settings["Help"]["ROI"] = 0
         settings["Help"]["Bead brightness"] = 0
         settings["Help"]["Bead size"] = 0
@@ -147,7 +147,7 @@ def NewEvaluation():
         settings["Help"]["Drift"] = 0
         
     elif help_options == 1:
-        print("Switch recommended help functions on.")
+        nd.logger.info("Switch recommended help functions on.")
         settings["Help"]["ROI"] = 0
         settings["Help"]["Bead brightness"] = "auto"
         settings["Help"]["Bead size"] = "auto"
@@ -155,28 +155,34 @@ def NewEvaluation():
         settings["Help"]["Drift"] = "auto"
 
     else:        
-        print("Choose the help functions on your own.")
-        settings["Help"]["ROI"]              = int(input("Do you want help with the >region of intertest (ROI)< ? \
-                \n 0 - no \
-                \n 1 - yes \n"))
+        nd.logger.info("Choose the help functions on your own.")
+        settings["Help"]["ROI"] = nd.handle_data.GetInput("Do you want help with the >region of intertest (ROI)< ?", ["0", "1"])
+       
         
-        settings["Help"]["Bead brightness"]  = str(input("Do you want help with the >minimal bead brightness< ? \
+        settings["Help"]["Bead brightness"] = nd.handle_data.GetInput("Do you want help with the >minimal bead brightness< ? \
                 \n 0 - no \
                 \n manual - manual setting the value with help \
-                \n auto - fully automized parameter estimation \n"))
+                \n auto - fully automized parameter estimation \n",
+                ["0", "manual", "auto"])
+            
         
-        settings["Help"]["Bead size"]        = str(input("Do you want help with the >bead size< ? \
+        settings["Help"]["Bead size"] = nd.handle_data.GetInput("Do you want help with the >bead size< ? \
                 \n 0 = no \
                 \n manual - manual setting the value with help \
-                \n auto - fully automized parameter estimation \n"))
+                \n auto - fully automized parameter estimation \n",
+                ["0", "manual", "auto"])
         
-        settings["Help"]["Separation"]        = str(input("Do you want help with the maximum allowed movement of a particle between two frames >Max Displacement< and the minimal distance to beads must have >Separation Data<? \
+            
+        settings["Help"]["Separation"] = nd.handle_data.GetInput("Do you want help with the maximum allowed movement of a particle between two frames >Max Displacement< and the minimal distance to beads must have >Separation Data<? \
                 \n 0 = no \
-                \n auto - fully automized parameter estimation \n"))
+                \n auto - fully automized parameter estimation \n",
+                ["0", "auto"])
  
-        settings["Help"]["Drift"]        = str(input("Do you want help how many frames are used to average the drift out of the system >Drift smoothing frames<? \
+    
+        settings["Help"]["Drift"] = nd.handle_data.GetInput("Do you want help how many frames are used to average the drift out of the system >Drift smoothing frames<? \
                 \n 0 = no \
-                \n auto - fully automized parameter estimation \n"))
+                \n auto - fully automized parameter estimation \n",
+                ["0", "auto"])
 
 
     settings["File"]["json"] = mypath.replace("/","\\")

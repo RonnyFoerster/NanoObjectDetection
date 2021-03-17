@@ -98,18 +98,14 @@ def GetNumericalInput(MessageOnScreen):
 def AskDoItAgain():
     """ ask if a step shall be repeated
     """
-    valid_answer = False
-    while valid_answer == False:
-        answer = input("Same problem and optimize value even more? (y/n)")
+    
+    answer = nd.handle_data.GetInput("Same problem and optimize value even more?", ["y", "n"])
+    
+    if answer == 'y':
+        DoItAgain = True
+    else:
+        DoItAgain = False
         
-        if answer in ('y','n') == False:
-            print("Warning: press y or n")
-        else:
-            valid_answer = True
-            if answer == 'y':
-                DoItAgain = True
-            else:
-                DoItAgain = False
     return DoItAgain
 
 
