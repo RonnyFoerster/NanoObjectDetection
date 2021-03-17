@@ -127,16 +127,20 @@ def MakeInt16(rawframes_np, settings):
         # SIGNED dtype needed
         img_scale_fac = max_int16/max_value
         rawframes_np = np.multiply(rawframes_np, img_scale_fac, out = rawframes_np)
-        rawframes_np = np.round(rawframes_np, out = rawframes_np)
-        rawframes_np = rawframes_np.astype("int16")
+        
+        rawframes_np  = nd.handle_data.MakeIntParallel(rawframes_np, "int16")
+        # rawframes_np = np.round(rawframes_np, out = rawframes_np)
+        # rawframes_np = rawframes_np.astype("int16")
         
         nd.logger.info("DType: int16")
     else :
         # UNSIGNED dtype possible
         img_scale_fac = max_uint16/max_value
         rawframes_np = np.multiply(rawframes_np, img_scale_fac, out = rawframes_np)
-        rawframes_np = np.round(rawframes_np, out = rawframes_np)
-        rawframes_np = rawframes_np.astype("uint16")
+        
+        rawframes_np  = nd.handle_data.MakeIntParallel(rawframes_np, "uint16")
+        # rawframes_np = np.round(rawframes_np, out = rawframes_np)
+        # rawframes_np = rawframes_np.astype("uint16")
         
         nd.logger.info("DType: uint16")
         

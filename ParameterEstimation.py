@@ -29,10 +29,10 @@ def GaussianKernel(sigma, fac = 6, x_size = None,y_size = None):
     
     #kernel must be odd for symmetrie
     if np.mod(x_size,2) == 0:
-        print("x_size must be odd; x_size + 1")
+        nd.logger.debug("x_size must be odd; x_size + 1")
         x_size = x_size + 1        
     if np.mod(y_size,2) == 0:
-        print("y_size must be odd; y_size + 1")        
+        nd.logger.debug("y_size must be odd; y_size + 1")        
         y_size = y_size + 1
       
     # radius of the kernel in px
@@ -152,8 +152,14 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
+    # define search area (hot pixels need to be avoided if the background is low and the image was SNR enhanced by lowpass filtering)
     # estimate where the channel is
-    mychannel = FindChannel(img1_raw)
+    if settings["PreProcessing"]['EnhanceSNR'] == 1:
+        # lowpassed filtered image - only search where background is not zero (water trace)
+        mychannel = FindChannel(img1_raw)
+    else:
+        # search everywhere
+        mychannel = np.ones_like(img1_raw[0,:,:])
     
     # select several frames to make the parameter estimation with
     num_frames = settings["Help"]["TryFrames"]
@@ -184,7 +190,7 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
 
 
 
-def FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames):
+def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames):
     """
     Find the particles by a zero-normalized cross correlation
     This function looks for pattern not for intensity
@@ -210,7 +216,7 @@ def FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames):
         use_img = img_in_zncc[ii,:,:]
         
         # only allow particles where the channel is estimated to be
-        use_img[mychannel == 0] = 0
+        use_img[search_area == 0] = 0
         
         plt.imshow(use_img)
         

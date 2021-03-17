@@ -253,7 +253,7 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
 
 def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
                  BeforeDriftCorrection = False, min_tracking_frames = None,
-                 ErrorCheck = True, PlotErrorCheck = True):
+                 ErrorCheck = True, PlotErrorIfTestFails = True):
     """ wrapper for tp.filter_stubs, which filters out too short trajectories,
     including a check whether a trajectory is close enough to random Brownian motion
 
@@ -309,7 +309,8 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
     # check if the trajectories follow brownian motion after the drift correction.
     if (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==True):
         #check if the histogram of each particle displacement is Gaussian shaped
-        traj_min_length = CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorCheck)
+        traj_min_length = CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorIfTestFails)
+        
     elif (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==False):
         nd.logger.warning("Test for unbrownian motion is skipped.")
 
@@ -354,7 +355,7 @@ def DisplayNumDroppedTraj(traj_all, traj_min_length, FixedParticles, BeforeDrift
             raise ValueError
 
 
-def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorCheck):
+def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorIfTestFails):
     """
     Check each Trajectory if its pure Brownian motion by a Kolmogorow-Smirnow test
     """
@@ -375,7 +376,7 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
 
         # put the misplacement vector into the Kolmogorow-Smirnow significance test
         traj_has_error, stat_sign, dx = \
-        nd.CalcDiameter.KolmogorowSmirnowTest(nan_tm, traj_length, MinSignificance = 0.01,  PlotErrorIfTestFails = PlotErrorCheck, ID=particleid)
+        nd.CalcDiameter.KolmogorowSmirnowTest(nan_tm, traj_length, MinSignificance = 0.01,  PlotErrorIfTestFails = PlotErrorIfTestFails, ID=particleid)
 
         if traj_has_error == True:
             #remove if traj has error

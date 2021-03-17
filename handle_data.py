@@ -19,6 +19,8 @@ from PIL import Image
 import fnmatch
 from skimage import io
 import warnings
+from joblib import Parallel, delayed
+import multiprocessing
 
 import NanoObjectDetection as nd
 
@@ -854,3 +856,34 @@ def GetInput(InputText, ListAllowedValues):
         
         
     return value
+
+
+
+def MakeIntParallel(image_in, dtype):
+    num_cores = multiprocessing.cpu_count()
+
+    num_lines = image_in.shape[1]
+
+    inputs = range(num_lines)
+    
+    num_verbose = nd.handle_data.GetNumberVerbose()
+    
+    def DoParallel(im_in, dtype):
+        if dtype == 'int16':
+            im_in = (np.round(im_in)).astype("int16")
+        elif dtype == 'uint16':
+            im_in = (np.round(im_in)).astype("uint16")
+        
+        return im_in 
+    
+    # execute background estimation in parallel for each line
+    image_out_list = Parallel(n_jobs=num_cores, verbose = num_verbose)(delayed(DoParallel)(image_in[:,loop_line,:], dtype) for loop_line in inputs)
+
+    # make list to numpy
+    image_out = np.asarray(image_out_list)
+    
+    # make the dimensions right again
+    image_out = np.transpose(image_out, (1,0,2))
+    
+    return image_out
+
