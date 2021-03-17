@@ -512,6 +512,7 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         # bring objects in order of ascending intensity values ("mass")
         sort_obj_moving = obj_moving.sort_values("raw_mass")
     
+        total = len(obj_moving)
         counter = 0
         framecount = 0
         framelist = []
@@ -524,9 +525,15 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
             frame = np.int(sort_obj_moving.iloc[-1]["frame"])
     
             # get signal at maximum
-            signal_at_max = rawframes_rot[frame,pos_y,pos_x]
+            # search in surrounding pixels
+            try:
+                signal_at_max = np.max(rawframes_rot[frame, pos_y-1:pos_y+2, pos_x-1:pos_x+2])
+            except:
+                #particle is close to an edge - just use center value
+                signal_at_max = rawframes_rot[frame,pos_y,pos_x]
+                
             if signal_at_max >= SaturatedPixelValue:
-                nd.logger.warning("Check if this is correct and insert more logging whats happening")
+                nd.logger.debug("Remove overexposed particles")
                 sort_obj_moving = sort_obj_moving.iloc[:-1] # kick the overexposed object out
                 counter += 1
     
@@ -536,7 +543,10 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
             else:
                 saturated_psf = False
 
-        obj_moving = sort_obj_moving
+        nd.logger.info("Removed %i overexposed particles (%.3f %%)", counter, 100*counter/total)
+
+        #undo the sorting
+        obj_moving = sort_obj_moving.sort_values(["frame", "x"])
 
     return obj_moving
 
