@@ -577,7 +577,7 @@ def close_gaps(t1):
         for i, loop_particle in enumerate(valid_particle_number):
             # select trajectory and close its gaps
             eval_traj = t1_search_gap[t1_search_gap.particle == loop_particle]
-            t1_loop = clopse_gaps_loop(eval_traj )
+            t1_loop = close_gaps_loop(eval_traj )
         
             #depending if its the first result or not make a new dataframe or concat it
             if i == 0:
@@ -593,14 +593,14 @@ def close_gaps(t1):
         nd.logger.info("Close the gaps in trajectory - parallel. Number of cores: %s", num_cores)
     
         num_verbose = nd.handle_data.GetNumberVerbose()
-        output_list = Parallel(n_jobs=num_cores, verbose = num_verbose)(delayed(clopse_gaps_loop)(t1_search_gap[t1_search_gap.particle == loop_particle]) for loop_particle in valid_particle_number)
+        output_list = Parallel(n_jobs=num_cores, verbose = num_verbose)(delayed(close_gaps_loop)(t1_search_gap[t1_search_gap.particle == loop_particle]) for loop_particle in valid_particle_number)
 
         #make list on panas to one big panda
         t1_gapless = pd.concat(output_list)
         
-        # check this later when applied in a data set
-        # index should have no double entries
-        nd.logger.warning("CHECK IF THE INDEXING IS RIGHT IN HERE!")
+        #reset index
+        t1_gapless = t1_gapless.sort_values(["particle", "frame"])
+        t1_gapless = t1_gapless.reset_index(drop = True)
 
 
     # do some plotting for the user
@@ -616,7 +616,7 @@ def close_gaps(t1):
     return t1_gapless
 
 
-def clopse_gaps_loop(t1_loop):
+def close_gaps_loop(t1_loop):
     # main loop inside close gaps    
 
     # number of detected frames

@@ -234,19 +234,19 @@ def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames):
             pos_particles = np.concatenate((pos_particles, pos_particles_loop), axis = 0)
 
     # number of particles that would be nice to have
-    ideal_min_particles = 100
+    ideal_min_particles = 200
     
     #recommend more frames
     ideal_min_frames = (ideal_min_particles/num_particles_zncc) * num_frames
     ideal_min_frames = int(np.round(ideal_min_frames)+1)
         
-    if num_particles_zncc < 25:
-        nd.logger.error("Less than 25 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+    if num_particles_zncc < 50:
+        nd.logger.error("Less than 50 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
         
         time.sleep(10) # give 10 seconds of sleep to show this message properly
 
-    elif num_particles_zncc < 100:
-        nd.logger.warning("Less than 100 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+    elif num_particles_zncc < 200:
+        nd.logger.warning("Less than 200 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
     
         time.sleep(10) # give 10 seconds of sleep to show this message properly
 
