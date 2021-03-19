@@ -1543,7 +1543,107 @@ def RandomSamplesFromDistribution(N,mean,CV,seed=None):
 
 
 
+def RandomWalkCrossSection(settings, D, traj_length, num_particles = 10):
+    r_max = settings["Fiber"]["TubeDiameter_nm"] /2 /1000
 
+    dt = 1/settings["Exp"]["fps"]
+    num_elements = traj_length * num_particles
+
+    sigma_step = np.sqrt(2*D*dt)
+
+
+    sim_part = pd.DataFrame(columns = ["particle", "frame", "step", "dx", "x", "dy", "y", "r", "I"], index = range(0,num_elements))
+    
+    # create frame number
+    frame_numbers = np.arange(0,traj_length)
+
+    # procedure is repeated for all particles
+    sim_part["frame"] =  np.tile(frame_numbers, num_particles)
+
+
+    #fill the particle row
+    sim_part["particle"] = np.repeat(np.arange(num_particles),traj_length)
+
+    # make shift as random number for all particles and frames
+    sim_part["dx"] = np.random.normal(loc = 0, scale=sigma_step, size = [num_elements])
+    
+    sim_part["dy"] = np.random.normal(loc = 0, scale=sigma_step, size = [num_elements])
+    
+    
+    #first frame of each particle should have dx and dy = 0. It is just disturbing and has no effect
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
+
+    #make starting position
+    for ii in range(num_particles):
+        valid_r = False
+        while valid_r == False:
+            try_new_x = np.random.uniform(low = 0, high = r_max)
+            try_new_y = np.random.uniform(low = 0, high = r_max)
+            try_new_r = np.hypot(try_new_x, try_new_y)
+            
+            if try_new_r <= r_max:
+                valid_r = True
+                if ii == 0:
+                    x_start = try_new_x
+                    y_start = try_new_y
+                else:
+                    x_start = np.append(x_start, try_new_x)
+                    y_start = np.append(y_start, try_new_y)
+                    
+        
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = x_start
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = y_start
+
+
+    particle_leaves_circle = True
+    
+    while particle_leaves_circle == True:
+        sim_part["x"] = sim_part[["particle", "dx"]].groupby("particle").cumsum()
+        sim_part["y"] = sim_part[["particle", "dy"]].groupby("particle").cumsum()
+
+        sim_part["r"] = np.hypot(sim_part["x"], sim_part["y"])
+        
+        if np.max(sim_part["r"]) > r_max:
+            print("number of wall touches: %i" %(np.sum(sim_part["r"] > r_max)))
+            #particle leaves circle
+            #0.99 for convergence in very unlucky case
+            sim_part.loc[sim_part["r"] > r_max, "dx"] *= -0.99
+            sim_part.loc[sim_part["r"] > r_max, "dy"] *= -0.99
+        else:
+            particle_leaves_circle = False
+
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
+
+
+    #here comes the Mode
+    def GaussInt(r, waiste):
+        return np.exp(-(r/waiste)**2)
+
+    waiste = r_max / 2
+
+    sim_part["I"] = GaussInt(sim_part["r"], waiste)
+
+    I_mean = sim_part[["particle", "I"]].groupby("particle").mean()
+    I_mean = np.asarray(I_mean["I"])
+    
+    I_mean_mean = np.mean(I_mean)
+    I_mean_std = np.std(I_mean)
+
+    # print("mean: %.3f" % I_mean_mean)
+    # print("std: %.3f" % I_mean_std)
+
+    I10 = np.percentile(I_mean, q = 10)
+    I90 = np.percentile(I_mean, q = 90)
+
+    # print("10%% percentile: %.3f" %I10)
+    # print("90%% percentile: %.3f" %I90)
+
+    return I10, I_mean_mean, I90
+
+    # plt.figure()
+    # plt.hist(I_mean, bins = int(num_particles / 10))
 
 ## get nearest neighbor
 #def CalcNearestNeighbor(t, seq = False):

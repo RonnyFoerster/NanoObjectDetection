@@ -210,7 +210,7 @@ def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames):
         else:
             num_verbose = 0
         
-        nd.logger.info("Do cross-correlation. Frame %s from %s. Frame number: %s", (ii+1), num_frames, loop_frames)
+        nd.logger.debug("Do cross-correlation. Frame %s from %s. Frame number: %s", (ii+1), num_frames, loop_frames)
         
         # select image of the loop
         use_img = img_in_zncc[ii,:,:]
@@ -221,6 +221,9 @@ def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames):
         plt.imshow(use_img)
         
         pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(use_img, settings, num_verbose)
+        
+        nd.logger.info("Cross-correlation (%s / %s): Frame: %s; Located particles: %i", (ii+1), num_frames, loop_frames, num_particles_zncc_loop)
+        # nd.logger.info("Located particles: %i", num_particles_zncc_loop)
         
         # configure frame saving format
         save_frames = np.tile(loop_frames,[num_particles_zncc_loop,1])

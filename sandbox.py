@@ -12,6 +12,8 @@ from pdb import set_trace as bp #debugger
 from joblib import Parallel, delayed
 import multiprocessing
 
+import NanoObjectDetection as nd
+
 ## In[]
 def RollingMedianFilter_main(image, window = 11):
     num_cores = multiprocessing.cpu_count()
@@ -654,5 +656,73 @@ def AnimateTracksOnRawData(t2_long,rawframes_ROI,settings,frm_start=0):#, gamma=
 
 # anim2 = AnimateTracksOnRawData(t2_long,rawframes_ROI,settings)
 # anim2.save('Au50_raw+tracks_1000frames.mp4')
+
+
+def DiamOverMass(settings, sizes_df_lin):
+    "RF"  
+    # plt.figure()
+    # plt.plot(sizes_df_lin["diameter"], sizes_df_lin["rawmass"], '.')
+
+    def CalcM(I_scat, I_in, d):
+        m = np.sqrt(I_scat / I_in * (1/d**6))
+        return m
+        
+
+    plt.figure()
+
+    for index, row in sizes_df_lin.iterrows():
+        D = row["diffusion"]
+        traj = int(row["traj length"])
+
+        I10, I_mean, I90 = nd.Simulation.RandomWalkCrossSection(settings, D, traj, num_particles = 100)
+
+        d = row["diameter"]
+        I_scat = row["rawmass"]
+        
+        m10 = CalcM(I_scat, I10, d)
+        m_mean = CalcM(I_scat, I_mean, d)
+        m90 = CalcM(I_scat, I90, d)
+        
+        m_mean = np.abs(m10 + m90) / 2
+        m_error = np.abs(m10 - m90) / 2
+        
+        plt.errorbar(d, m_mean, yerr = m_error)
+
+
+def ErrorIMode():
+    "RF"  
+    from scipy.stats import norm
+    
+    r_max = 15
+    r_step = 100
+    D = 5
+    t = 1
+    sigma = np.sqrt(2*D*t)
+    
+    r = np.linspace(-2*r_max, 2*r_max, r_step)
+
+    
+    #Probabilty time 0
+    P_r_0 = r.copy()
+    P_r_0[r<0] = 0
+    P_r_0[r>r_max] = 0
+    
+    P_r_0 = P_r_0 / np.sum(P_r_0)
+    
+    P_dr = norm.pdf(r, scale = sigma)
+    
+    P_r = np.convolve(P_r_0, P_dr, mode = "same")
+    
+    plt.figure()
+    plt.plot(r, P_r_0, ':.')
+    
+    plt.plot(r, P_r, ':.')
+    
+    
+    
+    
+    
+    
+    
 
 
