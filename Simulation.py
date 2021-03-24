@@ -241,9 +241,10 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     if NumDims == 1:
         sim_part = pd.DataFrame(columns = ["frame", "particle", "step", "dx", "x"], index = range(0,num_elements))   
         
+
     elif NumDims == 2:
         sim_part = pd.DataFrame(columns = ["frame", "particle", "step", "dx", "x", "dy", "y"], index = range(0,num_elements))
-    
+
     # create frame number
     frame_numbers = np.arange(0,frames)
 
@@ -260,10 +261,10 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
 
     # make shift as random number for all particles and frames
     sim_part["dx"] = np.random.normal(loc = 0, scale=sim_part_sigma_x, size = num_elements)
-    
+
     #first frame of each particle should have dx and dy = 0. It is just disturbing and has no effect
     sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
-    
+
     if NumDims == 2:
          sim_part["dy"] = np.random.normal(loc = 0, scale=sim_part_sigma_x, size = num_elements)
          sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
@@ -277,9 +278,10 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
         
         print("RF: Guess that needs some debugging when someone is using it.")
         
+
         # RF210114 - set dx position in first frame for every particle to starting position
         sim_part.loc[(sim_part.frame == 0) & (sim_part.step == 'exp') & (sim_part.dx == 0), "dx"] = start_pos
-        
+
         if NumDims == 2:
             print("COPY HERE FROM ABOVE!")
         # sim_part["y"] = sim_part["y"] + np.repeat(start_pos[:,1],frames)
@@ -297,7 +299,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     if NumDims == 1:
         pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()["x"]
     elif NumDims == 2:
-        pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()[["x","y"]] 
+        pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()[["x","y"]]
 
     ep = ep*1E6 / microns_per_pixel
     # only one var for x and y - not sure here - maybe no y would be better
@@ -341,7 +343,6 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
     #insert localization accuracy to theoretical know position
     if np.max(motion_ep) > 0:
         sim_part_tm.x = sim_part_tm.x + np.random.normal(0, sim_part_tm.ep)
-        
         if NumDims == 2:
             sim_part_tm.y = sim_part_tm.y + np.random.normal(0, sim_part_tm.ep)
 
@@ -1538,7 +1539,6 @@ def RandomSamplesFromDistribution(N,mean,CV,seed=None):
 
     sigma = CV*mean
     sample = rng.normal(mean, sigma, N)
-    
     return sample
 
 
@@ -1666,6 +1666,37 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
         plt.ylim([-r_max, r_max])
 
     return CI68_low, I_mean_mean, CI68_high
+
+
+    p_2 = -a/2 - np.sqrt((a/2)**2 - b)
+
+    # p_2 is laselect p
+    if p_2 > 0:
+        p = p_2
+    else:
+        p = p_1
+    # if DoPlotting == True:
+    #     plt.plot([x1, x_out],[y1, y_out], ':x')
+    #     plt.plot([x1, x_c, x2],[y1, y_c, y2], ':x')
+    #     circle = plt.Circle((0,0), radius = r, fill = False)
+
+    #     ax = plt.gca()
+    #     ax.add_patch(circle)
+
+    #     print("p= ", p)
+    #     print("Phi= ",phi/np.pi*180)
+    #     print("[x1_parr, x1_perp]: ", [x1_parr, x1_perp])
+    #     print("[dx1_parr, dx1_perp]: ", [dx1_parr, dx1_perp])
+    #     print("[x2_parr, x2_perp]: ", [x2_parr, x2_perp])
+    #     print( "[x_c_back, y_c_back]", [x_c_back, y_c_back])
+
+    #     # this to show the reflection in the CS of the contact point
+    #     # plt.figure()
+    #     # plt.plot([x1_perp, x_perp_c, x2_perp ],[x1_parr, x_parr_c, x2_parr], ':x')
+    #     # circle = plt.Circle((+x_c_back, +y_c_back), radius = r, fill = False)
+    #     # ax = plt.gca()
+    #     # ax.add_patch(circle)
+
 
 
 
@@ -1886,3 +1917,113 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
 #
 ##    plt.plot(my_mean)
 ##    plt.plot(my_var)
+
+
+# def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = None, r_max = None, num_particles = 10, ShowHist = False, ShowTraj = False):
+#     if settings != None:
+#         r_max = settings["Fiber"]["TubeDiameter_nm"] /2 /1000
+#         dt = 1/settings["Exp"]["fps"]
+
+#     num_elements = traj_length * num_particles
+
+#     sigma_step = np.sqrt(2*D*dt)
+
+
+#     sim_part = pd.DataFrame(columns = ["particle", "frame", "step", "dx", "x", "dy", "y", "r", "I"], index = range(0,num_elements))
+
+#     # create frame number
+#     frame_numbers = np.arange(0,traj_length)
+
+#     # procedure is repeated for all particles
+#     sim_part["frame"] =  np.tile(frame_numbers, num_particles)
+
+
+#     #fill the particle row
+#     sim_part["particle"] = np.repeat(np.arange(num_particles),traj_length)
+
+#     # make shift as random number for all particles and frames
+#     sim_part["dx"] = np.random.normal(loc = 0, scale=sigma_step, size = [num_elements])
+
+#     sim_part["dy"] = np.random.normal(loc = 0, scale=sigma_step, size = [num_elements])
+
+
+#     #first frame of each particle should have dx and dy = 0. It is just disturbing and has no effect
+#     sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
+#     sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
+
+#     #make starting position
+#     for ii in range(num_particles):
+#         valid_r = False
+#         while valid_r == False:
+#             try_new_x = np.random.uniform(low = 0, high = r_max)
+#             try_new_y = np.random.uniform(low = 0, high = r_max)
+#             try_new_r = np.hypot(try_new_x, try_new_y)
+
+#             if try_new_r <= r_max:
+#                 valid_r = True
+#                 if ii == 0:
+#                     x_start = try_new_x
+#                     y_start = try_new_y
+#                 else:
+#                     x_start = np.append(x_start, try_new_x)
+#                     y_start = np.append(y_start, try_new_y)
+
+
+#     sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = x_start
+#     sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = y_start
+
+
+#     particle_leaves_circle = True
+
+#     while particle_leaves_circle == True:
+#         sim_part["x"] = sim_part[["particle", "dx"]].groupby("particle").cumsum()
+#         sim_part["y"] = sim_part[["particle", "dy"]].groupby("particle").cumsum()
+
+#         sim_part["r"] = np.hypot(sim_part["x"], sim_part["y"])
+
+#         if np.max(sim_part["r"]) > r_max:
+#             print("number of wall touches: %i" %(np.sum(sim_part["r"] > r_max)))
+#             #particle leaves circle
+#             #0.99 for convergence in very unlucky case
+#             sim_part.loc[sim_part["r"] > r_max, "dx"] *= -0.99
+#             sim_part.loc[sim_part["r"] > r_max, "dy"] *= -0.99
+#         else:
+#             particle_leaves_circle = False
+
+#     sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
+#     sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
+
+
+#     #here comes the Mode
+#     def GaussInt(r, waiste):
+#         return np.exp(-(r/waiste)**2)
+
+#     waiste = r_max / 2
+
+#     sim_part["I"] = GaussInt(sim_part["r"], waiste)
+
+#     I_mean = sim_part[["particle", "I"]].groupby("particle").mean()
+#     I_mean = np.asarray(I_mean["I"])
+
+#     I_mean_mean = np.mean(I_mean)
+#     I_mean_std = np.std(I_mean)
+
+#     # print("mean: %.3f" % I_mean_mean)
+#     # print("std: %.3f" % I_mean_std)
+
+#     CI68_low = np.percentile(I_mean, q = 16)
+#     CI68_high = np.percentile(I_mean, q = 84)
+
+#     # print("10%% percentile: %.3f" %I10)
+#     # print("90%% percentile: %.3f" %I90)
+
+#     if ShowHist == True:
+#         plt.figure()
+#         plt.hist(I_mean, bins = int(num_particles / 10))
+
+
+#     if ShowTraj == True:
+#         plt.figure()
+#         tp.plot_traj(sim_part[sim_part.particle == 0], colorby='frame')
+
+#     return CI68_low, I_mean_mean, CI68_high
