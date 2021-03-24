@@ -29,6 +29,7 @@ from scipy.constants import pi
 import time
 from joblib import Parallel, delayed
 import multiprocessing
+import sys
 
 import trackpy as tp
 
@@ -1641,6 +1642,244 @@ def RandomWalkCrossSection(settings, D, traj_length, num_particles = 10):
     # print("90%% percentile: %.3f" %I90)
 
     return I10, I_mean_mean, I90
+
+
+
+def RandomWalkCrossSection_Reflection(settings, D, traj_length, num_particles = 10):
+    r_max = settings["Fiber"]["TubeDiameter_nm"] /2 /1000
+
+    dt = 1/settings["Exp"]["fps"]
+    num_elements = traj_length * num_particles
+
+    sigma_step = np.sqrt(2*D*dt)
+
+    sim_part = pd.DataFrame(columns = ["particle", "frame", "step", "dx", "x", "dy", "y", "r", "I"], index = range(0,num_elements))
+    
+    # create frame number
+    frame_numbers = np.arange(0,traj_length)
+
+    # procedure is repeated for all particles
+    sim_part["frame"] =  np.tile(frame_numbers, num_particles)
+
+    #fill the particle row
+    sim_part["particle"] = np.repeat(np.arange(num_particles),traj_length)
+
+    # make shift as random number for all particles and frames
+    sim_part["dx"] = np.random.normal(loc = 0, scale=sigma_step, size = [num_elements])
+    
+    sim_part["dy"] = np.random.normal(loc = 0, scale=sigma_step, size = [num_elements])
+    
+    #first frame of each particle should have dx and dy = 0. It is just disturbing and has no effect
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
+
+    #make starting position
+    for ii in range(num_particles):
+        valid_r = False
+        while valid_r == False:
+            try_new_x = np.random.uniform(low = 0, high = r_max)
+            try_new_y = np.random.uniform(low = 0, high = r_max)
+            try_new_r = np.hypot(try_new_x, try_new_y)
+            
+            if try_new_r <= r_max:
+                valid_r = True
+                if ii == 0:
+                    x_start = try_new_x
+                    y_start = try_new_y
+                else:
+                    x_start = np.append(x_start, try_new_x)
+                    y_start = np.append(y_start, try_new_y)
+                    
+        
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = x_start
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = y_start
+
+
+    particle_leaves_circle = True
+    
+    while particle_leaves_circle == True:
+        sim_part["x"] = sim_part[["particle", "dx"]].groupby("particle").cumsum()
+        sim_part["y"] = sim_part[["particle", "dy"]].groupby("particle").cumsum()
+
+        sim_part["r"] = np.hypot(sim_part["x"], sim_part["y"])
+        
+        if np.max(sim_part["r"]) > r_max:
+            print("number of wall touches: %i" %(np.sum(sim_part["r"] > r_max)))
+            #particle leaves circle
+            #0.99 for convergence in very unlucky case
+            sim_part.loc[sim_part["r"] > r_max, "dx"] *= -0.99
+            sim_part.loc[sim_part["r"] > r_max, "dy"] *= -0.99
+        else:
+            particle_leaves_circle = False
+
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
+    sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
+
+
+    #here comes the Mode
+    def GaussInt(r, waiste):
+        return np.exp(-(r/waiste)**2)
+
+    waiste = r_max / 2
+
+    sim_part["I"] = GaussInt(sim_part["r"], waiste)
+
+    I_mean = sim_part[["particle", "I"]].groupby("particle").mean()
+    I_mean = np.asarray(I_mean["I"])
+    
+    I_mean_mean = np.mean(I_mean)
+    I_mean_std = np.std(I_mean)
+
+    # print("mean: %.3f" % I_mean_mean)
+    # print("std: %.3f" % I_mean_std)
+
+    I10 = np.percentile(I_mean, q = 10)
+    I90 = np.percentile(I_mean, q = 90)
+
+    # print("10%% percentile: %.3f" %I10)
+    # print("90%% percentile: %.3f" %I90)
+
+    return I10, I_mean_mean, I90
+
+
+def ConfineTraj(x, y, dx, dy, r):
+    "Confines a trajectory inside a circle of radius r"
+    
+
+
+def Test_ReflectTraj():
+    nd.Simulation.ReflectTraj(0, 0, np.sqrt(50), 0, 6)
+    nd.Simulation.ReflectTraj(-2, 0, -6, 0, 6)
+    nd.Simulation.ReflectTraj(0, 2, 0, 6, 6)
+    nd.Simulation.ReflectTraj(0, -2, 0, -6, 6)
+    nd.Simulation.ReflectTraj(0, 0, 5, 5, 6)
+    nd.Simulation.ReflectTraj(-2, -2, -5, -5, 6)
+    nd.Simulation.ReflectTraj(-4.24, 3, 0, +2, 6)
+    nd.Simulation.ReflectTraj(-5.5, 0 , 0.5, -4, 6)
+    nd.Simulation.ReflectTraj(+5.5, 0 , 0.5, -4, 6)
+    nd.Simulation.ReflectTraj(+5.5, 0 , 0.5, +4, 6)
+    nd.Simulation.ReflectTraj(+1, 5 , -0, +5, 6)
+
+def ReflectTraj(x1, y1, dx, dy, r, DoPlotting = True):
+    """reflects particle trajectory it leaves a given circle"""
+    
+    # calc position outside boundary
+    x_out = x1 + dx
+    y_out = y1 + dy
+    
+    # get the p-value
+    # p is in [0,1] and says after which amount of the movement, the particle his the wall
+    
+    # solve quadratic function sothat x and y are on the circle
+    a = (2*dx*x1 + 2*dy*y1)/(dx**2 + dy**2)
+    b = (x1**2 + y1**2 - r**2)/(dx**2 + dy**2)
+    
+    p_1 = -a/2 + np.sqrt((a/2)**2 - b)
+    p_2 = -a/2 - np.sqrt((a/2)**2 - b)
+    
+    # p_2 is laselect p
+    if p_2 > 0:
+        p = p_2
+    else:
+        p = p_1
+    
+    
+    #this is the point where the particle hits the wall
+    x_c = x1 + p *dx
+    y_c = y1 + p *dy
+    
+    # angle in polar coordinates where particle hits the wall
+    if y_c >= 0:
+        phi = np.arccos(x_c / r)
+    else:
+        phi = -np.arccos(x_c / r)
+    
+    
+    # new coordinate system has hitting point as center and orientated sothat the reflection surface is vertical
+    
+    # starting position in term of new coordinate system
+    [x1_perp, x1_parr] = ChangeCordSystem(-phi, x_c, y_c, x1, y1)
+    
+    # missplacement vector in term of new cs
+    # a missplacement vector has no origin
+    [dx1_perp, dx1_parr] = ChangeCordSystem(-phi, 0, 0, dx, dy)
+    
+    # missplacement in new CS till contact point
+    dx_parr_before =  p * dx1_parr
+    dx_perp_before =  p * dx1_perp
+    
+    x_parr_c = x1_parr + dx_parr_before
+    x_perp_c = x1_perp + dx_perp_before
+
+    # missplacement in new CS after contact point
+    # paar continues, while perp is reflected
+    dx_parr_after = (1-p)  * dx1_parr
+    dx_perp_after = -(1-p) * dx1_perp
+    
+    x2_parr = x_parr_c + dx_parr_after
+    x2_perp = x_perp_c + dx_perp_after
+    
+    # determind oringine of original CS in new CS
+    [x_c_back, y_c_back] = ChangeCordSystem(-phi, x_c, y_c, 0, 0)
+ 
+    # go back to true CS
+    [x2, y2] = ChangeCordSystem(phi, x_c_back, y_c_back, x2_perp, x2_parr)
+ 
+    if DoPlotting == True:
+        plt.plot([x1, x_out],[y1, y_out], ':x')
+        plt.plot([x1, x_c, x2],[y1, y_c, y2], ':x')
+        circle = plt.Circle((0,0), radius = r, fill = False)
+    
+        ax = plt.gca()
+        ax.add_patch(circle)
+    
+        print("p= ", p)
+        print("Phi= ",phi/np.pi*180)
+        print("[x1_parr, x1_perp]: ", [x1_parr, x1_perp])
+        print("[dx1_parr, dx1_perp]: ", [dx1_parr, dx1_perp])
+        print("[x2_parr, x2_perp]: ", [x2_parr, x2_perp])
+        print( "[x_c_back, y_c_back]", [x_c_back, y_c_back])
+
+        # this to show the reflection in the CS of the contact point        
+        # plt.figure()
+        # plt.plot([x1_perp, x_perp_c, x2_perp ],[x1_parr, x_parr_c, x2_parr], ':x')
+        # circle = plt.Circle((+x_c_back, +y_c_back), radius = r, fill = False)
+        # ax = plt.gca()
+        # ax.add_patch(circle)        
+    
+    new_r = np.hypot(x2,y2)
+    
+    if new_r > r:
+        [dx_after, dy_after] = ChangeCordSystem(+phi, 0, 0, dx_perp_after, dx_parr_after)
+        x2, y2 = ReflectTraj(x_c, y_c, dx_after, dy_after, r, DoPlotting = True)
+    
+    return x2, y2
+    
+   
+def ChangeCordSystem(theta, dx_c, dy_c, x_in, y_in):
+    """
+    Translate Coordinate System to new center dx_c and dx_y
+    Rotate by angle theta
+    Return transformed coordinates (x2,y2) of input system (x1,y1)
+    """
+   
+    # https://moonbooks.org/Articles/How-to-create-and-apply-a-rotation-matrix-using-python-/ 
+   
+    # translate to new system
+    x_out = x_in - dx_c
+    y_out = y_in - dy_c
+    
+    # rot array
+    R = np.array(( (np.cos(theta), -np.sin(theta)),
+               (np.sin(theta),  np.cos(theta)) ))
+    
+    # rotate it
+    [x_out, y_out] = R.dot([x_out, y_out])
+    
+    return x_out, y_out
+    
+
+
 
     # plt.figure()
     # plt.hist(I_mean, bins = int(num_particles / 10))
