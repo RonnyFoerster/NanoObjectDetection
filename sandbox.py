@@ -658,6 +658,35 @@ def AnimateTracksOnRawData(t2_long,rawframes_ROI,settings,frm_start=0):#, gamma=
 # anim2.save('Au50_raw+tracks_1000frames.mp4')
 
 
+
+def NormalizedMass(sizes_df_lin):
+    plt.figure()
+    
+    diameter = sizes_df_lin["diameter"]
+    rawmass = sizes_df_lin["rawmass"]
+    
+    scat_cross = rawmass / (diameter**6)
+    
+    plt.scatter(diameter, scat_cross)
+    plt.xlabel("Diameter [nm]")
+    plt.ylabel("Rawmass / (diameter^6)")
+    
+    plt.figure()
+
+    
+    plt.scatter(diameter, rawmass)
+    plt.xlabel("Diameter [nm]")
+    plt.ylabel("Rawmass")
+    
+    plt.figure()
+    
+    num_frames = sizes_df_lin["traj length"]
+    
+    plt.scatter(num_frames, scat_cross)
+    plt.xlabel("Number of frames")
+    plt.ylabel("Rawmass / (diameter^6)")
+
+
 def DiamOverMass(settings, sizes_df_lin):
     "RF"  
     # plt.figure()
@@ -674,20 +703,22 @@ def DiamOverMass(settings, sizes_df_lin):
         D = row["diffusion"]
         traj = int(row["traj length"])
 
-        I10, I_mean, I90 = nd.Simulation.RandomWalkCrossSection(settings, D, traj, num_particles = 100)
+        CI68_low, I_mean_mean, CI68_high = nd.Simulation.RandomWalkCrossSection(settings, D, traj, num_particles = 100)
 
         d = row["diameter"]
         I_scat = row["rawmass"]
         
-        m10 = CalcM(I_scat, I10, d)
-        m_mean = CalcM(I_scat, I_mean, d)
-        m90 = CalcM(I_scat, I90, d)
+        m_low = CalcM(I_scat, CI68_low, d)
+        m_mean = CalcM(I_scat, I_mean_mean, d)
+        m_high = CalcM(I_scat, CI68_high, d)
         
-        m_mean = np.abs(m10 + m90) / 2
-        m_error = np.abs(m10 - m90) / 2
+        m_mean = np.abs(m_low + m_high) / 2
+        m_error = np.abs(m_low - m_high) / 2
         
         plt.errorbar(d, m_mean, yerr = m_error)
 
+        plt.xlabel("Diameter")
+        plt.ylabel("m-factor")
 
 def ErrorIMode():
     "RF"  

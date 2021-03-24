@@ -1544,10 +1544,11 @@ def RandomSamplesFromDistribution(N,mean,CV,seed=None):
 
 
 
-def RandomWalkCrossSection(settings, D, traj_length, num_particles = 10):
-    r_max = settings["Fiber"]["TubeDiameter_nm"] /2 /1000
-
-    dt = 1/settings["Exp"]["fps"]
+def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = None, r_max = None, num_particles = 10, ShowHist = False, ShowTraj = False):
+    if settings != None:
+        r_max = settings["Fiber"]["TubeDiameter_nm"] /2 /1000
+        dt = 1/settings["Exp"]["fps"]
+        
     num_elements = traj_length * num_particles
 
     sigma_step = np.sqrt(2*D*dt)
@@ -1635,14 +1636,22 @@ def RandomWalkCrossSection(settings, D, traj_length, num_particles = 10):
     # print("mean: %.3f" % I_mean_mean)
     # print("std: %.3f" % I_mean_std)
 
-    I10 = np.percentile(I_mean, q = 10)
-    I90 = np.percentile(I_mean, q = 90)
+    CI68_low = np.percentile(I_mean, q = 16)
+    CI68_high = np.percentile(I_mean, q = 84)
 
     # print("10%% percentile: %.3f" %I10)
     # print("90%% percentile: %.3f" %I90)
 
-    return I10, I_mean_mean, I90
+    if ShowHist == True:
+        plt.figure()
+        plt.hist(I_mean, bins = int(num_particles / 10))        
 
+
+    if ShowTraj == True:
+        plt.figure()
+        tp.plot_traj(sim_part[sim_part.particle == 0], colorby='frame')
+
+    return CI68_low, I_mean_mean, CI68_high
 
 
 def RandomWalkCrossSection_Reflection(settings, D, traj_length, num_particles = 10):
@@ -1883,6 +1892,7 @@ def ChangeCordSystem(theta, dx_c, dy_c, x_in, y_in):
 
     # plt.figure()
     # plt.hist(I_mean, bins = int(num_particles / 10))
+
 
 ## get nearest neighbor
 #def CalcNearestNeighbor(t, seq = False):
