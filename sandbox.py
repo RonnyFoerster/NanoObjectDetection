@@ -658,7 +658,6 @@ def AnimateTracksOnRawData(t2_long,rawframes_ROI,settings,frm_start=0):#, gamma=
 # anim2.save('Au50_raw+tracks_1000frames.mp4')
 
 
-
 def NormalizedMass(sizes_df_lin):
     plt.figure()
     
@@ -749,11 +748,13 @@ def ErrorIMode():
     
     plt.plot(r, P_r, ':.')
     
-    
-    
-    
-    
-    
-    
+   
+# In[]
+#nd.Simulation.RandomWalkCrossSection(D = 4, traj_length=100000, dt=1/2500, r_max = 0.5, ShowTraj = True, num_particles = 1, ShowReflection = True)
+
+nd.Simulation.RandomWalkCrossSection(D = 4, traj_length=8000, dt=1/500, r_max = 8, ShowTraj = True, num_particles = 1, ShowReflection = True)
+
+
+
 
 
