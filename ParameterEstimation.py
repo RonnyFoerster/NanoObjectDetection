@@ -67,7 +67,11 @@ def zncc(img1, img2):
     img2_mean = np.mean(img2)
     img2_std  = np.sqrt(np.mean((img2 - img2_mean)**2))
     
-    zncc = np.mean((img1 - img1_mean) * (img2 - img2_mean)) / (img1_std * img2_std)
+    if (img1_std * img2_std) != 0:
+        zncc = np.mean((img1 - img1_mean) * (img2 - img2_mean)) / (img1_std * img2_std)
+    else:
+        zncc = 0
+    
 #    zncc = np.mean((img1 - img1_mean) * (img2 - avg2))/(img1_std * stdDeviation2)
     
     return zncc
