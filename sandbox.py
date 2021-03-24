@@ -752,7 +752,7 @@ def ErrorIMode():
 # In[]
 #nd.Simulation.RandomWalkCrossSection(D = 4, traj_length=100000, dt=1/2500, r_max = 0.5, ShowTraj = True, num_particles = 1, ShowReflection = True)
 
-nd.Simulation.RandomWalkCrossSection(D = 4, traj_length=8000, dt=1/500, r_max = 8, ShowTraj = True, num_particles = 1, ShowReflection = True)
+# nd.Simulation.RandomWalkCrossSection(D = 4, traj_length=8000, dt=1/500, r_max = 8, ShowTraj = True, num_particles = 1, ShowReflection = True)
 
 
 
