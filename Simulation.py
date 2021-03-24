@@ -1551,7 +1551,6 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
     num_elements = traj_length * num_particles
 
     sigma_step = np.sqrt(2*D*dt)
-    print("sigma_step: ", sigma_step )
 
 
     sim_part = pd.DataFrame(columns = ["particle", "frame", "step", "dx", "x", "dy", "y", "r", "I"], index = range(0,num_elements))
@@ -1600,29 +1599,18 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
 
     particle_leaves_circle = True
     
-    sim_part = sim_part.reset_index()
-    
     while particle_leaves_circle == True:
         sim_part["x"] = sim_part[["particle", "dx"]].groupby("particle").cumsum()
         sim_part["y"] = sim_part[["particle", "dy"]].groupby("particle").cumsum()
 
         sim_part["r"] = np.hypot(sim_part["x"], sim_part["y"])
         
-        index_wall_touch = sim_part.index[np.sign(sim_part["r"] - r_max).diff(1) == 2]
-        
-        if len(index_wall_touch) > 0:
-            redo_index = sim_part[np.sign(sim_part["r"] - r_max).diff(1) == 2][["index", "particle"]].groupby("particle").min()["index"].values
-            
-            print("redo index: ", redo_index[0])            
-            
-            # print("wall touches: %i of %i (%.2f%%)" %(len(index_wall_touch), len(sim_part["r"]), len(index_wall_touch) / len(sim_part["r"]) * 100))
+        if np.max(sim_part["r"]) > r_max:
+            print("number of wall touches: %i" %(np.sum(sim_part["r"] > r_max)))
             #particle leaves circle
             #0.99 for convergence in very unlucky case
-            sim_part.loc[redo_index, "dx"] *= np.random.normal(loc = 0, scale=sigma_step)
-            sim_part.loc[redo_index, "dy"] *= np.random.normal(loc = 0, scale=sigma_step)
-            
-            # sim_part.loc[index_wall_touch[0], "dx"] *= np.random.normal(loc = 0, scale=sigma_step)
-            # sim_part.loc[index_wall_touch[0], "dy"] *= np.random.normal(loc = 0, scale=sigma_step)
+            sim_part.loc[sim_part["r"] > r_max, "dx"] *= -0.99
+            sim_part.loc[sim_part["r"] > r_max, "dy"] *= -0.99
         else:
             particle_leaves_circle = False
 
@@ -1655,15 +1643,12 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
 
     if ShowHist == True:
         plt.figure()
-        print(int(num_particles / 10))
         plt.hist(I_mean, bins = int(num_particles / 10))        
 
 
     if ShowTraj == True:
         plt.figure()
         tp.plot_traj(sim_part[sim_part.particle == 0], colorby='frame')
-        plt.xlim([-r_max, r_max])
-        plt.ylim([-r_max, r_max])
 
     return CI68_low, I_mean_mean, CI68_high
 
