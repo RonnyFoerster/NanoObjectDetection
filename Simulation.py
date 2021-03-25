@@ -1606,7 +1606,7 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
 
         [x,y, num_hits] = ConfineTraj(dx, dy, r_max, ShowReflection = ShowReflection)
 
-        print("number of hits: ", num_hits)
+        nd.logger.debug("number of hits: ", num_hits)
 
         sim_part.loc[sim_part.particle == ii_part, "x"] = x
         sim_part.loc[sim_part.particle == ii_part, "y"] = y
@@ -1617,6 +1617,11 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
     sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
 
     sim_part["r"] = np.hypot(sim_part["dx"], sim_part["dy"])
+
+    import trackpy as tp
+    im = tp.imsd(sim_part, 1, 1/dt, max_lagtime = int(traj_length/5))
+    plt.figure()
+    plt.plot(im.index,im, ':x')
 
     #here comes the Mode
     def GaussInt(r, waiste):
