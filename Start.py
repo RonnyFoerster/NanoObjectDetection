@@ -31,11 +31,15 @@ def NewEvaluation():
     # select the data
     data_file_name = filedialog.askopenfilename(title = "Please select the file", filetypes = (("*tif-files", "*.tif"),("*tiff-files", "*.tiff")))
 
+    nd.logger.info("data_file_name: %s", data_file_name)
+
     # get data folder
     data_folder_name = os.path.dirname(data_file_name)
 
     # where shall the evaluation go?
     dir_results = filedialog.askdirectory(title = "Where should the evaluation scripts and results be saved?")
+    
+    nd.logger.info("store results into: %s", dir_results)
     
     # copy default "auswertung.py" into that folder
     path_aus_origin = os.path.dirname(nd.__file__) + "\\default_auswertung.py"

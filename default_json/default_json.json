@@ -69,7 +69,7 @@
           "ClipNegativeValue": 1,
           "Do_or_apply_data_rotation": 0,
           "rot_angle": 0,
-          "EnhanceSNR": 1,
+          "EnhanceSNR": 0,
           "KernelSize": "auto"
      },
      "Help": {
