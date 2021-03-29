@@ -749,6 +749,64 @@ def ErrorIMode():
     plt.plot(r, P_r, ':.')
     
    
+def BayesianGaussianMixture(settings, diameter, x_min = None, x_max = None, num_comp = 1):
+    from sklearn.mixture import GaussianMixture
+    import scipy.stats as stats
+    from sklearn import mixture
+    
+
+    my_func = np.expand_dims(diameter, axis = 1)
+
+    g = mixture.BayesianGaussianMixture(n_components = num_comp, covariance_type = "spherical", max_iter=10000)
+    
+    g.fit(my_func)
+    
+    weights = g.weights_
+    mean = g.means_.squeeze()
+    std = np.sqrt(g.covariances_)
+    
+    result = np.round(np.stack((weights*100, mean, std)),0)
+    
+    #only use weights above 0.1%
+    real_component = result[0,:] > 0.1
+    result = result[:,real_component]
+    
+    #sort by mean diameter
+    result = result[:,result[1,:].argsort()]
+
+    num_bins = settings["Plot"]["Histogramm_Bins"]
+    fig, axs =plt.subplots(2,1)
+    axs[0].hist(diameter, bins = num_bins, density = True, histtype = "step")
+    
+    if x_min == None:
+        x_min = settings["Plot"]["Histogramm_min"]
+    if x_max == None:
+        x_max = settings["Plot"]["Histogramm_max"]
+    x = np.linspace(x_min, x_max, int(10*x_max))
+    
+    if num_comp == 1:
+        axs[0].plot(x, stats.norm.pdf(x, mean[0][0], std))
+    else:
+        for ii in range(num_comp):
+            axs[0].plot(x, weights[ii] * stats.norm.pdf(x, mean[ii], std[ii]))
+    
+   
+    # make table with the info
+    num_comp_final = result.shape[1]
+    columns = ["weight in %", "mean [nm]", "std [nm]"]
+    rows = ['comp: %d' % (x+1) for x in range(num_comp_final)]
+    
+    axs[1].axis('tight')
+    axs[1].axis('off')
+    
+    the_table = axs[1].table(cellText=np.transpose(result),
+                      rowLabels=rows,
+                      colLabels=columns,
+                      loc='center')
+
+    
+    
+   
 # In[]
 #nd.Simulation.RandomWalkCrossSection(D = 4, traj_length=100000, dt=1/2500, r_max = 0.5, ShowTraj = True, num_particles = 1, ShowReflection = True)
 
