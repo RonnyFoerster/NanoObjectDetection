@@ -757,7 +757,7 @@ def BayesianGaussianMixture(settings, diameter, x_min = None, x_max = None, num_
 
     my_func = np.expand_dims(diameter, axis = 1)
 
-    g = mixture.BayesianGaussianMixture(n_components = num_comp, covariance_type = "spherical", max_iter=10000)
+    g = mixture.BayesianGaussianMixture(n_components = num_comp, covariance_type = "spherical", max_iter=10000, mean_precision_prior = 1E-10)
     
     g.fit(my_func)
     
@@ -765,7 +765,7 @@ def BayesianGaussianMixture(settings, diameter, x_min = None, x_max = None, num_
     mean = g.means_.squeeze()
     std = np.sqrt(g.covariances_)
     
-    result = np.round(np.stack((weights*100, mean, std)),0)
+    result = np.round(np.stack((weights*100, mean, std)),2)
     
     #only use weights above 0.1%
     real_component = result[0,:] > 0.1
