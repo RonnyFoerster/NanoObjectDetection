@@ -86,3 +86,6 @@ logger.setLevel(logging.DEBUG)
 # logger.debug("debug")
 # logger.info("info")
 # logger.warning("warning")
+
+#lets run the logger
+Tools.LoggerSetLevel("info", TryLogger = True)

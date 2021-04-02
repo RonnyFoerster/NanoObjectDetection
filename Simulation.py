@@ -1545,7 +1545,10 @@ def RandomSamplesFromDistribution(N,mean,CV,seed=None):
 
 
 def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = None, r_max = None, num_particles = 10, ShowHist = False, ShowTraj = False, ShowReflection = False):
-
+    """
+    nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=10000, dt=1/500, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)
+    """
+    
     if settings != None:
         r_max = settings["Fiber"]["TubeDiameter_nm"] /2 /1000
         dt = 1/settings["Exp"]["fps"]
@@ -1611,17 +1614,19 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
         sim_part.loc[sim_part.particle == ii_part, "x"] = x
         sim_part.loc[sim_part.particle == ii_part, "y"] = y
 
-
+    sim_part["x"] = sim_part["x"].astype(float)
+    sim_part["y"] = sim_part["y"].astype(float)
 
     sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
     sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
 
-    sim_part["r"] = np.hypot(sim_part["dx"], sim_part["dy"])
+    
+    sim_part["r"] = np.hypot(sim_part["x"], sim_part["y"])
 
-    import trackpy as tp
-    im = tp.imsd(sim_part, 1, 1/dt, max_lagtime = int(traj_length/5))
-    plt.figure()
-    plt.plot(im.index,im, ':x')
+    # import trackpy as tp
+    # im = tp.imsd(sim_part, 1, 1/dt, max_lagtime = int(traj_length/5))
+    # plt.figure()
+    # plt.plot(im.index,im, ':x')
 
     #here comes the Mode
     def GaussInt(r, waiste):
@@ -1633,6 +1638,12 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
 
     I_mean = sim_part[["particle", "I"]].groupby("particle").mean()
     I_mean = np.asarray(I_mean["I"])
+    
+    print("I_mean: ", I_mean)
+
+    plt.figure()
+    # plt.hist(sim_part["r"], bins = 100)
+    plt.hist(sim_part["I"], bins = 100)
 
     I_mean_mean = np.mean(I_mean)
     I_mean_std = np.std(I_mean)
