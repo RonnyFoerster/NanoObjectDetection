@@ -1545,6 +1545,9 @@ def RandomSamplesFromDistribution(N,mean,CV,seed=None):
 
 
 def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = None, r_max = None, num_particles = 10, ShowHist = False, ShowTraj = False, ShowReflection = False):
+    """
+    nd.Simulation.RandomWalkCrossSection(D = 4, traj_length=100000, dt=1/2500, r_max = 0.5, ShowTraj = True, num_particles = 1, ShowReflection = True)
+    """
 
     if settings != None:
         r_max = settings["Fiber"]["TubeDiameter_nm"] /2 /1000
