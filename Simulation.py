@@ -1548,7 +1548,7 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
     """
     nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=10000, dt=1/500, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)
     """
-    
+
     if settings != None:
         r_max = settings["Fiber"]["TubeDiameter_nm"] /2 /1000
         dt = 1/settings["Exp"]["fps"]
@@ -1620,7 +1620,7 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
     sim_part.loc[sim_part.particle.diff(1) != 0, "dx"] = 0
     sim_part.loc[sim_part.particle.diff(1) != 0, "dy"] = 0
 
-    
+
     sim_part["r"] = np.hypot(sim_part["x"], sim_part["y"])
 
     # import trackpy as tp
@@ -1638,7 +1638,7 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
 
     I_mean = sim_part[["particle", "I"]].groupby("particle").mean()
     I_mean = np.asarray(I_mean["I"])
-    
+
     print("I_mean: ", I_mean)
 
     plt.figure()
