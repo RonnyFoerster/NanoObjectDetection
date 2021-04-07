@@ -76,7 +76,7 @@
           "ROI": 0,
           "Bead brightness": "auto",
           "Bead size": "auto",
-          "TryFrames": 2,
+          "TryFrames": 10,
           "Separation": "auto",
           "GuessLowestDiameter_nm": "unknown",
           "Drift": "auto"

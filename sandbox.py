@@ -749,8 +749,90 @@ def ErrorIMode():
     plt.plot(r, P_r, ':.')
     
    
+def BayesianGaussianMixture(settings, diameter, x_min = None, x_max = None, bin_nm = None, num_comp = 1, DoPlot = True, warm_start = False, title = "No Titel given"):
+    from sklearn.mixture import GaussianMixture
+    import scipy.stats as stats
+    from sklearn import mixture
+
+    my_func = np.expand_dims(diameter, axis = 1)
+
+    # my_mean_prior = np.array([50, 100, 130, np.max(diameter)])
+    # my_covariance_prior = list(np.tile(10,num_comp))
+    
+    # my_mean_prior = np.array([np.mean(diameter)])
+    # my_covariance_prior = np.array(3E0)
+
+    # g = mixture.BayesianGaussianMixture(n_components = num_comp, covariance_type = 'spherical', max_iter = 100000, mean_precision_prior = 1E-10, tol=1E-10, mean_prior = my_mean_prior, covariance_prior = my_covariance_prior)
+    
+    my_means_init = np.linspace(np.min(diameter), np.max(diameter), num_comp)
+    my_means_init = np.expand_dims(my_means_init, axis = 1)
+    
+    g = mixture.GaussianMixture(n_components = num_comp, covariance_type = 'spherical', max_iter = 100000, tol=1E-10, warm_start = warm_start, means_init = my_means_init)
+    
+    g.fit(my_func)
+    
+    weights = g.weights_
+    mean = g.means_.squeeze()
+    std = np.sqrt(g.covariances_.squeeze())
+    
+    if DoPlot == True:
+        result = np.round(np.stack((weights*100, mean, std)),2)
+        
+        #only use weights above 0.1%
+        real_component = result[0,:] > 0.1
+        result = result[:,real_component]
+        
+        #sort by mean diameter
+        result = result[:,result[1,:].argsort()]
+    
+        fig, axs =plt.subplots(2,1)
+        
+        if x_min == None:
+            x_min = settings["Plot"]["Histogramm_min"]
+        if x_max == None:
+            x_max = settings["Plot"]["Histogramm_max"]
+        if bin_nm == None:
+            num_bins = settings["Plot"]["Histogramm_Bins"]
+        else:
+            diameter_range = np.max(diameter) - np.min(diameter)
+            num_bins = int(np.round(diameter_range/bin_nm))
+        
+        axs[0].set_title(title)
+        axs[0].hist(diameter, bins = num_bins, density = True, histtype = "step")
+        axs[0].set_xlabel("Diameter [nm]")    
+        axs[0].set_ylabel("Probabilty")    
+        
+        x = np.linspace(x_min, x_max, int(10*x_max))
+        
+        if num_comp == 1:
+            axs[0].plot(x, stats.norm.pdf(x, mean[0][0], std))
+        else:
+            for ii in range(num_comp):
+                if std[ii] > 0.5:
+                    axs[0].plot(x, weights[ii] * stats.norm.pdf(x, mean[ii], std[ii]), "-")
+                else:
+                    axs[0].plot(x, weights[ii] * stats.norm.pdf(x, mean[ii], 5), ":")
+        
+       
+        # make table with the info
+        num_comp_final = result.shape[1]
+        columns = ["weight in %", "mean [nm]", "std [nm]"]
+        rows = ['comp: %d' % (x+1) for x in range(num_comp_final)]
+        
+        axs[1].axis('tight')
+        axs[1].axis('off')
+        
+        the_table = axs[1].table(cellText=np.transpose(result),
+                          rowLabels=rows,
+                          colLabels=columns,
+                          loc='center')
+
+    
+        return result
+    
+   
 # In[]
-#nd.Simulation.RandomWalkCrossSection(D = 4, traj_length=100000, dt=1/2500, r_max = 0.5, ShowTraj = True, num_particles = 1, ShowReflection = True)
+# nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=2000, dt=1/700, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)
 
 # nd.Simulation.RandomWalkCrossSection(D = 4, traj_length=8000, dt=1/500, r_max = 8, ShowTraj = True, num_particles = 1, ShowReflection = True)
 
