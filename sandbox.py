@@ -828,8 +828,124 @@ def BayesianGaussianMixture(settings, diameter, x_min = None, x_max = None, bin_
                           loc='center')
 
     
-        return result
+    return result
+   
+
+def SummaryEval(settings, rawframes_pre, obj_moving, t1_orig, t2_long, t5_no_drift, t6_final, sizes_df_lin):
+    # num frames
+    num_frames = rawframes_pre.shape[0]
+    nd.logger.info("number of frames: %i", num_frames)
     
+    fov_length = rawframes_pre.shape[2] * settings["Exp"]["Microns_per_pixel"]
+    fov_crosssection = np.pi * (settings["Fiber"]["TubeDiameter_nm"]/2/1000)**2
+    
+    # volume in um^3
+    fov_volume_um = fov_length * fov_crosssection
+    
+    fov_volume_nl = fov_volume_um * 1E-6
+    nd.logger.info("Observed volume: %.2f nl", fov_volume_nl)
+    
+    # located particles per frame
+    loc_part_frame = len(obj_moving) / num_frames
+    nd.logger.info("Located particles per frames: %.1f", loc_part_frame)
+    
+    # formed trajectory - min trajectory before drift correction
+    traj_frame_before = len(t2_long) / num_frames
+    nd.logger.info("Trajectory per frames - before testing: %.1f", traj_frame_before)
+    
+    # formed trajectory - min trajectory after drift correction
+    traj_frame_after = len(t5_no_drift) / num_frames
+    nd.logger.info("Trajectory per frames - after drift correction: %.1f", traj_frame_before)
+    
+    # valid trajectory - used in msd
+    traj_frame_msd = len(t6_final) / num_frames 
+    nd.logger.info("Trajectory per frames - evaluted by MSD: %.1f", traj_frame_msd)
+    
+    # analyze components when existing
+    if "comp" in sizes_df_lin.keys():
+        #evalue the components
+        comp = np.sort(sizes_df_lin["comp"].unique())
+        num_comp = len(comp)
+        
+        # number trajectory points each component has
+        comp_traj = np.zeros(num_comp)
+    
+        for ii in range(num_comp):
+            eval_comp = sizes_df_lin[sizes_df_lin["comp"] == ii]
+            comp_traj[ii] = int(np.sum(eval_comp["traj length"]))
+            
+        # components per frame
+        comp_frame = comp_traj / num_frames
+        
+        comp_concentration = comp_frame / fov_volume_nl
+    
+        for ii in range(num_comp):
+            nd.logger.info("Component %i: particles per frames: %.2f", ii, comp_frame[ii])
+    
+        for ii in range(num_comp):
+            nd.logger.info("Component %i: %.2f (particles/nL)", ii, comp_concentration[ii])
+    
+    
+    
+    
+    
+def GuidedMixGaussian(sizes_df_lin, min_traj_length = 500, num_comp = 2, central_diameter = None):
+    # min_traj_length = 500
+    if central_diameter == None:
+        central_diameter = np.mean(sizes_df_lin.diameter)
+    
+
+    #min trajectory length
+    min_length = sizes_df_lin["diameter"] / central_diameter * min_traj_length
+    
+    sizes_df_lin = sizes_df_lin[sizes_df_lin["traj length"] > min_length]
+    # sizes_df_lin_loop = sizes_df_lin_loop[sizes_df_lin_loop.diameter < 100]
+    
+    use_diameter = sizes_df_lin.diameter.values
+
+    GaussMixComp = nd.sandbox.BayesianGaussianMixture(None, use_diameter, num_comp = num_comp, x_min = 0, x_max = 300, bin_nm = 5, title = "GuidedMixGaussian")
+        
+    sizes_df_lin = sizes_df_lin.reset_index(drop = True)
+
+    if "comp" not in sizes_df_lin.keys():
+        sizes_df_lin["comp"] = -1
+    
+    if "comp_prob" not in sizes_df_lin.keys():
+        sizes_df_lin["comp_prob"] = -1
+    
+        
+
+    prob_comp = np.zeros(num_comp)
+
+    for index, data in sizes_df_lin.iterrows():
+        #std of the diameter
+        diam_std = data['diffusion std'] / data['diffusion'] * data['diameter']
+        
+        diam_min = data['diameter'] + diam_std
+        diam_max = data['diameter'] - diam_std
+        
+        # loop throug components
+        for ii_comp in range(num_comp):
+            comp_mean = GaussMixComp[1, ii_comp]
+            comp_std = GaussMixComp[2, ii_comp]
+            
+            prob_comp[ii_comp] = norm.cdf(x = diam_min, loc = comp_mean, scale = comp_std) - \
+                norm.cdf(x = diam_max, loc = comp_mean, scale = comp_std)
+                
+        # normalize
+        prob_comp = prob_comp / np.sum(prob_comp)
+        
+        comp = np.argmax(prob_comp)
+        
+        # component with highest prob
+        sizes_df_lin.loc[index, "comp"] = comp
+        
+        # probabilty
+        sizes_df_lin.loc[index, "comp_prob"] = prob_comp[comp]
+        
+    
+    
+    from scipy.stats import norm
    
 # In[]
 # nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=2000, dt=1/700, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)
