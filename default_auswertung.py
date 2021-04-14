@@ -105,6 +105,7 @@ sizes_df_lin, any_successful_check = nd.CalcDiameter.Main2(t6_final, ParameterJs
 
 #sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True, t_beforeDrift = t4_cutted)
 
+nd.CalcDiameter.SummaryEval(settings, rawframes_pre, obj_moving, t1_orig, t2_long, t5_no_drift, t6_final, sizes_df_lin)
 
 #%% visualize results
 nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check)
