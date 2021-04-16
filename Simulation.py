@@ -10,6 +10,7 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+
 # False since deprecated from version 3.0
 #matplotlib.rcParams['text.usetex'] = False
 #matplotlib.rcParams['text.latex.unicode'] = False
