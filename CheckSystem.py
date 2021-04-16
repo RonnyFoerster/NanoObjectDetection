@@ -30,7 +30,6 @@ def CheckAll(ParameterJsonFile):
     CheckPython()
     CheckTrackpy()
     CheckPanda()
-    # CheckLatex()
     
     nd.logger.info("Check inserted json parameter file: starting...")
     settings = CheckJson_Exist(ParameterJsonFile)
@@ -100,6 +99,7 @@ def CheckPanda():
         nd.logger.warning("Try: Downgrading your system in Anaconda promt using >>> conda install pandas=0.23.4 <<<")
         LogWhereEnvIs()
         sys.exit("Change your pandas version accoringly, or insert your pandas version in pd_maximum_versions")       
+
 
 
 def CheckNumbda():

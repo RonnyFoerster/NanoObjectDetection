@@ -65,10 +65,7 @@ t2_stationary = nd.get_trajectorie.filter_stubs(t1_orig_slow_diff, ParameterJson
 #%% cut trajectories if a moving particle comes too close to a stationary object
 obj_moving = nd.get_trajectorie.RemoveSpotsInNoGoAreas(obj_all, t2_stationary, ParameterJsonFile)
 
-
-#%% remove overexposed objects
-obj_moving = nd.get_trajectorie.RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_super)
-  
+ 
 
 #%% form trajectories of valid particle positions
 t1_orig = nd.get_trajectorie.link_df(obj_moving, ParameterJsonFile, SearchFixedParticles = False) 
@@ -90,8 +87,12 @@ t3_gapless = nd.get_trajectorie.calc_intensity_fluctuations(t3_gapless, Paramete
 t4_cutted, t4_cutted_no_gaps = nd.get_trajectorie.split_traj(t2_long, t3_gapless, ParameterJsonFile)
 
 
+#%% remove overexposed objects
+t4_cutted_no_sat = nd.get_trajectorie.RemoveOverexposedObjects(ParameterJsonFile, t4_cutted, rawframes_super)
+
+
 #%% drift correction
-t5_no_drift = nd.Drift.Main(t4_cutted, ParameterJsonFile, PlotGlobalDrift = True)
+t5_no_drift = nd.Drift.Main(t4_cutted_no_sat, ParameterJsonFile, PlotGlobalDrift = True)
 
 
 #%% only long trajectories are used in the MSD plot in order to get a good fit
@@ -105,6 +106,7 @@ sizes_df_lin, any_successful_check = nd.CalcDiameter.Main2(t6_final, ParameterJs
 
 #sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True, t_beforeDrift = t4_cutted)
 
+nd.CalcDiameter.SummaryEval(settings, rawframes_pre, obj_moving, t1_orig, t2_long, t5_no_drift, t6_final, sizes_df_lin)
 
 #%% visualize results
 nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check)

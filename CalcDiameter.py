@@ -1336,7 +1336,61 @@ def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None,
     
     nd.logger.warning("This is an old function. Call Main2 instead...")
     sizes_df_lin, sizes_df_lin_rolling, any_successful_check = Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, processOutput = True, t_beforeDrift = None)
+
+
+def SummaryEval(settings, rawframes_pre, obj_moving, t1_orig, t2_long, t5_no_drift, t6_final, sizes_df_lin):
+    # num frames
+    num_frames = rawframes_pre.shape[0]
+    nd.logger.info("number of frames: %i", num_frames)
     
+    fov_length = rawframes_pre.shape[2] * settings["Exp"]["Microns_per_pixel"]
+    fov_crosssection = np.pi * (settings["Fiber"]["TubeDiameter_nm"]/2/1000)**2
+    
+    # volume in um^3
+    fov_volume_um = fov_length * fov_crosssection
+    
+    fov_volume_nl = fov_volume_um * 1E-6
+    nd.logger.info("Observed volume: %.2f nl", fov_volume_nl)
+    
+    # located particles per frame
+    loc_part_frame = len(obj_moving) / num_frames
+    nd.logger.info("Located particles per frames: %.1f", loc_part_frame)
+    
+    # formed trajectory - min trajectory before drift correction
+    traj_frame_before = len(t2_long) / num_frames
+    nd.logger.info("Trajectory per frames - before testing: %.1f", traj_frame_before)
+    
+    # formed trajectory - min trajectory after drift correction
+    traj_frame_after = len(t5_no_drift) / num_frames
+    nd.logger.info("Trajectory per frames - after drift correction: %.1f", traj_frame_before)
+    
+    # valid trajectory - used in msd
+    traj_frame_msd = len(t6_final) / num_frames 
+    nd.logger.info("Trajectory per frames - evaluted by MSD: %.1f", traj_frame_msd)
+    
+    # analyze components when existing
+    if "comp" in sizes_df_lin.keys():
+        #evalue the components
+        comp = np.sort(sizes_df_lin["comp"].unique())
+        num_comp = len(comp)
+        
+        # number trajectory points each component has
+        comp_traj = np.zeros(num_comp)
+    
+        for ii in range(num_comp):
+            eval_comp = sizes_df_lin[sizes_df_lin["comp"] == ii]
+            comp_traj[ii] = int(np.sum(eval_comp["traj length"]))
+            
+        # components per frame
+        comp_frame = comp_traj / num_frames
+        
+        comp_concentration = comp_frame / fov_volume_nl
+    
+        for ii in range(num_comp):
+            nd.logger.info("Component %i: particles per frames: %.2f", ii, comp_frame[ii])
+    
+        for ii in range(num_comp):
+            nd.logger.info("Component %i: %.2f (particles/nL)", ii, comp_concentration[ii])    
     
     
     # """ calculate diameters of individual particles via mean squared displacement analysis

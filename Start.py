@@ -120,7 +120,11 @@ def NewEvaluation():
     settings["Exp"]["ExposureTime"]      = float(input("Exposure Time [ms] = ")) / 1000
     
     
-    adjustT = input("Do you want to use \n[0] the default values for temperature (295.0 K), solvent (water) and viscosity (9.5e-16 Ns/um^2) or \n[1] adjust them?\n")
+    adjustT = nd.handle_data.GetInput("Temperature, solvent and viscosity: \
+                                      \n 0 - Default (T = 295.0 K (22°C); solvent = water; viscosity (9.5e-16 Ns/um^2)) \
+                                      \n 1 - RECOMMENDED - adjust yourself"
+                                      , ["0","1"])
+    # adjustT = input("Do you want to use \n[0] the default values for temperature (295.0 K), solvent (water) and viscosity (9.5e-16 Ns/um^2) or \n[1] adjust them?\n")
     if adjustT == '1':
         temp = 273.15 + float(input("Temperature [C] = "))
         settings["Exp"]["Temperature"] = temp # [K]
