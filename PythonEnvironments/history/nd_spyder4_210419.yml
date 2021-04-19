@@ -21,14 +21,13 @@ dependencies:
   - blas=1.0=mkl
   - bleach=3.3.0=pyhd3eb1b0_0
   - brotlipy=0.7.0=py37h2bbff1b_1003
-  - ca-certificates=2020.12.5=h5b45459_0
-  - certifi=2020.12.5=py37h03978a9_1
+  - ca-certificates=2021.1.19=haa95532_0
+  - certifi=2020.12.5=py37haa95532_0
   - cffi=1.14.5=py37hcd4344a_0
   - chardet=4.0.0=py37haa95532_1003
   - click=7.1.2=pyhd3eb1b0_0
   - cloudpickle=1.6.0=py_0
   - colorama=0.4.4=pyhd3eb1b0_0
-  - coolprop=6.4.1=py37hf2a7229_2
   - cryptography=3.3.1=py37hcd4344a_1
   - cycler=0.10.0=py37_0
   - cytoolz=0.11.0=py37he774522_0
@@ -100,7 +99,7 @@ dependencies:
   - numpy-base=1.18.5=py37hc3f5095_0
   - numpydoc=1.1.0=pyhd3eb1b0_1
   - olefile=0.46=py37_0
-  - openssl=1.1.1k=h8ffe710_0
+  - openssl=1.1.1j=h2bbff1b_0
   - packaging=20.9=pyhd3eb1b0_0
   - pandas=1.2.2=py37hf11a4ad_0
   - pandoc=2.11=h9490d1a_0
@@ -136,7 +135,6 @@ dependencies:
   - python-dateutil=2.8.1=pyhd3eb1b0_0
   - python-jsonrpc-server=0.4.0=py_0
   - python-language-server=0.36.2=pyhd3eb1b0_0
-  - python_abi=3.7=1_cp37m
   - pytz=2021.1=pyhd3eb1b0_0
   - pywavelets=1.1.1=py37he774522_2
   - pywin32=227=py37he774522_1
