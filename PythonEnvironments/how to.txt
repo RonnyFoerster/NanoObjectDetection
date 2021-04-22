@@ -1,0 +1,8 @@
+update environment:
+
+run anaconda prompt
+
+go to this directory by "cd C:\bla\bla"
+
+update environment by:
+conda env update --file nd_spyder4.yml
