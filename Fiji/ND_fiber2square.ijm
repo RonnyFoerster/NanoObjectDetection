@@ -9,15 +9,22 @@ getLocationAndSize(locX, locY, sizeW, sizeH);
 width = getWidth();
 height = getHeight();
 n = floor(sqrt(width/height));
-print(n);
+print("number of tiles" + n);
 tileWidth = width / n;
 
 //floor otherwise the n part have not equal width
 tileWidth = floor(tileWidth)
-//print(tileWidth);
+print("tile Width: " + tileWidth)
+print("tile Height: " + height)
 
 makeRectangle(0, 0, n*tileWidth, height);
 run("Crop");
+
+//cannot handle 32bit somehow
+if (numbits == 32){
+	run("16-bit");
+}
+
 
 //create white line between images
 if (numbits == 16){
@@ -25,12 +32,14 @@ if (numbits == 16){
 	run("Set...", "value=65535 stack");
 }
 
+
+
 for (x = 0; x < n; x++) {
 	print("x = " + x);
 	offsetX = x * width / n;
 	//print(offsetX);
 	selectImage(id);
-	tileTitle = " [" + x + "]";
+
 	run("Duplicate...", "duplicate");
 	rename("Img_" + x);
 	makeRectangle(offsetX, 0, tileWidth, height);
