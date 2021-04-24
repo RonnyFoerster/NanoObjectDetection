@@ -1777,6 +1777,32 @@ def HistogrammDiameterOverTime(sizes_df_lin,ParameterJsonFile):
 #    ax2.text(0.05, 0.95, textstr, transform=ax2.transAxes, **axis_font, verticalalignment='top', bbox=props)
 
 
+def FitFiberToScreen(image):
+    """
+    The channel can hardly shown because it is very wide
+    Convert it into a more quadratic shape
+    """
+
+    height = image.shape[0]
+    width = image.shape[1]
+
+    #ratio width to height
+    image_ratio = width / height
+    
+    # cut into pieces to make it more quadrativ
+    num_pieces = int(np.sqrt(image_ratio))
+    
+    # in order to stack them, the width need to be a multiple of num_pieces. Cut away the tail
+    width_new = int(np.floor(width / num_pieces))
+    width_cut = width_new * num_pieces
+    image_cut = image[:,:width_cut]
+    
+    height_new = height * num_pieces
+    
+    image_new = np.concatenate(np.hsplit(image, num_pieces), axis = 0)
+    
+    plt.imshow(image_new)
+    
 #=============================================================================
 #
 #=============================================================================
