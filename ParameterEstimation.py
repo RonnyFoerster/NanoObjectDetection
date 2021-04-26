@@ -168,6 +168,21 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     # select several frames to make the parameter estimation with
     num_frames = settings["Help"]["TryFrames"]
     
+    if num_frames == "auto":
+        _, num_particles_zncc, _ = FindParticleByZNCC(settings, img1, mychannel, [0], OneFrameOnly=True)
+        
+        # check how many frames are needed to get 200 frames
+        wanted_particles = 200
+        num_frames = int(np.ceil(wanted_particles / num_particles_zncc)) + 1
+        
+        if num_frames > 20: #otherwise computation time is to long
+            nd.logger.warning("Not many partiles found in each frame. To limit computation time, number of frames is limited to 20.")
+            num_frames = 20
+        
+        nd.logger.info("Estimated number of tested frames: %i", num_frames)
+        
+        settings["Help"]["TryFrames"] = num_frames 
+    
     use_frames = (np.round(np.linspace(0,img1.shape[0]-1, num_frames))).astype(int)
     
     img_in_zncc = img1[use_frames,:,:]
@@ -194,7 +209,7 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
 
 
 
-def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames):
+def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames, OneFrameOnly = True):
     """
     Find the particles by a zero-normalized cross correlation
     This function looks for pattern not for intensity
@@ -246,16 +261,18 @@ def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames):
     #recommend more frames
     ideal_min_frames = (ideal_min_particles/num_particles_zncc) * num_frames
     ideal_min_frames = int(np.round(ideal_min_frames)+1)
-        
-    if num_particles_zncc < 50:
-        nd.logger.error("Less than 50 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
-        
-        time.sleep(10) # give 10 seconds of sleep to show this message properly
 
-    elif num_particles_zncc < 200:
-        nd.logger.warning("Less than 200 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+    if OneFrameOnly == False:        
+        # plot error only if multiple frames are given, otherwise it is for parameter estimation
+        if num_particles_zncc < 50:
+            nd.logger.error("Less than 50 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+            
+            time.sleep(10) # give 10 seconds of sleep to show this message properly
     
-        time.sleep(10) # give 10 seconds of sleep to show this message properly
+        elif num_particles_zncc < 200:
+            nd.logger.warning("Less than 200 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+        
+            time.sleep(10) # give 10 seconds of sleep to show this message properly
 
     return img_zncc, num_particles_zncc, pos_particles
 
