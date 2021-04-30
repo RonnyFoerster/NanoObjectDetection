@@ -220,9 +220,12 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
         # check if camera has saved frames doubled
         CheckForRepeatedFrames(rawframes_np)
         
-        # check if camera is saturated
-        rawframes_np, max_value = CheckForSaturation(rawframes_np)
-        settings["Find"]["SaturatedPixelValue"] = max_value
+        # check if camera saturation status is given
+        max_value = settings["Find"]["SaturatedPixelValue"]
+        
+        if max_value == "auto":
+            rawframes_np, max_value = CheckForSaturation(rawframes_np)
+            settings["Find"]["SaturatedPixelValue"] = max_value
 
     # check bit depth if auto
     if settings["Exp"]["bit-depth-fac"] == "auto":

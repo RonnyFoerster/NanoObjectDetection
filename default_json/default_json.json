@@ -84,7 +84,7 @@
      "Find": {
           "tp_diameter": 13,
           "tp_minmass": 500.0,
-          "SaturatedPixelValue": 65000,
+          "SaturatedPixelValue": "auto",
           "tp_separation": 15,
           "tp_percentile": 20
      },
