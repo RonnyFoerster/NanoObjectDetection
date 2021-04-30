@@ -8,7 +8,7 @@ run("Z Project...", "projection=Median");
 rename("Median_Background.tif");
 
 imageCalculator("Subtract create 32-bit stack", title,"Median_Background.tif");
-rename("Background Subtracted.tif");
+rename("Background-Subtracted.tif");
 
 run("Duplicate...", "duplicate");
 rename("Before SNR.tif");

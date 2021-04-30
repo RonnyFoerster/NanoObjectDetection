@@ -26,6 +26,7 @@ run("Crop");
 //cannot handle 32bit somehow
 if (numbits == 32){
 	run("16-bit");
+	numbits = bitDepth();
 }
 
 
