@@ -84,7 +84,7 @@ t3_gapless = nd.get_trajectorie.calc_intensity_fluctuations(t3_gapless, Paramete
 
 
 #%% split trajectories if necessary (e.g. too large intensity jumps)
-t4_cutted, t4_cutted_no_gaps = nd.get_trajectorie.split_traj(t2_long, t3_gapless, ParameterJsonFile)
+t4_cutted, t4_cutted_no_gaps = nd.get_trajectorie.split_traj_at_high_steps(t2_long, t3_gapless, ParameterJsonFile)
 
 
 #%% remove overexposed objects

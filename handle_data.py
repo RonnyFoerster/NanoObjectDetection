@@ -890,3 +890,14 @@ def MakeIntParallel(image_in, dtype):
     
     return image_out
 
+
+def pandas2csv(my_pandas, save_folder_name, save_file_name, write_index = False):
+    # save a pandas to a csv
+    
+    # creates full path name and creates folders if required
+    my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
+    
+    #export
+    my_pandas.to_csv(entire_path_file, index = write_index)
+    
+    nd.logger.info('Data stored in: %s', format(my_dir_name))

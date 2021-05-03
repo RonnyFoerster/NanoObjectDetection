@@ -85,7 +85,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
                 else:
                     output_empty = False
                     nd.logger.info("Set all NaN in estimation precision to 0")
-                    obj_all.loc[np.isnan(output.ep), "ep"] = 0
+                    obj_all.loc[np.isnan(obj_all.ep), "ep"] = 0
                     obj_all['abstime'] = obj_all['frame'] / settings["MSD"]["effective_fps"]       
 
             else:
@@ -98,10 +98,11 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
         if SaveFig == True:
-            FindSpots_plotting(frames_np, output, settings, gamma, ExternalSlider)
+            FindSpots_plotting(frames_np, obj_all, settings, gamma, ExternalSlider)
 
         # save output
-        nd.handle_data.pandas2csv(obj_all, settings["Plot"]["SaveFolder"], save_file_name):
+        if settings["Plot"]["save_data2csv"] == 1:
+            nd.handle_data.pandas2csv(obj_all, settings["Plot"]["SaveFolder"], "obj_all")
 
     return obj_all # usually pd.DataFrame with feature position data
 
@@ -247,6 +248,12 @@ def link_df(obj, ParameterJsonFile, SearchFixedParticles = False, max_displaceme
         # Switch the logging of for the moment
         tp.quiet(suppress=False)
 
+    #save the pandas
+    if settings["Plot"]["save_data2csv"] == 1:
+        if SearchFixedParticles == False:
+            nd.handle_data.pandas2csv(t1_orig, settings["Plot"]["SaveFolder"], "t1_orig")
+        else:
+            nd.handle_data.pandas2csv(t1_orig, settings["Plot"]["SaveFolder"], "t1_orig_slow_diff")
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
@@ -316,6 +323,21 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
         
     elif (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==False):
         nd.logger.warning("Test for unbrownian motion is skipped.")
+
+
+    #save the pandas
+    if settings["Plot"]["save_data2csv"] == 1:
+        if (FixedParticles == True) and (BeforeDriftCorrection == True):
+            # STATIONARY particles 
+            nd.handle_data.pandas2csv(traj_min_length, settings["Plot"]["SaveFolder"], "t2_stationary")
+            
+        elif (FixedParticles == False) and (BeforeDriftCorrection == True):
+            # MOVING particles BEFORE DRIFT CORRECTION
+            nd.handle_data.pandas2csv(traj_min_length, settings["Plot"]["SaveFolder"], "t2_long")
+    
+        else:
+            # MOVING particles AFTER DRIFT CORRECTION
+            nd.handle_data.pandas2csv(traj_min_length, settings["Plot"]["SaveFolder"], "t6_final")
 
 
     return traj_min_length # trajectory DataFrame
@@ -469,6 +491,10 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
+    #save the pandas
+    if settings["Plot"]["save_data2csv"] == 1:
+        nd.handle_data.pandas2csv(obj, settings["Plot"]["SaveFolder"], "obj_moving")
+
     return obj
 
 
@@ -551,6 +577,11 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         #undo the sorting
         obj_moving = sort_obj_moving.sort_values(["frame", "x"])
 
+    #save the pandas
+    if settings["Plot"]["save_data2csv"] == 1:
+        nd.handle_data.pandas2csv(obj_moving, settings["Plot"]["SaveFolder"], "t4_cutted_no_sat")
+
+
     return obj_moving
 
 
@@ -615,7 +646,6 @@ def close_gaps(t1):
     nd.logger.info("Total trajectory points: %d, Closed gaps: %d (%.2f%%)", traj_total_data_points, traj_filled_data_points, percentage)
     
 
-
     return t1_gapless
 
 
@@ -654,7 +684,7 @@ def close_gaps_loop(t1_loop):
     return t1_loop
 
 
-def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None, PlotIntMedianFit = False, PlotIntFlucPerBead = False):
+def calc_intensity_fluctuations(t3_gapless, ParameterJsonFile, dark_time = None, PlotIntMedianFit = False, PlotIntFlucPerBead = False):
     """ calculate the intensity fluctuation of a particle along its trajectory
 
     note: "mass_smooth" and "rel_step" columns are introduced here
@@ -673,17 +703,17 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
 
     # apply rolling median filter on data sorted by particleID
     # NOT VERY ACCURATE BUT DOES IT FOR THE MOMENT.
-    rolling_median_filter = t1_gapless.groupby('particle')['mass'].rolling(2*filter_time, center=True).median()
+    rolling_median_filter = t3_gapless.groupby('particle')['mass'].rolling(2*filter_time, center=True).median()
 
     # get it back to old format
     rolling_median_filter = rolling_median_filter.to_frame() # convert to DataFrame
     rolling_median_filter = rolling_median_filter.reset_index(level='particle')
 
     # insert median filtered mass in original data frame
-    t1_gapless['mass_smooth'] = rolling_median_filter['mass'].values
+    t3_gapless['mass_smooth'] = rolling_median_filter['mass'].values
 
     # CALC DIFFERENCES in mass and particleID
-    my_diff = t1_gapless[['particle','mass_smooth']].diff()
+    my_diff = t3_gapless[['particle','mass_smooth']].diff()
 
 
     # remove gap if NaN
@@ -701,21 +731,25 @@ def calc_intensity_fluctuations(t1_gapless, ParameterJsonFile, dark_time = None,
     # step height
     my_step_height = abs(my_diff['mass_smooth'])
     # average step offset (top + bottom )/2
-    my_step_offset = t1_gapless.groupby('particle')['mass_smooth'].rolling(2).mean()
+    my_step_offset = t3_gapless.groupby('particle')['mass_smooth'].rolling(2).mean()
     my_step_offset = my_step_offset.to_frame().reset_index(level='particle')
     # relative step
     #t1_search_gap_filled['rel_step'] = my_step_height / my_step_offest.mass_smooth
-    t1_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offset.mass_smooth)
+    t3_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offset.mass_smooth)
 
     if PlotIntMedianFit == True:
-        nd.visualize.IntMedianFit(t1_gapless)
+        nd.visualize.IntMedianFit(t3_gapless)
 
     if PlotIntFlucPerBead == True:
-        nd.visualize.MaxIntFluctuationPerBead(t1_gapless)
+        nd.visualize.MaxIntFluctuationPerBead(t3_gapless)
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
-    return t1_gapless
+    #save the pandas
+    if settings["Plot"]["save_data2csv"] == 1:
+        nd.handle_data.pandas2csv(t3_gapless, settings["Plot"]["SaveFolder"], "t3_gapless")
+
+    return t3_gapless
 
 
 
@@ -724,26 +758,29 @@ def split_traj(t2_long, t3_gapless, ParameterJsonFile):
     output and one without missing time points
     """
 
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    nd.logger.error("split_traj is an old function which is not used anymore. Use split_traj_at_high_steps instead.")
 
-    t4_cutted, t4_cutted_no_gaps, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
-    nd.handle_data.WriteJson(ParameterJsonFile, settings)
+    # settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-    # close gaps to have a continous trajectory
-    # t4_cutted_no_gaps = nd.get_trajectorie.close_gaps(t4_cutted)
+    # t4_cutted, t4_cutted_no_gaps, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
+    # nd.handle_data.WriteJson(ParameterJsonFile, settings)
+
+    # # close gaps to have a continous trajectory
+    # # t4_cutted_no_gaps = nd.get_trajectorie.close_gaps(t4_cutted)
+
+    # return t4_cutted, t4_cutted_no_gaps
 
 
-    return t4_cutted, t4_cutted_no_gaps
 
-
-
-def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_intensity_step = None, min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = False, NumParticles2Plot = 3, PlotAnimationFiltering = False, rawframes_ROI = -1):
+def split_traj_at_high_steps(t2_long, t3_gapless, ParameterJsonFile, max_rel_median_intensity_step = None, min_tracking_frames_before_drift = None, PlotTrajWhichNeedACut = False, NumParticles2Plot = 3, PlotAnimationFiltering = False, rawframes_ROI = -1):
     """ split trajectories at high intensity jumps
 
     Assumption: An intensity jump is more likely to happen because of a wrong assignment in
     the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6)
     or heavy substructures/intensity holes in the laser mode.
     """
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     nd.logger.info("Split particles trajectory at too high intensity jumps.")
     
@@ -851,7 +888,15 @@ def split_traj_at_high_steps(t2_long, t3_gapless, settings, max_rel_median_inten
     t4_cutted = t4_cutted.reset_index(drop = True)
     t4_cutted_no_gaps = t4_cutted_no_gaps.reset_index(drop = True)
 
-    return t4_cutted, t4_cutted_no_gaps, settings
+
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)
+
+    #save the pandas
+    if settings["Plot"]["save_data2csv"] == 1:
+        nd.handle_data.pandas2csv(t4_cutted, settings["Plot"]["SaveFolder"], "t4_cutted")
+        nd.handle_data.pandas2csv(t4_cutted_no_gaps, settings["Plot"]["SaveFolder"], "t4_cutted_no_gaps")
+
+    return t4_cutted, t4_cutted_no_gaps
 
 
 
