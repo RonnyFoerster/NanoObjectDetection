@@ -37,7 +37,7 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
     DoSimulation = settings["Simulation"]["SimulateData"]
     if DoSimulation == 1:
         nd.logger.info("A SIMULATION IS PERFORMED!")
-        output = nd.Simulation.PrepareRandomWalk(ParameterJsonFile,oldSim=oldSim)
+        obj_all = nd.Simulation.PrepareRandomWalk(ParameterJsonFile,oldSim=oldSim)
 
     else:
         # get the parameters
@@ -75,22 +75,22 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
             if ExternalSlider == False:
                 # HERE HAPPENS THE LOCALIZATION OF THE PARTICLES
                 
-                output = FindSpots_tp(frames_np, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = DoParallel)
+                obj_all = FindSpots_tp(frames_np, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = DoParallel)
                 
                 # check if any particle is found. If not reduce minmass
-                if output.empty:
+                if obj_all.empty:
                     nd.logger.warning("Image is empty - reduce Minimal bead brightness")
                     minmass = minmass / 10
                     settings["Find"]["tp_minmass"] = minmass
                 else:
                     output_empty = False
                     nd.logger.info("Set all NaN in estimation precision to 0")
-                    output.loc[np.isnan(output.ep), "ep"] = 0
-                    output['abstime'] = output['frame'] / settings["MSD"]["effective_fps"]       
+                    obj_all.loc[np.isnan(output.ep), "ep"] = 0
+                    obj_all['abstime'] = obj_all['frame'] / settings["MSD"]["effective_fps"]       
 
             else:
                 nd.logger.warning("This needs an update!")
-                output = tp.batch(frames_np, diameter, minmass = minmass, separation = (diameter, separation), max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
+                obj_all = tp.batch(frames_np, diameter, minmass = minmass, separation = (diameter, separation), max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
 
                 # leave without iteration, this is done outside by a slider
                 output_empty = False
@@ -100,7 +100,10 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
         if SaveFig == True:
             FindSpots_plotting(frames_np, output, settings, gamma, ExternalSlider)
 
-    return output # usually pd.DataFrame with feature position data
+        # save output
+        nd.handle_data.pandas2csv(obj_all, settings["Plot"]["SaveFolder"], save_file_name):
+
+    return obj_all # usually pd.DataFrame with feature position data
 
 
 def FindSpots_plotting(frames_np, output, settings, gamma, ExternalSlider):
