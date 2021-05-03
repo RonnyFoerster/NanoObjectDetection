@@ -760,15 +760,15 @@ def split_traj(t2_long, t3_gapless, ParameterJsonFile):
 
     nd.logger.error("split_traj is an old function which is not used anymore. Use split_traj_at_high_steps instead.")
 
-    # settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-    # t4_cutted, t4_cutted_no_gaps, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
-    # nd.handle_data.WriteJson(ParameterJsonFile, settings)
+    t4_cutted, t4_cutted_no_gaps, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
 
-    # # close gaps to have a continous trajectory
-    # # t4_cutted_no_gaps = nd.get_trajectorie.close_gaps(t4_cutted)
 
-    # return t4_cutted, t4_cutted_no_gaps
+    # close gaps to have a continous trajectory
+    # t4_cutted_no_gaps = nd.get_trajectorie.close_gaps(t4_cutted)
+
+    return t4_cutted, t4_cutted_no_gaps
 
 
 

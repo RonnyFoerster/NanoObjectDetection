@@ -123,19 +123,26 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
 
 
 def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1,
-                  x_min_max = None, y_min_max = None):
+                  x_min_max = None, y_min_max = None, log = False):
     """ plot 2D-data in standardized format as individual, scattered points """
     
     from NanoObjectDetection.PlotProperties import axis_font, title_font
 
     plt.figure()
-    plt.scatter(x_np,y_np, alpha = myalpha, linewidths  = 0)
+    plt.scatter(x_np,y_np, alpha = myalpha, linewidths  = 0)    
     plt.grid("on")
     plt.title(title, **title_font)
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
 
-    SetXYLim(x_min_max, y_min_max)
+    if log == False:
+        SetXYLim(x_min_max, y_min_max)
+    else:
+        #make it log and look pretty
+        plt.gca().set_xscale('log')
+        x_min = 10**(np.floor(np.log10(np.min(x_np))))
+        x_max = 10**(np.ceil(np.log10(np.max(x_np))))
+        plt.xlim([x_min, x_max])
 
 
 
@@ -339,7 +346,7 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     
     Plot2DScatter(plot_traj_length, plot_diameter, title = my_title, 
                   xlabel = my_xlabel, ylabel = my_ylabel,
-                  myalpha = 0.6, x_min_max = x_min_max, y_min_max = y_min_max)
+                  myalpha = 0.6, x_min_max = x_min_max, y_min_max = y_min_max, log = True)
  
     if save_plot == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "DiameterOverTrajLength",
@@ -890,8 +897,7 @@ def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True,
     if DiameterPDF_Save:
         save_folder_name = settings["Plot"]["SaveFolder"]
         
-        settings = nd.visualize.export(save_folder_name, "Diameter_Probability", settings,
-                                       data = sizes_df_lin, ShowPlot = DiameterPDF_Show)
+        settings = nd.visualize.export(save_folder_name, "Diameter_Probability", settings, data = sizes_df_lin, ShowPlot = DiameterPDF_Show)
         
         data = np.transpose(np.asarray([grid, PDF]))
         nd.visualize.save_plot_points(data, save_folder_name, 'Diameter_Probability_Data')
