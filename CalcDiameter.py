@@ -987,7 +987,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     # get parameters of the trajectory to analyze it
     start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle, start_x, start_y = GetParameterOfTraj(eval_tm, t_beforeDrift = t_beforeDrift)
     
-    particleid = eval_tm.particle.unique()
+    particleid = int(eval_tm.iloc[0].particle)
     
     # red_x = ReducedLocalPrecision(settings, mean_raw_mass, diff_direct_lin)
     lagtime = 1/settings["Exp"]["fps"]

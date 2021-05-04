@@ -122,14 +122,14 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
 
 
 
-def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1,
-                  x_min_max = None, y_min_max = None, log = False):
+def Plot2DScatter(x_np, y_np, c = None, title = None, xlabel = None, ylabel = None, myalpha = 1,
+                  x_min_max = None, y_min_max = None, log = False, cmap = None, ShowLegend = False):
     """ plot 2D-data in standardized format as individual, scattered points """
     
     from NanoObjectDetection.PlotProperties import axis_font, title_font
 
     plt.figure()
-    plt.scatter(x_np,y_np, alpha = myalpha, linewidths  = 0)    
+    plt.scatter(x_np,y_np, c=c, cmap=cmap, vmin = 0, alpha = myalpha, linewidths  = 0)    
     plt.grid("on")
     plt.title(title, **title_font)
     plt.xlabel(xlabel, **axis_font)
@@ -138,12 +138,41 @@ def Plot2DScatter(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha 
     if log == False:
         SetXYLim(x_min_max, y_min_max)
     else:
+        ax = plt.gca()
+        
         #make it log and look pretty
-        plt.gca().set_xscale('log')
-        x_min = 10**(np.floor(np.log10(np.min(x_np))))
-        x_max = 10**(np.ceil(np.log10(np.max(x_np))))
+        ax.set_xscale('log')
+        
+        x_label = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000]
+        
+        ax.set_xticks(x_label)
+        
+        #check which labels are around the values
+        x_min = x_label[np.argwhere(x_label <= np.min(x_np))[-1,0]]
+        x_max = x_label[np.argwhere(x_label >= np.max(x_np))[0,0]]
         plt.xlim([x_min, x_max])
+        
+        ax.set_yscale('log')
+        y_label = [1, 2, 3, 4, 6, 10, 15, 20, 30, 40, 60, 80 ,100, 150, 200, 300, 400, 600, 800, 1000]
+        ax.set_yticks(y_label)
+        
+        #check which labels are around the values
+        y_min = y_label[np.argwhere(y_label <= np.min(y_np))[-1,0]]
+        y_max = y_label[np.argwhere(y_label >= np.max(y_np))[0,0]]
+        plt.ylim([y_min, y_max])
+        
+        
+        
+        # https://stackoverflow.com/questions/21920233/matplotlib-log-scale-tick-label-number-formatting
+        from matplotlib.ticker import ScalarFormatter
+        plt.gca().xaxis.set_major_formatter(ScalarFormatter())
+        plt.gca().yaxis.set_major_formatter(ScalarFormatter())
 
+        
+
+    if ShowLegend == True:
+        cbar = plt.colorbar()
+        cbar.set_label("Brightness")
 
 
 def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None, ShowColorBar = True):
@@ -344,9 +373,9 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     
     y_min_max = nd.handle_data.Get_min_max_round(plot_diameter,1)
     
-    Plot2DScatter(plot_traj_length, plot_diameter, title = my_title, 
+    Plot2DScatter(plot_traj_length, plot_diameter, c=sizes_df_lin["rawmass"], title = my_title, 
                   xlabel = my_xlabel, ylabel = my_ylabel,
-                  myalpha = 0.6, x_min_max = x_min_max, y_min_max = y_min_max, log = True)
+                  myalpha = 0.9, x_min_max = x_min_max, y_min_max = y_min_max, log = True, cmap = 'jet', ShowLegend = True)
  
     if save_plot == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "DiameterOverTrajLength",

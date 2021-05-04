@@ -891,6 +891,43 @@ def GuidedMixGaussian(sizes_df_lin, min_traj_length = 500, num_comp = 2, central
     
     from scipy.stats import norm
    
+    
+def AnalyzeDiffusingArea(t6_final, sizes_df_lin, magnification):
+    sizes_df_eval = sizes_df_lin[["particle", "diameter", "diffusion", "rawmass", "traj length"]]
+    sizes_df_eval = sizes_df_eval.set_index("particle")    
+    
+    valid_particle_id = sizes_df_eval.index.unique()
+
+    t6_eval = t6_final[t6_final.particle.isin(valid_particle_id)]
+   
+    sizes_df_eval["dy"] = np.abs((t6_eval.groupby("particle").min()-t6_eval.groupby("particle").max())["y"])
+    
+    sizes_df_eval["dy um"] =  sizes_df_eval["dy"] * magnification
+   
+    plt.scatter(sizes_df_eval["diameter"], sizes_df_eval["dy um"], c = sizes_df_lin["rawmass"], cmap = 'jet')
+    
+    fig,axs = plt.subplots(3,1, sharex=True)
+    # axs[0].scatter(sizes_df_eval["dy um"], sizes_df_lin["rawmass"], c = sizes_df_lin["diameter"], cmap = 'jet')
+
+    axs[0].scatter(sizes_df_eval["dy um"], sizes_df_lin["traj length"])
+    #make it log and look pretty
+    axs[0].set_ylabel("Traj length")
+    axs[0].set_yscale('log')
+    
+    axs[1].scatter(sizes_df_eval["dy um"], sizes_df_lin["rawmass"])    
+    #make it log and look pretty
+    axs[1].set_yscale('log')
+    
+    axs[1].set_ylabel("Rawmass")
+    # plt.colorbar()
+    
+    axs[2].scatter(sizes_df_eval["dy um"], sizes_df_lin["diameter"])
+    #make it log and look pretty
+    axs[2].set_ylabel("Diameter")
+    axs[2].set_xlabel("|y_min - y_max| [um]")
+    
+
+    
 # In[]
 # nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=2000, dt=1/700, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)
 

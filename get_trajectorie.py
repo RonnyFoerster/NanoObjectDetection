@@ -758,11 +758,10 @@ def split_traj(t2_long, t3_gapless, ParameterJsonFile):
     output and one without missing time points
     """
 
-    nd.logger.error("split_traj is an old function which is not used anymore. Use split_traj_at_high_steps instead.")
+    nd.logger.warning("split_traj is an old function which is not used anymore. Use split_traj_at_high_steps instead.")
 
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-    t4_cutted, t4_cutted_no_gaps, settings = split_traj_at_high_steps(t2_long, t3_gapless, settings)
+    t4_cutted, t4_cutted_no_gaps = split_traj_at_high_steps(t2_long, t3_gapless, ParameterJsonFile)
 
 
     # close gaps to have a continous trajectory
