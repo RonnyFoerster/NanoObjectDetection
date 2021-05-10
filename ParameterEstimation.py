@@ -171,6 +171,9 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     if num_frames == "auto":
         _, num_particles_zncc, _ = FindParticleByZNCC(settings, img1, mychannel, [0], OneFrameOnly=True)
         
+        if num_particles_zncc == 0:
+            nd.logger.warning("Zero normalized cross correlation (ZNCC) does not find any particle.")
+        
         # check how many frames are needed to get 200 frames
         wanted_particles = 200
         num_frames = int(np.ceil(wanted_particles / num_particles_zncc)) + 1
@@ -187,8 +190,16 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     
     img_in_zncc = img1[use_frames,:,:]
     
+    plt.figure()
+    plt.imshow(img_in_zncc[0,:,:])
+    plt.title("img in zncc")
+    
     # RUN THE PARTICLE FINDING ROUTINE BY ZNCC
     img_zncc, num_particles_zncc, pos_particles = FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames)
+
+    plt.figure()
+    plt.imshow(img_zncc[0,:,:])
+    plt.title("zncc")
 
     settings = OptimizeMinmassInTrackpyMain(settings, img_in_zncc, num_particles_zncc, pos_particles, DoDiameter)
 
@@ -237,8 +248,6 @@ def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames, OneFrameO
         # only allow particles where the channel is estimated to be
         use_img[search_area == 0] = 0
         
-        plt.imshow(use_img)
-        
         pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(use_img, settings, num_verbose)
         
         nd.logger.info("Cross-correlation (%s / %s): Frame: %s; Located particles: %i", (ii+1), num_frames, loop_frames, num_particles_zncc_loop)
@@ -259,7 +268,9 @@ def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames, OneFrameO
     ideal_min_particles = 200
     
     #recommend more frames
-    ideal_min_frames = (ideal_min_particles/num_particles_zncc) * num_frames
+    num_particles_zncc_auto = num_particles_zncc + 1
+    
+    ideal_min_frames = (ideal_min_particles/num_particles_zncc_auto) * num_frames
     ideal_min_frames = int(np.round(ideal_min_frames)+1)
 
     if OneFrameOnly == False:        
@@ -473,6 +484,7 @@ def FindChannel(rawframes_super):
     nd.logger.debug("Do Dilation for hole closing")
     mychannel = scipy.ndimage.morphology.binary_dilation(mychannel_no_sp, iterations = 15)
     
+    plt.figure()
     plt.imshow(mychannel)
     
     nd.logger.info("Find the channel: ...finished")    

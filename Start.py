@@ -68,12 +68,12 @@ def NewEvaluation():
           \n 4 - Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera \
           \n 5 - Zeiss 20x 0_40 epiplan Objective with Basler AC4096-40um_camera\
           \n 6 - Zeiss 10x 0_20 epiplan Objective with Basler AC4096-40um_camera\
-          \n 7 - Zeiss 10x 0_25 epiplan neofluar Objective with Basler AC4096-40um_camera\
+          \n 7 - Zeiss 10x 0_3 epiplan neofluar Objective with Basler AC4096-40um_camera\
         \n\n"
         , ["1", "2", "3", "4", "5", "6", "7"])
     
     
-    if pre_select in [2,3,4,5,6]:
+    if pre_select in [2,3,4,5,6,7]:
         nd_path = os.path.dirname(nd.__file__)
         
         if pre_select == 2:
@@ -97,7 +97,7 @@ def NewEvaluation():
             path_json_origin = nd_path + "\\default_json\\default_json_10x 0_20 epiplan Objective with Basler cam.json"
             
         elif pre_select == 7:
-            nd.logger.info("Zeiss 10x 0_25 epiplan neofluar Objective with Basler AC4096-40um_camera")
+            nd.logger.info("Zeiss 10x 0_3 epiplan neofluar Objective with Basler AC4096-40um_camera")
             path_json_origin = nd_path + "\\default_json\\Zeiss_10x_0-3_plan_neofluar_Olympus_corpus_Basler_AC4096-40um_camera.json"
         
             
@@ -111,6 +111,7 @@ def NewEvaluation():
         settings["Exp"]["Temperature"]       = pre_settings["Exp"]["Temperature"]
         
     else:
+        print("No standard objective given. \n")
         print("Please insert setup parameters: \n")
         settings["Exp"]["NA"]                = float(input("NA = "))
         settings["Exp"]["Microns_per_pixel"] = float(input("Microns per pixel [um/px] = "))
