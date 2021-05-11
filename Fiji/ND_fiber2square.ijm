@@ -9,11 +9,14 @@ print("title: " + title)
 print("New title: " + new_title)
 print("numbits: " + numbits);
 getLocationAndSize(locX, locY, sizeW, sizeH);
+
 width = getWidth();
 height = getHeight();
-n = floor(sqrt(width/height));
+tileWidth = 500;
+
+n = floor(width/tileWidth);
 print("number of tiles: " + n);
-tileWidth = width / n;
+
 
 //floor otherwise the n part have not equal width
 tileWidth = floor(tileWidth)
@@ -40,7 +43,7 @@ if (numbits == 16){
 
 for (x = 0; x < n; x++) {
 	print("x = " + x);
-	offsetX = x * width / n;
+	offsetX = x * tileWidth;
 	title_crop = "Img_" + x;
 	//print(offsetX);
 	selectImage(id);

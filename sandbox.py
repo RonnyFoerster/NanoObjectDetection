@@ -905,6 +905,10 @@ def AnalyzeDiffusingArea(t6_final, sizes_df_lin, magnification):
     sizes_df_eval["dy um"] =  sizes_df_eval["dy"] * magnification
    
     plt.scatter(sizes_df_eval["diameter"], sizes_df_eval["dy um"], c = sizes_df_lin["rawmass"], cmap = 'jet')
+    plt.xlabel("diameter [nm]")
+    plt.ylabel("dy [um]")
+    clb = plt.colorbar()
+    clb.set_label("Rawmass")
     
     fig,axs = plt.subplots(3,1, sharex=True)
     # axs[0].scatter(sizes_df_eval["dy um"], sizes_df_lin["rawmass"], c = sizes_df_lin["diameter"], cmap = 'jet')
@@ -926,6 +930,7 @@ def AnalyzeDiffusingArea(t6_final, sizes_df_lin, magnification):
     axs[2].set_ylabel("Diameter")
     axs[2].set_xlabel("|y_min - y_max| [um]")
     
+
 
     
 # In[]
