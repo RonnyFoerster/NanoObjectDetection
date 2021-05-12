@@ -50,7 +50,7 @@
           "y_min": 0,
           "y_max": 100000,
           "frame_min": 0,
-          "frame_max": 100000
+          "frame_max": 3000
      },
      "Subsampling": {
           "Apply": 0,
@@ -93,8 +93,8 @@
           "Dwell time stationary objects": 100,
           "Max displacement": 3,
           "Max displacement fix": 0.3,
-          "Min tracking frames before drift": 30.0,
-          "Min_tracking_frames": 150.0
+          "Min tracking frames before drift": 10.0,
+          "Min_tracking_frames": 50.0
      },
      "StationaryObjects": {
           "Analyze fixed spots": 1,

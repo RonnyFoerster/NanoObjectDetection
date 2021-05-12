@@ -932,6 +932,25 @@ def AnalyzeDiffusingArea(t6_final, sizes_df_lin, magnification):
     
 
 
+def CheckIlluArea():
+    id_eval = list(sizes_df_lin[sizes_df_lin.diameter  < 35].particle)
+    
+    I_max = t6_final.groupby("particle").max()["y"]
+    I_min = t6_final.groupby("particle").min()["y"]
+    
+    I_max = I_max[I_max.index.isin(id_eval)]
+    I_min = I_min[I_min.index.isin(id_eval)]
+    
+    I_max = I_max.rename(colLabels = {"y": "I_min"})
+    I_min = I_min.rename(columns = {"y": "I_min"})
+    
+    # diameter = sizes_df_lin[sizes_df_lin.particle.isin(I_min.index)][["diameter","particle"]]
+    # diameter = diameter.set_index("particle")
+    
+    summary = pd.concat([diameter, I_min, I_max], axis = 1)
+    
+    plt.scatter(summary["diameter"], summary["I_min"])
+    plt.scatter(summary["diameter"], summary["I_max"])
     
 # In[]
 # nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=2000, dt=1/700, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)

@@ -385,7 +385,7 @@ def CheckForSaturation(rawframes_np,warnUser=True):
         if IsSaturated  == "y":
             nd.logger.warning("Saturation suspected. Check your rawimages to find out if they are saturated")
             
-            nd.logger.warning("Pixel saturate at value: %.0f", max_value)
+            nd.logger.info("Pixel saturate at value: %.0f", max_value)
 
             # print some statistics
             frames_total = rawframes_np.shape[0]
