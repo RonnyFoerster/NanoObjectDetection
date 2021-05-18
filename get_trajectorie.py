@@ -281,7 +281,7 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
     if (FixedParticles == True) and (BeforeDriftCorrection == True):
         # STATIONARY particles must have a specfic minimum length - otherwise it is noise
         nd.logger.info("Apply to stationary particle")
-        min_tracking_frames = settings["Link"]["Min tracking frames before drift"]
+        min_tracking_frames = settings["Link"]["Dwell time stationary objects"]
 
     elif (FixedParticles == False) and (BeforeDriftCorrection == True):
         # MOVING particles BEFORE DRIFT CORRECTION

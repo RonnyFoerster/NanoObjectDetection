@@ -139,6 +139,7 @@
           "MSD_fit_Save": 0,
           "Histogramm_Show": 1,
           "Histogramm_Save": 1,
+          "Histogramm_abs_or_rel": "both",
           "Histogramm_Fit_1_Particle": 0,
           "Histogramm_time_Show": 0,
           "Histogramm_time_Save": 0,

@@ -157,8 +157,19 @@ def Plot2DScatter(x_np, y_np, c = None, title = None, xlabel = None, ylabel = No
         ax.set_yticks(y_label)
         
         #check which labels are around the values
-        y_min = y_label[np.argwhere(y_label <= np.min(y_np))[-1,0]]
-        y_max = y_label[np.argwhere(y_label >= np.max(y_np))[0,0]]
+        y_min_value = np.min(y_np)
+        y_max_value = np.max(y_np)
+        
+        if y_min_value > 1:
+            y_min = y_label[np.argwhere(y_label <= np.min(y_np))[-1,0]]
+        else:
+            y_min = 1
+            
+        if y_max_value < 1000:
+            y_max = y_label[np.argwhere(y_label >= np.max(y_np))[0,0]]
+        else:
+            y_max = 1000
+        
         plt.ylim([y_min, y_max])
         
         
@@ -212,7 +223,11 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
         
         show_hist, save_hist = settings["Plot"]["Histogramm_Show"], settings["Plot"]["Histogramm_Save"]
         if show_hist or save_hist:
-            DiameterHistogramm(ParameterJsonFile, sizes_df_lin)
+            do_weighting = settings["Plot"]["Histogramm_abs_or_rel"]
+            if do_weighting in ["both", "abs"]:
+                DiameterHistogramm(ParameterJsonFile, sizes_df_lin, weighting = False)
+            if do_weighting in ["both", "rel"]:
+                DiameterHistogramm(ParameterJsonFile, sizes_df_lin, weighting = True)
 
 
         show_pdf, save_pdf = settings["Plot"]["DiameterPDF_Show"], settings["Plot"]["DiameterPDF_Save"]
@@ -222,7 +237,7 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
         
         show_diam_traj, save_diam_traj = settings["Plot"]["DiamOverTraj_Show"], settings["Plot"]["DiamOverTraj_Save"]
         if show_diam_traj or save_diam_traj:
-            DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_diam_traj, save_diam_traj)
+            DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin.sort_values("rawmass"), show_diam_traj, save_diam_traj)
 
 
         show_hist_time, save_hist_time = settings["Plot"]["Histogramm_time_Show"], settings["Plot"]["Histogramm_time_Save"]
