@@ -148,34 +148,46 @@ def FindSpots_tp(frames_np, diameter, minmass, separation, max_iterations, DoPre
     
     num_frames = frames_np.shape[0]
 
+    nd.logger.info("Find the particles - starting...")
+
     if (DoParallel == False) or (num_frames < 100):
-        nd.logger.info("Find the particles - seriell: starting....")
+        nd.logger.debug("do it seriell")
         output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile)
 
     else:
-        num_cores = multiprocessing.cpu_count()
-        nd.logger.info("Find the particles - parallel (Number of cores: %s): starting....", num_cores)
-        inputs = range(num_frames)
+        # make it parallel accoring to the trackpy version
+        tp_version = nd.Tools.GetTpVersion()
+        if tp_version == 5:
+            nd.logger.debug("Trackpy 5")
+            
+            output = tp.batch(frames_np, diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile)
 
-        num_verbose = nd.handle_data.GetNumberVerbose()
-        output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(tp.batch)(frames_np[loop_frame:loop_frame+1,:,:].copy(), diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile) for loop_frame in inputs)
-
-        empty_frame = []
-        #parallel looses frame number, so we add it again
-        for frame_id,_ in enumerate(output_list):
-            output_list[frame_id].frame = frame_id
-            if len(output_list[frame_id]) == 0:
-                empty_frame.append(frame_id)
-
-        # go through empty frames (start from the back deleting otherwise indexing fails)
-        for frame_id in (np.flip(empty_frame)):
-            del output_list[frame_id]
-
-        # make list of pandas to one big pandas
-        output = pd.concat(output_list)
         
-        # reset the index which starts at every frame again
-        output = output.reset_index(drop=True)
+        if tp_version == 4:
+            num_cores = multiprocessing.cpu_count()
+            nd.logger.info("Find the particles - Trackpy 4 (Trackpy 5 available)")
+            nd.logger.info("Find the particles - parallel (Number of cores: %s): starting....", num_cores)
+            inputs = range(num_frames)
+    
+            num_verbose = nd.handle_data.GetNumberVerbose()
+            output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(tp.batch)(frames_np[loop_frame:loop_frame+1,:,:].copy(), diameter, minmass = minmass, separation = separation, max_iterations = max_iterations, preprocess = DoPreProcessing, engine = 'auto', percentile = percentile) for loop_frame in inputs)
+    
+            empty_frame = []
+            #parallel looses frame number, so we add it again
+            for frame_id,_ in enumerate(output_list):
+                output_list[frame_id].frame = frame_id
+                if len(output_list[frame_id]) == 0:
+                    empty_frame.append(frame_id)
+    
+            # go through empty frames (start from the back deleting otherwise indexing fails)
+            for frame_id in (np.flip(empty_frame)):
+                del output_list[frame_id]
+    
+            # make list of pandas to one big pandas
+            output = pd.concat(output_list)
+            
+            # reset the index which starts at every frame again
+            output = output.reset_index(drop=True)
 
     nd.logger.info("Find the particles - finished")
       

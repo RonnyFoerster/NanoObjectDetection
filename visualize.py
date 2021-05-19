@@ -381,7 +381,7 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     my_xlabel = "Trajectory length [frames]"
     
     plot_diameter = sizes_df_lin["diameter"]
-    plot_traj_length = sizes_df_lin["traj length"]
+    plot_traj_length = sizes_df_lin["valid frames"]
     
     x_min_max = nd.handle_data.Get_min_max_round(plot_traj_length, 2)
     x_min_max[0] = 0

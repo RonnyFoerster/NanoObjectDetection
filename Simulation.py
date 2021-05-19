@@ -1670,7 +1670,7 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
         ax.set_xlim([-r_max, r_max])
         ax.set_ylim([-r_max, r_max])
 
-    return CI68_low, I_mean_mean, CI68_high
+    return CI68_low, I_mean_mean, CI68_high, sim_part
 
 
 def ConfineTraj(dx, dy, r_max, ShowReflection = False):

@@ -18,7 +18,8 @@ import logging
 import NanoObjectDetection as nd
 
 from pdb import set_trace as bp #debugger
-
+from packaging import version
+import trackpy as tp
 
 
 
@@ -96,3 +97,23 @@ def CameraCalibration(folder_dark,folder_bright,subsampling = 0):
     
     bright_mean = np.mean(bright_sub,(2,3))        
     bright_var  = np.var(bright_sub,(2,3))        
+
+
+def GetTpVersion():
+    #return the main version of trackpy
+    tp_4 = '0.4'
+    tp_5 = '0.5'
+    tp_version = version.parse(tp.__version__)
+    
+    
+    if ((tp_version >= version.parse(tp_4)) & (tp_version < version.parse(tp_5))):
+        tp_version = 4
+        
+    elif tp_version >= version.parse(tp_5):
+        tp_version = 5
+        
+    nd.logger.debug("Trackpy main version: %s", 5)
+    
+    return tp_version
+
+

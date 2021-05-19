@@ -952,6 +952,10 @@ def CheckIlluArea():
     plt.scatter(summary["diameter"], summary["I_min"])
     plt.scatter(summary["diameter"], summary["I_max"])
     
+    
+    
+# def OptimizeModePara(x)
+    
 # In[]
 # nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=2000, dt=1/700, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)
 
