@@ -16,8 +16,10 @@
           "solvent": "water"
      },
      "Fiber": {
-          "Shape": "round",
-          "TubeDiameter_nm": 1000.0
+          "Speckle": "unknown",
+          "TubeDiameter_nm": "unknown",
+          "Mode": "unknown",
+          "Waist": "unknown"
      },
      "File": {
           "data_file_name": "Here comes the data path.",
@@ -79,7 +81,8 @@
           "TryFrames": "auto",
           "Separation": "auto",
           "GuessLowestDiameter_nm": "unknown",
-          "Drift": "auto"
+          "Drift": "auto",
+          "Intensity Jump": "auto"
      },
      "Find": {
           "tp_diameter": 13,

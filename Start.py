@@ -18,7 +18,7 @@ from tkinter import filedialog
 
 
 def NewEvaluation():
-    # where is the data?
+    # In[Data Path and Type]
     
     datatype = nd.handle_data.GetInput("Is your data stored in : \n 1 - a single file (tif-stack) or \n 2 - multiple files (tif-series) ?", ["1", "2"])
 
@@ -54,11 +54,11 @@ def NewEvaluation():
     
     shutil.copy2(path_json_origin, mypath)
 
-
-
-    # update default json with the knowledge you have
     with open(mypath) as json_file:
         settings = json.load(json_file)
+    
+
+    # In[Setup Parameters]
     
     pre_select = nd.handle_data.GetInput("Please select a number: \
           \n The following setups are implemented \
@@ -78,27 +78,27 @@ def NewEvaluation():
         
         if pre_select == 2:
             nd.logger.info("Load: Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera")
-            path_json_origin = nd_path + "\\default_json\\Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
+            path_json_origin = nd_path + "\\default_json\\setup\\Olympus_4x_0-10_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
             
         elif pre_select == 3:
             nd.logger.info("Load: Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera")
-            path_json_origin = nd_path + "\\default_json\\Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
+            path_json_origin = nd_path + "\\default_json\\setup\\Olympus_10x_0-25_plan_n_Olympus_corpus_Basler_AC4096-40um_camera.json"
             
         elif pre_select == 4:
             nd.logger.info("Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera")
-            path_json_origin = nd_path + "\\default_json\\Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera.json"
+            path_json_origin = nd_path + "\\default_json\\setup\\Zeiss_5x_0-13_HD_Olympus_corpus_Basler_AC4096-40um_camera.json"
             
         elif pre_select == 5:
             nd.logger.info("Zeiss 20x 0_40 epiplan Objective with Basler AC4096-40um_camera")
-            path_json_origin = nd_path + "\\default_json\\default_json_20x 0_40 epiplan Objective with Basler cam.json"
+            path_json_origin = nd_path + "\\default_json\\setup\\default_json_20x 0_40 epiplan Objective with Basler cam.json"
             
         elif pre_select == 6:
             nd.logger.info("Zeiss 10x 0_20 epiplan Objective with Basler AC4096-40um_camera")
-            path_json_origin = nd_path + "\\default_json\\default_json_10x 0_20 epiplan Objective with Basler cam.json"
+            path_json_origin = nd_path + "\\default_json\\setup\\default_json_10x 0_20 epiplan Objective with Basler cam.json"
             
         elif pre_select == 7:
             nd.logger.info("Zeiss 10x 0_3 epiplan neofluar Objective with Basler AC4096-40um_camera")
-            path_json_origin = nd_path + "\\default_json\\Zeiss_10x_0-3_plan_neofluar_Olympus_corpus_Basler_AC4096-40um_camera.json"
+            path_json_origin = nd_path + "\\default_json\\setup\\Zeiss_10x_0-3_plan_neofluar_Olympus_corpus_Basler_AC4096-40um_camera.json"
         
             
             
@@ -119,7 +119,45 @@ def NewEvaluation():
         settings["Exp"]["Temperature"]       = float(input("Temperature [K] (22C = 295K) = "))
         if settings["Exp"]["gain"] == 0:
             settings["Exp"]["gain"] = "unknown"
-     
+            
+            
+    # In[Fiber Parameters]
+    
+    pre_select = nd.handle_data.GetInput("Please select a number: \
+          \n The following fibers are implemented \
+          \n 1 - new \
+          \n 2 - 1250b3 \
+          \n\n"
+        , ["1", "2"])
+    
+    
+    if pre_select in [2]:
+        nd_path = os.path.dirname(nd.__file__)
+        
+        if pre_select == 2:
+            nd.logger.info("Load: Fiber 1250b3")
+            path_json_origin = nd_path + "\\default_json\\fiber\\1250b3.json"
+            nd.logger.warning("RF: FIRST RUN: CHECK IF THAT WORKS PROPERLY!")
+            
+        with open(path_json_origin) as json_file:
+            pre_settings = json.load(json_file)
+        
+        settings["Fiber"]["Speckle"] = pre_settings["Fiber"]["Shape"]
+        settings["Fiber"]["TubeDiameter_nm"] = pre_settings["Fiber"]["TubeDiameter_nm"]
+        settings["Fiber"]["Mode"] = pre_settings["Fiber"]["Mode"]
+        settings["Fiber"]["Waist"] = pre_settings["Fiber"]["Waist"]
+        
+        
+    else:
+        print("No standard fiber given. \n")
+        print("Please insert setup parameters: \n")
+        
+        settings["Fiber"]["TubeDiameter_nm"] = float(input("Channel Diameter [um] = ")) * 1000
+        settings["Fiber"]["Mode"] = str(input("Mode (e.g. gauss): " ))
+        settings["Fiber"]["Waist"] = float(input("Beam waist [um] = "))
+                  
+            
+    # In[Experimental Parameters]
     print("Please insert experimental parameters: \n")
     settings["Exp"]["lambda"]            = float(input("lambda [nm] = "))
     settings["Exp"]["fps"]               = float(input("fps = "))
@@ -139,14 +177,13 @@ def NewEvaluation():
         settings["Exp"]["Viscosity"] = nd.Experiment.GetViscosity(temp,solv)
 
 
-    settings["Fiber"]["TubeDiameter_nm"] = float(input("Channel Diameter [um] = ")) * 1000
     
     settings["File"]["data_file_name"]   = os.path.normpath(data_file_name)
     settings["File"]["data_folder_name"] = os.path.normpath(data_folder_name)
     settings["File"]["data_type"]        = os.path.normpath(data_type)
 
-    # print("Here come the help functions:")
-    
+
+    # In[Help Functions Parameters]
     help_options = nd.handle_data.GetInput("\nWhich help functions do you want to use? \
             \n 0 - none \
             \n 1 - auto \
@@ -199,6 +236,7 @@ def NewEvaluation():
                 ["0", "auto"])
 
 
+    # In[Save Everything]
     settings["File"]["json"] = mypath.replace("/","\\")
 
     # save the stuff   

@@ -351,6 +351,8 @@ def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
     mean_ecc = eval_tm["ecc"].mean()
     mean_signal = eval_tm["signal"].mean()
     mean_raw_mass = eval_tm["raw_mass"].mean()
+    nd.logger.warning("RF tried something here!")
+    mean_raw_mass = eval_tm["raw_mass"].max()
     mean_ep = eval_tm["ep"].mean()
     max_step = eval_tm["rel_step"].max()
     true_particle = eval_tm["true_particle"].max()

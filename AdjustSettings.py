@@ -25,19 +25,32 @@ def Main(rawframes_super, rawframes_pre, ParameterJsonFile):
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
-    mode_separation = settings["Help"]["Separation"]
-    mode_diameter   = settings["Help"]["Bead size"]
-    mode_minmass    = settings["Help"]["Bead brightness"]
+    mode_separation  = settings["Help"]["Separation"]
+    mode_diameter    = settings["Help"]["Bead size"]
+    mode_minmass     = settings["Help"]["Bead brightness"]
+    mode_intensity   = settings["Help"]["Intensity Jump"]
 
     #sanity check
-    if mode_separation not in ["manual", "auto"]: nd.logger.error("Need auto or manual in settings[Help][Separation]")    
-    if mode_diameter not in ["manual", "auto"]: nd.logger.error("Need auto or manual in settings[Help][Bead size]")    
-    if mode_minmass not in ["manual", "auto"]: nd.logger.error("Need auto or manual in settings[Help][Bead brightness]")
+    if mode_separation not in ["manual", "auto"]:
+        nd.logger.error("Need auto or manual in settings[Help][Separation]")   
+        
+    if mode_diameter not in ["manual", "auto"]:
+        nd.logger.error("Need auto or manual in settings[Help][Bead size]")  
+        
+    if mode_minmass not in ["manual", "auto"]:
+        nd.logger.error("Need auto or manual in settings[Help][Bead brightness]")
+
+    if mode_intensity not in ["manual", "auto"]:
+        nd.logger.error("Need auto or manual in settings[Help][Intensity Jump]")
+    
+
 
     # optimized the distance a particle can move between two frames and how close to beads can be without risk of wrong assignment
     if mode_separation == "auto":
         nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        
 
+    if mode_intensity == "auto":
+        nd.ParameterEstimation.MaxRelIntensityJump(ParameterJsonFile)        
  
     # Diameter and minmass are connected and must be calculated as a team
     if (mode_diameter == "manual") or (mode_minmass == "manual"):
