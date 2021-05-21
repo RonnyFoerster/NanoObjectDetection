@@ -954,8 +954,83 @@ def CheckIlluArea():
     
     
     
-# def OptimizeModePara(x)
+def OptimizeModePara(traj):
+    from scipy.optimize import minimize
+    MSD_x = np.mean((traj.x.diff(1))**2)
     
+    def Fun(variable, *args):
+        I = args[1]
+        MSD_x = args[0]
+        
+        I0, w = variable[0], variable[1]
+        
+        print("I0: ", I0)
+        print("w: ", w)
+        
+        w = w**2
+        
+        r = w * np.sqrt(np.log(I0/I))
+        
+        sqrt_arg = np.log(I0/I)
+        r = w * np.sqrt(sqrt_arg)
+        r[sqrt_arg <= 0] = 0
+        
+        MSD_r = np.mean((r[:-1] - r[1:])**2)
+        
+        my_opt = (MSD_x - MSD_r)**2
+        
+        print("MSD_x: ", MSD_x)
+        print("my_opt: ", my_opt)
+        print("\n")
+        
+        return my_opt
+
+    # additional = {'I': traj["I"].values, "MSD_x": MSD_x}
+    additional = (MSD_x, traj["I"].values)
+
+    I0_start = np.max(traj.I)
+    w_start  = (np.max(traj["x"]) - np.min(traj["x"]))
+    
+    variable = [I0_start, w_start]
+    
+    print("MSD_x: ", MSD_x)
+    print("start guess: ", variable)
+    
+    # x0 = [MSD)
+    res = minimize(Fun, args = additional, x0=variable, method='nelder-mead')
+    
+    return res
+
+
+def SimuIntJump(diameter, dt):
+    diff = nd.Theory.StokesEinsteinEquation(diameter)
+    sigma_um = np.sqrt(2*diff*dt) * 1E6
+    
+    dr_um = 6*sigma_um
+    
+    r_max = 8
+    r_step_um = 0.1
+    r_num_steps = int((2*r_max)/r_step_um)
+    r = np.linspace(-r_max,r_max,100)
+    I0 = 1
+    w = 3
+    
+    I = I0*np.e**(-(r/w)**2)
+    
+    dr_um = 1
+    dr = int(dr_um/r_step_um)
+    I_start = I[dr:]
+    I_end = I[:-dr]
+    
+    dI = I_start - I_end
+    I_mean = (I_start + I_end)/2
+    
+    rel_dI = np.abs(dI/I_mean)
+    
+    max_rel_jump = np.max(rel_dI)
+    
+    plt.plot(r[dr:], rel_dI)
+
 # In[]
 # nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=2000, dt=1/700, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)
 

@@ -713,41 +713,79 @@ def calc_intensity_fluctuations(t3_gapless, ParameterJsonFile, dark_time = None,
     # MEDIAN FILTER OF MASS
     # CALCULATE RELATIVE STEP HEIGHTS OVER TIME
 
-    # apply rolling median filter on data sorted by particleID
-    # NOT VERY ACCURATE BUT DOES IT FOR THE MOMENT.
-    rolling_median_filter = t3_gapless.groupby('particle')['mass'].rolling(2*filter_time, center=True).median()
+    see_speckle = settings["Fiber"]["Speckle"]
+    if see_speckle == 1:
+        # FIBER WITH SPECKLES!
+        # apply rolling median filter on data sorted by particleID
+        # NOT VERY ACCURATE BUT DOES IT FOR THE MOMENT.
+        
+        nd.logger.info("Assume SPECKLES in fiber mode.")
+        
+        rolling_median_filter = t3_gapless.groupby('particle')['mass'].rolling(2*filter_time, center=True).median()
+    
+        # get it back to old format
+        rolling_median_filter = rolling_median_filter.to_frame() # convert to DataFrame
+        rolling_median_filter = rolling_median_filter.reset_index(level='particle')
+    
+        # insert median filtered mass in original data frame
+        t3_gapless['mass_smooth'] = rolling_median_filter['mass'].values
+    
+        # CALC DIFFERENCES in mass and particleID
+        my_diff = t3_gapless[['particle','mass_smooth']].diff()
+    
+    
+        # remove gap if NaN
+        my_diff.loc[pd.isna(my_diff['particle']),'mass_smooth'] = 0 # RF 180906
+    
+        # remove gap if new particle occurs
+        my_diff.loc[my_diff['particle'] > 0 ,'mass_smooth'] = 0 # RF 180906
+    
+        # remove NaN if median filter is too close to the edge defined by dark time in the median filter
+        my_diff.loc[pd.isna(my_diff['mass_smooth']),'mass_smooth'] = 0 # RF 180906
+    
+    
+        # relative step is median smoothed difference over its value
+        #t1_search_gap_filled['rel_step'] = abs(my_diff['mass_smooth']) / t1_search_gap_filled['mass_smooth']
+        # step height
+        my_step_height = abs(my_diff['mass_smooth'])
+        # average step offset (top + bottom )/2
+        my_step_offset = t3_gapless.groupby('particle')['mass_smooth'].rolling(2).mean()
+        my_step_offset = my_step_offset.to_frame().reset_index(level='particle')
+        # relative step
+        #t1_search_gap_filled['rel_step'] = my_step_height / my_step_offest.mass_smooth
+        t3_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offset.mass_smooth)
 
-    # get it back to old format
-    rolling_median_filter = rolling_median_filter.to_frame() # convert to DataFrame
-    rolling_median_filter = rolling_median_filter.reset_index(level='particle')
+    elif see_speckle == 0:
+        nd.logger.info("Assume NO SPECKLES in fiber mode.")
+        # FIBER WITHOUT SPECKLES!
+    
+        # CALC DIFFERENCES in mass and particleID
+        my_diff = t3_gapless[['particle','mass']].diff()
+    
+        # remove gap if NaN
+        my_diff.loc[pd.isna(my_diff['particle']),'mass'] = 0
+    
+        # remove gap if new particle occurs
+        my_diff.loc[my_diff['particle'] > 0 ,'mass'] = 0 
+    
+        # remove NaN if median filter is too close to the edge defined by dark time in the median filter
+        my_diff.loc[pd.isna(my_diff['mass']),'mass'] = 0 # RF 180906
+    
+    
+        # step height
+        my_step_height = abs(my_diff['mass'])
+        #use the lower one as starting point
+        # trajectory could run back in time anyways
+        my_step_offset = t3_gapless.groupby('particle')['mass'].rolling(2).min()
+        
+        nd.logger.error("RF was here before the weekend!")
+        
+        my_step_offset = my_step_offset.to_frame().reset_index(level='particle')
+        # relative step
+        #t1_search_gap_filled['rel_step'] = my_step_height / my_step_offest.mass_smooth
+        t3_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offset["mass"])
+        
 
-    # insert median filtered mass in original data frame
-    t3_gapless['mass_smooth'] = rolling_median_filter['mass'].values
-
-    # CALC DIFFERENCES in mass and particleID
-    my_diff = t3_gapless[['particle','mass_smooth']].diff()
-
-
-    # remove gap if NaN
-    my_diff.loc[pd.isna(my_diff['particle']),'mass_smooth'] = 0 # RF 180906
-
-    # remove gap if new particle occurs
-    my_diff.loc[my_diff['particle'] > 0 ,'mass_smooth'] = 0 # RF 180906
-
-    # remove NaN if median filter is too close to the edge defined by dark time in the median filter
-    my_diff.loc[pd.isna(my_diff['mass_smooth']),'mass_smooth'] = 0 # RF 180906
-
-
-    # relative step is median smoothed difference over its value
-    #t1_search_gap_filled['rel_step'] = abs(my_diff['mass_smooth']) / t1_search_gap_filled['mass_smooth']
-    # step height
-    my_step_height = abs(my_diff['mass_smooth'])
-    # average step offset (top + bottom )/2
-    my_step_offset = t3_gapless.groupby('particle')['mass_smooth'].rolling(2).mean()
-    my_step_offset = my_step_offset.to_frame().reset_index(level='particle')
-    # relative step
-    #t1_search_gap_filled['rel_step'] = my_step_height / my_step_offest.mass_smooth
-    t3_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offset.mass_smooth)
 
     if PlotIntMedianFit == True:
         nd.visualize.IntMedianFit(t3_gapless)
