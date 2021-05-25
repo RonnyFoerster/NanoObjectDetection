@@ -974,62 +974,67 @@ def MaxRelIntensityJump(ParameterJsonFile):
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    # minmal diameter to estimate the maximal diffusion
-    diameter_nm = settings["Help"]["GuessLowestDiameter_nm"]
-    diameter = diameter_nm * 1E-9
+    if settings["Fiber"]["Speckle"] == 1:
+        nd.logger.error("Intensity jump not predictable. Use empirical value (0.5) instead.")
+        max_rel_jump = 0.5
+        
+    else:
     
-    temp_water = settings["Exp"]["Temperature"]
-    visc_water = settings["Exp"]["Viscosity"]
-    
-    diff = nd.Theory.StokesEinsteinEquation(diameter, temp_water = temp_water, visc_water = visc_water)
-    
-    # calcualte the sigma of the dissplacement
-    dt = 1/settings["Exp"]["fps"]
-    
-    sigma_um = np.sqrt(2*diff*dt) * 1E6
-    
-    # 6 times the sigma happens once in 500 Mio. If this limit is exceeded, the intensity jump cannot be explained by diffusion only (5 is just 1:15000)
-    # but maybe 6 is very unlucky, so i use 5
-    dr_um = 5*sigma_um
-    
-    # get the fiber parameters
-    r_fiber_nm = settings["Fiber"]["TubeDiameter_nm"]/2
-    r_fiber_um = r_fiber_nm / 1E3
-    
-    # setup the channel for the short simulation
-    r_step_um = 0.1
-    r_num_steps = int((2*r_fiber_um)/r_step_um)
-    r = np.linspace(-r_fiber_um, r_fiber_um, 100)
-    
-    # relativ intensity of the mode
-    I0 = 1
-    
-    # sigma of the gaussian mode
-    w = settings["Fiber"]["Waist"]
-    
-    # here come the mode
-    I = I0*np.e**(-(r/w)**2)
-    
-    # maximum displacment in pixels
-    dr = int(dr_um/r_step_um)
-    I_start = I[dr:]
-    I_end = I[:-dr]
-    
-    # calculate relative intensity change
-    dI = I_start - I_end
-    I_mean = (I_start + I_end)/2
-    I_mean = np.sqrt(I_start * I_end)
-    I_mean = np.min([I_start, I_end], axis = 0)
-    rel_dI = np.abs(dI/I_mean)
-    
-    plt.plot(r[dr:], rel_dI)
-    
-    # get the maximum value and save it
-    max_rel_jump = np.max(rel_dI)
-    
-    
+        # minmal diameter to estimate the maximal diffusion
+        diameter_nm = settings["Help"]["GuessLowestDiameter_nm"]
+        diameter = diameter_nm * 1E-9
+        
+        temp_water = settings["Exp"]["Temperature"]
+        visc_water = settings["Exp"]["Viscosity"]
+        
+        diff = nd.Theory.StokesEinsteinEquation(diameter, temp_water = temp_water, visc_water = visc_water)
+        
+        # calcualte the sigma of the dissplacement
+        dt = 1/settings["Exp"]["fps"]
+        
+        sigma_um = np.sqrt(2*diff*dt) * 1E6
+        
+        # 6 times the sigma happens once in 500 Mio. If this limit is exceeded, the intensity jump cannot be explained by diffusion only (5 is just 1:15000)
+        # but maybe 6 is very unlucky, so i use 5
+        dr_um = 5*sigma_um
+        
+        # get the fiber parameters
+        r_fiber_nm = settings["Fiber"]["TubeDiameter_nm"]/2
+        r_fiber_um = r_fiber_nm / 1E3
+        
+        # setup the channel for the short simulation
+        r_step_um = 0.1
+        r_num_steps = int((2*r_fiber_um)/r_step_um)
+        r = np.linspace(-r_fiber_um, r_fiber_um, 100)
+        
+        # relativ intensity of the mode
+        I0 = 1
+        
+        # sigma of the gaussian mode
+        w = settings["Fiber"]["Waist"]
+        
+        # here come the mode
+        I = I0*np.e**(-(r/w)**2)
+        
+        # maximum displacment in pixels
+        dr = int(dr_um/r_step_um)
+        I_start = I[dr:]
+        I_end = I[:-dr]
+        
+        # calculate relative intensity change
+        dI = I_start - I_end
+        I_mean = (I_start + I_end)/2
+        I_mean = np.sqrt(I_start * I_end)
+        I_mean = np.min([I_start, I_end], axis = 0)
+        rel_dI = np.abs(dI/I_mean)
+        
+        plt.plot(r[dr:], rel_dI)
+        
+        # get the maximum value and save it
+        max_rel_jump = np.max(rel_dI)
+        max_rel_jump = np.round(max_rel_jump,3)
 
-    settings["Find"]["tp_separation"] = Min_Separation 
+    settings["Split"]["Max rel median intensity step"] = max_rel_jump 
 
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
