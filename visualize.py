@@ -237,7 +237,8 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
         
         show_diam_traj, save_diam_traj = settings["Plot"]["DiamOverTraj_Show"], settings["Plot"]["DiamOverTraj_Save"]
         if show_diam_traj or save_diam_traj:
-            DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin.sort_values("rawmass"), show_diam_traj, save_diam_traj)
+            color_type = settings["Plot"]["UseRawMass"]
+            DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin.sort_values("rawmass_mean"), show_diam_traj, save_diam_traj, color_type = color_type)
 
 
         show_hist_time, save_hist_time = settings["Plot"]["Histogramm_time_Show"], settings["Plot"]["Histogramm_time_Save"]
@@ -354,7 +355,7 @@ def ShowAllCorrel(sizes_df_lin,min_correl = 0.4):
 
 
 
-def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
+def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None, color_type = None):
     """ plot (and save) calculated particle diameters vs. the number of frames
     where the individual particle is visible (in standardized format) """
         
@@ -388,7 +389,20 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     
     y_min_max = nd.handle_data.Get_min_max_round(plot_diameter,1)
     
-    Plot2DScatter(plot_traj_length, plot_diameter, c=sizes_df_lin["rawmass"], title = my_title, 
+    if color_type == None:
+        my_c = sizes_df_lin["rawmass_mean"]
+    
+    else:
+        if color_type == "mean":
+            my_c = sizes_df_lin["rawmass_mean"]
+                    
+        elif color_type == "median":
+            my_c = sizes_df_lin["rawmass_median"]
+                    
+        elif color_type == "max":
+            my_c = sizes_df_lin["rawmass_max"]
+    
+    Plot2DScatter(plot_traj_length, plot_diameter, c = my_c, title = my_title, 
                   xlabel = my_xlabel, ylabel = my_ylabel,
                   myalpha = 0.9, x_min_max = x_min_max, y_min_max = y_min_max, log = True, cmap = 'jet', ShowLegend = True)
  
