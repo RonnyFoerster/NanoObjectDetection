@@ -142,7 +142,7 @@ def NewEvaluation():
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)
         
-        settings["Fiber"]["Speckle"] = pre_settings["Fiber"]["Shape"]
+        settings["Fiber"]["Speckle"] = pre_settings["Fiber"]["Speckle"]
         settings["Fiber"]["TubeDiameter_nm"] = pre_settings["Fiber"]["TubeDiameter_nm"]
         settings["Fiber"]["Mode"] = pre_settings["Fiber"]["Mode"]
         settings["Fiber"]["Waist"] = pre_settings["Fiber"]["Waist"]
