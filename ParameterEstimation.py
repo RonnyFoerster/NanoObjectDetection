@@ -997,6 +997,7 @@ def MaxRelIntensityJump(ParameterJsonFile):
         # 6 times the sigma happens once in 500 Mio. If this limit is exceeded, the intensity jump cannot be explained by diffusion only (5 is just 1:15000)
         # but maybe 6 is very unlucky, so i use 5
         dr_um = 5*sigma_um
+        nd.logger.info("Maximum expected displacement (5-sigma): %.2f um", dr_um)
         
         # get the fiber parameters
         r_fiber_nm = settings["Fiber"]["TubeDiameter_nm"]/2
@@ -1017,18 +1018,20 @@ def MaxRelIntensityJump(ParameterJsonFile):
         I = I0*np.e**(-(r/w)**2)
         
         # maximum displacment in pixels
-        dr = int(dr_um/r_step_um)
-        I_start = I[dr:]
-        I_end = I[:-dr]
+        dr_px = int(dr_um/r_step_um)
+        I_start = I[dr_px:]
+        I_end = I[:-dr_px]
         
         # calculate relative intensity change
         dI = I_start - I_end
-        I_mean = (I_start + I_end)/2
-        I_mean = np.sqrt(I_start * I_end)
-        I_mean = np.min([I_start, I_end], axis = 0)
-        rel_dI = np.abs(dI/I_mean)
         
-        plt.plot(r[dr:], rel_dI)
+        # I_offset = (I_start + I_end)/2
+        # I_offset = np.sqrt(I_start * I_end)
+        I_offset = np.min([I_start, I_end], axis = 0)
+        
+        rel_dI = np.abs(dI/I_offset)
+        
+        plt.plot(r[dr_px:], rel_dI)
         
         # get the maximum value and save it
         max_rel_jump = np.max(rel_dI)
