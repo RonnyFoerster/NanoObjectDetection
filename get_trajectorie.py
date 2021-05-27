@@ -22,10 +22,13 @@ from tqdm import tqdm# progress bar
 # from pdb import set_trace as bp
 
 
-def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
+def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, UseLog = False, diameter = None,
               minmass=None, maxsize=None, separation=None, max_iterations = 10,
               SaveFig = False, gamma = 0.8, ExternalSlider = False, oldSim=False, DoParallel = True):
     """ wrapper for trackpy routine tp.batch, which spots particles
+
+    rawframes_np: unprocessed RAW image
+    rawframes_pre: preprocessed image (background, filter, etc.)
 
     important parameters:
     separation = settings["Find"]["tp_separation"] ... minimum distance of spotes objects
@@ -67,15 +70,15 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
 
             # convert image to uint16 otherwise trackpy performs a min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
             
-            if isinstance(frames_np, np.float) == True:
+            if isinstance(rawframes_pre, np.float) == True:
                 np.logger.warning("Given image is of datatype float. It is converted to int32. That is prone to errors for poor SNR; slow and memory waisting.")
-                frames_np = np.int32(frames_np)
+                rawframes_pre = np.int32(rawframes_pre)
 
             #ExternalSlider is a bad way of finding out if Spyder or JupyterLab is running
             if ExternalSlider == False:
                 # HERE HAPPENS THE LOCALIZATION OF THE PARTICLES
                 
-                obj_all = FindSpots_tp(frames_np, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = DoParallel)
+                obj_all = FindSpots_tp(rawframes_pre, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = DoParallel)
                 
                 # check if any particle is found. If not reduce minmass
                 if obj_all.empty:
@@ -90,19 +93,24 @@ def FindSpots(frames_np, ParameterJsonFile, UseLog = False, diameter = None,
 
             else:
                 nd.logger.warning("This needs an update!")
-                obj_all = tp.batch(frames_np, diameter, minmass = minmass, separation = (diameter, separation), max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
+                obj_all = tp.batch(rawframes_pre, diameter, minmass = minmass, separation = (diameter, separation), max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
 
                 # leave without iteration, this is done outside by a slider
                 output_empty = False
 
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
+        obj_all = RemoveOverexposedObjects(ParameterJsonFile, obj_all, rawframes_np)
+
         if SaveFig == True:
-            FindSpots_plotting(frames_np, obj_all, settings, gamma, ExternalSlider)
+            FindSpots_plotting(rawframes_pre, obj_all, settings, gamma, ExternalSlider)
 
         # save output
         if settings["Plot"]["save_data2csv"] == 1:
             nd.handle_data.pandas2csv(obj_all, settings["Plot"]["SaveFolder"], "obj_all")
+
+
+    
 
     return obj_all # usually pd.DataFrame with feature position data
 
@@ -295,22 +303,30 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
         nd.logger.info("Apply to stationary particle")
         min_tracking_frames = settings["Link"]["Dwell time stationary objects"]
 
+        # only keep the trajectories with the given minimum length
+        traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
+
     elif (FixedParticles == False) and (BeforeDriftCorrection == True):
         # MOVING particles BEFORE DRIFT CORRECTION
         # moving particle must have a minimum length. However, for the drift correction, the too short trajectories are still full of information about flow and drift. Thus keep them for the moment but they wont make it to the final MSD evaluation
         nd.logger.info("Apply to diffusing particles - BEFORE drift correction")
         min_tracking_frames = settings["Link"]["Min tracking frames before drift"]
 
+        # only keep the trajectories with the given minimum length
+        traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
+
     else:
         # MOVING particles AFTER DRIFT CORRECTION
         nd.logger.info("Apply to diffusing particles - AFTER drift correction")
         min_tracking_frames = settings["Link"]["Min_tracking_frames"]
+        
+        # only keep the trajectories with the given minimum length
+        traj_min_length = tp.filter_stubs(traj_all[traj_all.saturated == False], min_tracking_frames)
 
 
     nd.logger.info("Minimum trajectorie length: %s", min_tracking_frames)
 
-    # only keep the trajectories with the given minimum length
-    traj_min_length = tp.filter_stubs(traj_all, min_tracking_frames)
+    
 
     # RF 190408 remove Frames because the are doupled and panda does not like it
     index_unequal_frame = traj_min_length[traj_min_length.index != traj_min_length.frame]
@@ -544,6 +560,13 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
 
     SaturatedPixelValue = settings["Find"]["SaturatedPixelValue"]
 
+    nd.logger.debug("Saturated pixel value: %.0f", SaturatedPixelValue)
+
+    obj_moving["saturated"] = False
+    
+    # get index of saturaed column
+    ix_saturated = obj_moving.columns.get_loc("saturated")
+
     if SaturatedPixelValue == 'No Saturation':
         nd.logger.info("No saturated pixel")
         
@@ -551,7 +574,7 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         nd.logger.info("Remove objects that have saturated pixels")
 
         # bring objects in order of ascending intensity values ("mass")
-        sort_obj_moving = obj_moving.sort_values("raw_mass")
+        sort_obj_moving = obj_moving.sort_values("raw_mass", ascending = False)
     
         total = len(obj_moving)
         counter = 0
@@ -559,11 +582,13 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         framelist = []
     
         saturated_psf = True
+        
+        counter = 0
         while saturated_psf:
             # get pos and frame of spot with highest mass
-            pos_x = np.int(sort_obj_moving.iloc[-1]["x"])
-            pos_y = np.int(sort_obj_moving.iloc[-1]["y"])
-            frame = np.int(sort_obj_moving.iloc[-1]["frame"])
+            pos_x = np.int(sort_obj_moving.iloc[counter]["x"])
+            pos_y = np.int(sort_obj_moving.iloc[counter]["y"])
+            frame = np.int(sort_obj_moving.iloc[counter]["frame"])
     
             # get signal at maximum
             # search in surrounding pixels
@@ -575,8 +600,11 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
                 
             if signal_at_max >= SaturatedPixelValue:
                 nd.logger.debug("Remove overexposed particles at (frame,x,y) = (%i, %i, %i)", frame, pos_x, pos_y)
-                sort_obj_moving = sort_obj_moving.iloc[:-1] # kick the overexposed object out
-                counter += 1
+                
+                sort_obj_moving.iloc[counter, ix_saturated] = True
+                
+                # sort_obj_moving = sort_obj_moving.iloc[:-1] # kick the overexposed object out
+                counter = counter + 1
     
                 if not(frame in framelist):
                     framecount += 1
@@ -696,6 +724,34 @@ def close_gaps_loop(t1_loop):
     return t1_loop
 
 
+
+def CutTrajAtIntensityJump_Main(ParameterJsonFile, t2_long):
+    """
+    This function cuts the trajectory at to high intensity jumps
+    """
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    if settings["Split"]["IntensityJump"] == 1:
+        nd.logger.info("Cut trajectories at intensity jumps.")
+        # close gaps to calculate intensity derivative
+        t3_gapless = nd.get_trajectorie.close_gaps(t2_long)
+    
+    
+        #calculate intensity fluctuations as a sign of wrong assignment
+        t3_gapless = nd.get_trajectorie.calc_intensity_fluctuations(t3_gapless, ParameterJsonFile)
+    
+        # split trajectories if necessary (e.g. too large intensity jumps)
+        t4_cutted, t4_cutted_no_gaps = nd.get_trajectorie.split_traj_at_high_steps(t2_long, t3_gapless, ParameterJsonFile)
+    
+    else:
+        nd.logger.info("Dont cut trajectories at intensity jumps.")
+        t4_cutted = t2_long.copy()
+        t4_cutted_no_gaps = t2_long.copy()
+        
+    return t4_cutted, t4_cutted_no_gaps
+
+
 def calc_intensity_fluctuations(t3_gapless, ParameterJsonFile, dark_time = None, PlotIntMedianFit = False, PlotIntFlucPerBead = False):
     """ calculate the intensity fluctuation of a particle along its trajectory
 
@@ -755,12 +811,13 @@ def calc_intensity_fluctuations(t3_gapless, ParameterJsonFile, dark_time = None,
         #t1_search_gap_filled['rel_step'] = my_step_height / my_step_offest.mass_smooth
         t3_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offset.mass_smooth)
 
+
     elif see_speckle == 0:
         nd.logger.info("Assume NO SPECKLES in fiber mode.")
         # FIBER WITHOUT SPECKLES!
     
         # CALC DIFFERENCES in mass and particleID
-        my_diff = t3_gapless[['particle','mass']].diff()
+        my_diff = t3_gapless[['particle','mass']].diff(1)
     
         # remove gap if NaN
         my_diff.loc[pd.isna(my_diff['particle']),'mass'] = 0
@@ -770,8 +827,7 @@ def calc_intensity_fluctuations(t3_gapless, ParameterJsonFile, dark_time = None,
     
         # remove NaN if median filter is too close to the edge defined by dark time in the median filter
         my_diff.loc[pd.isna(my_diff['mass']),'mass'] = 0 # RF 180906
-    
-    
+        
         # step height
         my_step_height = abs(my_diff['mass'])
         #use the lower one as starting point
@@ -781,9 +837,11 @@ def calc_intensity_fluctuations(t3_gapless, ParameterJsonFile, dark_time = None,
         nd.logger.error("RF was here before the weekend!")
         
         my_step_offset = my_step_offset.to_frame().reset_index(level='particle')
+        
         # relative step
-        #t1_search_gap_filled['rel_step'] = my_step_height / my_step_offest.mass_smooth
-        t3_gapless['rel_step'] = np.array(my_step_height) / np.array(my_step_offset["mass"])
+        rel_step = np.array(my_step_height) / np.array(my_step_offset["mass"])
+        
+        t3_gapless['rel_step'] = rel_step
         
 
 

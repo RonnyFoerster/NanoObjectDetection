@@ -49,7 +49,6 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
 
         # select trajectory to analyze
         eval_tm = t6_final_use[t6_final_use.particle==particleid]
-        
 
         # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
         sizes_df_particle, OptimizingStatus = OptimizeMSD(eval_tm, settings, yEval, any_successful_check, t_beforeDrift = t_beforeDrift)
@@ -209,10 +208,10 @@ def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, MSD_fit_Show = N
         particleid = eval_tm["particle"].iloc[0]
         t_beforeDrift = t_beforeDrift[t_beforeDrift.particle==particleid]
 
-    
+    eval_tm_valid = eval_tm[eval_tm.saturated == False]
     # get the start Parameters of the MSD fitting if not all given
     if (lagtimes_min == None) or (lagtimes_max == None) or (max_counter == None):
-        lagtimes_min, lagtimes_max, max_counter = MSDFitLagtimes(settings, eval_tm)
+        lagtimes_min, lagtimes_max, max_counter = MSDFitLagtimes(settings, eval_tm_valid)
     
     amount_lagtimes_auto = settings["MSD"]["Amount lagtimes auto"]
     
@@ -224,7 +223,7 @@ def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, MSD_fit_Show = N
     while OptimizingStatus == "Continue":
         """  1 - calculate MSD """
         nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
-        CalcMSD(eval_tm, settings, lagtimes_min = lagtimes_min, 
+        CalcMSD(eval_tm_valid, settings, lagtimes_min = lagtimes_min, 
                 lagtimes_max = lagtimes_max, yEval = yEval)
         
         # just continue if there are enough data points
@@ -233,8 +232,8 @@ def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, MSD_fit_Show = N
             
         else:
             # ... if Kolmogorow Smirnow Test was done before already
-            if 'stat_sign' in (eval_tm.keys()):
-                stat_sign = eval_tm['stat_sign'].mean() # same value for all
+            if 'stat_sign' in (eval_tm_valid.keys()):
+                stat_sign = eval_tm_valid['stat_sign'].mean() # same value for all
             else:
             # check if datapoints in first lagtime are normal distributed
                 _, stat_sign, _ = KolmogorowSmirnowTest(nan_tm, traj_length)
@@ -250,7 +249,7 @@ def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, MSD_fit_Show = N
                         
                 # recalculate fitting range p_min
                 if amount_lagtimes_auto == 1:
-                    lagtimes_max, OptimizingStatus = UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_lagt1, lagtimes_max)
+                    lagtimes_max, OptimizingStatus = UpdateP_Min(settings, eval_tm_valid, msd_fit_para, diff_direct_lin, amount_frames_lagt1, lagtimes_max)
                
         
                 # Check if a new iteration shall be done
@@ -346,18 +345,30 @@ def GetParameterOfTraj(eval_tm, t_beforeDrift=None):
         else:
             start_y = -1
             
-    mean_mass = eval_tm["mass"].mean()
+    # total (sometimes saturaed) trajectory
+    eval_tm_valid = eval_tm[eval_tm.saturated == False]
+    
+    mean_mass     = eval_tm_valid["mass"].mean()
+    mean_signal   = eval_tm_valid["signal"].mean()
+    
+    
+    raw_mass_mean = eval_tm_valid["raw_mass"].mean()
+    raw_mass_median = eval_tm["raw_mass"].median()
+    raw_mass_max = eval_tm_valid["raw_mass"].max()
+    
+    
+    
+    # localizable (unsaturated) frames
     mean_size = eval_tm["size"].mean()
     mean_ecc = eval_tm["ecc"].mean()
-    mean_signal = eval_tm["signal"].mean()
-    mean_raw_mass = eval_tm["raw_mass"].mean()
-    nd.logger.warning("RF tried something here!")
-    mean_raw_mass = eval_tm["raw_mass"].max()
     mean_ep = eval_tm["ep"].mean()
-    max_step = eval_tm["rel_step"].max()
+    if ["rel_step"] in list(eval_tm.keys()):
+        max_step = eval_tm["rel_step"].max()
+    else:
+        max_step = 0
     true_particle = eval_tm["true_particle"].max()
     
-    return start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle, start_x, start_y
+    return start_frame, mean_mass, mean_size, mean_ecc, mean_signal, raw_mass_mean, raw_mass_median, raw_mass_max, mean_ep, max_step, true_particle, start_x, start_y
 
 
 
@@ -977,7 +988,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     """ organize the results and write them in one large pandas.DataFrame
     """
     
-    mean_raw_mass = eval_tm["raw_mass"].mean()
+    # mean_raw_mass = eval_tm["raw_mass"].mean()
     UseHindranceFac = settings["MSD"]["EstimateHindranceFactor"]
     temp_water = settings["Exp"]["Temperature"]
     
@@ -987,7 +998,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
     fibre_diameter_nm = settings["Fiber"]["TubeDiameter_nm"]
     
     # get parameters of the trajectory to analyze it
-    start_frame, mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, max_step, true_particle, start_x, start_y = GetParameterOfTraj(eval_tm, t_beforeDrift = t_beforeDrift)
+    start_frame, mean_mass, mean_size, mean_ecc, mean_signal, raw_mass_mean, raw_mass_median, raw_mass_max, mean_ep, max_step, true_particle, start_x, start_y = GetParameterOfTraj(eval_tm, t_beforeDrift = t_beforeDrift)
     
     particleid = int(eval_tm.iloc[0].particle)
     
@@ -1003,11 +1014,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
                                    temp_water, visc_water, DoRolling = DoRolling)
 
     if DoRolling == False:
-        sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter, \
-                           particleid, traj_length, amount_frames_lagt1, start_frame, \
-                           mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep, \
-                           red_x, max_step, true_particle, stat_sign = stat_sign,
-                           start_x=start_x, start_y=start_y)
+        sizes_df_lin = ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,                            particleid, traj_length, amount_frames_lagt1, start_frame, mean_mass, mean_size, mean_ecc, mean_signal, raw_mass_mean, raw_mass_median, raw_mass_max, mean_ep, red_x, max_step, true_particle, stat_sign = stat_sign, start_x=start_x, start_y=start_y)
     else:
         nd.logger.error("This is not implemented yet.")
 
@@ -1017,7 +1024,7 @@ def ConcludeResultsMain(settings, eval_tm, sizes_df_lin, diff_direct_lin, traj_l
 
 def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                     particleid, traj_length, amount_frames_lagt1, start_frame,
-                    mean_mass, mean_size, mean_ecc, mean_signal, mean_raw_mass, mean_ep,
+                    mean_mass, mean_size, mean_ecc, mean_signal, raw_mass_mean, raw_mass_median, raw_mass_max, mean_ep,
                     red_x, max_step, true_particle, stat_sign = None, start_x=0,start_y=0):
     """ write all the valuable parameters in one large pandas.DataFrame """
 
@@ -1030,7 +1037,9 @@ def ConcludeResults(sizes_df_lin, diff_direct_lin, diff_std, diameter,
                                                           'red_x' : [red_x], 
                                                           'signal': [mean_signal],
                                                           'mass': [mean_mass],
-                                                          'rawmass': [mean_raw_mass],
+                                                          'rawmass_mean': [raw_mass_mean],
+                                                          'rawmass_median': [raw_mass_median],
+                                                          'rawmass_max': [raw_mass_max],
                                                           'max step': [max_step],
                                                           'first frame': [start_frame],
                                                           'traj length': [traj_length],

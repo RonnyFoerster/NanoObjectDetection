@@ -49,7 +49,7 @@ nd.AdjustSettings.Main(rawframes_super, rawframes_pre, ParameterJsonFile)
     
 
 #%% find the objects
-obj_all = nd.get_trajectorie.FindSpots(rawframes_pre, ParameterJsonFile)
+obj_all = nd.get_trajectorie.FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile)
 objects_per_frame = nd.particleStats.ParticleCount(obj_all, rawframes_pre.shape[0])
 print(objects_per_frame.describe())
 
@@ -76,23 +76,11 @@ t2_long = nd.get_trajectorie.filter_stubs(t1_orig, ParameterJsonFile, FixedParti
    
 
 #%% identify and close gaps in the trajectories
-t3_gapless = nd.get_trajectorie.close_gaps(t2_long)
-
-
-#%% calculate intensity fluctuations as a sign of wrong assignment
-t3_gapless = nd.get_trajectorie.calc_intensity_fluctuations(t3_gapless, ParameterJsonFile)
-
-
-#%% split trajectories if necessary (e.g. too large intensity jumps)
-t4_cutted, t4_cutted_no_gaps = nd.get_trajectorie.split_traj_at_high_steps(t2_long, t3_gapless, ParameterJsonFile)
-
-
-#%% remove overexposed objects
-t4_cutted_no_sat = nd.get_trajectorie.RemoveOverexposedObjects(ParameterJsonFile, t4_cutted, rawframes_super)
+t4_cutted, t4_cutted_no_gaps = nd.get_trajectorie.CutTrajAtIntensityJump_Main(ParameterJsonFile, t2_long)
 
 
 #%% drift correction
-t5_no_drift = nd.Drift.Main(t4_cutted_no_sat, ParameterJsonFile, PlotGlobalDrift = True)
+t5_no_drift = nd.Drift.Main(t4_cutted, ParameterJsonFile, PlotGlobalDrift = True)
 
 
 #%% only long trajectories are used in the MSD plot in order to get a good fit
