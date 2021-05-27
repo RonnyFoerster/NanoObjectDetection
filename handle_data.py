@@ -897,6 +897,8 @@ def pandas2csv(my_pandas, save_folder_name, save_file_name, write_index = False)
     # creates full path name and creates folders if required
     my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
     
+    nd.logger.info("Save data...")
+    
     #export
     my_pandas.to_csv(entire_path_file, index = write_index)
     

@@ -106,6 +106,7 @@
      "Split": {
           "Max_traj_length": 1000000.0,
           "Max_traj_length_keep_tail": 0,
+          "IntensityJump": 0,
           "Max rel median intensity step": 0.5,
           "ParticleWithLongestTrajBeforeSplit": 976
      },
@@ -159,6 +160,7 @@
           "PDF_show_fit": 0,
           "DiamOverTraj_Show": 1,
           "DiamOverTraj_Save": 1,
+          "UseRawMass": "mean",
           "Correlation_Show": 0,
           "Correlation_Save": 0,
           "Pearson_Show": 0,

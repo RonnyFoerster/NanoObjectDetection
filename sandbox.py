@@ -1031,6 +1031,108 @@ def SimuIntJump(diameter, dt):
     
     plt.plot(r[dr:], rel_dI)
 
+
+def PCA(sizes_df_lin):
+    from sklearn.preprocessing import StandardScaler
+    import pandas as pd
+    # https://towardsdatascience.com/pca-using-python-scikit-learn-e653f8989e60
+    
+    # data = sizes_df_lin.set_index("particle")
+    data = sizes_df_lin.copy()
+    data["SARS"] = data["rawmass_max"] > 1E6
+    # data = data[data["valid frames"] > 300]
+    data = data.reset_index()
+    
+    # data = data[data["traj length"] > 300]
+    
+    # features = ["diffusion", 'ep', 'red_x', 'rawmass_mean', "traj length", "stat_sign"]
+    features = ["rawmass_max", "diameter"]#, "stat_sign", "ecc"]
+    
+    # Separating out the features
+    x = data.loc[:, features].values
+    # Separating out the target
+    y = data.loc[:,['SARS']].values
+    # Standardizing the features
+    x = StandardScaler().fit_transform(x)
+    
+    
+    from sklearn.decomposition import PCA
+    pca = PCA(n_components=2)
+    principalComponents = pca.fit_transform(x)
+    principalDf = pd.DataFrame(data = principalComponents, columns = ['pc1', 'pc2'])
+    
+    finalDf = pd.concat([principalDf, data[['SARS']]], axis = 1)
+    
+    fig = plt.figure(figsize = (8,8))
+    ax = fig.add_subplot(1,1,1) 
+    ax.set_xlabel('Principal Component 1', fontsize = 15)
+    ax.set_ylabel('Principal Component 2', fontsize = 15)
+    ax.set_title('2 component PCA', fontsize = 20)
+    targets = [False, True]
+    colors = ['r', 'g', 'b']
+    for target, color in zip(targets,colors):
+        indicesToKeep = finalDf['SARS'] == target
+        ax.scatter(finalDf.loc[indicesToKeep, 'pc1']
+                   , finalDf.loc[indicesToKeep, 'pc2']
+                   , c = color
+                   , s = 50)
+    ax.legend(targets)
+    ax.grid()
+
+  
+def FitSVM(sizes_df_lin):
+    from sklearn.cluster import MeanShift, estimate_bandwidth
+    from sklearn.datasets import make_blobs
+    from sklearn.preprocessing import StandardScaler
+    
+    # data = sizes_df_lin[sizes_df_lin["valid frames"] > 499].copy()
+    data = sizes_df_lin.copy()
+    data["SARS"] = data["rawmass_max"] > 1E6
+    # data = data[data["valid frames"] > 300]
+    data = data.reset_index()
+    
+    features = ["rawmass_max", "diameter"]#, "stat_sign", "ecc"]
+    
+    # Separating out the features
+    X = data.loc[:, features].values
+    # X[:,0] = np.power(X[:,0], 1/6)
+    
+    # X = StandardScaler().fit_transform(X)
+
+    if 1 == 1:
+        
+        # The following bandwidth can be automatically detected using
+        bandwidth = estimate_bandwidth(X, quantile=0.5)
+        
+        ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
+        ms.fit(X)
+        labels = ms.labels_
+        cluster_centers = ms.cluster_centers_
+        
+        labels_unique = np.unique(labels)
+        n_clusters_ = len(labels_unique)
+        
+        print("number of estimated clusters : %d" % n_clusters_)
+        
+        # #############################################################################
+        # Plot result
+        import matplotlib.pyplot as plt
+        from itertools import cycle
+        
+        plt.figure(1)
+        plt.clf()
+        
+        colors = cycle('bgrcmykbgrcmykbgrcmykbgrcmyk')
+        for k, col in zip(range(n_clusters_), colors):
+            my_members = labels == k
+            cluster_center = cluster_centers[k]
+            plt.plot(X[my_members, 0], X[my_members, 1], col + '.')
+            plt.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col,
+                     markeredgecolor='k', markersize=14)
+        plt.title('Estimated number of clusters: %d' % n_clusters_)
+        plt.show()
+
+
 # In[]
 # nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=2000, dt=1/700, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)
 

@@ -49,7 +49,7 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
     else:
         nd.logger.info("Drift correction: starting...")
         
-        
+        t_drift = t_drift[t_drift.saturated == False]
         
         if settings["Help"]["Drift"] == "auto":
             #estimate how many frames it needs to have enough particle to make the drift estimation
