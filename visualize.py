@@ -123,7 +123,7 @@ def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1
 
 
 def Plot2DScatter(x_np, y_np, c = None, title = None, xlabel = None, ylabel = None, myalpha = 1,
-                  x_min_max = None, y_min_max = None, log = False, cmap = None, ShowLegend = False):
+                  x_min_max = None, y_min_max = None, log = False, cmap = None, ShowLegend = False, ShowLegendTitle = None):
     """ plot 2D-data in standardized format as individual, scattered points """
     
     from NanoObjectDetection.PlotProperties import axis_font, title_font
@@ -183,8 +183,10 @@ def Plot2DScatter(x_np, y_np, c = None, title = None, xlabel = None, ylabel = No
 
     if ShowLegend == True:
         cbar = plt.colorbar()
-        cbar.set_label("Brightness")
-
+        if ShowLegendTitle == None:
+            cbar.set_label("Brightness")
+        else: 
+            cbar.set_label(ShowLegendTitle)
 
 def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None, ShowColorBar = True):
     """ plot image in standardized format """
@@ -395,16 +397,19 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     else:
         if color_type == "mean":
             my_c = sizes_df_lin["rawmass_mean"]
+            ShowLegendTitle = "Mean Brightness"
                     
         elif color_type == "median":
             my_c = sizes_df_lin["rawmass_median"]
+            ShowLegendTitle = "Median Brightness"
                     
         elif color_type == "max":
             my_c = sizes_df_lin["rawmass_max"]
+            ShowLegendTitle = "Max Brightness"
     
     Plot2DScatter(plot_traj_length, plot_diameter, c = my_c, title = my_title, 
                   xlabel = my_xlabel, ylabel = my_ylabel,
-                  myalpha = 0.9, x_min_max = x_min_max, y_min_max = y_min_max, log = True, cmap = 'jet', ShowLegend = True)
+                  myalpha = 0.9, x_min_max = x_min_max, y_min_max = y_min_max, log = True, cmap = 'jet', ShowLegend = True, ShowLegendTitle = ShowLegendTitle)
  
     if save_plot == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "DiameterOverTrajLength",
