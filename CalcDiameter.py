@@ -67,6 +67,10 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
     
     nd.logger.info("WARNING sizes_df_lin_rolling is removed!!!")
     
+    
+    if settings["PostProcessing"]["ForceUltraUniform"] == 1:
+        sizes_df_lin = nd.PostProcessing.ForceUltraUniformParticle(sizes_df_lin, ShowPlot = True)
+    
     return sizes_df_lin, any_successful_check
 
 

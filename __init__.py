@@ -25,6 +25,7 @@ from . import ParameterEstimation
 from . import particleStats
 from . import PlotProperties
 from . import PreProcessing
+from . import PostProcessing
 from . import sandbox
 from . import Simulation
 from . import Start

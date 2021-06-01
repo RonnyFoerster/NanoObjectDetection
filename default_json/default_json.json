@@ -134,6 +134,9 @@
           "Frames": 100,
           "skip_image_fac": 10
      },
+     "PostProcessing": {
+          "ForceUltraUniform": 0
+     },
      "Plot": {
           "Background_Show": 0,
           "Background_Save": 0,
