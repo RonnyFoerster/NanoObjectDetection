@@ -442,7 +442,7 @@ def ReadTiffStack2Numpy(data_file_name):
 
 
 
-def ReadTiffSeries2Numpy(data_folder_name, use_num_frame):
+def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress = False):
     """ read a tiff series in """
     
     nd.logger.info('read file: %s', data_folder_name)
@@ -454,7 +454,10 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame):
     rawframes_np = []
 #    for fname in os.listdir(data_folder_name):
     for fname in sorted(os.listdir(data_folder_name)): #sorted in case it is unsorted
-        nd.logger.debug("read frame: %s", fname)
+        if ShowProgress == True:
+            print("read frame: ", fname)
+        else:
+            nd.logger.debug("read frame: %s", fname)
         is_tif = fnmatch.fnmatch(fname, '*.tif')
         is_tiff = fnmatch.fnmatch(fname, '*.tiff')
         if is_tif or is_tiff:
@@ -478,6 +481,33 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame):
     
     
     return rawframes_np
+
+
+
+def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name):
+    import os
+    
+    subdir = os.listdir(main_data_folder_name)
+    
+    for subdir_loop in subdir:
+        if os.path.isdir(subdir_loop) == True:
+            data_folder_name = main_data_folder_name + "\\" + subdir_loop
+            
+            print("PROCESS SUBFOLDER - START: ", subdir_loop)
+            
+            SaveTifSeriesAsStack(data_folder_name)
+            
+            print("PROCESS SUBFOLDER - FINISHED: ", subdir_loop)
+
+
+def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True):
+    from skimage import io
+    
+    rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name, ShowProgress = ShowProgress)
+    
+    data_folder_name_tif = data_folder_name + ".tif"
+    
+    io.imsave(data_folder_name_tif, rawframes_np)
 
 
 

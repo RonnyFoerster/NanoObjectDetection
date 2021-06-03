@@ -1133,6 +1133,30 @@ def FitSVM(sizes_df_lin):
         plt.show()
 
 
+def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name):
+    import os
+    
+    subdir = os.listdir(main_data_folder_name)
+    
+    for subdir_loop in subdir:
+        if os.path.isdir(subdir_loop) == True:
+            data_folder_name = main_data_folder_name + "\\" + subdir_loop
+            
+            SaveTifSeriesAsStack(data_folder_name)
+    
+    
+
+def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True):
+    from skimage import io
+    
+    rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name, ShowProgress = ShowProgress)
+    
+    data_folder_name_tif = data_folder_name + ".tif"
+    
+    io.imsave(data_folder_name_tif, rawframes_np)
+    
+
+
 # In[]
 # nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=2000, dt=1/700, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)
 
