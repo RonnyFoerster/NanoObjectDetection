@@ -59,6 +59,9 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
             sizes_df_lin = sizes_df_lin.append(sizes_df_particle)
                           
     
+    if settings["PostProcessing"]["ForceUltraUniform"] == 1:
+        sizes_df_lin = nd.PostProcessing.ForceUltraUniformParticle(sizes_df_lin, ShowPlot = True)
+    
     if any_successful_check == False:
         nd.logger.warning("No particle made it to the end!")
         
@@ -68,8 +71,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
     nd.logger.info("WARNING sizes_df_lin_rolling is removed!!!")
     
     
-    if settings["PostProcessing"]["ForceUltraUniform"] == 1:
-        sizes_df_lin = nd.PostProcessing.ForceUltraUniformParticle(sizes_df_lin, ShowPlot = True)
+    
     
     return sizes_df_lin, any_successful_check
 
@@ -385,7 +387,7 @@ def CreateNewMSDPlot(any_successful_check, settings):
         MSD_fit_Save = settings["Plot"]["MSD_fit_Save"]
         
         if (MSD_fit_Show == True) or (MSD_fit_Save == True):
-            plt.figure()
+            plt.figure("MSD-Plot", clear = True)
 
     return any_successful_check
 
@@ -1092,6 +1094,7 @@ def ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, diff_s
 def AdjustMSDPlot(MSD_fit_Show):
     if MSD_fit_Show == True:    
         # get the axis from the msd plot right
+        plt.figure("MSD-Plot")
         ax_msd = plt.gca()
     
         #get maximum value of lagtime and msd

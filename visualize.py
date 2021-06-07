@@ -364,32 +364,31 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     import NanoObjectDetection as nd
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-    
+   
+    plot_diameter = sizes_df_lin["diameter"]
+    plot_traj_length = sizes_df_lin["valid frames"] 
+   
     Histogramm_min_max_auto = settings["Plot"]["Histogramm_min_max_auto"]
     
     if Histogramm_min_max_auto == 1:
         histogramm_min = np.round(np.min(sizes_df_lin.diameter) - 5, -1)
         histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)
+        y_min_max = nd.handle_data.Get_min_max_round(plot_diameter,1)
+        
     else:
-        histogramm_min = None
-        histogramm_max = None 
-
-#    bp()
+        histogramm_min = settings["Plot"]["Histogramm_min"]
+        histogramm_max = settings["Plot"]["Histogramm_max"]
+        y_min_max = [histogramm_min, histogramm_max]
     
-    histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
-    histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
+    # histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
+    # histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
     
     my_title = "Particle size over tracking time"
     my_ylabel = "Diameter [nm]"
     my_xlabel = "Trajectory length [frames]"
     
-    plot_diameter = sizes_df_lin["diameter"]
-    plot_traj_length = sizes_df_lin["valid frames"]
-    
     x_min_max = nd.handle_data.Get_min_max_round(plot_traj_length, 2)
     x_min_max[0] = 0
-    
-    y_min_max = nd.handle_data.Get_min_max_round(plot_diameter,1)
     
     if color_type == None:
         my_c = sizes_df_lin["rawmass_mean"]
@@ -454,7 +453,7 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
 
 
 def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 10000, 
-                           title = '', xlabel = '', ylabel = '', mycol='C0'):
+                           title = '', xlabel = '', ylabel = '', mycol='C0', my_range = None):
     """ plot a histogram of particles sizes
 
     Parameters
@@ -475,10 +474,12 @@ def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 
     fig, ax = plt.subplots()
     diameters = sizes
     show_diameters = diameters[(diameters >= histogramm_min) & (diameters <= histogramm_max)]
-    values_hist, positions_hist = np.histogram(sizes, bins = binning)
+
+    values_hist, positions_hist = np.histogram(sizes, bins = binning, range = my_range)
     # histogram of sizes, only taking into account 
-    sns.distplot(show_diameters, bins=binning, rug=True, rug_kws={"alpha": 0.4}, 
-                 kde=False,color=mycol) 
+    plt.hist(show_diameters, bins=binning, range = my_range, color=mycol) 
+
+    # sns.distplot(show_diameters, bins=binning, rug=True, rug_kws={"alpha": 0.4}, kde=False,color=mycol) 
     #those that are below threshold size as defined in the initial parameters
 #    plt.rc('text', usetex=True)
     plt.rc('text', usetex=False)
@@ -646,8 +647,25 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     Histogramm_Show = settings["Plot"]['Histogramm_Show']
     Histogramm_Save = settings["Plot"]['Histogramm_Save']
     
+    min_diam = np.floor(np.min(sizes))
+    max_diam = np.ceil(np.max(sizes))
+    
     if settings["Plot"]["Histogramm_Bins_Auto"] == 1:
         settings["Plot"]["Histogramm_Bins"] = NumberOfBinsAuto(sizes_df_lin)
+        my_range = (min_diam, max_diam)
+        
+    else:
+        bin_nm = settings["Plot"]["Histogramm_Bin_size_nm"]
+    
+        # set min and maximum a multiple of bin_nm
+        min_diam = np.floor(min_diam / bin_nm) * bin_nm
+        max_diam = np.ceil(max_diam / bin_nm) * bin_nm
+    
+        bin_number = int(np.ceil((max_diam - min_diam) / bin_nm))
+        settings["Plot"]["Histogramm_Bins"] = bin_number 
+        
+        my_range = (min_diam, min_diam + bin_number * bin_nm)
+        
     if binning is None:
         #binning = np.arange(settings["Plot"]["Histogramm_Bins"])
         binning = settings["Plot"]["Histogramm_Bins"]
@@ -667,7 +685,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
 
     values_hist, ax = \
         nd.visualize.PlotDiameterHistogramm(sizes, binning, histogramm_min, 
-                                            histogramm_max, title, xlabel, ylabel)
+                                            histogramm_max, title, xlabel, ylabel, my_range = my_range)
     if showInvHist:
         inv_diams = 1000/sizes # 1/um
         values_invHist, ax0 = PlotDiameterHistogramm(inv_diams, 40, histogramm_min = inv_diams.min(), 
@@ -683,7 +701,11 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
         nd.visualize.PlotInfobox1N(ax, sizes)
     
     if settings["Plot"]["Histogramm_Fit_1_Particle"] == 1:
-        diam_grid = np.linspace(histogramm_min,histogramm_max,1000) # equidistant grid
+        if histogramm_min != 0:
+            diam_grid = np.linspace(histogramm_min,histogramm_max,1000) # equidistant grid
+        else:
+            diam_grid = np.linspace(1E-5,histogramm_max,1000) # equidistant grid
+            
         grid_stepsizes = (diam_grid[1]-diam_grid[0])*np.ones_like(diam_grid)
         max_hist = values_hist.max()
         
@@ -997,8 +1019,13 @@ def PlotReciprGauss1Size(ax, diam_grid, diam_grid_stepsizes, max_y, sizes, fitIn
         
         diam_inv_mean, diam_inv_std, diam_inv_median, diam_inv_CI68, diam_inv_CI95 = \
             nd.statistics.StatisticOneParticle(sizes)
-            
+         
+        diam_grid = diam_grid[diam_grid > 0]   
+         
         diam_grid_inv = 1000/diam_grid # 1/um
+        
+        # max_non_inf = np.max(diam_grid_inv[np.isinf(diam_grid_inv) == False])
+        # diam_grid_inv[np.isinf(diam_grid_inv)] = max_non_inf
         
         prob_diam_inv_1size = \
             scipy.stats.norm(diam_inv_mean,diam_inv_std).pdf(diam_grid_inv)
@@ -1190,7 +1217,8 @@ def PlotInfobox1N(ax, sizes):
     textstr = '\n'.join([
     r'$\mathrm{median}=  %.1f$ nm' % (my_median),
     # r'$\mu_{\mathrm{inv}} = %.1f$ nm' % (my_mean),
-    r'$\mu = %.1f$ nm, CV$_{\mathrm{inv}}$ = %.3f' % (my_mean, CV),
+    r'$\mu = %.1f$ nm' % (my_mean),
+    r'CV$_{\mathrm{inv}}$ = %.3f' % (CV),
     r'$1 \sigma_{\mathrm{q}} = [%.1f, %.1f]$ nm' %(diam_68[0], diam_68[1]), 
     r'$2 \sigma_{\mathrm{q}} = [%.1f, %.1f]$ nm' %(diam_95[0], diam_95[1]), ])
     
@@ -1594,6 +1622,8 @@ def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, co
     from NanoObjectDetection.PlotProperties import axis_font, title_font
 
     t_ms = lagt_direct * 1000
+
+    plt.figure("MSD-Plot")
 
     # plotting msd-lag-time-tracks for all particles
     plt.plot(t_ms[:-1], mean_displ_direct,'k.', alpha = alpha_values) 
