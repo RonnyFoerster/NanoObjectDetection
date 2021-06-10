@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt # Libraries for plotting
 import sys
 import scipy
 import scipy.constants
+import multiprocessing
+from joblib import Parallel, delayed
+
 
 
 def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, 
@@ -43,21 +46,83 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
     any_successful_check = False
 
     partTotal = len(particle_list_value)
-    # LOOP THROUGH ALL THE PARTICLES
-    for i,particleid in enumerate(particle_list_value):
-        nd.logger.debug("Particle ID: {:.0f} ({:.0f}/{:.0f})".format(particleid,i,partTotal))
+    
+    
+    
+    
+    # make it parallel
+    def MSD_par(eval_tm, settings, yEval, any_successful_check, t_beforeDrift):
+        # nd.logger.debug("Particle ID: {:.0f} ({:.0f}/{:.0f})".format(particleid,i,partTotal))
 
         # select trajectory to analyze
-        eval_tm = t6_final_use[t6_final_use.particle==particleid]
+        # eval_tm = t6_final_use[t6_final_use.particle==particleid]
 
         # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
         sizes_df_particle, OptimizingStatus = OptimizeMSD(eval_tm, settings, yEval, any_successful_check, t_beforeDrift = t_beforeDrift)
 
+    
         if OptimizingStatus == "Successful":
             any_successful_check = True
             # after the optimization is done -save the result in a large pandas.DataFrame
-            sizes_df_lin = sizes_df_lin.append(sizes_df_particle)
+            # sizes_df_lin = sizes_df_lin.append(sizes_df_particle)
+            sizes_df_lin = sizes_df_particle
+        else:
+            sizes_df_lin = "invalid"
+            
+        return sizes_df_lin, any_successful_check 
+    
+    
+    num_cores = multiprocessing.cpu_count()
+    # num_cores = 1
+    nd.logger.info("MSD analysis in parallel (Number of cores: %s)", num_cores)
+    
+    nd.logger.warning("MSD Plot sacrificed for parallel processing. Try TrackPy instead if needed.")
+    
+    num_verbose = nd.handle_data.GetNumberVerbose()
+
+    # inputs = range(num_frames)
+    # particleid = enumerate(particle_list_value)
+
+    
+    output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(MSD_par)(t6_final_use[t6_final_use.particle == jj].copy(), settings, yEval, any_successful_check, t_beforeDrift) for jj in particle_list_value)
+
+    
+    # remove invalid entries
+    size_df_lin_valid = []
+    
+    for ii,jj in enumerate(output_list):
+        if type(jj[0]) == str:
+            nd.logger.debug("remove to short trajectory")
+        else:
+            size_df_lin_valid.append(jj[0])
+            
+            if jj[1] == True:
+                any_successful_check = True
+      
+    sizes_df_lin = pd.concat(size_df_lin_valid)
+            
+    
+    
+    # # LOOP THROUGH ALL THE PARTICLES
+    # for i,particleid in enumerate(particle_list_value):
+    #     nd.logger.debug("Particle ID: {:.0f} ({:.0f}/{:.0f})".format(particleid,i,partTotal))
+
+    #     # select trajectory to analyze
+    #     eval_tm = t6_final_use[t6_final_use.particle==particleid]
+
+    #     # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
+    #     sizes_df_particle, OptimizingStatus = OptimizeMSD(eval_tm, settings, yEval, any_successful_check, t_beforeDrift = t_beforeDrift)
+
+    #     if OptimizingStatus == "Successful":
+    #         any_successful_check = True
+    #         # after the optimization is done -save the result in a large pandas.DataFrame
+    #         sizes_df_lin = sizes_df_lin.append(sizes_df_particle)
                           
+    
+    min_brightness = settings["PostProcessing"]["MinimalBrightness"]
+    if min_brightness > 0:
+        if settings["Plot"]["UseRawMass"] == "mean":
+            sizes_df_lin = sizes_df_lin[sizes_df_lin["rawmass_mean"] > min_brightness]
     
     if settings["PostProcessing"]["ForceUltraUniform"] == 1:
         sizes_df_lin = nd.PostProcessing.ForceUltraUniformParticle(sizes_df_lin, ShowPlot = True)

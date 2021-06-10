@@ -1621,6 +1621,7 @@ def PlotGlobalDrift(d,settings,save=True):
 def MsdOverLagtime(lagt_direct, mean_displ_direct, mean_displ_fit_direct_lin, collect_data = None, alpha_values = 0.5, alpha_fit = 0.3):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
 
+
     t_ms = lagt_direct * 1000
 
     plt.figure("MSD-Plot")

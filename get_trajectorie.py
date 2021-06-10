@@ -748,6 +748,11 @@ def CutTrajAtIntensityJump_Main(ParameterJsonFile, t2_long):
         nd.logger.info("Dont cut trajectories at intensity jumps.")
         t4_cutted = t2_long.copy()
         t4_cutted_no_gaps = t2_long.copy()
+       
+        
+   #save the pandas
+    if settings["Plot"]["save_data2csv"] == 1:
+        nd.handle_data.pandas2csv(t4_cutted, settings["Plot"]["SaveFolder"], "t4_cutted")
         
     return t4_cutted, t4_cutted_no_gaps
 
