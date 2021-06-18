@@ -1139,8 +1139,10 @@ def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name):
     subdir = os.listdir(main_data_folder_name)
     
     for subdir_loop in subdir:
-        if os.path.isdir(subdir_loop) == True:
-            data_folder_name = main_data_folder_name + "\\" + subdir_loop
+        print(subdir_loop)
+        data_folder_name = main_data_folder_name + "\\" + subdir_loop
+        
+        if os.path.isdir(data_folder_name) == True:            
             
             SaveTifSeriesAsStack(data_folder_name)
     
