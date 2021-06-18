@@ -55,12 +55,12 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
             #estimate how many frames it needs to have enough particle to make the drift estimation
             num_particles_per_frame = t_drift.groupby("frame")["particle"].count().mean()
 
-            nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_per_frame)
+            drift_smoothing_frames = nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_per_frame)
 
         
         
         Do_transversal_drift_correction = settings["Drift"]["Do transversal drift correction"]    
-        drift_smoothing_frames          = settings["Drift"]["Drift smoothing frames"]    
+        # drift_smoothing_frames          = settings["Drift"]["Drift smoothing frames"]    
         rolling_window_size             = settings["Drift"]["Drift rolling window size"]    
         min_particle_per_block          = settings["Drift"]["Min particle per block"]    
         # min_tracking_frames             = settings["Link"]["Min_tracking_frames"]

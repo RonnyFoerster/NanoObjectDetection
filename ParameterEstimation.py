@@ -174,13 +174,13 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
         if num_particles_zncc == 0:
             nd.logger.warning("Zero normalized cross correlation (ZNCC) does not find any particle.")
         
-        # check how many frames are needed to get 200 frames
+        # check how many frames are needed to get 500 particles
         wanted_particles = 200
         num_frames = int(np.ceil(wanted_particles / num_particles_zncc)) + 1
         
-        if num_frames > 20: #otherwise computation time is to long
+        if num_frames > 50: #otherwise computation time is to long
             nd.logger.warning("Not many partiles found in each frame. To limit computation time, number of frames is limited to 20.")
-            num_frames = 20
+            num_frames = 50
         
         nd.logger.info("Estimated number of tested frames: %i", num_frames)
         
@@ -201,7 +201,18 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     plt.imshow(img_zncc[0,:,:])
     plt.title("zncc")
 
-    settings = OptimizeMinmassInTrackpyMain(settings, img_in_zncc, num_particles_zncc, pos_particles, DoDiameter)
+    # CLIP NEGATIVE VALUE
+    img_in_tp = img_in_zncc.copy()
+    if settings["PreProcessing"]["ClipNegativeValue"] == 1:
+        nd.logger.info('Set negative pixel values to 0: staring...')
+        nd.logger.warning("Ronny does not love clipping.")
+        img_in_tp[img_in_tp < 0] = 0
+        nd.logger.info('Set negative pixel values to 0: ...finished')
+    else:
+        nd.logger.info("Negative values in image kept")
+
+
+    settings = OptimizeMinmassInTrackpyMain(settings, img_in_tp, num_particles_zncc, pos_particles, DoDiameter)
 
     
     # plot the stuff - optionally
@@ -243,7 +254,7 @@ def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames, OneFrameO
         nd.logger.debug("Do cross-correlation. Frame %s from %s. Frame number: %s", (ii+1), num_frames, loop_frames)
         
         # select image of the loop
-        use_img = img_in_zncc[ii,:,:]
+        use_img = img_in_zncc[ii,:,:].copy()
         
         # only allow particles where the channel is estimated to be
         use_img[search_area == 0] = 0
@@ -330,6 +341,8 @@ def FindParticlesByZNCC(img1, settings, num_verbose = 5):
     # find objects in zncc
     correl_min = 0.60
     correl_min = 0.70
+    correl_min = settings["PreProcessing"]["ZNCC_min"]
+    nd.logger.info("Threshold zncc at %.2f", correl_min)
        
     # get positions of located spots and number of located particles
     pos_particles, num_particles_zncc = FindParticles(img_zncc, correl_min)
@@ -650,6 +663,8 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             
         count_loops = count_loops + 1    
         
+        
+        
         output = tp.batch(img1, diameter, minmass = minmass, separation = separation, max_iterations = 10, preprocess = DoPreProcessing, percentile = percentile)
         # num of found particles by trackpy
         num_particles_trackpy = len(output)
@@ -796,28 +811,30 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
 
 def PlotImageProcessing(img, img_zncc, pos_particles):
     
+    
+    fig,ax = plt.subplots(nrows = 4, ncols=1, sharex=True, sharey=True)
+    # plt.subplot(4, 1, 1, sharex=True, sharey=True)
+    # plt.imshow(np.abs(img), cmap = 'gray')
+    ax[0].imshow(img, cmap = 'gray')
+    ax[0].set_title("image in")
+    
     #avoid negative values
     img = img - np.min(img)
     
-    plt.subplot(4, 1, 1)
-    # plt.imshow(np.abs(img), cmap = 'gray')
-    plt.imshow(img, cmap = 'gray')
-    plt.title("image in")
+    # ax[0].subplot(4, 1, 2)
+    ax[1].imshow(img**0.3, cmap = 'gray')
+    ax[1].set_title("image in (gamma = 0.3)")
     
-    plt.subplot(4, 1, 2)
-    plt.imshow(img**0.3, cmap = 'gray')
-    plt.title("image in (gamma = 0.3)")
+    # plt.subplot(4, 1, 3)
+    ax[2].imshow(np.abs(img_zncc), cmap = 'jet')
+    ax[2].set_title("zero normalized cross correlation")
     
-    plt.subplot(4, 1, 3)
-    plt.imshow(np.abs(img_zncc), cmap = 'jet')
-    plt.title("zero normalized cross correlation")
-    
-    plt.subplot(4, 1, 4)
-    plt.scatter(pos_particles[:,1], pos_particles[:,0])
-    plt.title("identified particles")
-    plt.axis("scaled")
-    plt.gca().set_ylim([img_zncc.shape[0],0])
-    plt.gca().set_xlim([0,img_zncc.shape[1]])
+    # plt.subplot(4, 1, 4)
+    ax[3].scatter(pos_particles[:,1], pos_particles[:,0])
+    ax[3].set_title("identified particles")
+    ax[3].axis("scaled")
+    ax[3].set_ylim([img_zncc.shape[0],0])
+    ax[3].set_xlim([0,img_zncc.shape[1]])
 
 
 
@@ -966,6 +983,7 @@ def Drift(ParameterJsonFile, num_particles_per_frame):
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
+    return average_frames
 
 
 def MaxRelIntensityJump(ParameterJsonFile):
