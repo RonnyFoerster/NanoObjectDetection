@@ -43,6 +43,15 @@ def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, UseLog = False, di
         obj_all = nd.Simulation.PrepareRandomWalk(ParameterJsonFile,oldSim=oldSim)
 
     else:
+        # CLIP NEGATIVE VALUE
+        if settings["PreProcessing"]["ClipNegativeValue"] == 1:
+            nd.logger.info('Set negative pixel values to 0: staring...')
+            nd.logger.warning("Ronny does not love clipping.")
+            rawframes_pre[rawframes_pre < 0] = 0
+            nd.logger.info('Set negative pixel values to 0: ...finished')
+        else:
+            nd.logger.info("Negative values in image kept")
+        
         # get the parameters
         ImgConvolvedWithPSF = settings["PreProcessing"]["EnhanceSNR"]
         DoPreProcessing = (ImgConvolvedWithPSF == False)
@@ -506,10 +515,12 @@ def RemoveSpotsInNoGoAreas(obj, t2_long_fix, ParameterJsonFile, min_distance = N
             # get the norm
             # THIS ALSO ACCOUNT FOR THE TIME DIMENSION!
             # --> IF THE STATIONARY OBJECT VANISHED ITS "SHADOW" CAN STILL DELETE A MOVING PARTICLE
-            mynorm = np.linalg.norm(mydiff.values,axis=1)
+            # mynorm = np.linalg.norm(mydiff.values,axis=1)
+            mydiff["r"] = np.sqrt(np.square(mydiff).sum(axis = 1))
 
             # check for which particles the criteria of minimum distance is fulfilled
-            valid_distance = mynorm > min_distance
+            # valid_distance = mynorm > min_distance
+            valid_distance = mydiff["r"] > min_distance
 
             # keep only the good ones
             obj = obj[valid_distance]
