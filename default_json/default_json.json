@@ -72,7 +72,8 @@
           "Do_or_apply_data_rotation": 0,
           "rot_angle": 0,
           "EnhanceSNR": 0,
-          "KernelSize": "auto"
+          "KernelSize": "auto",
+          "ZNCC_min": 0.70
      },
      "Help": {
           "ROI": 0,
@@ -136,6 +137,7 @@
      },
      "PostProcessing": {
           "MinimalBrightness": 0,
+          "MaxDiameter": 0,
           "ForceUltraUniform": 0
      },
      "Plot": {
