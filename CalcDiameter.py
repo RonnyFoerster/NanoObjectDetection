@@ -124,6 +124,12 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
         if settings["Plot"]["UseRawMass"] == "mean":
             sizes_df_lin = sizes_df_lin[sizes_df_lin["rawmass_mean"] > min_brightness]
     
+    
+    MaxDiameter = settings["PostProcessing"]["MaxDiameter"]
+    if MaxDiameter > 0:
+        sizes_df_lin = sizes_df_lin[sizes_df_lin.diameter < MaxDiameter]
+    
+    
     if settings["PostProcessing"]["ForceUltraUniform"] == 1:
         sizes_df_lin = nd.PostProcessing.ForceUltraUniformParticle(sizes_df_lin, ShowPlot = True)
     
@@ -1165,6 +1171,7 @@ def AdjustMSDPlot(MSD_fit_Show):
         #get maximum value of lagtime and msd
         y_min, y_max, x_min, x_max = GetLimitOfPlottedLineData(ax_msd)
         
+
         ax_msd.set_xlim([0, 1.1*x_max])
         ax_msd.set_ylim([0, 1.1*y_max])
 
