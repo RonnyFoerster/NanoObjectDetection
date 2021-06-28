@@ -32,6 +32,7 @@ import datetime
 from pdb import set_trace as bp #debugger
 import scipy
 import os.path
+import time
 
 import NanoObjectDetection as nd
 
@@ -1402,7 +1403,9 @@ def export(save_folder_name, save_image_name, settings = None, use_dpi = None, d
         plt.close(plt.gcf())   
     elif ShowPlot == -1:
         nd.logger.info("You can prevent the plot to be shown if you just wanna save it in the export function")
-        
+    
+    #   wait 1 second for unique label
+    time.sleep(1)
          
     return settings
 

@@ -138,7 +138,7 @@
      "PostProcessing": {
           "MinimalBrightness": 0,
           "MaxDiameter": 0,
-          "ForceUltraUniform": 0
+          "ForceUltraUniform": 1
      },
      "Plot": {
           "Background_Show": 0,
@@ -155,8 +155,8 @@
           "Histogramm_time_Save": 0,
           "Histogramm_Bins_Auto": 0,
           "Histogramm_Bins": 3,
-          "Histogramm_Bin_size_nm": 5,
-          "Histogramm_min_max_auto": 0,
+          "Histogramm_Bin_size_nm": 2,
+          "Histogramm_min_max_auto": 1,
           "Histogramm_min": 0,
           "Histogramm_max": 200.0,
           "DiameterPDF_Show": 1,

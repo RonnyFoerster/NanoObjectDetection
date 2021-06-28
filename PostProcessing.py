@@ -52,6 +52,7 @@ def ForceUltraUniformParticle(sizes_df_lin, ShowPlot = False):
         mean = data["diameter"].median()
         
         data.loc[:,"std"] = data.diameter.rolling(roll_area, min_periods = 1, center = True).apply(MyStd)
+
         
         nd.logger.debug("mean: %.0f", mean)
         
