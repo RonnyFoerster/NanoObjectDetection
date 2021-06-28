@@ -1133,7 +1133,7 @@ def FitSVM(sizes_df_lin):
         plt.show()
 
 
-def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name):
+def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = True):
     import os
     
     subdir = os.listdir(main_data_folder_name)
@@ -1142,18 +1142,23 @@ def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name):
         print(subdir_loop)
         data_folder_name = main_data_folder_name + "\\" + subdir_loop
         
-        if os.path.isdir(data_folder_name) == True:            
+        if os.path.isdir(data_folder_name) == True:   
+            data_tif_name = main_data_folder_name + "\\" + subdir_loop + "\\" + subdir_loop + ".tif"
             
-            SaveTifSeriesAsStack(data_folder_name)
+            SaveTifSeriesAsStack(data_folder_name, CreateSubFolder = True, data_tif_name = data_tif_name)
     
     
 
-def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True):
+def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True, CreateSubFolder = False, data_tif_name = None):
     from skimage import io
     
-    rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name, ShowProgress = ShowProgress)
+    rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name, ShowProgress = ShowProgress, CreateSubFolder = CreateSubFolder)
     
-    data_folder_name_tif = data_folder_name + ".tif"
+    if CreateSubFolder == False:
+        data_folder_name_tif = data_folder_name + ".tif"
+    else:
+        data_folder_name_tif = data_tif_name
+
     
     io.imsave(data_folder_name_tif, rawframes_np)
     

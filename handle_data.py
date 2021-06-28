@@ -9,6 +9,7 @@ This module take care about reading, writing, changing and simple analysis of th
 
 # Importing neccessary libraries
 
+import shutil
 import numpy as np # Library for array-manipulation
 import matplotlib.pyplot as plt # Libraries for plotting
 import sys
@@ -442,7 +443,7 @@ def ReadTiffStack2Numpy(data_file_name):
 
 
 
-def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress = False):
+def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress = False, CreateSubFolder = False):
     """ read a tiff series in """
     
     nd.logger.info('read file: %s', data_folder_name)
@@ -461,7 +462,8 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
         is_tif = fnmatch.fnmatch(fname, '*.tif')
         is_tiff = fnmatch.fnmatch(fname, '*.tiff')
         if is_tif or is_tiff:
-            im = Image.open(os.path.join(data_folder_name, fname))
+            full_path_fname = os.path.join(data_folder_name, fname)
+            im = Image.open(full_path_fname)
             imarray = np.array(im)
             rawframes_np.append(imarray)
             
@@ -469,6 +471,16 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
             if num_frames_count >= use_num_frame: # break loop if number of frames is reached
                 nd.logger.warning("Stop reading in after %s frames are read in", num_frames_count)
                 break
+            
+            if CreateSubFolder == True:
+                full_path_fname_new = os.path.join(data_folder_name, "tif_series", fname)
+                
+                try:
+                    shutil.move(full_path_fname, full_path_fname_new)
+                except:
+                    os.mkdir(os.path.join(data_folder_name, "tif_series")) 
+                    shutil.move(full_path_fname, full_path_fname_new)
+            
         else:
             nd.logger.debug('%s is not a >tif<  file. Skipped it.', fname)
     
