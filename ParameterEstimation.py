@@ -972,7 +972,7 @@ def Drift(ParameterJsonFile, num_particles_per_frame):
     # on the other hand drift changes - so averaging over many time frames reduces the temporal resolution
     
     # I assume that 1000 particles need to be averaged to separte drift from random motion
-    required_particles = 1000
+    required_particles = 100
 
     #average_frames is applied in tp.drift. It is the number of >additional< follwing frames a drift is calculated. Meaning if a frame has 80 particles, it needs 2 frames to have more than 100 particles to average about. These two frame is the current and 1 addition one. That's why floor is used.
     average_frames = int(np.floor(required_particles/num_particles_per_frame))

@@ -76,7 +76,8 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
     # num_cores = 1
     nd.logger.info("MSD analysis in parallel (Number of cores: %s)", num_cores)
     
-    nd.logger.warning("MSD Plot sacrificed for parallel processing. Try TrackPy instead if needed.")
+    if (settings["Plot"]["MSD_fit_Show"] == 1) or (settings["Plot"]["MSD_fit_Save"]== 1):
+        nd.logger.error("MSD Plot sacrificed for parallel processing. Try TrackPy instead if needed. Set MSD_fit_Show and MSD_fit_Save to 0.")
     
     num_verbose = nd.handle_data.GetNumberVerbose()
 

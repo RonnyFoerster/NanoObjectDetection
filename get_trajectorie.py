@@ -353,14 +353,6 @@ def filter_stubs(traj_all, ParameterJsonFile, FixedParticles = False,
         #ID of VALID particles that have sufficent trajectory length
     valid_particle_number = traj_min_length['particle'].unique();
 
-    # check if the trajectories follow brownian motion after the drift correction.
-    if (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==True):
-        #check if the histogram of each particle displacement is Gaussian shaped
-        traj_min_length = CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorIfTestFails)
-        
-    elif (FixedParticles==False) and (BeforeDriftCorrection==False) and (ErrorCheck==False):
-        nd.logger.warning("Test for unbrownian motion is skipped.")
-
 
     #save the pandas
     if settings["Plot"]["save_data2csv"] == 1:
@@ -417,24 +409,28 @@ def DisplayNumDroppedTraj(traj_all, traj_min_length, FixedParticles, BeforeDrift
             raise ValueError
 
 
-def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorIfTestFails):
+def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotErrorIfTestFails, yEval = False):
     """
     Check each Trajectory if its pure Brownian motion by a Kolmogorow-Smirnow test
     """
     
-    nd.logger.info("Remove non-gaussian trajectories: starting...")
+    if yEval == False:
+        nd.logger.info("Remove non-gaussian trajectories - x: starting...")
+    else:
+        nd.logger.info("Remove non-gaussian trajectories - y: starting...")    
     
     # add a new column to the final df
     traj_min_length['stat_sign'] = 0    
     
     for i,particleid in enumerate(valid_particle_number):
+        # nd.logger.debug("particleid: %.0f", particleid)
         # print("particleid: ", particleid)
         # select traj to analyze in loop
         eval_tm = traj_min_length[traj_min_length.particle == particleid]
 
         # get the misplacement value of the first lagtime for the Kolmogorov test out of the MSD analysis (discard the rest of the outputs)
         nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
-        nd.CalcDiameter.CalcMSD(eval_tm, lagtimes_min = 1, lagtimes_max = 1)
+        nd.CalcDiameter.CalcMSD(eval_tm, lagtimes_min = 1, lagtimes_max = 1, yEval = yEval)
 
         # put the misplacement vector into the Kolmogorow-Smirnow significance test
         traj_has_error, stat_sign, dx = \
@@ -442,7 +438,7 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
 
         if traj_has_error == True:
             #remove if traj has error
-            nd.logger.info("Drop particleID: %s (Significance = %.6f)", particleid, stat_sign)
+            nd.logger.debug("Drop particleID: %s (Significance = %.6f)", particleid, stat_sign)
             
             #drop particles with unbrownian trajectory
             # traj_min_length = traj_min_length[traj_min_length.particle!=particleid]
@@ -459,7 +455,7 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
     num_before = len(valid_particle_number)
     num_after = len(traj_min_length['particle'].unique());
     num_lost = num_before - num_after
-    dropped_ratio = num_lost / num_before * 100
+    dropped_ratio = np.ceil(num_lost / num_before * 100)
 
     nd.logger.info("Remove non-gaussian trajectories: ...finished")
     nd.logger.info("Before: %d, After: %d, Removed: %d (%d%%) ", num_before, num_after , num_lost, dropped_ratio)
