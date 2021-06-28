@@ -128,8 +128,9 @@ def NewEvaluation():
           \n 1 - new \
           \n 2 - 1250b3 \
           \n 3 - 1276b1_start \
+          \n 4 - 18um Lightcage \
           \n\n"
-        , ["1", "2", "3"])
+        , ["1", "2", "3", "4"])
     
     
     if pre_select in [2,3]:
@@ -144,6 +145,10 @@ def NewEvaluation():
             nd.logger.info("Load: Fiber 1267b1_start")
             path_json_origin = nd_path + "\\default_json\\fiber\\1267b1_start.json"
             nd.logger.warning("RF: FIRST RUN: CHECK IF THAT WORKS PROPERLY!")
+            
+        elif pre_select == 3:
+            nd.logger.info("Load: LightCage.json")
+            path_json_origin = nd_path + "\\default_json\\fiber\\LightCage.json"
             
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)
