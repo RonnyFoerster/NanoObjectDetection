@@ -85,16 +85,18 @@ t5_no_drift = nd.Drift.Main(t4_cutted, ParameterJsonFile, PlotGlobalDrift = True
 t6_final = nd.get_trajectorie.filter_stubs(t5_no_drift, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, PlotErrorIfTestFails = False)
 
 
-#%% calculate the MSD and process to diffusion and diameter
-# sizes_df_lin, sizes_df_lin_rolling , any_successful_check = nd.CalcDiameter.Main(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True, t_beforeDrift = t4_cutted)
+#%% calculate the MSD and process to diffusion and diameter - LONGITUDINAL
+sizes_df_lin_x, any_successful_check = nd.CalcDiameter.Main2(t6_final, ParameterJsonFile, MSD_fit_Show = True)
 
-sizes_df_lin, any_successful_check = nd.CalcDiameter.Main2(t6_final, ParameterJsonFile, MSD_fit_Show = True)
+nd.CalcDiameter.SummaryEval(settings, rawframes_pre, obj_moving, t1_orig, t2_long, t5_no_drift, t6_final, sizes_df_lin_x)
 
-#sizes_df_lin, any_successful_check = nd.CalcDiameter.OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, MSD_fit_Show = True, t_beforeDrift = t4_cutted)
+#%% visualize results - LONGITUDINAL
+nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin_x, any_successful_check)
 
-nd.CalcDiameter.SummaryEval(settings, rawframes_pre, obj_moving, t1_orig, t2_long, t5_no_drift, t6_final, sizes_df_lin)
 
-#%% visualize results
-nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check)
+#%% repeat for TRANSVERSAL direction
+sizes_df_lin_y, any_successful_check = nd.CalcDiameter.Main2(t6_final, ParameterJsonFile, MSD_fit_Show = True, yEval = True)
 
-#nd.visualize.AnimateDiameterAndRawData_Big2(rawframes_ROI, static_background, rawframes_pre, sizes_df_lin, t4_cutted_no_gaps, ParameterJsonFile)
+nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin_y, any_successful_check, yEval = True)
+
+

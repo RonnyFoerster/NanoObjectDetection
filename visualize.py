@@ -206,7 +206,7 @@ def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None, ShowColorBa
     
     
 
-def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
+def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None, yEval = False):
     """ plot and/or save diameter histogram (or other statistics) for analyzed particles 
     (main function)
     """
@@ -228,20 +228,20 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogr
         if show_hist or save_hist:
             do_weighting = settings["Plot"]["Histogramm_abs_or_rel"]
             if do_weighting in ["both", "abs"]:
-                DiameterHistogramm(ParameterJsonFile, sizes_df_lin, weighting = False)
+                DiameterHistogramm(ParameterJsonFile, sizes_df_lin, weighting = False, yEval = yEval)
             if do_weighting in ["both", "rel"]:
-                DiameterHistogramm(ParameterJsonFile, sizes_df_lin, weighting = True)
+                DiameterHistogramm(ParameterJsonFile, sizes_df_lin, weighting = True, yEval = yEval)
 
 
         show_pdf, save_pdf = settings["Plot"]["DiameterPDF_Show"], settings["Plot"]["DiameterPDF_Save"]
         if show_pdf or save_pdf:
-            PlotDiameterPDF(ParameterJsonFile, sizes_df_lin)
+            PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, yEval = yEval)
 
         
         show_diam_traj, save_diam_traj = settings["Plot"]["DiamOverTraj_Show"], settings["Plot"]["DiamOverTraj_Save"]
         if show_diam_traj or save_diam_traj:
             color_type = settings["Plot"]["UseRawMass"]
-            DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin.sort_values("rawmass_mean"), show_diam_traj, save_diam_traj, color_type = color_type)
+            DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin.sort_values("rawmass_mean"), show_diam_traj, save_diam_traj, color_type = color_type, yEval = yEval)
 
 
         show_hist_time, save_hist_time = settings["Plot"]["Histogramm_time_Show"], settings["Plot"]["Histogramm_time_Save"]
@@ -358,7 +358,7 @@ def ShowAllCorrel(sizes_df_lin,min_correl = 0.4):
 
 
 
-def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None, color_type = None):
+def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None, color_type = None, yEval = False):
     """ plot (and save) calculated particle diameters vs. the number of frames
     where the individual particle is visible (in standardized format) """
         
@@ -384,7 +384,11 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     # histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
     # histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
     
-    my_title = "Particle size over tracking time"
+    if yEval == True:
+        my_title = "Trans. Particle size over tracking time"
+    else:
+        my_title = "Long. Particle size over tracking time"
+        
     my_ylabel = "Diameter [nm]"
     my_xlabel = "Trajectory length [frames]"
     
@@ -412,8 +416,12 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
                   myalpha = 0.9, x_min_max = x_min_max, y_min_max = y_min_max, log = True, cmap = 'jet', ShowLegend = True, ShowLegendTitle = ShowLegendTitle)
  
     if save_plot == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "DiameterOverTrajLength",
-                                       settings, data = sizes_df_lin, ShowPlot = show_plot)
+        if yEval == True:
+            my_title = "DiameterOverTrajLength_trans"
+        else:
+            my_title = "DiameterOverTrajLength_long"
+        
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], my_title, settings, data = sizes_df_lin, ShowPlot = show_plot)
 
 
 
@@ -612,7 +620,7 @@ def NumberOfBinsAuto(mydata, average_height = 4):
 def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, 
                        histogramm_max = None, Histogramm_min_max_auto = None, 
                        binning = None, weighting=False, num_dist_max=2, fitInvSizes=True,
-                       showInfobox=True, fitNdist=False, showICplot=False, showInvHist=False):
+                       showInfobox=True, fitNdist=False, showICplot=False, showInvHist=False, yEval = False):
     """ wrapper for plotting a histogram of particles sizes, 
     optionally with statistical information or distribution model in sizes
     or inverse sizes space
@@ -627,7 +635,10 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
     showICplot : separately plot AIC and BIC over N for all considered models
     """
     
-    title = 'Amount of trajectories analyzed = %r' % len(sizes_df_lin)
+    if yEval == False:
+        title = 'Amount of long. trajectories analyzed = %r' % len(sizes_df_lin)
+    else:
+        title = 'Amount of trans. trajectories analyzed = %r' % len(sizes_df_lin)
     
     if weighting==True:
         # repeat each size value as often as the particle appears in the data
@@ -735,7 +746,19 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None,
                 nd.visualize.PlotInfoboxMN(ax, diam_means, CVs, weights, medians)
             
     if Histogramm_Save == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
+        if yEval == True:
+            if weighting == True:
+                my_title = "Diameter_Histogramm-tran-weighted"
+            else:
+                my_title = "Diameter_Histogramm-tran-unweighted"
+        else:
+            if weighting == True:
+                my_title = "Diameter_Histogramm-long-weighted"
+            else:
+                my_title = "Diameter_Histogramm-long-unweighted"
+            
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], my_title, settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
+        
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
     
@@ -759,10 +782,7 @@ def PlotVlines(ax, PDF, grid, mean, median, CI68, CI95, mycolor):
 
 
 
-def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True,
-                    fitInInvSpace=True, invGridEquidist=True, PDF_min_max_auto = None, 
-                    nComponentsFit=1, statsInfoTitle=True, showFitInfobox=True, useCRLB=True, 
-                    fillplot=True, mycolor='C2', plotVlines=True, plotComponents=True):
+def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True, fitInInvSpace=True, invGridEquidist=True, PDF_min_max_auto = None, nComponentsFit=1, statsInfoTitle=True, showFitInfobox=True, useCRLB=True, fillplot=True, mycolor='C2', plotVlines=True, plotComponents=True, yEval = False):
     """ plot and optionally fit the diameter probability density function of 
     a particle ensemble as the sum of individual PDFs
     
@@ -839,8 +859,11 @@ def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True,
         PDF_max = int(np.ceil(PDF_max))
         
     # define plot labeling and axes limits
-    if statsInfoTitle:    
-        title = str("{:.0f} trajectories; mean: {:.2f}, median: {:.2f},\nCI68: [{:.2f}, {:.2f}], CI95: [{:.2f}, {:.2f}] ".format(num_trajectories,mean,median,*CI68,*CI95) + unit)
+    if statsInfoTitle:
+        if yEval == True:
+            title = str("{:.0f} trans. trajectories; mean: {:.2f}, median: {:.2f},\nCI68: [{:.2f}, {:.2f}], CI95: [{:.2f}, {:.2f}] ".format(num_trajectories,mean,median,*CI68,*CI95) + unit)
+        else:
+            title = str("{:.0f} long. trajectories; mean: {:.2f}, median: {:.2f},\nCI68: [{:.2f}, {:.2f}], CI95: [{:.2f}, {:.2f}] ".format(num_trajectories,mean,median,*CI68,*CI95) + unit)
     else:
         title = str("{:.0f} trajectories".format(num_trajectories))
     xlabel = prefix +"iameter ["+unit+"]"
@@ -983,10 +1006,15 @@ def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True,
     if DiameterPDF_Save:
         save_folder_name = settings["Plot"]["SaveFolder"]
         
-        settings = nd.visualize.export(save_folder_name, "Diameter_Probability", settings, data = sizes_df_lin, ShowPlot = DiameterPDF_Show)
+        if yEval == True:
+            my_title = "Diameter_Probability_trans"
+        else:
+            my_title = "Diameter_Probability_long"
         
-        data = np.transpose(np.asarray([grid, PDF]))
-        nd.visualize.save_plot_points(data, save_folder_name, 'Diameter_Probability_Data')
+        settings = nd.visualize.export(save_folder_name, my_title, settings, data = sizes_df_lin, ShowPlot = DiameterPDF_Show)
+        
+        # data = np.transpose(np.asarray([grid, PDF]))
+        # nd.visualize.save_plot_points(data, save_folder_name, 'Diameter_Probability_Data')
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
