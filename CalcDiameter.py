@@ -48,8 +48,6 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
     partTotal = len(particle_list_value)
     
     
-    
-    
     # make it parallel
     def MSD_par(eval_tm, settings, yEval, any_successful_check, t_beforeDrift):
         # nd.logger.debug("Particle ID: {:.0f} ({:.0f}/{:.0f})".format(particleid,i,partTotal))
@@ -101,24 +99,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
                 any_successful_check = True
       
     sizes_df_lin = pd.concat(size_df_lin_valid)
-            
-    
-    
-    # # LOOP THROUGH ALL THE PARTICLES
-    # for i,particleid in enumerate(particle_list_value):
-    #     nd.logger.debug("Particle ID: {:.0f} ({:.0f}/{:.0f})".format(particleid,i,partTotal))
-
-    #     # select trajectory to analyze
-    #     eval_tm = t6_final_use[t6_final_use.particle==particleid]
-
-    #     # CALCULATE MSD, FIT IT AND OPTIMIZE PARAMETERS
-    #     sizes_df_particle, OptimizingStatus = OptimizeMSD(eval_tm, settings, yEval, any_successful_check, t_beforeDrift = t_beforeDrift)
-
-    #     if OptimizingStatus == "Successful":
-    #         any_successful_check = True
-    #         # after the optimization is done -save the result in a large pandas.DataFrame
-    #         sizes_df_lin = sizes_df_lin.append(sizes_df_particle)
-                          
+                                      
     
     min_brightness = settings["PostProcessing"]["MinimalBrightness"]
     if min_brightness > 0:
@@ -138,7 +119,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False,
         nd.logger.warning("No particle made it to the end!")
         
     else:
-        ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin)       
+        ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin, yEval = yEval)       
     
     nd.logger.info("WARNING sizes_df_lin_rolling is removed!!!")
     
@@ -250,7 +231,7 @@ def MSDFitLagtimes(settings, eval_tm, amount_lagtimes_auto = None):
 
 
 
-def ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin):
+def ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin, yEval = False):
     MSD_fit_Show = settings["Plot"]['MSD_fit_Show']
     MSD_fit_Save = settings["Plot"]['MSD_fit_Save']
     
@@ -262,15 +243,19 @@ def ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin):
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "MSD_Fit", settings, ShowPlot = settings["Plot"]["MSD_fit_Show"])
     
     if settings["Plot"]["save_data2csv"] == True:
-        sizes_df_lin2csv(settings, sizes_df_lin)        
+        sizes_df_lin2csv(settings, sizes_df_lin, yEval = yEval)        
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
 
 
-def sizes_df_lin2csv(settings, sizes_df_lin):
+def sizes_df_lin2csv(settings, sizes_df_lin, yEval = False):
     save_folder_name = settings["Plot"]["SaveFolder"]
-    save_file_name = "sizes_df_lin"
+    
+    if yEval == True:
+        save_file_name = "sizes_df_lin_trans"
+    else:
+        save_file_name = "sizes_df_lin_long"
     my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
     sizes_df_lin.to_csv(entire_path_file)
     nd.logger.info('Data stored in: %s', format(my_dir_name))
