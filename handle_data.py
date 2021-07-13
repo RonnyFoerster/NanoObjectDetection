@@ -452,6 +452,16 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
         use_num_frame = 1000000000
     num_frames_count = 0
     
+    # create the subfolder the images are moved to, if the feature is switched on
+    if CreateSubFolder == True:
+        path_subfolder = os.path.join(data_folder_name, "tif_series")
+        
+        #check if directory exists
+        if os.path.isdir(path_subfolder) == False:
+            nd.logger.info("Create tif subfolder to move images into")
+            os.mkdir(path_subfolder) 
+            
+    
     rawframes_np = []
 #    for fname in os.listdir(data_folder_name):
     for fname in sorted(os.listdir(data_folder_name)): #sorted in case it is unsorted
@@ -472,14 +482,19 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
                 nd.logger.warning("Stop reading in after %s frames are read in", num_frames_count)
                 break
             
+            #move image if feature is switched on
             if CreateSubFolder == True:
-                full_path_fname_new = os.path.join(data_folder_name, "tif_series", fname)
-                
-                try:
-                    shutil.move(full_path_fname, full_path_fname_new)
-                except:
-                    os.mkdir(os.path.join(data_folder_name, "tif_series")) 
-                    shutil.move(full_path_fname, full_path_fname_new)
+                full_path_fname_new = os.path.join(path_subfolder, fname)
+                nd.logger.debug("store in: %s", full_path_fname_new)
+                shutil.move(full_path_fname, full_path_fname_new)
+
+
+                # try:
+                #     shutil.move(full_path_fname, full_path_fname_new)
+                # except:
+                #     nd.logger.warning("Tif Folder not existing - one is created")
+                #     os.mkdir(os.path.join(data_folder_name, "tif_series")) 
+                #     shutil.move(full_path_fname, full_path_fname_new)
             
         else:
             nd.logger.debug('%s is not a >tif<  file. Skipped it.', fname)
