@@ -1641,9 +1641,9 @@ def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = N
 
     print("I_mean: ", I_mean)
 
-    plt.figure()
-    # plt.hist(sim_part["r"], bins = 100)
-    plt.hist(sim_part["I"], bins = 100)
+    # plt.figure()
+    # # plt.hist(sim_part["r"], bins = 100)
+    # plt.hist(sim_part["I"], bins = 100)
 
     I_mean_mean = np.mean(I_mean)
     I_mean_std = np.std(I_mean)
