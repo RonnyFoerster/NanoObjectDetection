@@ -17,6 +17,7 @@ import json
 from tkinter import filedialog
 
 
+
 def NewEvaluation():
     # In[Data Path and Type]
     
@@ -256,4 +257,6 @@ def NewEvaluation():
     # print("Make slash and backslash right")
 
     print("\nGo to \n{}\n in the explorer and open the py-script and json parameter file.".format(dir_results.replace("/","\\")))
+    
+    
     

@@ -23,6 +23,7 @@ import warnings
 from joblib import Parallel, delayed
 import multiprocessing
 
+
 import NanoObjectDetection as nd
 
 
@@ -511,33 +512,6 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
 
 
 
-def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name):
-    import os
-    
-    subdir = os.listdir(main_data_folder_name)
-    
-    for subdir_loop in subdir:
-        if os.path.isdir(subdir_loop) == True:
-            data_folder_name = main_data_folder_name + "\\" + subdir_loop
-            
-            print("PROCESS SUBFOLDER - START: ", subdir_loop)
-            
-            SaveTifSeriesAsStack(data_folder_name)
-            
-            print("PROCESS SUBFOLDER - FINISHED: ", subdir_loop)
-
-
-def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True):
-    from skimage import io
-    
-    rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name, ShowProgress = ShowProgress)
-    
-    data_folder_name_tif = data_folder_name + ".tif"
-    
-    io.imsave(data_folder_name_tif, rawframes_np)
-
-
-
 def ReadFits2Numpy(data_file_name):
     """ read a fits image in """
     
@@ -962,3 +936,71 @@ def pandas2csv(my_pandas, save_folder_name, save_file_name, write_index = False)
     my_pandas.to_csv(entire_path_file, index = write_index)
     
     nd.logger.info('Data stored in: %s', format(my_dir_name))
+    
+    
+    
+def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = True):
+    """
+    Runs SaveTifSeriesAsStack to all Directories in a given path. The tif files must be in the subdirectories
+
+    Parameters
+    ----------
+    main_data_folder_name : TYPE
+        Path to the folder where the required subfolders are in.
+    CreateSubFolder : TYPE, optional
+        Move tif to subsubdirectory in each subdirectory. The default is True.
+
+    Returns
+    -------
+    None.
+
+    """      
+    
+    # get files in given path
+    subdir = os.listdir(main_data_folder_name)
+    
+    # loop through all files
+    for subdir_loop in subdir:
+        print(subdir_loop)
+        data_folder_name = main_data_folder_name + "\\" + subdir_loop
+        
+        # check if file is a directory - continue if TRUE
+        if os.path.isdir(data_folder_name) == True:   
+            data_tif_name = main_data_folder_name + "\\" + subdir_loop + "\\" + subdir_loop + ".tif"
+            
+            # Convert 2d tif list to 3d tif image in subdirectoy
+            SaveTifSeriesAsStack(data_folder_name, CreateSubFolder = True, data_tif_name = data_tif_name)
+    
+    
+    
+def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True, CreateSubFolder = False, data_tif_name = None):
+    """
+    Loads all 2d tif images in an directory and stores them as a single 3d tif image/stack    
+
+    Parameters
+    ----------
+    data_folder_name : TYPE
+        path of folder
+    ShowProgress : TYPE, optional
+        prints current file that is read in. The default is True.
+    CreateSubFolder : TYPE, optional
+        moves 2d tif in subdirectory. The default is False.
+    data_tif_name : TYPE, optional
+        customized name of 3d tif stack. The default is None.
+
+    Returns
+    -------
+    None.
+    """
+    
+
+    # reads all images
+    rawframes_np = ReadTiffSeries2Numpy(data_folder_name, ShowProgress = ShowProgress, CreateSubFolder = CreateSubFolder)
+    
+    if CreateSubFolder == False:
+        data_folder_name_tif = data_folder_name + ".tif"
+    else:
+        data_folder_name_tif = data_tif_name
+
+    # saves 3d tif
+    io.imsave(data_folder_name_tif, rawframes_np)
