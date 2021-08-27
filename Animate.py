@@ -407,20 +407,26 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
     global prob_inv_diam_sum
     prob_inv_diam_sum = np.zeros(num_points_pdf)
     
-    id_particle = sizes_df_lin.true_particle.unique()
+    id_particle = sizes_df_lin.particle.unique()
     
-    traj = traj[traj.particle.isin(id_particle)].copy()
+    traj = traj[traj.particle.isin(id_particle)][["frame", "particle", "x", "y"]].copy()
       
+    traj["diameter"] = 0
+    
     #make the particles id from 1 to N
     particles_id = sizes_df_lin.particle.unique()
     
-    print(sizes_df_lin.particle.unique())
+
     
     for new_id,old_id in enumerate(id_particle):
+        print(old_id)
+        print(new_id)
+        traj.loc[traj.particle == old_id, "diameter"] = sizes_df_lin.loc[sizes_df_lin.particle == old_id, "diameter"].values[0]
+        
         sizes_df_lin.loc[sizes_df_lin.particle == old_id, "particle"] = new_id
+        
         traj.loc[traj.particle == old_id, "particle"] = new_id
-    
-    print(sizes_df_lin.particle.unique())
+
     
 #    fig, (ax_raw, ax_eval, ax_hist) = plt.subplots(3, sharex=True, sharey=True, figsize = [18,8])
     fig = plt.figure(figsize = [18, 9], constrained_layout=True)
@@ -452,6 +458,15 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
     
     rawframes_rot = rawframes_rot[:, y_min:y_max, x_min:x_max]
    
+    traj.x = traj.x - x_min
+    traj.y = traj.y - y_min
+   
+    y_max = y_max - y_min
+    x_max = x_max - x_min
+    y_min = 0
+    x_min = 0
+    
+   
     import matplotlib.colors as colors
 #    raw_image = ax_raw.imshow(rawframes_rot[0,:,:]**my_gamma, cmap = 'gray', animated = True)
     raw_image = ax_raw.imshow(rawframes_rot[0,:,:], cmap = 'gray', norm=colors.PowerNorm(gamma=my_gamma), animated = True, vmin = np.min(rawframes_rot), vmax = np.max(rawframes_rot))
@@ -477,7 +492,7 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
     diam_max = np.round(np.max(sizes_df_lin.diameter) + 5,-1)
     diam_min = np.round(np.min(sizes_df_lin.diameter) - 5,-1)
     # diam_range = diam_max - diam_min
-    bin_width = 2
+    bin_width = 1
     diam_bins = int(np.round((diam_max - diam_min)/bin_width))
     # diam_min = 1
         
@@ -522,7 +537,7 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
 
         ## HERE COMES THE DIAMETER
         t6_frame = traj[traj.frame == i]
-        t6_frame = t6_frame[t6_frame.particle.isin(id_particle)]
+        t6_frame = t6_frame[t6_frame.particle.isin(id_particle_frame)]
         
         t6_frame = t6_frame.set_index(["particle"])
         t6_frame = t6_frame.sort_index()
@@ -532,12 +547,14 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
         ax_hist_cum.clear()
         ax_hist_cum_w.clear()
       
-        sizes_df_lin_frame = sizes_df_lin[sizes_df_lin.true_particle.isin(t6_frame.index)]
+        sizes_df_lin_frame = sizes_df_lin[sizes_df_lin.particle.isin(id_particle_frame)]
+        
         sizes_df_lin_frame = sizes_df_lin_frame.sort_index()
                     
         sizes_df_lin_cum = sizes_df_lin[sizes_df_lin["first frame"] <= i]
          
-        ax_scatter_diam = ax_eval.scatter(t6_frame.x, t6_frame.y, c = sizes_df_lin_frame.diameter, cmap='jet', vmin=diam_min, vmax=diam_max)
+        # ax_scatter_diam = ax_eval.scatter(t6_frame.x, t6_frame.y, c = sizes_df_lin_frame.diameter, cmap='jet', vmin=diam_min, vmax=diam_max)
+        ax_scatter_diam = ax_eval.scatter(t6_frame.x, t6_frame.y, c = t6_frame.diameter, cmap='jet', vmin=diam_min, vmax=diam_max)
  
         ax_raw.tick_params(direction = 'out')
         ax_traj.tick_params(direction = 'out')
@@ -598,35 +615,18 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
         histogramm_min = diam_min
         histogramm_max = diam_max
         
-        
-        # diam_grid = np.linspace(histogramm_min,histogramm_max,100)
-        # diam_grid_inv = 1/diam_grid
-        
-        # #inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin_before_frame, settings)
-        # inv_diam,inv_diam_std = nd.statistics.InvDiameter(sizes_df_lin_before_frame, settings)
-        
-        # prob_inv_diam = np.zeros_like(diam_grid_inv)
-        
-#        if ('prob_inv_diam_sum' in locals()) == False:
-#            global prob_inv_diam_sum
-#            print("create cum sum varialbe")
-#            prob_inv_diam_sum = np.zeros_like(diam_grid_inv)
-       
-        
-#         for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
-# #            print("mean_diam_part = ", 1 / loop_mean)
-    
-#             my_pdf = scipy.stats.norm(loop_mean,loop_std).pdf(diam_grid_inv)
-    
-#             my_pdf = my_pdf / np.sum(my_pdf)
-            
-#             prob_inv_diam = prob_inv_diam + my_pdf    
-            
-#             # accumulate        
-#         prob_inv_diam_sum = prob_inv_diam_sum + prob_inv_diam
-        
+        # https://stackoverflow.com/questions/23061657/plot-histogram-with-colors-taken-from-colormap
         # ax_hist.plot(diam_grid, prob_inv_diam)
-        ax_hist.hist(sizes_df_lin_frame.diameter, bins = diam_bins, range = (diam_min, diam_max), edgecolor='black')
+        n, bins, patches = ax_hist.hist(sizes_df_lin_frame.diameter, bins = diam_bins, range = (diam_min, diam_max), edgecolor='black')
+        bin_centers = 0.5 * (bins[:-1] + bins[1:])
+        
+        cm = plt.cm.get_cmap('jet')
+        
+        col = bin_centers - min(bin_centers)
+        col /= max(col)
+        
+        for c, p in zip(col, patches):
+            plt.setp(p, 'facecolor', cm(c))
         
         ax_hist.set_xlim([histogramm_min, histogramm_max])
         # ax_hist.set_ylim([0, 1.1*np.max(prob_inv_diam)+0.01])
@@ -639,7 +639,18 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
 
         ## ACCUMULATED DIAMETER PDF 
         # ax_hist_cum.plot(diam_grid, prob_inv_diam_sum)
-        ax_hist_cum.hist(sizes_df_lin_cum.diameter, bins = diam_bins, range = (diam_min, diam_max), edgecolor='black')
+        n, bins, patches = ax_hist_cum.hist(sizes_df_lin_cum.diameter, bins = diam_bins, range = (diam_min, diam_max), edgecolor='black')
+        
+        bin_centers = 0.5 * (bins[:-1] + bins[1:])
+        
+        cm = plt.cm.get_cmap('jet')
+        
+        col = bin_centers - min(bin_centers)
+        col /= max(col)
+        
+        for c, p in zip(col, patches):
+            plt.setp(p, 'facecolor', cm(c))
+        
         
         ax_hist_cum.set_xlim([histogramm_min, histogramm_max])
         # ax_hist_cum.set_ylim([0, 1.1*np.max(prob_inv_diam_sum)+0.01])
@@ -659,7 +670,17 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
         traj_i[traj_over] = sizes_df_lin_cum.loc[traj_over, "traj length"]
         
         
-        ax_hist_cum_w.hist(sizes_df_lin_cum.diameter, bins = diam_bins, range = (diam_min, diam_max), weights = traj_i, edgecolor='black')
+        n, bins, patches = ax_hist_cum_w.hist(sizes_df_lin_cum.diameter, bins = diam_bins, range = (diam_min, diam_max), weights = traj_i, edgecolor='black')
+        
+        bin_centers = 0.5 * (bins[:-1] + bins[1:])
+        
+        cm = plt.cm.get_cmap('jet')
+        
+        col = bin_centers - min(bin_centers)
+        col /= max(col)
+        
+        for c, p in zip(col, patches):
+            plt.setp(p, 'facecolor', cm(c))
         
         ax_hist_cum_w.set_xlim([histogramm_min, histogramm_max])
         # ax_hist_cum.set_ylim([0, 1.1*np.max(prob_inv_diam_sum)+0.01])
@@ -697,7 +718,7 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
     
     if Do_Save == True:
         anim = animation.FuncAnimation(fig, animate, frames = show_frames, init_func=init, interval = 5, repeat = False)
-        anim.save('200204_2.html', writer = 'html', fps=1)
+        anim.save('animation.html', writer = 'html', fps=10)
     
     else:
         anim = animation.FuncAnimation(fig, animate, frames = show_frames, init_func=init, interval = 5, repeat = True)
