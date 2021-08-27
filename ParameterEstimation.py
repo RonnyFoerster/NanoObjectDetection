@@ -1031,6 +1031,9 @@ def MaxRelIntensityJump(ParameterJsonFile):
         
         # sigma of the gaussian mode
         w = settings["Fiber"]["Waist"]
+        if w == "unknown":
+            nd.logger.warning("Fiber waist unknown so assuming inf")
+            w = np.inf
         
         # here come the mode
         I = I0*np.e**(-(r/w)**2)

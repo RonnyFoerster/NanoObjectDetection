@@ -10,6 +10,7 @@ Created on Wed Feb  6 09:34:54 2019
 # logger = logging.getLogger(__name__)
 
 
+from . import Animate
 from . import AdjustSettings
 from . import CalcDiameter
 from . import CheckSystem

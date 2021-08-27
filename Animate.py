@@ -391,7 +391,7 @@ def AnimateDiameterAndRawData(rawframes_rot, sizes_df_lin, t6_final, settings, D
 
 def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings): 
     from matplotlib.gridspec import GridSpec
-    my_gamma = 2
+    my_gamma = 0.7
 
     num_points_pdf = 100
 
@@ -409,11 +409,22 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
     
     id_particle = sizes_df_lin.true_particle.unique()
     
-    traj = traj[traj.particle.isin(id_particle)]
-        
+    traj = traj[traj.particle.isin(id_particle)].copy()
+      
+    #make the particles id from 1 to N
+    particles_id = sizes_df_lin.particle.unique()
+    
+    print(sizes_df_lin.particle.unique())
+    
+    for new_id,old_id in enumerate(id_particle):
+        sizes_df_lin.loc[sizes_df_lin.particle == old_id, "particle"] = new_id
+        traj.loc[traj.particle == old_id, "particle"] = new_id
+    
+    print(sizes_df_lin.particle.unique())
+    
 #    fig, (ax_raw, ax_eval, ax_hist) = plt.subplots(3, sharex=True, sharey=True, figsize = [18,8])
-    fig = plt.figure(figsize = [22, 14], constrained_layout=True)
-    gs = GridSpec(4, 2, figure=fig)
+    fig = plt.figure(figsize = [18, 9], constrained_layout=True)
+    gs = GridSpec(4, 3, figure=fig)
 
 #    fig, ax_tot = plt.subplots(4,2, figsize = [18, 10], constrained_layout=True)
     ax_raw = fig.add_subplot(gs[0, :])
@@ -425,24 +436,33 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
     
     ax_hist = fig.add_subplot(gs[3, 0])
     ax_hist_cum = fig.add_subplot(gs[3, 1])
+    ax_hist_cum_w = fig.add_subplot(gs[3, 2])
     
+    
+    x_min = settings["Animation"]["x_min"]
+    x_max = settings["Animation"]["x_max"]
+    y_min = settings["Animation"]["y_min"]
+    y_max = settings["Animation"]["y_max"]
+    
+    if y_max >= rawframes_rot.shape[1]:
+        nd.logger.warning("y_max larger than: %.0f", rawframes_rot.shape[1]-1)
+        
+    if x_max >= rawframes_rot.shape[2]:
+        nd.logger.warning("x_max larger than: %.0f", rawframes_rot.shape[2]-1)
+    
+    rawframes_rot = rawframes_rot[:, y_min:y_max, x_min:x_max]
    
     import matplotlib.colors as colors
 #    raw_image = ax_raw.imshow(rawframes_rot[0,:,:]**my_gamma, cmap = 'gray', animated = True)
-    raw_image = ax_raw.imshow(rawframes_rot[0,:,:], cmap = 'gray', norm=colors.PowerNorm(gamma=1/my_gamma), animated = True, vmin = np.min(rawframes_rot), vmax = np.max(rawframes_rot))
+    raw_image = ax_raw.imshow(rawframes_rot[0,:,:], cmap = 'gray', norm=colors.PowerNorm(gamma=my_gamma), animated = True, vmin = np.min(rawframes_rot), vmax = np.max(rawframes_rot))
 #    raw_image = ax_raw.imshow(rawframes_rot[0,:,:], cmap = 'PuBu_r', animated = True)
 #    diameter_image  = ax_eval.plot()
   
-    ax_raw.set_title('raw-data', fontsize = my_font_size_title)
-    ax_raw.set_ylabel('y-Position [um]', fontsize = my_font_size)    
-    ax_raw.set_xlabel('x-Position [um]', fontsize = my_font_size)
+    ax_raw.set_title('Preprocessed image (section)', fontsize = my_font_size_title)
+    ax_raw.set_ylabel('x [um]', fontsize = my_font_size)    
+    ax_raw.set_xlabel('z [um]', fontsize = my_font_size)
     
-    Show_all = False
-    if Show_all:
-        [x_min, x_max, y_min, y_max] = [0, rawframes_rot.shape[2],0, rawframes_rot.shape[1]]        
-        
-    else:
-        [x_min, x_max, y_min, y_max] = [0, rawframes_rot.shape[2], 30, 120]
+
 
     ax_raw.set_xlim([x_min, x_max])
     ax_raw.set_ylim([y_min, y_max])
@@ -456,6 +476,10 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
     
     diam_max = np.round(np.max(sizes_df_lin.diameter) + 5,-1)
     diam_min = np.round(np.min(sizes_df_lin.diameter) - 5,-1)
+    # diam_range = diam_max - diam_min
+    bin_width = 2
+    diam_bins = int(np.round((diam_max - diam_min)/bin_width))
+    # diam_min = 1
         
     fps = settings["Exp"]["fps"]
 
@@ -492,9 +516,9 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
         
         ax_traj.set_xlim(ax_raw.get_xlim())
         ax_traj.set_ylim(ax_raw.get_ylim())
-        ax_traj.set_title('drift corrected trajectory', fontsize = my_font_size_title)
-        ax_traj.set_ylabel('y-Position [um]', fontsize = my_font_size)    
-        ax_traj.set_xlabel('x-Position [um]', fontsize = my_font_size)
+        ax_traj.set_title('Evaluated trajectories', fontsize = my_font_size_title)
+        ax_traj.set_ylabel('x [um]', fontsize = my_font_size)    
+        ax_traj.set_xlabel('z [um]', fontsize = my_font_size)
 
         ## HERE COMES THE DIAMETER
         t6_frame = traj[traj.frame == i]
@@ -506,10 +530,12 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
         ax_eval.clear()
         ax_hist.clear()
         ax_hist_cum.clear()
+        ax_hist_cum_w.clear()
       
         sizes_df_lin_frame = sizes_df_lin[sizes_df_lin.true_particle.isin(t6_frame.index)]
         sizes_df_lin_frame = sizes_df_lin_frame.sort_index()
                     
+        sizes_df_lin_cum = sizes_df_lin[sizes_df_lin["first frame"] <= i]
          
         ax_scatter_diam = ax_eval.scatter(t6_frame.x, t6_frame.y, c = sizes_df_lin_frame.diameter, cmap='jet', vmin=diam_min, vmax=diam_max)
  
@@ -517,9 +543,9 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
         ax_traj.tick_params(direction = 'out')
         ax_eval.tick_params(direction = 'out')
         
-        ax_eval.set_title('Diameter of each particle', fontsize = my_font_size_title)
-        ax_eval.set_ylabel('y-Position [um]', fontsize = my_font_size)    
-        ax_eval.set_xlabel('x-Position [um]', fontsize = my_font_size)
+        ax_eval.set_title('Diameter', fontsize = my_font_size_title)
+        ax_eval.set_ylabel('x [um]', fontsize = my_font_size)    
+        ax_eval.set_xlabel('z [um]', fontsize = my_font_size)
         
        
         ax_eval.set_xlim(ax_raw.get_xlim())
@@ -573,12 +599,13 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
         histogramm_max = diam_max
         
         
-        diam_grid = np.linspace(histogramm_min,histogramm_max,100)
-        diam_grid_inv = 1/diam_grid
+        # diam_grid = np.linspace(histogramm_min,histogramm_max,100)
+        # diam_grid_inv = 1/diam_grid
         
-        inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin_before_frame, settings)
+        # #inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin_before_frame, settings)
+        # inv_diam,inv_diam_std = nd.statistics.InvDiameter(sizes_df_lin_before_frame, settings)
         
-        prob_inv_diam = np.zeros_like(diam_grid_inv)
+        # prob_inv_diam = np.zeros_like(diam_grid_inv)
         
 #        if ('prob_inv_diam_sum' in locals()) == False:
 #            global prob_inv_diam_sum
@@ -586,42 +613,65 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
 #            prob_inv_diam_sum = np.zeros_like(diam_grid_inv)
        
         
-        for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
-#            print("mean_diam_part = ", 1 / loop_mean)
+#         for index, (loop_mean, loop_std) in enumerate(zip(inv_diam,inv_diam_std)):
+# #            print("mean_diam_part = ", 1 / loop_mean)
     
-            my_pdf = scipy.stats.norm(loop_mean,loop_std).pdf(diam_grid_inv)
+#             my_pdf = scipy.stats.norm(loop_mean,loop_std).pdf(diam_grid_inv)
     
-            my_pdf = my_pdf / np.sum(my_pdf)
+#             my_pdf = my_pdf / np.sum(my_pdf)
             
-            prob_inv_diam = prob_inv_diam + my_pdf    
+#             prob_inv_diam = prob_inv_diam + my_pdf    
             
-            # accumulate        
-        prob_inv_diam_sum = prob_inv_diam_sum + prob_inv_diam
+#             # accumulate        
+#         prob_inv_diam_sum = prob_inv_diam_sum + prob_inv_diam
         
-        ax_hist.plot(diam_grid, prob_inv_diam)
+        # ax_hist.plot(diam_grid, prob_inv_diam)
+        ax_hist.hist(sizes_df_lin_frame.diameter, bins = diam_bins, range = (diam_min, diam_max), edgecolor='black')
         
         ax_hist.set_xlim([histogramm_min, histogramm_max])
-        ax_hist.set_ylim([0, 1.1*np.max(prob_inv_diam)+0.01])
+        # ax_hist.set_ylim([0, 1.1*np.max(prob_inv_diam)+0.01])
  
         ax_hist.set_xlabel('Diameter [nm]', fontsize = my_font_size)    
         ax_hist.set_ylabel('Occurance', fontsize = my_font_size)
-        ax_hist.set_title("Live Histogram", fontsize = my_font_size_title)
+        ax_hist.set_title("Histogram - frame", fontsize = my_font_size_title)
         ax_hist.set_yticks([])
  
 
         ## ACCUMULATED DIAMETER PDF 
-        ax_hist_cum.plot(diam_grid, prob_inv_diam_sum)
+        # ax_hist_cum.plot(diam_grid, prob_inv_diam_sum)
+        ax_hist_cum.hist(sizes_df_lin_cum.diameter, bins = diam_bins, range = (diam_min, diam_max), edgecolor='black')
         
         ax_hist_cum.set_xlim([histogramm_min, histogramm_max])
-        ax_hist_cum.set_ylim([0, 1.1*np.max(prob_inv_diam_sum)+0.01])
+        # ax_hist_cum.set_ylim([0, 1.1*np.max(prob_inv_diam_sum)+0.01])
  
         ax_hist_cum.set_xlabel('Diameter [nm]', fontsize = my_font_size)    
         ax_hist_cum.set_ylabel('Occurance', fontsize = my_font_size)
-        ax_hist_cum.set_title("Cummulated Histogram", fontsize = my_font_size_title)
+        ax_hist_cum.set_title("Cum. histogram - unweighted", fontsize = my_font_size_title)
         ax_hist_cum.set_yticks([])
 
         ax_hist_cum.tick_params(direction = 'out')
         ax_hist.tick_params(direction = 'out')
+        
+        traj_i = i - sizes_df_lin_cum["first frame"] + 1
+        traj_i [traj_i  < 0] = 0
+        
+        traj_over = traj_i  > sizes_df_lin_cum["traj length"]
+        traj_i[traj_over] = sizes_df_lin_cum.loc[traj_over, "traj length"]
+        
+        
+        ax_hist_cum_w.hist(sizes_df_lin_cum.diameter, bins = diam_bins, range = (diam_min, diam_max), weights = traj_i, edgecolor='black')
+        
+        ax_hist_cum_w.set_xlim([histogramm_min, histogramm_max])
+        # ax_hist_cum.set_ylim([0, 1.1*np.max(prob_inv_diam_sum)+0.01])
+ 
+        ax_hist_cum_w.set_xlabel('Diameter [nm]', fontsize = my_font_size)    
+        ax_hist_cum_w.set_ylabel('Occurance', fontsize = my_font_size)
+        ax_hist_cum_w.set_title("Cum. histogram - weighted", fontsize = my_font_size_title)
+        ax_hist_cum_w.set_yticks([])
+
+        ax_hist_cum_w.tick_params(direction = 'out')
+        
+        
         
         if 1 == 0:
             # print limits
@@ -638,7 +688,7 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
     
 #    anim = animation.FuncAnimation(fig, animate, frames = 1000, interval = 10, repeat = False)
     
-    frames_tot = 250
+    frames_tot = settings["Animation"]["frames_tot"]
     show_frames = np.linspace(int(traj.frame.min()),int(traj.frame.max()),frames_tot , dtype = 'int')
     
 ##    anim = animation.FuncAnimation(fig, animate, frames = [1,10,50,100,200,300,400,500,600,700,800,900], init_func=init, interval = 500, repeat = True)
@@ -695,7 +745,7 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre,
     from matplotlib.gridspec import GridSpec
     import time
     
-    sys.exit("AnimateDiameterAndRawData_Big2 has moved to animate.py! Please change if you see this")
+    # sys.exit("AnimateDiameterAndRawData_Big2 has moved to animate.py! Please change if you see this")
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
         
@@ -879,7 +929,8 @@ def AnimateDiameterAndRawData_Big2(rawframes, static_background, rawframes_pre,
 
 
     # Global PDF
-    inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
+    # inv_diam,inv_diam_std = nd.CalcDiameter.InvDiameter(sizes_df_lin, settings)
+    inv_diam,inv_diam_std = nd.statistics.InvDiameter(sizes_df_lin, settings)
     
     prob_inv_diam = np.zeros_like(diam_grid_inv)
           
