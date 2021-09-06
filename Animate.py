@@ -710,7 +710,19 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, settings):
 #    anim = animation.FuncAnimation(fig, animate, frames = 1000, interval = 10, repeat = False)
     
     frames_tot = settings["Animation"]["frames_tot"]
-    show_frames = np.linspace(int(traj.frame.min()),int(traj.frame.max()),frames_tot , dtype = 'int')
+    f_min = int(traj.frame.min())
+    if f_min == 0:
+        f_min = 1
+    f_max = int(traj.frame.max())
+    # show_frames = np.linspace(f_min, f_max, frames_tot , dtype = 'int')
+    # show_frames = np.logspace(np.log10(f_min), np.log10(f_max), frames_tot , dtype = 'int')
+    
+    show_frames = np.linspace(0,1,frames_tot)**2
+    show_frames = show_frames  * (f_max - f_min)
+    show_frames = show_frames  + f_min
+    show_frames = np.round(show_frames).astype("int")  
+    
+
     
 ##    anim = animation.FuncAnimation(fig, animate, frames = [1,10,50,100,200,300,400,500,600,700,800,900], init_func=init, interval = 500, repeat = True)
     
