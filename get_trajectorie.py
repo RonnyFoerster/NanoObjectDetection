@@ -936,7 +936,7 @@ def split_traj_at_high_steps(t2_long, t3_gapless, ParameterJsonFile, max_rel_med
     if PlotTrajWhichNeedACut == True:
         counter_display = 1
 
-    # now split the beads at the gap into two beads
+    # now split the track at the gap into two with distinct IDs
 
     for x in range(0,num_splits):
         nd.visualize.update_progress("Split trajectories at high intensity jumps", (x+1) / num_splits)
@@ -949,7 +949,7 @@ def split_traj_at_high_steps(t2_long, t3_gapless, ParameterJsonFile, max_rel_med
         first_new_frame = split_particle['frame']
 
         # give any frame after the <first_new_frame> a new particle id
-        t4_cutted.loc[((t4_cutted.particle == particle_to_split) & (t4_cutted.frame >= first_new_frame)),'particle'] = free_particle_id
+        t4_cutted.loc[((t3_gapless.particle == particle_to_split) & (t4_cutted.frame >= first_new_frame)),'particle'] = free_particle_id
 
         # generate new available and free particle id
         free_particle_id = free_particle_id + 1;
