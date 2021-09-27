@@ -259,6 +259,8 @@ def CalcBitDepth(image):
     if np.max(test) <= 255:
         num_bits = 8
         nd.logger.info("8 bit image")
+        
+        bit_depth = 8 # HG was here
     else:
         # transfered in 16bit - but does it have a dynamic range of 16bit?    
         finished_loop = False
