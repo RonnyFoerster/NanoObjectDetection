@@ -1,5 +1,0 @@
-API documentaiton
-=================
-
-.. automodule:: tutorial
-   :members:

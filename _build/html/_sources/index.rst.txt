@@ -1,18 +1,16 @@
-.. NanoObjectDetection documentation master file, created by
-   sphinx-quickstart on Thu Mar  7 17:17:38 2019.
+.. Nano-Object-Detection documentation master file, created by
+   sphinx-quickstart on Tue Sep 28 17:14:43 2021.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to NanoObjectDetection's documentation!
-
-Created by Stefan Weidlich und Ronny Förster
-
-
-===============================================
+Welcome to Nano-Object-Detection's documentation!
+=================================================
 
 .. toctree::
    :maxdepth: 2
-   
+   :caption: Contents:
+
+
 
 Indices and tables
 ==================
@@ -20,5 +18,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-
