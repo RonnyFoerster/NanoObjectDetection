@@ -43,7 +43,7 @@ def NewEvaluation():
     nd.logger.info("store results into: %s", dir_results)
     
     # copy default "auswertung.py" into that folder
-    path_aus_origin = os.path.dirname(nd.__file__) + "\\default_auswertung.py"
+    path_aus_origin = os.path.dirname(nd.__file__) + "\\default_files\\default_auswertung.py"
     path_aus_new = dir_results + "/auswertung.py"
     
     shutil.copy2(path_aus_origin, path_aus_new)
