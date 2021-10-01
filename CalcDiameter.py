@@ -465,15 +465,20 @@ def  KolmogorowSmirnowTest(nan_tm, traj_length, MinSignificance = 0.1, PlotError
     # fit the normal distribution
     mu, std = scipy.stats.norm.fit(dx)
     
-    # perform Kolmogorow-Smirnow test if data can be represented by best normal fit
-    [D_Kolmogorow, _] = scipy.stats.kstest(dx, 'norm', args=(mu, std))
-
-    # calculate statistical significance out of it
-    # https://de.wikipedia.org/wiki/Kolmogorow-Smirnow-Test
-    stat_sign = 2*np.power(np.e,-2*traj_length*(D_Kolmogorow**2))
-
-    # stat_sign says how likely it is, that this trajectory has not normal distributed displacement values
-    traj_has_error = ( stat_sign < MinSignificance )
+    if len(dx) == 0:
+        traj_has_error = False
+        stat_sign = np.nan
+        nd.logger.warning("Trajectory has holes. No Kolmogorow-Smirnow test.")
+    else:
+        # perform Kolmogorow-Smirnow test if data can be represented by best normal fit
+        [D_Kolmogorow, _] = scipy.stats.kstest(dx, 'norm', args=(mu, std))
+    
+        # calculate statistical significance out of it
+        # https://de.wikipedia.org/wiki/Kolmogorow-Smirnow-Test
+        stat_sign = 2*np.power(np.e,-2*traj_length*(D_Kolmogorow**2))
+    
+        # stat_sign says how likely it is, that this trajectory has not normal distributed displacement values
+        traj_has_error = ( stat_sign < MinSignificance )
     
     
     if ((traj_has_error == True) and (PlotErrorIfTestFails == True)) or PlotAlways == True:
