@@ -664,8 +664,7 @@ def GetLimitOfPlottedLineData(ax):
 
 
 
-def AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, 
-                 DoRolling = False, MSD_fit_Show = False):
+def AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, DoRolling = False, MSD_fit_Show = False):
     """ wrapper for AvgMsdRolling and FitMSDRolling
     
     Returns

@@ -76,31 +76,39 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
             PureBrownianMotion = False
             PlotErrorIfTestFails = False
             
-            while PureBrownianMotion == False:
-                t_no_drift, my_drift = GlobalEstimation(t_drift, drift_smoothing_frames)
-           
-                valid_particle_number = t_no_drift.particle.unique()
-           
-                # check if the trajectories follow brownian motion after the drift correction.
-
-                #check if the histogram of each particle displacement is Gaussian shaped
-                t_no_drift_true_brown = nd.get_trajectorie.CheckForPureBrownianMotion(valid_particle_number, t_no_drift, PlotErrorIfTestFails)
+            CheckForPureBrownianMotion = settings["MSD"]["CheckForPureBrownianMotion"]
+            
+            # if CheckForPureBrownianMotion == False:
+            #     nd.logger.info("Kolmogorow-Smirnow test: off")
+            #     t_no_drift, my_drift = GlobalEstimation(t_drift, drift_smoothing_frames)
                 
-                # check it in y too
-                valid_particle_number = t_no_drift_true_brown.particle.unique()
-                
-                t_no_drift_true_brown = nd.get_trajectorie.CheckForPureBrownianMotion(valid_particle_number, t_no_drift_true_brown, PlotErrorIfTestFails, yEval = True)
-
-                valid_particle_number = t_no_drift_true_brown.particle.unique()
-        
-                
-                # only when all trajectories return pure brownian motion is fullfilled
-                if len(t_no_drift) == len(t_no_drift_true_brown):
-                    PureBrownianMotion = True
-                else:
-                    nd.logger.info("Rerun drift correrction with pure brownian motion particles")
-                    vaild_id = t_no_drift_true_brown.particle.unique()
-                    t_drift = t_drift[t_drift.particle.isin(valid_particle_number)]
+            # else:
+                nd.logger.info("Kolmogorow-Smirnow test: on")
+                while PureBrownianMotion == False:
+                    t_no_drift, my_drift = GlobalEstimation(t_drift, drift_smoothing_frames)
+               
+                    valid_particle_number = t_no_drift.particle.unique()
+               
+                    # check if the trajectories follow brownian motion after the drift correction.
+    
+                    #check if the histogram of each particle displacement is Gaussian shaped
+                    t_no_drift_true_brown = nd.get_trajectorie.CheckForPureBrownianMotion(valid_particle_number, t_no_drift, PlotErrorIfTestFails)
+                    
+                    # check it in y too
+                    valid_particle_number = t_no_drift_true_brown.particle.unique()
+                    
+                    t_no_drift_true_brown = nd.get_trajectorie.CheckForPureBrownianMotion(valid_particle_number, t_no_drift_true_brown, PlotErrorIfTestFails, yEval = True)
+    
+                    valid_particle_number = t_no_drift_true_brown.particle.unique()
+            
+                    
+                    # only when all trajectories return pure brownian motion is fullfilled
+                    if len(t_no_drift) == len(t_no_drift_true_brown):
+                        PureBrownianMotion = True
+                    else:
+                        nd.logger.info("Rerun drift correrction with pure brownian motion particles")
+                        vaild_id = t_no_drift_true_brown.particle.unique()
+                        t_drift = t_drift[t_drift.particle.isin(valid_particle_number)]
             
             nd.logger.warning("Ronny tries something here!")
             t6_final = nd.get_trajectorie.filter_stubs(t_no_drift, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, PlotErrorIfTestFails = False)

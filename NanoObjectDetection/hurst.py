@@ -131,7 +131,7 @@ def compute_Hc(series, kind="random_walk", min_window=10, max_window=None, simpl
         - 'random_walk' means that a series is a random walk with random increments;
         - 'price' means that a series is a random walk with random multipliers;
         - 'change' means that a series consists of random increments
-            (thus produced random walk is a cumulative sum of increments);
+        (thus produced random walk is a cumulative sum of increments);
 
     min_window : int, default 10
         the minimal window size for R/S calculation

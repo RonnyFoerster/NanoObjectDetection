@@ -80,7 +80,7 @@ def InvDiameter(sizes_df_lin, settings, useCRLB=True):
     assumption: 
         relative error = std/mean = CRLB
         with N_tmax : number of considered lagtimes
-             N_f : number of frames of the trajectory (=tracklength)
+        N_f : number of frames of the trajectory (=tracklength)
     
     Parameters
     ----------
@@ -137,7 +137,7 @@ def StatisticOneParticle(sizes):
     sizes : pandas.DataFrame with 'diameter' column 
             OR pandas.Series of float 
             OR np.array of float
-        particle diameters
+            particle diameters
         
     Returns
     -------

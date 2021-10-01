@@ -271,7 +271,7 @@ def DiameterPDF_transparent(ParameterJsonFile, sizes_df_lin, histogramm_min = No
     assumption: 
         relative error = std/mean = sqrt( 2*N_tmax/(3*N_f - N_tmax) )
         with N_tmax : number of considered lagtimes
-             N_f : number of frames of the trajectory (=tracklength)
+        N_f : number of frames of the trajectory (=tracklength)
 
     Parameters
     ----------
