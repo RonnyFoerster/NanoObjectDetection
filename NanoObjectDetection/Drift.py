@@ -78,11 +78,11 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
             
             CheckForPureBrownianMotion = settings["MSD"]["CheckForPureBrownianMotion"]
             
-            # if CheckForPureBrownianMotion == False:
-            #     nd.logger.info("Kolmogorow-Smirnow test: off")
-            #     t_no_drift, my_drift = GlobalEstimation(t_drift, drift_smoothing_frames)
+            if CheckForPureBrownianMotion == False:
+                nd.logger.info("Kolmogorow-Smirnow test: off")
+                t_no_drift, my_drift = GlobalEstimation(t_drift, drift_smoothing_frames)
                 
-            # else:
+            else:
                 nd.logger.info("Kolmogorow-Smirnow test: on")
                 while PureBrownianMotion == False:
                     t_no_drift, my_drift = GlobalEstimation(t_drift, drift_smoothing_frames)
