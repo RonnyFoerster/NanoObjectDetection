@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NanoObjectDetection.AdjustSettings module &#8212; NanoObjectDetection 2021 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.AdjustSettings">
+<span id="nanoobjectdetection-adjustsettings-module"></span><h1>NanoObjectDetection.AdjustSettings module<a class="headerlink" href="#module-NanoObjectDetection.AdjustSettings" title="Permalink to this headline">¶</a></h1>
+<p>Created on Fri Feb 15 16:41:17 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<p>This module tries to hell the user finding the correct parameters for the analysis</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.AdjustSettings_Main">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">AdjustSettings_Main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawframes_super</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rawframes_pre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.AdjustSettings_Main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.AskDoItAgain">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">AskDoItAgain</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.AskDoItAgain" title="Permalink to this definition">¶</a></dt>
+<dd><p>ask if a step shall be repeated</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.AskIfUserSatisfied">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">AskIfUserSatisfied</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">QuestionForUser</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.AskIfUserSatisfied" title="Permalink to this definition">¶</a></dt>
+<dd><p>ask if user is satisfied</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.AskMethodToImprove">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">AskMethodToImprove</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.AskMethodToImprove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask which method shall be applied to improve the particle IDENTIFICATION
+1 - Bright (isolated) spots not recognized</p>
+<p>2 - Spots where nothing is to be seen</p>
+<p>3 - Bright (non-isolated) spots not recognized but you would like to have them both</p>
+<p>4 - Much more recognized spots than I think I have particles</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.FindDiameter">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">FindDiameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawframes_pre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.FindDiameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>select if Diameter value in trackpy is estiamted manual or automatically</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.FindDiameter_manual">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">FindDiameter_manual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawframes_pre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">AutoIteration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.FindDiameter_manual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optimize the diameter of the Particles
+Start with a very low diameter (3px) and run Trackpy on the first 100 frames.
+A good choosen diameter leads to a even (flat) distributed decimal place of the localized particle position
+If the distribution is not flat, the diameter is increase till its ok.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.FindMinmass">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">FindMinmass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawframes_super</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rawframes_pre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DoDiameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.FindMinmass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimated the minmass value that trackpy uses in its feature finding routine
+The value have to be choosen such that dim featues are still reconized, while noise is not mistaken as a particle</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.FindMinmass_manual">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">FindMinmass_manual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawframes_pre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ExternalSlider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.FindMinmass_manual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Main function to optimize the parameters for particle identification
+It runs the bead finding routine and ask the user what problem he has
+According to the problem it tries to improve</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.FindROI">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">FindROI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawframes_np</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.FindROI" title="Permalink to this definition">¶</a></dt>
+<dd><p>show the maximum value of all images to reveal where the ROI is</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.GetIntegerInput">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">GetIntegerInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">MessageOnScreen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.GetIntegerInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>ask for an INTEGER input on the console</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.GetNumericalInput">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">GetNumericalInput</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">MessageOnScreen</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.GetNumericalInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>ask for a FLOAT input on the console</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.AdjustSettings.Main">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.AdjustSettings.</span></span><span class="sig-name descname"><span class="pre">Main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawframes_super</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rawframes_pre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.AdjustSettings.Main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the various routines for optimiting and estimating the localizing and trackpy parameters of trackpy</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">NanoObjectDetection</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Ronny Förster.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/rst/NanoObjectDetection.AdjustSettings.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

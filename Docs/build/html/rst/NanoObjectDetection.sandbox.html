@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NanoObjectDetection.sandbox module &#8212; NanoObjectDetection 2021 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.sandbox">
+<span id="nanoobjectdetection-sandbox-module"></span><h1>NanoObjectDetection.sandbox module<a class="headerlink" href="#module-NanoObjectDetection.sandbox" title="Permalink to this headline">¶</a></h1>
+<p>Created on Tue Mar 10 13:45:19 2020</p>
+<p>&#64;author: foersterronny</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.AnalyzeDiffusingArea">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">AnalyzeDiffusingArea</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t6_final</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sizes_df_lin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnification</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.AnalyzeDiffusingArea" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.AnimateSingleTrackOnRawData">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">AnimateSingleTrackOnRawData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t_1particle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rawframes_ROI</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frm_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.AnimateSingleTrackOnRawData" title="Permalink to this definition">¶</a></dt>
+<dd><p>animate a single trajectory on top of cropped (!) raw data</p>
+<dl class="simple">
+<dt>to do:</dt><dd><ul class="simple">
+<li><p>crop the rawimage correctly (!!)</p></li>
+<li><p>implement gamma transform that does not blow up the file size by a factor of 10!!</p></li>
+<li><p>choose traj. color by length/mass/size/…?</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.AnimateTracksOnRawData">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">AnimateTracksOnRawData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t2_long</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rawframes_ROI</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frm_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.AnimateTracksOnRawData" title="Permalink to this definition">¶</a></dt>
+<dd><p>animate trajectories on top of raw data</p>
+<dl class="simple">
+<dt>to do:</dt><dd><ul class="simple">
+<li><p>make starting frame free to choose</p></li>
+<li><p>implement gamma transform that does not blow up the file size by a factor of 10!!</p></li>
+<li><p>choose traj. color by length/mass/size/…?</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.BayesianGaussianMixture">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">BayesianGaussianMixture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DoPlot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warm_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'No</span> <span class="pre">Titel</span> <span class="pre">given'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.BayesianGaussianMixture" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.CheckIlluArea">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">CheckIlluArea</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.CheckIlluArea" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.DiamOverMass">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">DiamOverMass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sizes_df_lin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.DiamOverMass" title="Permalink to this definition">¶</a></dt>
+<dd><p>RF</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.DiameterOverTrajLengthColored">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">DiameterOverTrajLengthColored</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sizes_df_lin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mass'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.DiameterOverTrajLengthColored" title="Permalink to this definition">¶</a></dt>
+<dd><p>plot (and save) calculated particle diameters vs. the number of frames
+where the individual particle is visible (in standardized format)
+and color it by a property of choice</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.DiameterPDF_transparent">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">DiameterPDF_transparent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sizes_df_lin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">histogramm_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">histogramm_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Histogramm_min_max_auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">binning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.DiameterPDF_transparent" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate and plot the diameter probability density function of a
+particle ensemble as the sum of individual PDFs - and plot the individual
+PDFs as well!</p>
+<dl class="simple">
+<dt>NB: each trajectory is considered individually, the tracklength determines</dt><dd><p>the PDF widths</p>
+</dd>
+<dt>assumption:</dt><dd><p>relative error = std/mean = sqrt( 2*N_tmax/(3*N_f - N_tmax) )
+with N_tmax : number of considered lagtimes
+N_f : number of frames of the trajectory (=tracklength)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ParameterJsonFile</strong> (<em>TYPE</em>) – DESCRIPTION.</p></li>
+<li><p><strong>sizes_df_lin</strong> (<em>TYPE</em>) – DESCRIPTION.</p></li>
+<li><p><strong>histogramm_min</strong> (<em>TYPE</em><em>, </em><em>optional</em>) – DESCRIPTION. The default is None.</p></li>
+<li><p><strong>histogramm_max</strong> (<em>TYPE</em><em>, </em><em>optional</em>) – DESCRIPTION. The default is None.</p></li>
+<li><p><strong>Histogramm_min_max_auto</strong> (<em>TYPE</em><em>, </em><em>optional</em>) – DESCRIPTION. The default is None.</p></li>
+<li><p><strong>binning</strong> (<em>TYPE</em><em>, </em><em>optional</em>) – DESCRIPTION. The default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>prob_inv_diam</em></p></li>
+<li><p><em>diam_grid</em></p></li>
+<li><p><em>ax</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.ErrorIMode">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">ErrorIMode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.ErrorIMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>RF</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.FitSVM">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">FitSVM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sizes_df_lin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.FitSVM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.GuidedMixGaussian">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">GuidedMixGaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sizes_df_lin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_traj_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_comp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">central_diameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.GuidedMixGaussian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.NewBGFilter">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">NewBGFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.NewBGFilter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.NormalizedMass">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">NormalizedMass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sizes_df_lin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.NormalizedMass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.OptimizeModePara">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">OptimizeModePara</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.OptimizeModePara" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.PCA">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">PCA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sizes_df_lin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.PCA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.RollingMedianFilter">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">RollingMedianFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.RollingMedianFilter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.RollingMedianFilter_main">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">RollingMedianFilter_main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.RollingMedianFilter_main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.SaveTifSeriesAsStack">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">SaveTifSeriesAsStack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_folder_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ShowProgress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CreateSubFolder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_tif_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.SaveTifSeriesAsStack" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.SaveTifSeriesAsStack_MainDirectory">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">SaveTifSeriesAsStack_MainDirectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">main_data_folder_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CreateSubFolder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.SaveTifSeriesAsStack_MainDirectory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.SimuIntJump">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">SimuIntJump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.SimuIntJump" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.TestSlider">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">TestSlider</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.TestSlider" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.TryTextBox">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">TryTextBox</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.TryTextBox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.sandbox.TryTextBox2">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.sandbox.</span></span><span class="sig-name descname"><span class="pre">TryTextBox2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.sandbox.TryTextBox2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">NanoObjectDetection</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Ronny Förster.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/rst/NanoObjectDetection.sandbox.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

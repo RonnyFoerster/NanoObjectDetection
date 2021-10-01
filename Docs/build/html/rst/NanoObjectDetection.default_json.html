@@ -1,0 +1,737 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NanoObjectDetection.default_json module &#8212; NanoObjectDetection 2021 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.default_json">
+<span id="nanoobjectdetection-default-json-module"></span><h1>NanoObjectDetection.default_json module<a class="headerlink" href="#module-NanoObjectDetection.default_json" title="Permalink to this headline">¶</a></h1>
+<p>IMPORTANT:
+All the experimental parameters can be found in a json file.
+The json datatype is quite strict with the format. The last entry of a key should not end whith a ” , ” . Booleans are written as 0 and 1.
+A path does not accept ” ” instead you have to use ” “.</p>
+<hr class="docutils" />
+<p>Exp</p>
+<p>Experimental parameters</p>
+<div class="line-block">
+<div class="line">key: NA:</div>
+<div class="line">description: numerical aperture of the detection objective</div>
+<div class="line">example: 0.13</div>
+<div class="line">unit: none</div>
+</div>
+<div class="line-block">
+<div class="line">key: lambda</div>
+<div class="line">description: wavelength of the detection light (in scattering this is the illumination wavelength)</div>
+<div class="line">example: 532</div>
+<div class="line">unit: nm</div>
+</div>
+<div class="line-block">
+<div class="line">key: fps</div>
+<div class="line">description: frames per seconds (fps) of the camera; required for the lagtime (1/fps)</div>
+<div class="line">example: 100</div>
+<div class="line">unit: Hz</div>
+</div>
+<div class="line-block">
+<div class="line">key: ExposureTime</div>
+<div class="line">description: exposuretime of each raw image</div>
+<div class="line">example: 0.01028</div>
+<div class="line">unit: seconds</div>
+</div>
+<div class="line-block">
+<div class="line">key: Microns_per_pixel</div>
+<div class="line">description: size of a camera pixel in object coordinate. This is given by the pixel pitch of the CCD and the magnification of the system. Be aware that the magnification written on an objective is only valid for the correct tube lens length.</div>
+<div class="line">example: 0.63</div>
+<div class="line">unit: µm/px</div>
+</div>
+<div class="line-block">
+<div class="line">key: Temperature</div>
+<div class="line">description: temperature of the specimen</div>
+<div class="line">example: 295</div>
+<div class="line">unit: K</div>
+</div>
+<div class="line-block">
+<div class="line">key: Viscosity</div>
+<div class="line">description: Viscosity of the fluid</div>
+<div class="line">example: 9.5e-16</div>
+<div class="line">unit: Ns/(um^2) = 1E12 * Ns/(m^2) = 1E15 * mPa * s</div>
+</div>
+<div class="line-block">
+<div class="line">key: solvent</div>
+<div class="line">description: the kind of liquid that surrounds the nanoobjects under investigation</div>
+<div class="line">example: “water”</div>
+<div class="line">unit: none</div>
+</div>
+<div class="line-block">
+<div class="line">key: particleConc_inSolvent</div>
+<div class="line">description: estimated concentration value of the prepared particle solution</div>
+<div class="line">example: 0.188</div>
+<div class="line">unit: 1/nL</div>
+</div>
+<hr class="docutils" />
+<p>Fiber</p>
+<p>Here are all the fiber parameters</p>
+<div class="line-block">
+<div class="line">key: Shape</div>
+<div class="line">description: Shape of the fiber channel where the particles are in</div>
+<div class="line">example: “hex”</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: ARHCF_hex_sidelength_um</div>
+<div class="line">description: If its an hexagonal ARHCF, the 6 side lengths are inserted here</div>
+<div class="line">example: [315, 315, 318, 335, 300, 338]</div>
+<div class="line">unit: um</div>
+</div>
+<div class="line-block">
+<div class="line">key: CalcTubeDiameterOutOfSidelength</div>
+<div class="line">description: Calculate the fiber diameter out of the given side length and fiber shape</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: TubeDiameter_nm</div>
+<div class="line">description: Diameter of fiber channel where the particles are in (distance between parallel walls)</div>
+<div class="line">example: 10000</div>
+<div class="line">unit: nm</div>
+</div>
+<hr class="docutils" />
+<p>File</p>
+<p>Here are all the file locations of the input.</p>
+<div class="line-block">
+<div class="line">key: data_file_name</div>
+<div class="line">description: Complete path of the first image</div>
+<div class="line">example: “C:DataMona_Nissen40nmgold.fits”</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: data_folder_name</div>
+<div class="line">description: Location of the images</div>
+<div class="line">example: “C:DataMona_Nissen”</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: data_type</div>
+<div class="line">description: File format of the images</div>
+<div class="line">example: “fits”, “tif_stack” or “tif_series”</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: DefaultParameterJsonFile</div>
+<div class="line">description: If a json file is incomplete, for example due to an update, the json file is completed by the default value, whose path defined in here.</div>
+<div class="line">example: “Z:Datenauswertung19_ARHCF190802190225_default.json”</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: json</div>
+<div class="line">description: path of the json file (if not given the code will write it into it.)</div>
+<div class="line">example: “Z:DatenauswertungMona_NissenAu50_922fps_mainChanOnly190227_Au50_922fps_mainChanOnly.json”</div>
+<div class="line">unit:</div>
+</div>
+<hr class="docutils" />
+<p>Simulation</p>
+<p>In case the data is simulated and not acquired physically the parameters can be found here.</p>
+<div class="line-block">
+<div class="line">key: SimulateData</div>
+<div class="line">description: Boolean if the data shall be simulated</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: DiameterOfParticles</div>
+<div class="line">description: Diameter(s) of the simulated particles (float or list of float)</div>
+<div class="line">example: [50, 80]</div>
+<div class="line">unit: nm</div>
+</div>
+<div class="line-block">
+<div class="line">key: NumberOfParticles</div>
+<div class="line">description: Number(s) of created particles (int or list of int)</div>
+<div class="line">example: 42</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: NumberOfFrames</div>
+<div class="line">description: Number of simulated frames</div>
+<div class="line">example: 420</div>
+<div class="line">unit: frames</div>
+</div>
+<div class="line-block">
+<div class="line">key: mass</div>
+<div class="line">description: Mass of the particles (float or list of float)</div>
+<div class="line">example: 100</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: EstimationPrecision</div>
+<div class="line">description: Estimation precision</div>
+<div class="line">example: !!! TODO !!!</div>
+<div class="line">unit: !!! TODO !!!</div>
+</div>
+<div class="line-block">
+<div class="line">key: Max_traj_length</div>
+<div class="line">description: Maximum trajectory length. Longer trajectories are cut and treated as independent particles at different time points.</div>
+<div class="line">example: 300</div>
+<div class="line">unit: frames</div>
+</div>
+<hr class="docutils" />
+<p>ROI - Region of interest</p>
+<p>Here a subregion (ROI) can be defined. This is especially helpfull for debugging, when not the entire image or all frames shall be used for the calculation in order to speed up the calculations. In addition, it can be helpfull if the image is large, but you just wanna evaluate a particle at a very defined region and time.</p>
+<div class="line-block">
+<div class="line">key: Apply</div>
+<div class="line">description: Boolean if the ROI is applied</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: x_min, x_max, y_min, y_max</div>
+<div class="line">description: min- / maximal value of the ROI</div>
+<div class="line">example: 100</div>
+<div class="line">unit: px</div>
+</div>
+<div class="line-block">
+<div class="line">key: frame_min, frame_max</div>
+<div class="line">description: min- / maximal processed frame</div>
+<div class="line">example: 100</div>
+<div class="line">unit: frames</div>
+</div>
+<hr class="docutils" />
+<p>Subsampling</p>
+<p>A subsampling of data can be useful if the data is highly oversampled or a lower framerate of the camera is sufficent
+A subsampled image is analyzed faster but information is obviously thrown away.</p>
+<div class="line-block">
+<div class="line">key: Apply</div>
+<div class="line">description: Boolean if a subsampling shall be applied</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: fac_xy</div>
+<div class="line">description: Factor of spatial subsampling.</div>
+<div class="line">example: 5… means that just every fifth pixel is kept used further</div>
+<div class="line">unit: px</div>
+</div>
+<div class="line-block">
+<div class="line">key: fac_frame</div>
+<div class="line">description: Factor of temporal subsampling.</div>
+<div class="line">example: 5… means that just every fifth frame is kept</div>
+<div class="line">unit: frames</div>
+</div>
+<hr class="docutils" />
+<p>PreProcessing</p>
+<p>Standard image processing before the specific MSD stuff starts.</p>
+<div class="line-block">
+<div class="line">key: Remove_CameraOffset</div>
+<div class="line">description: Boolean if the camera offset is removed</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolen</div>
+</div>
+<div class="line-block">
+<div class="line">key: Remove_Laserfluctuation</div>
+<div class="line">description: Boolean if the laser fluctuations are removed</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolen</div>
+</div>
+<div class="line-block">
+<div class="line">key: Remove_StaticBackground</div>
+<div class="line">description: Boolean if the static background is removed</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolen</div>
+</div>
+<div class="line-block">
+<div class="line">key: RollingPercentilFilter</div>
+<div class="line">description: Boolean if a rolling filter is applied on the rawimages along the time axis</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolen</div>
+</div>
+<div class="line-block">
+<div class="line">key: RollingPercentilFilter_rolling_step</div>
+<div class="line">description: Number of frames that are binned together as one.</div>
+<div class="line">example: 10</div>
+<div class="line">unit: frames</div>
+</div>
+<div class="line-block">
+<div class="line">key: RollingPercentilFilter_rolling_length</div>
+<div class="line">description: Length of the rolling filter. In other words, the number of frames that are averaged</div>
+<div class="line">example: 100</div>
+<div class="line">unit: frames</div>
+</div>
+<div class="line-block">
+<div class="line">key: RollingPercentilFilter_percentile_filter</div>
+<div class="line">description: Percentile which is used for the fitlering</div>
+<div class="line">example: 80</div>
+<div class="line">unit: %</div>
+</div>
+<div class="line-block">
+<div class="line">key: ClipNegativeValue</div>
+<div class="line">description: Boolean, if the negative values are set to 0. Negative values seem unnatural, but contain valuable information   0</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Do_or_apply_data_rotation</div>
+<div class="line">description: Boolean if the rawdata is rotated</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: rot_angle</div>
+<div class="line">description: Angle by which the rawdata is rotated</div>
+<div class="line">example: 0.3</div>
+<div class="line">unit: degree</div>
+</div>
+<hr class="docutils" />
+<p>Help</p>
+<p>Start a routine that try to help you find the right parameters.</p>
+<div class="line-block">
+<div class="line">key: ROI</div>
+<div class="line">description: Boolean if help with the ROI parameters is wanted</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Bead brightness</div>
+<div class="line">description: Boolean if help with the “Bead brightness” is wanted</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Bead size</div>
+<div class="line">description: Boolean if help with the “Bead size” is wanted</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<hr class="docutils" />
+<p>Find</p>
+<p>Parameters necessary to find the particles in the image with the Tracky module.</p>
+<div class="line-block">
+<div class="line">key: Analyze in log</div>
+<div class="line">description: Some people like to form the log of a rawimage before proceeding</div>
+<div class="line">example: 0</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Estimated particle size</div>
+<div class="line">description: estimated particle size of an object on the camera. This is required for Trackpy to find it with high accuaray. The help routine is of use if unknown</div>
+<div class="line">example: [9.0, 9.0]</div>
+<div class="line">unit: px</div>
+</div>
+<div class="line-block">
+<div class="line">key:  Estimated particle size (log-scale)</div>
+<div class="line">description:  as above (Estimated particle size)</div>
+<div class="line">example: [9.0, 9.0]</div>
+<div class="line">unit: px</div>
+</div>
+<div class="line-block">
+<div class="line">key: Minimal bead brightness</div>
+<div class="line">description: Minimal brightness a bead must have in order to be classified as an object and not as noise</div>
+<div class="line">example: 15</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: Separation data</div>
+<div class="line">description:  Minimum distance of two identified particles</div>
+<div class="line">example: 1.5</div>
+<div class="line">unit: px</div>
+</div>
+<hr class="docutils" />
+<p>Link</p>
+<p>Parameters to use the Trackpy module to form trajectories of localized objects of different frames.</p>
+<div class="line-block">
+<div class="line">key: Dark time</div>
+<div class="line">description: An object can disappear from on frame to another. A reason can be local intensity fluctuations, for example generated by large stationary objects. The dark time define how long a object can be invisible before defined as lost.</div>
+<div class="line">example: 5</div>
+<div class="line">unit: frames</div>
+</div>
+<div class="line-block">
+<div class="line">key: Dwell time stationary objects</div>
+<div class="line">description: Number of frames an object must remain at it position in order to be classified as stationary.</div>
+<div class="line">example: 100</div>
+<div class="line">unit: frames</div>
+</div>
+<div class="line-block">
+<div class="line">key: Max displacement</div>
+<div class="line">description: Maximum movement a particle can do between to frames before beeing classified as another particle</div>
+<div class="line">example: 3</div>
+<div class="line">unit: px</div>
+</div>
+<div class="line-block">
+<div class="line">key: Max displacement fix</div>
+<div class="line">description: Maximum movement of a particle that is tested between two frames for beeing stationary. Important: this check musst happen before the drift correction, because stationary objects are independent  from the drift and vice versa.</div>
+<div class="line">example: 0.3</div>
+<div class="line">unit: px</div>
+</div>
+<div class="line-block">
+<div class="line">key: Min tracking frames before drift</div>
+<div class="line">description: Minimum length of a trajectory before the drift correction. A too short trajectory is considered of beeing wrong assigned or very noise</div>
+<div class="line">example: 15</div>
+<div class="line">unit: frames</div>
+</div>
+<div class="line-block">
+<div class="line">key: Min_tracking_frames</div>
+<div class="line">description: In order to get a good statistic, the squared deviation must be measured several times. This the trajectory lenght must have minium number of frames.</div>
+<div class="line">example: 500</div>
+<div class="line">unit: frames</div>
+</div>
+<hr class="docutils" />
+<p>StationaryObjects</p>
+<p>Some Objects do not move. They might be attached to something. You never know. A subroutine checks it.</p>
+<div class="line-block">
+<div class="line">key: Analyze fixed spots</div>
+<div class="line">description: Boolean weather the algorithm shall look for fixed spots</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Min distance to stationary object</div>
+<div class="line">description: Stationary objects are bad, because they are normally quite large and interfere with neighbouring particles, which distracts their localzation. Thus, a maximum distance from moving to stationary objects is defined in pixels bright particle cluster)</div>
+<div class="line">example: 20</div>
+<div class="line">unit: px</div>
+</div>
+<hr class="docutils" />
+<p>Split</p>
+<p>Sometimes a trajectory must be cut in two. A reason can be, that the assignment was wrong.</p>
+<div class="line-block">
+<div class="line">key: Max_traj_length</div>
+<div class="line">description: Maximum trajectory length. Longer trajectories are cutted and treates as independent particles at different time points</div>
+<div class="line">example: 500</div>
+<div class="line">unit: frames</div>
+</div>
+<div class="line-block">
+<div class="line">key: Max_traj_length_keep_tail</div>
+<div class="line">description: If a trajectory is cutted, there will be a left over. This ‘tail’ can be kept, so that one trajectore is longer (1), or can be discarded (0) so that all trajectories are of equal length.</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Max rel median intensity step</div>
+<div class="line">description: Defines the maximum relativ intensity drop/raise are trajectory can have between to neighbouring pixels.  If the value is exceeded the risk of a wrong assignment is too large. Thus the trajectory is splitted at this jump.</div>
+<div class="line">example: 0.5</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: ParticleWithLongestTrajBeforeSplit</div>
+<div class="line">description: Particle ID with the longest trajectory. The longest trajectory can be cutted into the most subtrajectories, which can be all evaluated independently, which gives something like a std/ resolution of the measurement / analysis</div>
+<div class="line">example: 42 (this value is inserted by the algorithm)</div>
+<div class="line">unit: ID</div>
+</div>
+<hr class="docutils" />
+<p>Drift</p>
+<p>A drift can occur during the measurement. The drift needs to be measured and subtracted from the movement in order to
+get the diffusion only. The drift is measured by the assumption, that the average movement is zero. Thus a drift can
+only be measured if many particles are present.</p>
+<div class="line-block">
+<div class="line">key: Apply</div>
+<div class="line">description: Boolean weather a drift correction is performed</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Do transversal drift correction</div>
+<div class="line">description: Boolean if the drift correction considers are lamiar flow (1) or global drift (0)</div>
+<div class="line">example: 1</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: Drift smoothing frames</div>
+<div class="line">description: Number of frames the drift is averaged over, since it assumed to change slowly</div>
+<div class="line">example: 20</div>
+<div class="line">unit: frames</div>
+</div>
+<div class="line-block">
+<div class="line">key: Drift rolling window size</div>
+<div class="line">description: Lamiar flow: this value gives the total number of neighbouring slices that are used for averaging.</div>
+<div class="line">example: 5</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: Min particle per block</div>
+<div class="line">description: Laminar flow: This is the minimum number of particles in one block</div>
+<div class="line">example: 40</div>
+<div class="line">unit:</div>
+</div>
+<hr class="docutils" />
+<p>MSD</p>
+<p>Parameters of the mean-squared-displacement fit.</p>
+<div class="line-block">
+<div class="line">key: Amount summands</div>
+<div class="line">description: Minimum number of statistically indepent values at each considered lagtime. If a particles does not fulfill this criterion, it is not evaluated further. The higher the value the better the fit.</div>
+<div class="line">example: 30</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: Amount lagtimes auto</div>
+<div class="line">description: Boolean if the number of lagtimes for the fit is defined automatically</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Amount lagtimes</div>
+<div class="line">description: Amount of lagtimes used for the fit</div>
+<div class="line">example: 5</div>
+<div class="line">unit: frames</div>
+</div>
+<div class="line-block">
+<div class="line">key: effective_fps</div>
+<div class="line">description: The framerate might be reduced due to subsampling</div>
+<div class="line">example: 42</div>
+<div class="line">unit: frames</div>
+</div>
+<div class="line-block">
+<div class="line">key: effective_Microns_per_pixel</div>
+<div class="line">description: The magnification might be enhanced due to subsampling</div>
+<div class="line">example: 0.5</div>
+<div class="line">unit: um/px</div>
+</div>
+<div class="line-block">
+<div class="line">key: EstimateHindranceFactor</div>
+<div class="line">description: Boolean if hindrance factor shall be considered (good when particle diameter in the range of the fiber diameter)</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: EvalOnlyLongestTraj</div>
+<div class="line">description: Boolean if only the longest trajectory shall be evaluated</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<hr class="docutils" />
+<p>Plot</p>
+<p>Parameters that define what is ploted, how it looks like and where it is safed.</p>
+<div class="line-block">
+<div class="line">key: Background_Show</div>
+<div class="line">description: Show background / dark image</div>
+<div class="line">example:</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Background_Save</div>
+<div class="line">description:</div>
+<div class="line">example:</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Laserfluctuation_Show</div>
+<div class="line">description: Show laserintensity (only valid for if many particles are present) over time</div>
+<div class="line">example:</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Laserfluctuation_Save</div>
+<div class="line">description:</div>
+<div class="line">example:</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: MSD_fit_Show</div>
+<div class="line">description: MSD over lagtime</div>
+<div class="line">example:</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: MSD_fit_Save</div>
+<div class="line">description:</div>
+<div class="line">example:</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Histogramm_Show</div>
+<div class="line">description: Diameter histogramm</div>
+<div class="line">example:</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Histogramm_Save</div>
+<div class="line">description:</div>
+<div class="line">example:</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Histogramm_Bins_Auto</div>
+<div class="line">description: Automatically sets the number of bins in the diameter histogramm</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Histogramm_Bins</div>
+<div class="line">description: Number of bins in the diameter histogramm</div>
+<div class="line">example: 25</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: Histogramm_min_max_auto</div>
+<div class="line">description: Automatically the minimal and maximal diameter in the diameter histogramm</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: Histogramm_min</div>
+<div class="line">description: Minimal diameter in the diameter histogramm</div>
+<div class="line">example: 30</div>
+<div class="line">unit: nm</div>
+</div>
+<div class="line-block">
+<div class="line">key: Histogramm_max</div>
+<div class="line">description: Maximal diameter in the diameter histogramm</div>
+<div class="line">example: 100</div>
+<div class="line">unit: nm</div>
+</div>
+<div class="line-block">
+<div class="line">key: DiamOverTraj_Show</div>
+<div class="line">description: Diameter of a particle over its trajectory length</div>
+<div class="line">example:</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: DiamOverTraj_Save</div>
+<div class="line">description:</div>
+<div class="line">example:</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: fontsize</div>
+<div class="line">description: Plot fontsize</div>
+<div class="line">example: 14</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: SaveFolder</div>
+<div class="line">description: Folder where to save it</div>
+<div class="line">example: “Z:DatenauswertungMona_NissenAu50_922fps_mainChanOnly”</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: save_json</div>
+<div class="line">description: Boolean weather the properties are saved</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<div class="line-block">
+<div class="line">key: SaveProperties</div>
+<div class="line">description: The json file is saved along with the image. This makes it reproduceable</div>
+<div class="line">example: “Z:DatenauswertungMona_NissenAu50_922fps_mainChanOnly19030516_16_05_Diameter Histogramm.json”</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: dpi</div>
+<div class="line">description: dpi of the saved image</div>
+<div class="line">example: 300</div>
+<div class="line">unit: dpi</div>
+</div>
+<div class="line-block">
+<div class="line">key: save_data2csv</div>
+<div class="line">description: Boolean weather the data is saved</div>
+<div class="line">example: 1</div>
+<div class="line">unit: boolean</div>
+</div>
+<hr class="docutils" />
+<p>Old</p>
+<p>Parameters that are unused but still there in case they turn modern again</p>
+<div class="line-block">
+<div class="line">key: Min displacement</div>
+<div class="line">description: TODO !!!</div>
+<div class="line">example:5</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key:Rolling window size</div>
+<div class="line">description:  TODO !!!</div>
+<div class="line">example: 5</div>
+<div class="line">unit:</div>
+</div>
+<div class="line-block">
+<div class="line">key: data_file_extension</div>
+<div class="line">description: File format of the images</div>
+<div class="line">example: “tif”</div>
+<div class="line">unit:</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">NanoObjectDetection</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Ronny Förster.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/rst/NanoObjectDetection.default_json.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

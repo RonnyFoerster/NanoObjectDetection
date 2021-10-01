@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NanoObjectDetection.hurst module &#8212; NanoObjectDetection 2021 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.hurst">
+<span id="nanoobjectdetection-hurst-module"></span><h1>NanoObjectDetection.hurst module<a class="headerlink" href="#module-NanoObjectDetection.hurst" title="Permalink to this headline">¶</a></h1>
+<p>Created on Fri Feb 19 19:41:15 2021</p>
+<p>&#64;author: foersterronny</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.hurst.compute_Hc">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.hurst.</span></span><span class="sig-name descname"><span class="pre">compute_Hc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random_walk'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simplified</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.hurst.compute_Hc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute H (Hurst exponent) and C according to Hurst equation:
+E(R/S) = c * T^H</p>
+<p>Refer to:
+<a class="reference external" href="https://en.wikipedia.org/wiki/Hurst_exponent">https://en.wikipedia.org/wiki/Hurst_exponent</a>
+<a class="reference external" href="https://en.wikipedia.org/wiki/Rescaled_range">https://en.wikipedia.org/wiki/Rescaled_range</a>
+<a class="reference external" href="https://en.wikipedia.org/wiki/Random_walk">https://en.wikipedia.org/wiki/Random_walk</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>series</strong> (<em>array-like</em>) – (Time-)series</p></li>
+<li><p><strong>kind</strong> (<em>str</em>) – Kind of series
+possible values are ‘random_walk’, ‘change’ and ‘price’:
+- ‘random_walk’ means that a series is a random walk with random increments;
+- ‘price’ means that a series is a random walk with random multipliers;
+- ‘change’ means that a series consists of random increments
+(thus produced random walk is a cumulative sum of increments);</p></li>
+<li><p><strong>min_window</strong> (<em>int</em><em>, </em><em>default 10</em>) – the minimal window size for R/S calculation</p></li>
+<li><p><strong>max_window</strong> (<em>int</em><em>, </em><em>default is the length of series minus 1</em>) – the maximal window size for R/S calculation</p></li>
+<li><p><strong>simplified</strong> (<em>bool</em><em>, </em><em>default True</em>) – whether to use the simplified or the original version of R/S calculation</p></li>
+<li><p><strong>of</strong> (<em>Returns tuple</em>) – H, c and data
+where H and c — parameters or Hurst equation
+and data is a list of 2 lists: time intervals and R/S-values for correspoding time interval
+for further plotting log(data[0]) on X and log(data[1]) on Y</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.hurst.random_walk">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.hurst.</span></span><span class="sig-name descname"><span class="pre">random_walk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proba</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_lookback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_lookback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cumprod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.hurst.random_walk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a random walk series</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>proba</strong> (<em>float</em><em>, </em><em>default 0.5</em>) – the probability that the next increment will follow the trend.
+Set proba &gt; 0.5 for the persistent random walk,
+set proba &lt; 0.5 for the antipersistent one</p></li>
+<li><p><strong>min_lookback</strong> (<em>int</em><em>, </em><em>default 1</em>) – </p></li>
+<li><p><strong>max_lookback</strong> (<em>int</em><em>, </em><em>default 100</em>) – minimum and maximum window sizes to calculate trend direction</p></li>
+<li><p><strong>cumprod</strong> (<em>bool</em><em>, </em><em>default False</em>) – generate a random walk as a cumulative product instead of cumulative sum</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">NanoObjectDetection</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Ronny Förster.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/rst/NanoObjectDetection.hurst.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

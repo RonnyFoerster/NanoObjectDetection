@@ -1,0 +1,247 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NanoObjectDetection.get_trajectorie module &#8212; NanoObjectDetection 2021 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.get_trajectorie">
+<span id="nanoobjectdetection-get-trajectorie-module"></span><h1>NanoObjectDetection.get_trajectorie module<a class="headerlink" href="#module-NanoObjectDetection.get_trajectorie" title="Permalink to this headline">¶</a></h1>
+<p>Created on Tue Feb  5 12:23:39 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.AnalyzeMovingSpots">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">AnalyzeMovingSpots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames_np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.AnalyzeMovingSpots" title="Permalink to this definition">¶</a></dt>
+<dd><p>find moving spots by using a much larger diameter than for the slow moving (unsmeared) particles</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.CheckForPureBrownianMotion">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">CheckForPureBrownianMotion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">valid_particle_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traj_min_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PlotErrorIfTestFails</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yEval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.CheckForPureBrownianMotion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check each Trajectory if its pure Brownian motion by a Kolmogorow-Smirnow test</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.CutTrajAtIntensityJump_Main">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">CutTrajAtIntensityJump_Main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t2_long</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.CutTrajAtIntensityJump_Main" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function cuts the trajectory at to high intensity jumps</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.DisplayNumDroppedTraj">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">DisplayNumDroppedTraj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traj_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traj_min_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FixedParticles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BeforeDriftCorrection</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.DisplayNumDroppedTraj" title="Permalink to this definition">¶</a></dt>
+<dd><p>gives the user feed back how many trajectories are discared because they are to short</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.FindSpots">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">FindSpots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawframes_np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rawframes_pre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UseLog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minmass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iterations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SaveFig</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ExternalSlider</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oldSim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DoParallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.FindSpots" title="Permalink to this definition">¶</a></dt>
+<dd><p>wrapper for trackpy routine tp.batch, which spots particles</p>
+<p>rawframes_np: unprocessed RAW image
+rawframes_pre: preprocessed image (background, filter, etc.)</p>
+<p>important parameters:
+separation = settings[“Find”][“tp_separation”] … minimum distance of spotes objects
+minmass    = settings[“Find”][“tp_minmass”]   … minimum brightness of an object in order to be saved</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.FindSpots_plotting">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">FindSpots_plotting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames_np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ExternalSlider</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.FindSpots_plotting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.FindSpots_tp">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">FindSpots_tp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames_np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minmass</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iterations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DoPreProcessing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DoParallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.FindSpots_tp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.QGridPandas">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">QGridPandas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">my_pandas</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.QGridPandas" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.RemoveOverexposedObjects">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">RemoveOverexposedObjects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_moving</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rawframes_rot</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.RemoveOverexposedObjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>delete objects where the camera sensor was (over)saturated</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">RemoveSpotsInNoGoAreas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t2_long_fix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete objects that were found in the close neighborhood of fixed particles</p>
+<p>In case of stationary/fixed objects a moving particle should not come too close.
+This is because stationary objects might be very bright clusters which overshine
+the image of the dim moving particle. Thus a ‘not-go-area’ is defined.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas_loop">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">RemoveSpotsInNoGoAreas_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stationary_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop_t2_long_fix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_distance</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.RemoveSpotsInNoGoAreas_loop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Central loop in RemoveSpotsInNoGoAreas
+make a separate function for it for better parallelisazion</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.calc_intensity_fluctuations">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">calc_intensity_fluctuations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t3_gapless</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dark_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PlotIntMedianFit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PlotIntFlucPerBead</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.calc_intensity_fluctuations" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the intensity fluctuation of a particle along its trajectory</p>
+<p>note: “mass_smooth” and “rel_step” columns are introduced here</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.close_gaps">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">close_gaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.close_gaps" title="Permalink to this definition">¶</a></dt>
+<dd><p>fill gaps in the trajectory by nearest neighbour</p>
+<p>necessary for following filtering where again a nearest neighbour is applied,
+otherwise the median fill will just ignore missing time points</p>
+<p>note: “RealData” column is introduced here (to distinguish between real and artificial data points)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.close_gaps_loop">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">close_gaps_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t1_loop</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.close_gaps_loop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.filter_stubs">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">filter_stubs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traj_all</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">FixedParticles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BeforeDriftCorrection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_tracking_frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ErrorCheck</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PlotErrorIfTestFails</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.filter_stubs" title="Permalink to this definition">¶</a></dt>
+<dd><p>wrapper for tp.filter_stubs, which filters out too short trajectories,
+including a check whether a trajectory is close enough to random Brownian motion</p>
+<p>important parameters:
+FixedParticles        = defines whether fixed or moving particles are under current investigation
+Fixed particles must have long trajectories to ensure that they are really stationary.</p>
+<p>BeforeDriftCorrection = defines if the particles have been already drift corrected
+Before drift correction short trajectories are okay.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.link_df">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">link_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SearchFixedParticles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_displacement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dark_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.link_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>wrapper for the trackpy routine tp.link, which forms trajectories
+out of particle positions, out of the json file</p>
+<p>important parameters:
+SearchFixedParticles = defines whether fixed or moving particles are under current investigation
+dark_time            = settings[“Link”][“Dark time”] … maximum number of frames a particle can disappear
+max_displacement     = [“Link”][“Max displacement”]   …maximum displacement between two frames</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.split_traj">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">split_traj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t2_long</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t3_gapless</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.split_traj" title="Permalink to this definition">¶</a></dt>
+<dd><p>wrapper function for ‘split_traj_at_high_steps’ , returns both the original
+output and one without missing time points</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.split_traj_at_high_steps">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">split_traj_at_high_steps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t2_long</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t3_gapless</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_rel_median_intensity_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_tracking_frames_before_drift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PlotTrajWhichNeedACut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NumParticles2Plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PlotAnimationFiltering</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rawframes_ROI</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.split_traj_at_high_steps" title="Permalink to this definition">¶</a></dt>
+<dd><p>split trajectories at high intensity jumps</p>
+<p>Assumption: An intensity jump is more likely to happen because of a wrong assignment in
+the trajectory building routine, than a real intensity jump due to radius change (I_scatterung ~ R^6)
+or heavy substructures/intensity holes in the laser mode.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.get_trajectorie.split_traj_at_long_trajectory">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.get_trajectorie.</span></span><span class="sig-name descname"><span class="pre">split_traj_at_long_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t4_cutted</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Min_traj_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Max_traj_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.get_trajectorie.split_traj_at_long_trajectory" title="Permalink to this definition">¶</a></dt>
+<dd><p>split trajectories if they are longer than a given value</p>
+<p>This might be usefull, to have sufficently long trajectories all at the same length.
+Otherwise they have very different confidence intervalls
+E.g: 2 particles: 1: 500 frames, 2: 2000 frames
+particle 2 is splitted into 4 500frames</p>
+<p>Splitting of a particle is fine, because a particle can go out of focus and return later
+and is assigned as new particle too.</p>
+<p>Important is to look at the temporal component, thus particle 2 never exists twice</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">NanoObjectDetection</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Ronny Förster.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/rst/NanoObjectDetection.get_trajectorie.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

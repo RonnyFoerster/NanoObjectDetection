@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NanoObjectDetection.ParameterEstimation module &#8212; NanoObjectDetection 2021 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.ParameterEstimation">
+<span id="nanoobjectdetection-parameterestimation-module"></span><h1>NanoObjectDetection.ParameterEstimation module<a class="headerlink" href="#module-NanoObjectDetection.ParameterEstimation" title="Permalink to this headline">¶</a></h1>
+<p>Created on Thu Feb 27 15:12:14 2020</p>
+<p>&#64;author: foersterronny</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.AskBestDiameter">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">AskBestDiameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">QuestionForUser</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.AskBestDiameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>ask if user is satisfied</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.Convolution_2D">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">Convolution_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">im2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.Convolution_2D" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.CorrelateImgAndPSF">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">CorrelateImgAndPSF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.CorrelateImgAndPSF" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.DiameterForTrackpy">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">DiameterForTrackpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.DiameterForTrackpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.DiameterToDiffusion">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">DiameterToDiffusion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temp_water</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visc_water</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diameter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.DiameterToDiffusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate diffusion coefficient of a sphere with given diameter</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.Drift">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">Drift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles_per_frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.Drift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates how many frames are requires to get a good estimation of the drift</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.FindChannel">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">FindChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rawframes_super</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.FindChannel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.FindMaxDisplacementTrackpy">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">FindMaxDisplacementTrackpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GuessLowestDiameter_nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.FindMaxDisplacementTrackpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate how much a particle moves maximum between two frames.
+Leads to: Minimum distance (separation) of two points in the locating procedure
+Leads to: Maximum displacment in the nearest neighbour linking</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.FindParticleByZNCC">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">FindParticleByZNCC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_in_zncc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_area</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">OneFrameOnly</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.FindParticleByZNCC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the particles by a zero-normalized cross correlation
+This function looks for pattern not for intensity</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.FindParticles">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">FindParticles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_zncc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correl_min</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.FindParticles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.FindParticlesByZNCC">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">FindParticlesByZNCC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.FindParticlesByZNCC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find Particles by zero normalized cross-correclation</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.GaussianKernel">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">GaussianKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.GaussianKernel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.MaxRelIntensityJump">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">MaxRelIntensityJump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.MaxRelIntensityJump" title="Permalink to this definition">¶</a></dt>
+<dd><p>predicts the maximal expected scattering intensity jump of a particle between two frames</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.MinmassAndDiameterMain">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">MinmassAndDiameterMain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img1_raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NumShowPlots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DoDiameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.MinmassAndDiameterMain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate the minmass parameter trackpy requires to locate particles
+1 - Make an intensity independent feature finding by a zero-normalized cross correlation (ZNCC)
+This is computational very demanding
+2 - Optimize trackpy parameters such, that it obtains the same result than ZNCC
+showPlots: number of frames that are shown</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.OptimizeMinmassInTrackpy">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">OptimizeMinmassInTrackpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles_zncc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minmass_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DoPreProcessing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DoLog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.OptimizeMinmassInTrackpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>the particles are found accurately by zncc, which is accurate but time consuming
+trackpy is faster but needs proper threshold to find particles - minmass
+start with a low threshold and increase it till the found particles by zncc are lost</p>
+<p>DoLog is required, because this function is sometimes called in parallel, where the logging fails</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.OptimizeMinmassInTrackpyMain">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">OptimizeMinmassInTrackpyMain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles_zncc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">DoDiameter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.OptimizeMinmassInTrackpyMain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.PlotImageProcessing">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">PlotImageProcessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_zncc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_particles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.PlotImageProcessing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.SaltAndPepperKernel">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">SaltAndPepperKernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.SaltAndPepperKernel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.SigmaPSF">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">SigmaPSF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'new'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.SigmaPSF" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.ParameterEstimation.zncc">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.ParameterEstimation.</span></span><span class="sig-name descname"><span class="pre">zncc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.ParameterEstimation.zncc" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate Zero Mean Normalized Cross-Correlation
+as presented in
+<a class="reference external" href="https://martin-thoma.com/zero-mean-normalized-cross-correlation/">https://martin-thoma.com/zero-mean-normalized-cross-correlation/</a>, 27.07.2020</p>
+<p>img1, img2:     grayscale images (or any matrices) of the same size</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">NanoObjectDetection</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Ronny Förster.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/rst/NanoObjectDetection.ParameterEstimation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

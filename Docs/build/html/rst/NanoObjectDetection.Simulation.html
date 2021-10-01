@@ -1,0 +1,346 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NanoObjectDetection.Simulation module &#8212; NanoObjectDetection 2021 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.Simulation">
+<span id="nanoobjectdetection-simulation-module"></span><h1>NanoObjectDetection.Simulation module<a class="headerlink" href="#module-NanoObjectDetection.Simulation" title="Permalink to this headline">¶</a></h1>
+<p>Created on Mon Mar  4 15:17:36 2019</p>
+<p>&#64;author: Ronny Förster und Stefan Weidlich and Jisoo</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.BestConcentration">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">BestConcentration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conc_per_nl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.BestConcentration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.CalcCrossSection">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">CalcCrossSection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">material</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">at_lambda_nm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_print</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_medium</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.333</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.CalcCrossSection" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the scattering and absorption crosssection of a spherical particle</p>
+<p><a class="reference external" href="https://miepython.readthedocs.io/en/latest/02_efficiencies.html?highlight=scattering%20cross%20section">https://miepython.readthedocs.io/en/latest/02_efficiencies.html?highlight=scattering%20cross%20section</a>
+<a class="reference external" href="https://opensky.ucar.edu/islandora/object/technotes%3A232/datastream/PDF/view">https://opensky.ucar.edu/islandora/object/technotes%3A232/datastream/PDF/view</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d</strong> (<em>particle diameter in nm</em>) – </p></li>
+<li><p><strong>material</strong> (<em>particle material</em><em> (</em><em>implemented: gold</em><em>, </em><em>silver</em><em>, </em><em>polystyrene</em><em>, </em><em>DNA</em><em>, </em><em>silica</em><em>)</em>) – </p></li>
+<li><p><strong>at_lambda_nm</strong> (<em>wavelength of the incident light</em><em>, </em><em>&quot;None&quot; creates a plot for the full VIS range</em>) – </p></li>
+<li><p><strong>do_print</strong> (<em>print the results if TRUE</em>) – </p></li>
+<li><p><strong>n_medium</strong> (<em>refr. index of surrounding medium</em><em>, </em><em>&quot;None&quot; uses Daimon2007 data for water at 20°C</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>C_Scat, C_Abs</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>scattering and absorption cross section in nm^2</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.CalcCrossSection_OLD">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">CalcCrossSection_OLD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lambda_nm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_nm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">material</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Gold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_part</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.CalcCrossSection_OLD" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the scattering crosssections of a scattering sphere</p>
+<p><a class="reference external" href="https://reader.elsevier.com/reader/sd/pii/0030401895007539?token=48F2795599992EB11281DD1C2A50B58FC6C5F2614C90590B9700CD737B0B9C8E94F2BB8A17F74D0E6087FF3B7EF5EF49">https://reader.elsevier.com/reader/sd/pii/0030401895007539?token=48F2795599992EB11281DD1C2A50B58FC6C5F2614C90590B9700CD737B0B9C8E94F2BB8A17F74D0E6087FF3B7EF5EF49</a>
+<a class="reference external" href="https://github.com/scottprahl/miepython/blob/master/doc/01_basics.ipynb">https://github.com/scottprahl/miepython/blob/master/doc/01_basics.ipynb</a></p>
+<p>lambda_nm:  wavelength of the incident light
+d_nm:       sphere’s diameter
+P_W:        incident power
+A_sqm:      beam/channel cross sectional area
+material:   sphere’s material</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.ChangeCordSystem">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">ChangeCordSystem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx_c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy_c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_in</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.ChangeCordSystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translate Coordinate System to new center dx_c and dx_y
+Rotate by angle theta
+Return transformed coordinates (x2,y2) of input system (x1,y1)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.CheckTrajLeavesConfinement">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">CheckTrajLeavesConfinement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t_part</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.CheckTrajLeavesConfinement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.ConcentrationVsNN">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">ConcentrationVsNN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.ConcentrationVsNN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.ConfineTraj">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">ConfineTraj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ShowReflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.ConfineTraj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Confines a trajectory inside a circle of radius r</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.DefocusCrossCorrelation">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">DefocusCrossCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ShowPlot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.DefocusCrossCorrelation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.DepthOfField">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">DepthOfField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">my_lambda</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.DepthOfField" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.DetectionEfficency">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">DetectionEfficency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">NA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.DetectionEfficency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.E_Kin_Radiation_Force">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">E_Kin_Radiation_Force</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">F</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.E_Kin_Radiation_Force" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.EstimateScatteringIntensity">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">EstimateScatteringIntensity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">P_illu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w_illu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_illu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exposure_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PrintSteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Peak'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.EstimateScatteringIntensity" title="Permalink to this definition">¶</a></dt>
+<dd><p>P_illu - Power of illumination beam [W]
+w_illu - Beam waiste (radius) in m
+lambda_illu - illumination wavelength in nm
+d - diameter of particle in m
+exposure_time - exposure_time in s
+NA - considering air
+n - refractive index of immersion media
+Mode - calculate Intensity at the “Peak” or assume “FlatTop” Profile</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.GenerateRandomWalk">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">GenerateRandomWalk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames_per_second</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_exp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_microsteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">microns_per_pixel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.477</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">295</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visc_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9.5e-16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PrintParameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NumDims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.GenerateRandomWalk" title="Permalink to this definition">¶</a></dt>
+<dd><p>simulate a random walk of Brownian diffusion and return it as Pandas.DataFrame
+object as if it came from real data:</p>
+<p>diameter:       particle size in nm
+num_particles:  number of particles to simulate
+frames:         number of frames to simulate
+frames_per_second
+t_exp           exposure time of one frame
+num_microsteps  number of microsteps in each frame
+ep = 0:         estimation precision
+mass = 1:       mass of the particle
+microns_per_pixel = 0.477
+temp_water = 295 K
+visc_water = 9.5e-16:</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.GenerateRandomWalk_old">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">GenerateRandomWalk_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames_per_second</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RatioDroppedFrames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">microns_per_pixel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.477</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">295</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visc_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9.5e-16</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.GenerateRandomWalk_old" title="Permalink to this definition">¶</a></dt>
+<dd><p>previous function - restored for comparison and re-running of older scripts</p>
+<p>simulate a random walk of Brownian diffusion and return it as Pandas.DataFrame as
+if it came from real data</p>
+<p>diameter:       particle size in nm
+num_particles:  number of particles to simulate
+frames:         number of frames to simulate
+frames_per_second
+ep = 0:         estimation precision
+mass = 1:       mass of the particle
+microns_per_pixel = 0.477
+temp_water = 295 K
+visc_water = 9.5e-16:</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.HistDistanceBetweenParticles">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">HistDistanceBetweenParticles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.HistDistanceBetweenParticles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.LocalAccuracyVsObjective">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">LocalAccuracyVsObjective</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.LocalAccuracyVsObjective" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.LoopSimulation">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">LoopSimulation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.LoopSimulation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.MassOfNP">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">MassOfNP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_nm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.MassOfNP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.MaximumNAByFocusDepth">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">MaximumNAByFocusDepth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dof</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_nm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.MaximumNAByFocusDepth" title="Permalink to this definition">¶</a></dt>
+<dd><p>dof - depth of focus in nm
+lambda_nm - wavelength in nm
+n - refractive index immersion oil</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.MinimalDiameter">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">MinimalDiameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_channel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_nm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P_illu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_nm_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_nm_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">293</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visc_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">readout_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N_required</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.MinimalDiameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>d_channel - diameter of the channel [nm]
+P_illu - power of laser INSIDE the fiber [W]
+n - refractive index immersion oil
+N_required - Intended number of photons of a scatterer per frame</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.PlotNumberDifferentParticle">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">PlotNumberDifferentParticle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conc_per_nl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eval_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RelDrop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.PlotNumberDifferentParticle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.PlotNumberParticlesPerFrame">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">PlotNumberParticlesPerFrame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conc_per_nl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eval_particles_per_frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RelDrop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.PlotNumberParticlesPerFrame" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.PlotSimulationResults">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">PlotSimulationResults</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conc_per_nl</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eval_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_eval_particles_per_frame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RelDrop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.PlotSimulationResults" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.PrepareRandomWalk">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">PrepareRandomWalk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ParameterJsonFile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RatioDroppedFrames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">EstimationPrecision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames_per_second</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">microns_per_pixel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">293</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visc_water</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9.5e-16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed_startpos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">oldSim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.PrepareRandomWalk" title="Permalink to this definition">¶</a></dt>
+<dd><p>configure the parameters for a randowm walk out of a JSON file, and generate
+it in a DataFrame</p>
+<p>if seed_startpos is not None, random trajectory starting points are generated,
+otherwise the starting position for every particle is (0,0)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.RandomSamplesFromDistribution">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">RandomSamplesFromDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CV</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.RandomSamplesFromDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate N randomly chosen sizes from a Gaussian distribution
+with given mean and CV (coefficient of variation = std/mean)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.RandomWalkCrossSection">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">RandomWalkCrossSection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">13</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traj_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span> <span class="pre">/</span> <span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ShowTraj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ShowReflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.RandomWalkCrossSection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.ReflectTraj">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">ReflectTraj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ShowReflection</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.ReflectTraj" title="Permalink to this definition">¶</a></dt>
+<dd><p>reflects particle trajectory it leaves a given circle</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.SimulateTrajectories">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">SimulateTrajectories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diameter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames_per_second</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">microns_per_pixel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temp_water</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visc_water</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_displacement</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PrintParameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.SimulateTrajectories" title="Permalink to this definition">¶</a></dt>
+<dd><p>simulate the random walk</p>
+<p>MN2011 obsolete function?</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.SplitTrajectory">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">SplitTrajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eval_t2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.SplitTrajectory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.Test_ReflectTraj">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">Test_ReflectTraj</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.Test_ReflectTraj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.VelocityByExternalForce">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">VelocityByExternalForce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">F_ext</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visc_water</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.VelocityByExternalForce" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.Simulation.n_water20">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.Simulation.</span></span><span class="sig-name descname"><span class="pre">n_water20</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wl</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.Simulation.n_water20" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates refractive index of water at a given wavelength in um</p>
+<p>Daimon, Masumura 2007
+<a class="reference external" href="https://refractiveindex.info/tmp/data/main/H2O/Daimon-20.0C.html">https://refractiveindex.info/tmp/data/main/H2O/Daimon-20.0C.html</a></p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">NanoObjectDetection</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Ronny Förster.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/rst/NanoObjectDetection.Simulation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
