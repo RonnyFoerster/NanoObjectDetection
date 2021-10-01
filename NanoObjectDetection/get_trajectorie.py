@@ -423,18 +423,32 @@ def CheckForPureBrownianMotion(valid_particle_number, traj_min_length, PlotError
     traj_min_length['stat_sign'] = 0    
     
     for i,particleid in enumerate(valid_particle_number):
-        # nd.logger.debug("particleid: %.0f", particleid)
-        # print("particleid: ", particleid)
+        nd.logger.debug("particleid: %.0f", particleid)
+
         # select traj to analyze in loop
         eval_tm = traj_min_length[traj_min_length.particle == particleid]
+        
+        #HANNA WAS HERE!
+        if len(eval_tm) == 1:
+            # huge error source
+            traj_has_error = True
+            nd.logger.warning("Particle is just 1 frame long - kick it out.")
+
+        else:
 
         # get the misplacement value of the first lagtime for the Kolmogorov test out of the MSD analysis (discard the rest of the outputs)
-        nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
-        nd.CalcDiameter.CalcMSD(eval_tm, lagtimes_min = 1, lagtimes_max = 1, yEval = yEval)
+            nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
+            nd.CalcDiameter.CalcMSD(eval_tm, lagtimes_min = 1, lagtimes_max = 1, yEval = yEval)
+
+            if type(nan_tm) == type(0):
+                # make this more elegant later (maybe)
+            # huge error source
+                traj_has_error = True
+                nd.logger.warning("Trajectory to short - kick it out.")
 
         # put the misplacement vector into the Kolmogorow-Smirnow significance test
-        traj_has_error, stat_sign, dx = \
-        nd.CalcDiameter.KolmogorowSmirnowTest(nan_tm, traj_length, MinSignificance = 0.01,  PlotErrorIfTestFails = PlotErrorIfTestFails, ID=particleid)
+            else:
+                traj_has_error, stat_sign, dx = nd.CalcDiameter.KolmogorowSmirnowTest(nan_tm, traj_length, MinSignificance = 0.01,  PlotErrorIfTestFails = PlotErrorIfTestFails, ID=particleid)
 
         if traj_has_error == True:
             #remove if traj has error
