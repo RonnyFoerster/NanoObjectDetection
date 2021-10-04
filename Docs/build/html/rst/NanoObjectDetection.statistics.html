@@ -1,0 +1,244 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NanoObjectDetection.statistics module &#8212; NanoObjectDetection 2021 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.statistics">
+<span id="nanoobjectdetection-statistics-module"></span><h1>NanoObjectDetection.statistics module<a class="headerlink" href="#module-NanoObjectDetection.statistics" title="Permalink to this headline">¶</a></h1>
+<p>Created on Wed Feb  3 09:50:52 2021</p>
+<p>&#64;author: nissenmona, foersterronny</p>
+<p>collection of functions for statistical information on the tracking data
+(meant to tidy up visualize.py and CalcDiameter.py a bit…)</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.statistics.CalcInversePDF">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.statistics.</span></span><span class="sig-name descname"><span class="pre">CalcInversePDF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sizes_df_lin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useCRLB</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.statistics.CalcInversePDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute the probability density function (PDF) of the sizes ensemble
+on a given grid in the inverse sizes space</p>
+<dl class="simple">
+<dt>NB: Due to the Gaussian/normal distributed uncertainty in the diffusion space,</dt><dd><p>the PDF is always first calculated in the inverse sizes space and then
+back-converted.
+Each trajectory is considered individually, the tracklength determines
+the PDF widths (via CRLB or Qian91).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.statistics.ConvertPDFtoSizesSpace">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.statistics.</span></span><span class="sig-name descname"><span class="pre">ConvertPDFtoSizesSpace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">PDF_inv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inv_grid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.statistics.ConvertPDFtoSizesSpace" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert PDF on 1/um-grid back into one in sizes space on a nm-grid,
+including normalization to integral=1 and sorting the grid</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.statistics.FitGaussian">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.statistics.</span></span><span class="sig-name descname"><span class="pre">FitGaussian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">PDF</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_start</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.statistics.FitGaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate least-squares fit of a Gaussian function to a given PDF</p>
+<p>Assumption: PDF integrated over grid = 1</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.statistics.FitGaussianMixture">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.statistics.</span></span><span class="sig-name descname"><span class="pre">FitGaussianMixture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">PDF</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean_max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.statistics.FitGaussianMixture" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate least-squares fit of a superpositions of 2 Gaussian functions
+to a given PDF</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.statistics.GetCI_Interval">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.statistics.</span></span><span class="sig-name descname"><span class="pre">GetCI_Interval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">probability</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio_in_ci</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.statistics.GetCI_Interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the confidence interval (CI) of a probability density function (PDF)</p>
+<p>NB: This should work on both equidistant and non-equidistant grids.</p>
+<p>probability : PDF (y) values
+grid : x values
+ratio_in_ci : confidence interval (CI)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.statistics.GetMeanStdMedian">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.statistics.</span></span><span class="sig-name descname"><span class="pre">GetMeanStdMedian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.statistics.GetMeanStdMedian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.statistics.GetMeanStdMedianCIfromPDF">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.statistics.</span></span><span class="sig-name descname"><span class="pre">GetMeanStdMedianCIfromPDF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">PDF</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_stepsizes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.statistics.GetMeanStdMedianCIfromPDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>get statistical quantities from normalized (!) PDF</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.statistics.InvDiameter">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.statistics.</span></span><span class="sig-name descname"><span class="pre">InvDiameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sizes_df_lin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useCRLB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.statistics.InvDiameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculates inverse diameter values and estimates of their stds</p>
+<p>NOTE: If diameters are in nm, inv. diameters are returned in 1/um (!).</p>
+<dl class="simple">
+<dt>assumption:</dt><dd><p>relative error = std/mean = CRLB
+with N_tmax : number of considered lagtimes
+N_f : number of frames of the trajectory (=tracklength)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sizes_df_lin</strong> (<em>pandas.DataFrame</em>) – with “diameter” and “valid frames” or “traj length” columns</p></li>
+<li><p><strong>settings</strong> (<em>dict</em>) – with [“MSD”][“lagtimes_max”] entry</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>inv_diam, inv_diam_std</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>both numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.statistics.StatisticDistribution">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.statistics.</span></span><span class="sig-name descname"><span class="pre">StatisticDistribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sizesInv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_dist_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showICplot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">useAIC</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.statistics.StatisticDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute the best fit of a mixture distribution to a sizes/inv.sizes ensemble</p>
+<p>ATTENTION: scikit learn python package needed!
+Gaussian mixture models for different number of mixture components are
+calculated via the expectation maximization algorithm.
+The model with the smallest AIC (Akaike information criterion) or BIC
+(Bayesian information criterion) value is chosen for computing the
+distribution parameters.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Unlike in the “StatisticOneParticle” function, here the distribution
+parameters are NOT computed for the inverse diameters.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sizesInv</strong> (<em>np.array; sizes</em><em> or </em><em>inv.sizes values</em>) – </p></li>
+<li><p><strong>num_dist_max</strong> (<em>int</em>) – maximum number of considered components N in the mixture</p></li>
+<li><p><strong>showICplot</strong> (<em>boolean</em>) – plot a figure with AIC and BIC over N</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>means, stds, weights</strong> (<em>np.arrays of length N_best</em>) – fitting parameters in descending order of the mean values</p></li>
+<li><p><em>credits to Jake VanderPlas</em></p></li>
+<li><p><strong>https</strong> (<em>//www.astroml.org/book_figures/chapter4/fig_GMM_1D.html (15.12.2020)</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.statistics.StatisticOneParticle">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.statistics.</span></span><span class="sig-name descname"><span class="pre">StatisticOneParticle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sizes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.statistics.StatisticOneParticle" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the inverse statistical quantities of a particle diameter ensemble,
+assuming only one contributing size</p>
+<p>NOTE:
+mean diameter is ~1/(mean diffusion) not mean of all diameter values (!)
+=&gt; reciprocal Gaussian distribution</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sizes</strong> (<em>pandas.DataFrame with 'diameter' column</em>) – OR pandas.Series of float
+OR np.array of float
+particle diameters</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>diam_inv_mean, diam_inv_std, diam_inv_median, diam_inv_CI68</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(tuple of) float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">NanoObjectDetection</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Ronny Förster.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/rst/NanoObjectDetection.statistics.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

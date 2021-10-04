@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NanoObjectDetection.wlsice module &#8212; NanoObjectDetection 2021 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-NanoObjectDetection.wlsice">
+<span id="nanoobjectdetection-wlsice-module"></span><h1>NanoObjectDetection.wlsice module<a class="headerlink" href="#module-NanoObjectDetection.wlsice" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.chi2">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">chi2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.chi2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute chi^2 function to be minimized, based on input
+(y-f)*R*(y-f)
+This gives us our fitted parameters in params.
+(If R=diag(inv(Cov)) we get least square fit)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.chi2Jacobian">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">chi2Jacobian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.chi2Jacobian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Jacobian of chi^2 function, i.e.
+-df/dparams[i]*[C^(-1)]*(y-f) + (y-f)*[C^(-1)]*(-df/dparams[i])
+return np.array of result for each i</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.computeMean">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">computeMean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectories</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.computeMean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute mean of trajectories</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.error">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Auxiliary function for error printing</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.errorEstimation">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">errorEstimation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d2f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.errorEstimation" title="Permalink to this definition">¶</a></dt>
+<dd><p>WLS-ICE error estimation, valid also for non-linear fitting. R could
+be R = inv(cov), or the diagonal of that, or some other symmetric
+matrix of our choosing. With N sampling points, and k parameters
+we have:</p>
+<p>df     is a  k x N      dimensional array
+d2f    is a  k x k x N  dimensional array
+delta  is a  N          dimensional array</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.fit">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trajectories</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nm'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the correlated corrected least squares fit</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.init">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d2f_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set function to fit</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.makeCovarianceFromY">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">makeCovarianceFromY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.makeCovarianceFromY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a matrix of dim N x M and compute the covariance matrix</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.makeCovarianceMatrix">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">makeCovarianceMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectories</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.makeCovarianceMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make covariance matrix from an MxN array of trajectories</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.makeY">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">makeY</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trajectories</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_mean</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.makeY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take an M x N array of trajectories, and return an N x M matrix with:
+Y[n,m] = (y_n^(m) - ar{y}_n)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NanoObjectDetection.wlsice.minimize">
+<span class="sig-prename descclassname"><span class="pre">NanoObjectDetection.wlsice.</span></span><span class="sig-name descname"><span class="pre">minimize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">C</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guess_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_method</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NanoObjectDetection.wlsice.minimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimize the chi-square function, to find optimal parameters and
+their esitmated error for function f</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">NanoObjectDetection</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Ronny Förster.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/rst/NanoObjectDetection.wlsice.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
