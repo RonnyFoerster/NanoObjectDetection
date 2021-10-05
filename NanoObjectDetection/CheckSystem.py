@@ -2,6 +2,8 @@
 """
 Created on Mon Feb 25 14:02:50 2019
 
+This module checks if all packages have the correct version and that the json parameter file is in a proper state
+
 @author: foersterronny
 """
 import sys
@@ -15,7 +17,6 @@ import shutil
 import os
 from packaging import version
 
-import logging
 
 
 
@@ -114,15 +115,6 @@ def CheckNumbda():
     else:
         nd.logger.warning("SLOW: numba was not found")
     
-    
-
-def CheckLatex():
-    # https://stackoverflow.com/questions/40894859/how-do-i-check-from-within-python-whether-latex-and-tex-live-are-installed-on-a
-    if find_executable('latex'):
-        nd.logger.info("Latex installed")    
-    else:
-        nd.logger.warning("Latex not installed for making good figures")
-        sys.exit("Latex not installed for making good figures")
         
 
 def CheckJson_Exist(ParameterJsonFile):
@@ -132,7 +124,7 @@ def CheckJson_Exist(ParameterJsonFile):
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
     except ValueError:
-        nd.logger.critical("JSON file corrupted!!! Maybe a missing or additional >>>,<<< ? Mabe replate all \\ by \\\\")
+        nd.logger.critical("JSON file corrupted!!! Maybe a missing or additional >>>,<<< ? Mabe replace all \\ by \\\\")
      
     except FileNotFoundError:
         nd.logger.warning("No Json File found in \n %s ", ParameterJsonFile)
@@ -141,13 +133,17 @@ def CheckJson_Exist(ParameterJsonFile):
         
         if CopyJson == 'y':
             nd.logger.info("Try copying standard json file")
+            
+            #get standard path name of nd module directory
             nd_path = os.path.dirname(nd.__file__)
             json_name = "default_json.json"
+            
+            # copy standard json to the path where none was found
             source_path_default_json = nd_path + "\\" + json_name
             copy_to_path = os.path.dirname(ParameterJsonFile)
-            
             shutil.copy2(source_path_default_json, copy_to_path)
             
+            # rename defaul json file to customized name
             previous_name = copy_to_path + "\\" + json_name
             os.rename(previous_name, ParameterJsonFile)
             
@@ -162,9 +158,12 @@ def CheckJson_Exist(ParameterJsonFile):
 
 
 def CheckJson_Entries(settings):
-    # check if all required entires exist, otherwise copy from json
+    """
+    check if all required entires exist, otherwise copy from json \n
+    update old keys
+    """
     
-    #check if old keys should be renamed
+    #check if old keys have the new name - rename otherwise
     if "Estimated particle size" in settings["Find"].keys():
         settings["Find"]["tp_diameter"] = settings["Find"]["Estimated particle size"]
         del settings["Find"]["Estimated particle size"]
@@ -183,16 +182,14 @@ def CheckJson_Entries(settings):
     if "PercentileThreshold" in settings["Find"].keys():
         settings["Find"]["tp_percentile"] = settings["Find"]["PercentileThreshold"]
         del settings["Find"]["PercentileThreshold"]
-        nd.logger.warning("Replace key <PercentileThreshold> by <tp_percentile>")
-    
-    
+        nd.logger.warning("Replace key <PercentileThreshold> by <tp_percentile>")   
     
     # memory if sth was wrong
     MissingEntry = False
     
-    # get path of standard json
-    # nd_path = os.path.dirname(nd.__file__)
-    # source_path_default_json = nd_path + "\\default_json\\default_json.json"
+    
+    # loop through keys in the default file and check if experimental parameter file needs an update
+    # get defaul path
     source_path_default_json = settings["File"]["DefaultParameterJsonFile"]
     
     # read default settings
@@ -233,6 +230,7 @@ def CheckJson_Entries(settings):
     return settings
 
 
+
 def CheckJson_path(mypath, settings, CreateNew = False):
     """ check if json path is written in file. otherwise put it there
     
@@ -263,6 +261,7 @@ def CheckJson_path(mypath, settings, CreateNew = False):
     return settings
 
     
+
 def CheckJson_specify_default_auto(settings):
     # set default_json file from default folder
     mypath_default = settings["File"]["DefaultParameterJsonFile"]
@@ -285,10 +284,11 @@ def CheckJson_specify_default_auto(settings):
         settings["Plot"]["SaveFolder"] = os.path.dirname(settings["File"]["json"]) + "\\analysis"
         
     # check if saving folders are valid    
-    my_path = settings["Plot"]["SaveFolder"]
+    my_path = settings["Plot"]["SaveFolder"]    
     invalid, my_path = CheckIfFolderGeneratable(my_path)
      
     if invalid == True:
+        # if path is invalid use the escape path (my_path)
         settings["Plot"]["SaveFolder"] = my_path
     
     nd.logger.info("Figures are saved into: %s", settings["Plot"]["SaveFolder"])
@@ -305,36 +305,29 @@ def CheckJson_specify_default_auto(settings):
      
     if invalid == True:
         settings["Plot"]["SaveProperties"] = my_path
-
     
     nd.logger.info("Properties are saved into: %s", settings["Plot"]["SaveProperties"])
     
-  
-    # # set Logger in case of auto     
-    # if settings["Logger"]["path"] == "default":
-    #     settings["Logger"]["path"] = os.path.dirname(settings["File"]["json"])
-        
-    # # check if saving folders are valid    
-    # my_path = settings["Logger"]["path"]
-    # invalid, my_path = CheckIfFolderGeneratable(my_path)
-     
-    # if invalid == True:
-    #     settings["Logger"]["path"] = my_path
-    
-    # print("Logger is in: \n", settings["Logger"]["path"])    
   
     return settings
 
 
 
 def CheckIfFolderGeneratable(my_path):
+    """
+    Checks if a folder exists
+    """
+    
     invalid = False
+    # try if path exists
     try:
         os.stat(my_path)
     except:
+        # try if the path can be created
         try:
             os.mkdir(my_path)
         except:
+            # write on desktop if nothing is working
             my_path = os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')
             invalid = True
             nd.logger.warning("Path not accessible. Write on desktop. \n If you are not happy with this, try writing <auto> into the json key!")
