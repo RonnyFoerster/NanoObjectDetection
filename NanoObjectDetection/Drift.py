@@ -76,9 +76,9 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
             PureBrownianMotion = False
             PlotErrorIfTestFails = False
             
-            CheckForPureBrownianMotion = settings["MSD"]["CheckForPureBrownianMotion"]
+            CheckBrownianMotion = settings["MSD"]["CheckBrownianMotion"]
             
-            if CheckForPureBrownianMotion == False:
+            if CheckBrownianMotion == False:
                 nd.logger.info("Kolmogorow-Smirnow test: off")
                 t_no_drift, my_drift = GlobalEstimation(t_drift, drift_smoothing_frames)
                 
