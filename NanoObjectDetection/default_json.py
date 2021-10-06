@@ -15,6 +15,11 @@ Experimental parameters
 | example: 0.13
 | unit: none
 
+| key: n_immersion
+| description: Refractive index of the objective immersion
+| example: 1.46
+| unit: none
+
 | key: lambda
 | description: wavelength of the detection light (in scattering this is the illumination wavelength)
 | example: 532
@@ -27,7 +32,7 @@ Experimental parameters
 
 | key: ExposureTime
 | description: exposuretime of each raw image
-| example: 0.01028
+| example: 0.01
 | unit: seconds
 
 | key: Microns_per_pixel
@@ -35,6 +40,11 @@ Experimental parameters
 | example: 0.63
 | unit: µm/px
     
+| key: bit-depth-fac
+| description: 
+| example: 
+| unit:
+
 | key: Temperature
 | description: temperature of the specimen
 | example: 295

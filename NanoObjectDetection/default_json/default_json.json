@@ -5,11 +5,7 @@
           "lambda": 532,
           "fps": 922,
           "ExposureTime": 0.001,
-          "Microns_per_pixel": 0.477,
-          "bit-depth-fac": "auto",
-          "img-scale-fac": "auto",
-          "gain": "unknown",
-          "gain_corr": "unknown",
+          "Microns_per_pixel": 0.477
           "Temperature": 295.0,
           "Viscosity": 9.5e-16,
           "Viscosity_auto": 0,

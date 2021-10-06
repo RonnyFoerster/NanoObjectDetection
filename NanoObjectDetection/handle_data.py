@@ -229,13 +229,9 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
             rawframes_np, max_value = CheckForSaturation(rawframes_np)
             settings["Find"]["SaturatedPixelValue"] = max_value
 
-    # check bit depth if auto
-    if settings["Exp"]["bit-depth-fac"] == "auto":
-        bit_depth, min_value_distance = CalcBitDepth(rawframes_np)
-        settings["Exp"]["bit-depth-fac"] = min_value_distance
-        
-    # if settings["Exp"]["gain"] != "unknown":
-    #     settings["Exp"]["gain_corr"] = settings["Exp"]["gain"] / settings["Exp"]["bit-depth-fac"]
+    # check bit depth
+    bit_depth, min_value_distance = CalcBitDepth(rawframes_np)
+
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 

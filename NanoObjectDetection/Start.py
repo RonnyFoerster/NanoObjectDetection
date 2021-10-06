@@ -108,7 +108,6 @@ def NewEvaluation():
         
         settings["Exp"]["NA"]                = pre_settings["Exp"]["NA"]
         settings["Exp"]["Microns_per_pixel"] = pre_settings["Exp"]["Microns_per_pixel"]
-        settings["Exp"]["gain"]              = pre_settings["Exp"]["gain"] 
         settings["Exp"]["Temperature"]       = pre_settings["Exp"]["Temperature"]
         
     else:
@@ -116,10 +115,8 @@ def NewEvaluation():
         print("Please insert setup parameters: \n")
         settings["Exp"]["NA"]                = float(input("NA = "))
         settings["Exp"]["Microns_per_pixel"] = float(input("Microns per pixel [um/px] = "))
-        settings["Exp"]["gain"]              = float(input("gain (if unknown type 0) = "))
         settings["Exp"]["Temperature"]       = float(input("Temperature [K] (22C = 295K) = "))
-        if settings["Exp"]["gain"] == 0:
-            settings["Exp"]["gain"] = "unknown"
+        
             
             
     # In[Fiber Parameters]

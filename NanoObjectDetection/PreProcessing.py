@@ -144,10 +144,6 @@ def MakeInt16(rawframes_np, settings):
         
         nd.logger.info("DType: uint16")
         
-    settings["Exp"]["img-scale-fac"] = img_scale_fac
-    
-    if settings["Exp"]["gain"] != "unknown":
-        settings["Exp"]["gain_corr"] = settings["Exp"]["gain"] / img_scale_fac
 
     nd.logger.info("Convert image to integer DType ...finished")    
 
@@ -517,55 +513,3 @@ def CalcAiryDisc(settings, img):
 
     return psfi2d_roi
 
-
-
-# def IdealDType(rawframes_np, settings):
-#     print("select ideal data type - starting")
-#     # remove empty bitdepth
-#     rawframes_np = rawframes_np / settings["Exp"]["bit-depth-fac"]
-        
-#     min_value = np.min(rawframes_np) #check later if negative
-#     max_value = np.max(np.abs(rawframes_np))
-
-#     max_int8 = np.floor((2**8-1)/2)
-#     max_int16 = np.floor((2**16-1)/2)
-#     max_int32 = np.floor((2**32-1)/2)
-
-#     max_uint8 = 2**8-1
-#     max_uint16 = 2**16-1
-
-#     if min_value < 0:
-#         # SIGNED dtype needed
-        
-#         # check if 8,16 or 32 bit are required
-#         if max_value <= max_int8:
-#             #scale to maximum value to make most of the data if float is not accepted =/
-#             rawframes_np = np.round(rawframes_np / max_value * max_int8)
-#             rawframes_np = rawframes_np.astype("int8")
-#             nd.logger.info("DType: int8")
-            
-#         elif max_value <= max_int16:
-#             rawframes_np = np.round(rawframes_np / max_value * max_int16)
-#             rawframes_np = rawframes_np.astype("int16")
-#             nd.logger.info("DType: int16")
-            
-#         elif max_value <= max_int32:
-#             rawframes_np = np.round(rawframes_np / max_value * max_int32)
-#             rawframes_np = rawframes_np.astype("int32")
-#             nd.logger.info("DType: int32")
-
-#     else:
-#         # UNSIGNED dtype possible
-#         if max_value <= max_uint8:
-#             rawframes_np = np.round(rawframes_np / max_value * max_uint8)
-#             rawframes_np = rawframes_np.astype("uint8")
-#             nd.logger.info("DType: uint8")
-            
-#         elif max_value <= max_uint16:
-#             rawframes_np = np.round(rawframes_np / max_value * max_uint16)
-#             rawframes_np = rawframes_np.astype("uint16")
-#             nd.logger.info("DType: uint16")
-     
-#     print("select ideal data type - finished")
-            
-#     return rawframes_np

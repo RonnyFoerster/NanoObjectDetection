@@ -1,8 +1,7 @@
 {
      "Exp": {
           "NA": 0.20,
-          "Microns_per_pixel": 0.345,
-          "gain": 0.16,
+          "Microns_per_pixel": 0.345
           "Temperature": 295.0
      }
 }
