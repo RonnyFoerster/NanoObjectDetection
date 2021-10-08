@@ -9,17 +9,14 @@ import numpy as np # Library for array-manipulation
 import pandas as pd # Library for DataFrame Handling
 import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
 import sys
-
-
 import NanoObjectDetection as nd
 
 
-from pdb import set_trace as bp #debugger
 
-
-def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None, min_particle_per_block = None, min_tracking_frames = None, PlotGlobalDrift = True, SaveDriftPlots = True, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False):
+def Main(t_drift, ParameterJsonFile, min_tracking_frames = None, PlotGlobalDrift = True, SaveDriftPlots = True, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False):
+    
     """
-    calculate and remove overall drift from trajectories
+    Calculate and remove overall drift from trajectories
     
     The entire movement consists of Brownian motion and drift.
     To measure pure Brownian motion, the drift needs to be calculated and subtracted.
@@ -37,6 +34,19 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
     However this method requires a lot of particles and makes sense for smaller 
     fiber diameters where laminar flow is significant.
     
+    
+    Parameters
+    ----------
+    t_drift : pandas
+        trajectories with drift
+    ParameterJsonFile : 
+        
+
+    Returns
+    -------
+    t_no_drift : pandas
+        trajectories without drift
+    
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
@@ -49,29 +59,31 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
     else:
         nd.logger.info("Drift correction: starting...")
         
+        # leave saturated data point out, because they are not precisely localized
         t_drift = t_drift[t_drift.saturated == False]
         
         if settings["Help"]["Drift"] == "auto":
             #estimate how many frames it needs to have enough particle to make the drift estimation
             num_particles_per_frame = t_drift.groupby("frame")["particle"].count().mean()
 
-            drift_smoothing_frames = nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_per_frame)
+            # calculated how many frames are merged to make a good drift estimation
+            avg_frames = nd.ParameterEstimation.Drift(ParameterJsonFile, num_particles_per_frame)
 
         
-        
-        Do_transversal_drift_correction = settings["Drift"]["Do transversal drift correction"]    
-        drift_smoothing_frames          = settings["Drift"]["Drift smoothing frames"]    
-        rolling_window_size             = settings["Drift"]["Drift rolling window size"]    
-        min_particle_per_block          = settings["Drift"]["Min particle per block"]    
-        # min_tracking_frames             = settings["Link"]["Min_tracking_frames"]
+        # get relevant parameters
+        LaminarFlow            = settings["Drift"]["LaminarFlow"]    
+        avg_frames             = settings["Drift"]["Avg frames"]    
+        rolling_window_size    = settings["Drift"]["Drift rolling window size"]    
+        min_particle_per_block = settings["Drift"]["Min particle per block"]    
+        # min_tracking_frames   = settings["Link"]["Min_tracking_frames"]
 
 
         # to different types of drift correction
         
-        if Do_transversal_drift_correction == False:
+        if LaminarFlow == False:
             # Attention: This ignores laminar flow, but needs fewer frames (and thus time) to get a good estimation
 
-            nd.logger.warning("Ronny tries something here!")
+            nd.logger.warning("211008: Test a drift meets Kolmogorov Test method with data!")
             
             PureBrownianMotion = False
             PlotErrorIfTestFails = False
@@ -80,38 +92,38 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
             
             if CheckBrownianMotion == False:
                 nd.logger.info("Kolmogorow-Smirnow test: off")
-                t_no_drift, my_drift = GlobalEstimation(t_drift, drift_smoothing_frames)
+                t_no_drift, my_drift = GlobalEstimation(t_drift, avg_frames)
                 
             else:
                 nd.logger.info("Kolmogorow-Smirnow test: on")
                 while PureBrownianMotion == False:
-                    t_no_drift, my_drift = GlobalEstimation(t_drift, drift_smoothing_frames)
+                    t_no_drift, my_drift = GlobalEstimation(t_drift, avg_frames)
                
                     valid_particle_number = t_no_drift.particle.unique()
                
                     # check if the trajectories follow brownian motion after the drift correction.
     
                     #check if the histogram of each particle displacement is Gaussian shaped
-                    t_no_drift_true_brown = nd.get_trajectorie.CheckForPureBrownianMotion(valid_particle_number, t_no_drift, PlotErrorIfTestFails)
+                    t_no_drift_true_brown_x = nd.get_trajectorie.CheckForPureBrownianMotion(valid_particle_number, t_no_drift, PlotErrorIfTestFails)
+                    
+                    valid_particle_number_x = t_no_drift_true_brown_x.particle.unique()
                     
                     # check it in y too
-                    valid_particle_number = t_no_drift_true_brown.particle.unique()
-                    
-                    t_no_drift_true_brown = nd.get_trajectorie.CheckForPureBrownianMotion(valid_particle_number, t_no_drift_true_brown, PlotErrorIfTestFails, yEval = True)
+                    t_no_drift_true_brown_xy = nd.get_trajectorie.CheckForPureBrownianMotion(valid_particle_number_x, t_no_drift_true_brown_x, PlotErrorIfTestFails, yEval = True)
     
-                    valid_particle_number = t_no_drift_true_brown.particle.unique()
+                    valid_particle_number_xy = t_no_drift_true_brown_xy.particle.unique()
             
                     
                     # only when all trajectories return pure brownian motion is fullfilled
-                    if len(t_no_drift) == len(t_no_drift_true_brown):
+                    if len(t_no_drift) == len(t_no_drift_true_brown_xy):
                         PureBrownianMotion = True
                     else:
                         nd.logger.info("Rerun drift correrction with pure brownian motion particles")
-                        vaild_id = t_no_drift_true_brown.particle.unique()
-                        t_drift = t_drift[t_drift.particle.isin(valid_particle_number)]
+                        # vaild_id = t_no_drift_true_brown_xy.particle.unique()
+                        t_drift = t_drift[t_drift.particle.isin(valid_particle_number_xy)]
             
-            nd.logger.warning("Ronny tries something here!")
-            t6_final = nd.get_trajectorie.filter_stubs(t_no_drift, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, PlotErrorIfTestFails = False)
+            # remove to short trajectories for further processing
+            t_no_drift = nd.get_trajectorie.filter_stubs(t_no_drift, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, PlotErrorIfTestFails = False)
             
 
             # plot the calculated drift
@@ -121,7 +133,7 @@ def Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, dri
             
         
         else:
-            t_no_drift, total_drift, calc_drift, number_blocks, y_range  = TransversalEstimation(settings, t_drift, drift_smoothing_frames, rolling_window_size, min_particle_per_block)
+            t_no_drift, total_drift, calc_drift, number_blocks, y_range  = TransversalEstimation(settings, t_drift, avg_frames, rolling_window_size, min_particle_per_block)
             
             # do some plotting if wished
             if PlotDriftAvgSpeed == True:
@@ -157,7 +169,24 @@ def GlobalEstimation(t_drift, drift_smoothing_frames):
     """
     Estimates the drift for all particles in a frame together
     Attention: This ignores laminar flow, but needs fewer frames (and thus time) to get a good estimation
+
+    Parameters
+    ----------
+    t_drift : pandas
+        trajectory with drift
+    drift_smoothing_frames : int or numpy
+        number of frames whose average motion of all particles is defined as the drift.
+
+    Returns
+    -------
+    t_no_drift : pandas
+        trajectory without drift
+    my_drift : pandas
+        drift
+
     """
+    
+    
     nd.logger.info("Mode: global drift correction (frame per frame)")
             
     # calculate the overall drift (e.g. drift of setup or flow of particles)
@@ -180,11 +209,35 @@ def GlobalEstimation(t_drift, drift_smoothing_frames):
     return t_no_drift, my_drift
 
 
-def TransversalEstimation(settings, t_drift, drift_smoothing_frames, rolling_window_size, min_particle_per_block):
+def TransversalEstimation(settings, t_drift, drift_smoothing_frames, rolling_window_size, min_particle_per_block):   
     """
     Y-Depending drift-correction
     RF: Creation of y-sub-zones and calculation of drift
     SW 180717: Subtraction of drift from trajectories
+    That code should work but not ideal sure. Have a look if you rely on it!
+
+    Parameters
+    ----------
+    settings : TYPE
+        DESCRIPTION.
+    t_drift : pandas
+        trajectory with drift.
+    drift_smoothing_frames : int or numpy
+        number of frames the drift is averaged to reduce noise.
+    rolling_window_size : int or numpy
+        number of neighbouring transversal blocks which are used for fitting. (If this is not existing, the temporal or transversal resolution is very poor)
+    min_particle_per_block : int or numpy
+        numer of particles which should be in one block
+
+    Returns
+    -------
+    t_no_drift: trajectory without drift.
+    total_drift: number of particles in each block
+    calc_drift: drift as function of frame and transverval (y) components
+    number_blocks: number of blocks considering the number of particles in each frame and how many particles one block should have
+    y_range: y-coordinates of the blocks
+    
+
     """
     nd.logger.info("Mode: transversal drift correction (laminar flow)")
 

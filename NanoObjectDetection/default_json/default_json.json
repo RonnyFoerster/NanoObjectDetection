@@ -83,8 +83,8 @@
      },
      "Drift": {
           "Apply": 1,
-          "Do transversal drift correction": 0,
-          "Drift smoothing frames": 50,
+          "Avg frames": 50,
+          "LaminarFlow": 0,
           "Drift rolling window size": 5,
           "Min particle per block": 40.0
      },

@@ -963,27 +963,25 @@ def DiameterToDiffusion(temp_water,visc_water,diameter):
 def Drift(ParameterJsonFile, num_particles_per_frame):
     """
     Calculates how many frames are requires to get a good estimation of the drift
+    
+    The drift can be estimated better if more particles are found and more trajectories are formed. Averaging over many frames leads to more datapoints and thus to a better estimation. On the other hand drift changes - so averaging over many time frames reduces the temporal resolution.
     """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-
-    # the drift can be estimated better if more particles are found and more trajectories are formed
-    # averaging over many frames leads to more datapoints and thus to a better estimation
-    # on the other hand drift changes - so averaging over many time frames reduces the temporal resolution
-    
-    # I assume that 1000 particles need to be averaged to separte drift from random motion
+   
+    # Assume that 100 particles need to be averaged to separte drift from random motion
     required_particles = 100
 
     #average_frames is applied in tp.drift. It is the number of >additional< follwing frames a drift is calculated. Meaning if a frame has 80 particles, it needs 2 frames to have more than 100 particles to average about. These two frame is the current and 1 addition one. That's why floor is used.
-    average_frames = int(np.floor(required_particles/num_particles_per_frame))
+    avg_frames = int(np.floor(required_particles/num_particles_per_frame))
 
-    settings["Drift"]["Drift smoothing frames"] = average_frames
+    settings["Drift"]["Avg frames"] = avg_frames
 
-    print("The drift correction is done by averaging over: ", average_frames, " frames")
+    nd.logger.info("The drift correction is done by averaging over %.0f frames", avg_frames)
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
-    return average_frames
+    return avg_frames
 
 
 def MaxRelIntensityJump(ParameterJsonFile):

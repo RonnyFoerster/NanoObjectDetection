@@ -334,10 +334,10 @@ only be measured if many particles are present.
 | description: Boolean weather a drift correction is performed
 | example: 1
     
-| key: Do transversal drift correction
+| key: LaminarFlow
 | description: Boolean if the drift correction considers are lamiar flow (1) or global drift (0)
     
-| key: Drift smoothing frames
+| key: Avg frames
 | description: Number of frames the drift is averaged over, since it assumed to change slowly
 | example: 20
 | unit: frames

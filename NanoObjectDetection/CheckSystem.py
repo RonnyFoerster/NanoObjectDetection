@@ -174,17 +174,22 @@ def CheckJson_Entries(settings):
     
     #check if old keys have the new name - rename otherwise
     UpdateOldKey(settings, "Fiber", "Speckle", "Mode")
+    
     UpdateOldKey(settings, "Find", "Estimated particle size", "tp_diameter")
     UpdateOldKey(settings, "Find", "Minimal bead brightness", "tp_minmass")    
     UpdateOldKey(settings, "Find", "Separation data", "tp_separation") 
     UpdateOldKey(settings, "Find", "PercentileThreshold", "tp_percentile") 
+    
     UpdateOldKey(settings, "Plot", "Background_Show", "Background") 
     UpdateOldKey(settings, "Plot", "Laserfluctuation_Show", "Laserfluctuation") 
     UpdateOldKey(settings, "Plot", "MSD_fit_Show", "MSD_fit") 
     UpdateOldKey(settings, "Plot", "Histogramm_Show", "Histogramm") 
     UpdateOldKey(settings, "Plot", "DiameterPDF_Show", "DiameterPDF") 
     UpdateOldKey(settings, "Plot", "DiamOverTraj_Show", "DiamOverTraj") 
-    UpdateOldKey(settings, "Plot", "UseRawMass", "DiamOverTraj_UseRawMass") 
+    UpdateOldKey(settings, "Plot", "UseRawMass", "DiamOverTraj_UseRawMass")
+    
+    UpdateOldKey(settings, "Drift", "Drift smoothing frames", "Avg frames")
+    UpdateOldKey(settings, "Drift", "Do transversal drift correction", "LaminarFlow")
     
     
 
