@@ -108,7 +108,8 @@ def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, UseLog = False, di
                 output_empty = False
 
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
-
+        
+        # mark overexposed objects (don't remove them!)
         obj_all = RemoveOverexposedObjects(ParameterJsonFile, obj_all, rawframes_np)
 
         if SaveFig == True:
@@ -119,9 +120,9 @@ def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, UseLog = False, di
             nd.handle_data.pandas2csv(obj_all, settings["Plot"]["SaveFolder"], "obj_all")
 
 
-    
 
     return obj_all # usually pd.DataFrame with feature position data
+
 
 
 def FindSpots_plotting(frames_np, output, settings, gamma, ExternalSlider):
@@ -575,7 +576,9 @@ def RemoveSpotsInNoGoAreas_loop(stationary_particles, loop_t2_long_fix, obj, min
             
 
 def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
-    """ delete objects where the camera sensor was (over)saturated
+    """ mark objects where the camera sensor was (over)saturated
+    
+    NB: an earlier version of this function deleted the objects, this one doesn't!
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
@@ -583,16 +586,16 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
 
     nd.logger.debug("Saturated pixel value: %.0f", SaturatedPixelValue)
 
-    obj_moving["saturated"] = False
+    obj_moving["saturated"] = False # create new column to mark the objects
     
-    # get index of saturaed column
+    # get index of saturated column
     ix_saturated = obj_moving.columns.get_loc("saturated")
 
     if SaturatedPixelValue == 'No Saturation':
         nd.logger.info("No saturated pixel")
         
     else:
-        nd.logger.info("Remove objects that have saturated pixels")
+        nd.logger.info("Mark objects that have saturated pixels")
 
         # bring objects in order of ascending intensity values ("mass")
         sort_obj_moving = obj_moving.sort_values("raw_mass", ascending = False)
@@ -603,8 +606,6 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
         framelist = []
     
         saturated_psf = True
-        
-        counter = 0
         while saturated_psf:
             # get pos and frame of spot with highest mass
             pos_x = np.int(sort_obj_moving.iloc[counter]["x"])
@@ -620,12 +621,11 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
                 signal_at_max = rawframes_rot[frame,pos_y,pos_x]
                 
             if signal_at_max >= SaturatedPixelValue:
-                nd.logger.debug("Remove overexposed particles at (frame,x,y) = (%i, %i, %i)", frame, pos_x, pos_y)
-                
+                nd.logger.debug("Mark overexposed object at (frame,x,y) = (%i, %i, %i)", frame, pos_x, pos_y)
                 sort_obj_moving.iloc[counter, ix_saturated] = True
-                
-                # sort_obj_moving = sort_obj_moving.iloc[:-1] # kick the overexposed object out
-                counter = counter + 1
+                # former version: kick the overexposed object out
+                # sort_obj_moving = sort_obj_moving.iloc[:-1] 
+                counter += 1
     
                 if not(frame in framelist):
                     framecount += 1
@@ -633,7 +633,7 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
             else:
                 saturated_psf = False
 
-        nd.logger.info("Removed %i overexposed particles (%.3f %%)", counter, 100*counter/total)
+        nd.logger.info("Detected and marked {} overexposed particles ({:.3f} %) in {} frames".format(counter, 100*counter/total, framecount))
 
         #undo the sorting
         obj_moving = sort_obj_moving.sort_values(["frame", "x"])
