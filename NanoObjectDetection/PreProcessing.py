@@ -65,13 +65,8 @@ def Main(rawframes_np, ParameterJsonFile):
             static_background = "NotDone"
             nd.logger.info('Static background: not removed')
     
-    
-        # 4 - TIME DEPENDENT BACKGROUND
-        if settings["PreProcessing"]["RollingPercentilFilter"] == 1:            
-            rawframes_np = nd.PreProcessing.RollingPercentilFilter(rawframes_np, settings)    
-        else:
-            nd.logger.info('Rolling percentil filter: not applied')
-      
+        # 4 - TIME DEPENDENT BACKGROUND (RollingPercentilFilter removed)
+
 
         # 5 - ENHANCE SNR
         if settings["PreProcessing"]["EnhanceSNR"] == 1:            
@@ -80,11 +75,6 @@ def Main(rawframes_np, ParameterJsonFile):
             nd.logger.info('Image SNR not enhanced by a gaussian average')
  
 
-        # 6 - ROTATE RAW IMAGE
-        if settings["PreProcessing"]["Do_or_apply_data_rotation"] == 1:
-            rawframes_np = nd.handle_data.RotImages(rawframes_np, ParameterJsonFile)
-        else:
-            nd.logger.info('Image Rotation: not applied')
             
             
             
@@ -189,12 +179,7 @@ def RemoveLaserfluctuation(rawframes_np, settings, PlotIt = True):
     nd.logger.info('Removing laser fluctuations: starting...')
     nd.logger.warning("WARNING - this needs a roughly constant amount of particles in the object!")
     
-    Laserfluctuation_Show = settings["Plot"]['Laserfluctuation_Show']
-    Laserfluctuation_Save = settings["Plot"]['Laserfluctuation_Save']
-    
-    if Laserfluctuation_Save == True:
-        Laserfluctuation_Show = True
-    
+    Laserfluctuation_Show = settings["Plot"]['Laserfluctuation']    
     
     # Mean-counts of a given frame
     tot_intensity, rel_intensity = nd.handle_data.total_intensity(rawframes_np, Laserfluctuation_Show)
@@ -203,9 +188,8 @@ def RemoveLaserfluctuation(rawframes_np, settings, PlotIt = True):
     rawframes_np = np.divide(rawframes_np, rel_intensity[:, None, None], out = rawframes_np)
 
 
-    if Laserfluctuation_Save == True:
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Intensity_Fluctuations", \
-                                       settings, data = rel_intensity, data_header = "Intensity Fluctuations")
+    if Laserfluctuation_Show == True:
+        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Intensity_Fluctuations", settings, data = rel_intensity, data_header = "Intensity Fluctuations")
     
     if PlotIt == True:
         plt.figure()
@@ -262,13 +246,10 @@ def StaticBackground_Mean(rawframes_np_loop):
  
            
 
-def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False, ShowColorBar = True, ExternalSlider = False):
+def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False, ShowColorBar = True):
     nd.logger.info('Remove static background: starting...')
-    Background_Show = settings["Plot"]['Background_Show']
-    Background_Save = settings["Plot"]['Background_Save']
-    
-    if Background_Save == True:
-        Background_Show = True
+    Background_Show = settings["Plot"]['Background']
+
     '''
     Subtracting back-ground and take out points that are constantly bright
     '''
@@ -295,48 +276,17 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     rawframes_np = np.subtract(rawframes_np, static_background, out = rawframes_np)
 
 
-    if ExternalSlider == False:
-        if Background_Show == True:
-            #plt.imshow(static_background)
-            nd.visualize.Plot2DImage(static_background,title = "Background image", \
-                                     xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
+    if Background_Show == True:
+        #plt.imshow(static_background)
+        nd.visualize.Plot2DImage(static_background,title = "Background image", xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
             
-        
-        if Background_Save == True:
-            settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "CameraBackground", settings)
+
     
     
     nd.logger.info('Remove static background: ...finished')
     
     return rawframes_np, static_background
     
-
-
-def RollingPercentilFilter(rawframes_np, settings, PlotIt = True):
-    """
-    Old function that removes a percentile/median generates background image from the raw data.
-    The background is calculated time-dependent.
-    """
-    nd.logger.warning('THIS IS AN OLD FUNCTION! SURE YOU WANNA USE IT?')
-
-    nd.logger.info('Remove background by rolling percentile filter: starting...')
-    
-    rolling_length = ["PreProcessing"]["RollingPercentilFilter_rolling_length"]
-    rolling_step = ["PreProcessing"]["RollingPercentilFilter_rolling_step"]
-    percentile_filter = ["PreProcessing"]["RollingPercentilFilter_percentile_filter"]   
-    
-    for i in range(0,len(rawframes_np)-rolling_length,rolling_step):
-        my_percentil_value = np.percentile(rawframes_np[i:i+rolling_length], percentile_filter, axis=0)
-        rawframes_np[i:i+rolling_step] = rawframes_np[i:i+rolling_step] - my_percentil_value
-
-
-    if PlotIt == True:
-        nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (rolling percentilce subtracted) (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
-
-    nd.logger.info('Remove background by rolling percentile filter: ...finished')
-
-    return rawframes_np
-
 
 
 def ConvolveWithPSF_2D(image_frame, gauss_kernel_rad):

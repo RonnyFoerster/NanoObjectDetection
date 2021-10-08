@@ -10,31 +10,72 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-# False since deprecated from version 3.0
-#matplotlib.rcParams['text.usetex'] = False
-#matplotlib.rcParams['text.latex.unicode'] = False
-
 #import matplotlib.pyplot as plt # Libraries for plotting
 import NanoObjectDetection as nd
 
 from pdb import set_trace as bp #debugger
 
-from scipy.constants import speed_of_light as c
 from numpy import pi
 import scipy
 import scipy.signal
 from scipy.constants import Boltzmann as k_b
-from scipy.constants import pi
 
-import time
-from joblib import Parallel, delayed
-import multiprocessing
-import sys
 
 import trackpy as tp
 
+"""
+Simulation
+
+In case the data is simulated and not acquired physically the parameters can be found here.
+
+| key: SimulateData
+| description: Boolean if the data shall be simulated
+| example: 1
+| unit: boolean
+
+| key: DiameterOfParticles
+| description: Diameter(s) of the simulated particles (float or list of float)
+| example: [50, 80]
+| unit: nm
+
+| key: NumberOfParticles
+| description: Number(s) of created particles (int or list of int)
+| example: 42
+| unit: 
+
+| key: NumberOfFrames
+| description: Number of simulated frames
+| example: 420
+| unit: frames
+
+| key: NumMicrosteps
+| description: Number of microsteps per exposure time (NOT SWITCHED ON YET)
+| example: 5
+| unit: None
+
+| key: mass
+| description: Mass of the particles (float or list of float)
+| example: 100
+| unit: None
+
+| key: Photons
+| description: Number of photons 
+| example: 100
+| unit: None
+    
+| key: EstimationPrecision
+| description: Estimation precision 
+| example: !!! TODO !!!
+| unit: !!! TODO !!!
+
+| key: Max_traj_length
+| description: Maximum trajectory length. Longer trajectories are cut and treated as independent particles at different time points.
+| example: 300
+| unit: frames
+"""
+
 ## In[Functions]
-def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 1, frames = 100, RatioDroppedFrames = 0, EstimationPrecision = 0, mass = 0, frames_per_second = 100, microns_per_pixel = 1, temp_water = 293, visc_water = 9.5e-16, seed_startpos=None, oldSim=False):
+def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 1, frames = 100, EstimationPrecision = 0, mass = 0, frames_per_second = 100, microns_per_pixel = 1, temp_water = 293, visc_water = 9.5e-16, seed_startpos=None, oldSim=False):
     """ configure the parameters for a randowm walk out of a JSON file, and generate
     it in a DataFrame
 
@@ -54,7 +95,6 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
     mass                = settings["Simulation"]["mass"]
 
     frames              = settings["Simulation"]["NumberOfFrames"]
-    RatioDroppedFrames  = settings["Simulation"]["RatioDroppedFrames"]
     EstimationPrecision = settings["Simulation"]["EstimationPrecision"]
 
     # try:
@@ -90,7 +130,6 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
 
     if settings["Exp"]["Viscosity_auto"] == 1:
         visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
-        bp()
     else:
         visc_water = settings["Exp"]["Viscosity"]
 
@@ -410,38 +449,16 @@ def GenerateRandomWalk_old(diameter, num_particles, frames, frames_per_second,
 
     drop_rate = RatioDroppedFrames
 
-    if drop_rate == 0:
-        for sim_part in range(num_particles):
-            loop_frame_drop = 0
-            for sim_frame in range(frames):
-                sim_part_part.append(sim_part)
-                sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x))
-                sim_part_y.append(np.random.normal(loc=0,scale=sim_part_sigma_x))
-                # Is that possibly wrong??
 
-    else:
-        drop_frame = 1/drop_rate
+    for sim_part in range(num_particles):
+        loop_frame_drop = 0
+        for sim_frame in range(frames):
+            sim_part_part.append(sim_part)
+            sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x))
+            sim_part_y.append(np.random.normal(loc=0,scale=sim_part_sigma_x))
+            # Is that possibly wrong??
 
-        if drop_frame > 5:
-            print("Drops every %s frame" %(drop_frame))
-        else:
-            sys.exit("Such high drop rates are probably not right implemented")
 
-        for sim_part in range(num_particles):
-            loop_frame_drop = 0
-            for sim_frame in range(frames):
-                sim_part_part.append(sim_part)
-
-                if loop_frame_drop <= drop_frame:
-                    loop_frame_drop += 1
-                    lag_frame = 1
-                else:
-                    loop_frame_drop = 1
-                    lag_frame = 2
-
-                sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x * lag_frame))
-                sim_part_y.append(np.random.normal(loc=0,scale=sim_part_sigma_x * lag_frame))
-                # Is that possibly wrong??
 
     # Putting the results into a df and formatting correctly:
     sim_part_tm=pd.DataFrame({'x':sim_part_x, \

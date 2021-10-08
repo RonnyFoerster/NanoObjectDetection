@@ -91,8 +91,8 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, proc
     nd.logger.info("MSD analysis in parallel (Number of cores: %s)", num_cores)
     
     # the parallel programming cannot execute the previous plotting routines. However, trackpy can be used instead (look online)
-    if (settings["Plot"]["MSD_fit_Show"] == 1) or (settings["Plot"]["MSD_fit_Save"]== 1):
-        nd.logger.error("MSD Plot sacrificed for parallel processing. Try TrackPy instead if needed. Set MSD_fit_Show and MSD_fit_Save to 0.")
+    if settings["Plot"]["MSD_fit"] == 1:
+        nd.logger.error("MSD Plot sacrificed for parallel processing. Try TrackPy instead if needed. Set MSD_fit to 0.")
     
     # return the number of prints you see during execution, depending on your logger mode
     num_verbose = nd.handle_data.GetNumberVerbose()
@@ -163,7 +163,7 @@ def Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, 
     if any_successful_check == False:
         nd.logger.warning("No particle made it to the end!")
       
-    if (settings["Plot"]["MSD_fit_Show"] == 1) or (settings["Plot"]["MSD_fit_Save"]== 1)  :
+    if settings["Plot"]["MSD_fit"] == 1:
         nd.logger.error("RF 211004: implement this!")
       
     else:
@@ -491,7 +491,7 @@ def GetVisc(settings):
         visc_auto = settings["Exp"]["Viscocity_auto"]          
     
     if visc_auto == 1:
-        settings["Exp"]["Viscosity"] = nd.handle_data.GetViscosity(temperature = temp_water, solvent = solvent)
+        settings["Exp"]["Viscosity"] = nd.Experiment.GetViscosity(temperature = temp_water, solvent = solvent)
     
     #required since Viscosity has old typo
     try:
@@ -1489,10 +1489,7 @@ def StatisticDistribution(sizes_df_lin, num_dist_max=10,
     nd.logger.error("StatisticDistribution has moved to statistics.py! Please change if you see this")    
     
 
-def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, 
-         frames_per_second = None, amount_summands = None, amount_lagtimes = None, 
-         amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, 
-         EvalOnlyLongestTraj = 0, Max_traj_length = None, yEval = False, 
+def Main(t6_final, ParameterJsonFile, obj_all, microns_per_pixel = None, frames_per_second = None, amount_summands = None, amount_lagtimes = None, amount_lagtimes_auto = None, Histogramm_Show = True, MSD_fit_Show = False, EvalOnlyLongestTraj = 0, Max_traj_length = None, yEval = False, 
          processOutput=True, t_beforeDrift=None):
     
     nd.logger.error("This is an old function. Call Main2 instead...")

@@ -992,11 +992,11 @@ def MaxRelIntensityJump(ParameterJsonFile):
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    if settings["Fiber"]["Speckle"] == 1:
+    if settings["Fiber"]["Mode"] == "Speckle":
         nd.logger.error("Intensity jump not predictable. Use empirical value (0.5) instead.")
         max_rel_jump = 0.5
         
-    else:
+    elif settings["Fiber"]["Mode"] == "Gaussian":
     
         # minmal diameter to estimate the maximal diffusion
         diameter_nm = settings["Help"]["GuessLowestDiameter_nm"]
@@ -1057,6 +1057,13 @@ def MaxRelIntensityJump(ParameterJsonFile):
         # get the maximum value and save it
         max_rel_jump = np.max(rel_dI)
         max_rel_jump = np.round(max_rel_jump,3)
+
+    elif settings["Fiber"]["Mode"] == "Evanscent":
+        nd.logger.error("Evanscent mode not implemented yet")
+        
+    else: 
+        nd.logger.error("Fiber mode unknown. Choose Speckle, Gaussian or Evanscent in json[Fiber][Mode].")
+        
 
     settings["Split"]["Max rel median intensity step"] = max_rel_jump 
 

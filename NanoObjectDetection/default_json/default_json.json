@@ -12,10 +12,9 @@
           "solvent": "water"
      },
      "Fiber": {
-          "Speckle": "unknown",
-          "TubeDiameter_nm": "unknown",
           "Mode": "unknown",
-          "Waist": "unknown"
+          "Waist": "unknown",
+          "TubeDiameter_nm": "unknown"
      },
      "File": {
           "data_file_name": "Here comes the data path.",
@@ -28,18 +27,6 @@
      "Logger": {
           "level": "info"
      },
-     "Simulation": {
-          "SimulateData": 0,
-          "DiameterOfParticles": 0,
-          "NumberOfParticles": 0,
-          "NumberOfFrames": 0,
-          "NumMicrosteps": 1,
-          "RatioDroppedFrames": 0,
-          "mass": 0,
-          "Photons": 10000.0,
-          "EstimationPrecision": 0,
-          "Max_traj_length": 0
-     },
      "ROI": {
           "Apply": 0,
           "Save": 0,
@@ -50,23 +37,10 @@
           "frame_min": 0,
           "frame_max": 3000
      },
-     "Subsampling": {
-          "Apply": 0,
-          "Save": 1,
-          "fac_xy": 1,
-          "fac_frame": 1
-     },
      "PreProcessing": {
           "Remove_CameraOffset": 1,
           "Remove_Laserfluctuation": 0,
           "Remove_StaticBackground": 1,
-          "RollingPercentilFilter": 0,
-          "RollingPercentilFilter_rolling_step": 10,
-          "RollingPercentilFilter_rolling_length": 200,
-          "RollingPercentilFilter_percentile_filter": 80,
-          "ClipNegativeValue": 1,
-          "Do_or_apply_data_rotation": 0,
-          "rot_angle": 0,
           "EnhanceSNR": 0,
           "KernelSize": "auto",
           "ZNCC_min": 0.70
@@ -119,11 +93,8 @@
           "Amount lagtimes auto": 1,
           "Estimate_X": "Exp",
           "lagtimes_min": 1,
-          "lagtimes_max": 3,
-          "effective_fps": 0,
-          "effective_Microns_per_pixel": 0,
-          "EstimateHindranceFactor": 1,
-          "Calculate Error": 0,
+          "lagtimes_max": 3
+          "EstimateHindranceFactor": 1
           "EvalOnlyLongestTraj": 0,
           "CheckBrownianMotion": 1
      },
@@ -138,42 +109,28 @@
           "ForceUltraUniform": 1
      },
      "Plot": {
-          "Background_Show": 0,
-          "Background_Save": 0,
-          "Laserfluctuation_Show": 0,
-          "Laserfluctuation_Save": 0,
-          "MSD_fit_Show": 0,
-          "MSD_fit_Save": 0,
-          "Histogramm_Show": 1,
-          "Histogramm_Save": 1,
+          "Background": 0,
+          "Laserfluctuation": 0,
+          "MSD_fit": 0,
+          "Histogramm": 1,
           "Histogramm_abs_or_rel": "both",
           "Histogramm_Fit_1_Particle": 1,
-          "Histogramm_time_Show": 0,
-          "Histogramm_time_Save": 0,
-          "Histogramm_Bins_Auto": 0,
-          "Histogramm_Bins": 3,
+          "Histogramm_time": 0,
           "Histogramm_Bin_size_nm": 2,
+          "Histogramm_Bins": 3,
           "Histogramm_min_max_auto": 1,
           "Histogramm_min": 0,
           "Histogramm_max": 200.0,
-          "DiameterPDF_Show": 0,
-          "DiameterPDF_Save": 0,
+          "DiameterPDF": 0,
           "DiameterPDF_min_max_auto": 1,
           "PDF_min": 0.0,
           "PDF_max": 1000.0,
           "PDF_show_fit": 0,
-          "DiamOverTraj_Show": 1,
-          "DiamOverTraj_Save": 1,
-          "UseRawMass": "mean",
-          "Correlation_Show": 0,
-          "Correlation_Save": 0,
-          "Pearson_Show": 0,
-          "Pearson_Save": 0,
+          "DiamOverTraj": 1
+          "DiamOverTraj_UseRawMass": "mean",
           "fontsize": 14,
           "SaveFolder": "auto",
-          "Title": "Choose a title in the json file",
-          "save_json": 1,
-          "SaveProperties": "auto",
+          "save_json": 1
           "save_data2csv": 1,
           "dpi": 300
      },

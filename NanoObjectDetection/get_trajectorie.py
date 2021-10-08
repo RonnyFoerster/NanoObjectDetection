@@ -22,9 +22,7 @@ from tqdm import tqdm# progress bar
 # from pdb import set_trace as bp
 
 
-def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, UseLog = False, diameter = None,
-              minmass=None, maxsize=None, separation=None, max_iterations = 10,
-              SaveFig = False, gamma = 0.8, ExternalSlider = False, oldSim=False, DoParallel = True):
+def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, UseLog = False, diameter = None, minmass=None, maxsize=None, separation=None, max_iterations = 10, SaveFig = False, gamma = 0.8, oldSim=False, DoParallel = True):
     """ wrapper for trackpy routine tp.batch, which spots particles
 
     rawframes_np: unprocessed RAW image
@@ -83,36 +81,30 @@ def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, UseLog = False, di
                 np.logger.warning("Given image is of datatype float. It is converted to int32. That is prone to errors for poor SNR; slow and memory waisting.")
                 rawframes_pre = np.int32(rawframes_pre)
 
-            #ExternalSlider is a bad way of finding out if Spyder or JupyterLab is running
-            if ExternalSlider == False:
-                # HERE HAPPENS THE LOCALIZATION OF THE PARTICLES
-                
-                obj_all = FindSpots_tp(rawframes_pre, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = DoParallel)
-                
-                # check if any particle is found. If not reduce minmass
-                if obj_all.empty:
-                    nd.logger.warning("Image is empty - reduce Minimal bead brightness")
-                    minmass = minmass / 10
-                    settings["Find"]["tp_minmass"] = minmass
-                else:
-                    output_empty = False
-                    nd.logger.info("Set all NaN in estimation precision to 0")
-                    obj_all.loc[np.isnan(obj_all.ep), "ep"] = 0
-                    obj_all['abstime'] = obj_all['frame'] / settings["MSD"]["effective_fps"]       
 
+            # HERE HAPPENS THE LOCALIZATION OF THE PARTICLES
+            
+            obj_all = FindSpots_tp(rawframes_pre, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = DoParallel)
+            
+            # check if any particle is found. If not reduce minmass
+            if obj_all.empty:
+                nd.logger.warning("Image is empty - reduce Minimal bead brightness")
+                minmass = minmass / 10
+                settings["Find"]["tp_minmass"] = minmass
             else:
-                nd.logger.warning("This needs an update!")
-                obj_all = tp.batch(rawframes_pre, diameter, minmass = minmass, separation = (diameter, separation), max_iterations = max_iterations, preprocess = DoPreProcessing, percentile = percentile)
-
-                # leave without iteration, this is done outside by a slider
                 output_empty = False
+                nd.logger.info("Set all NaN in estimation precision to 0")
+                obj_all.loc[np.isnan(obj_all.ep), "ep"] = 0
+                obj_all['abstime'] = obj_all['frame'] / settings["Exp"]["fps"]       
+
+
 
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
-        obj_all = RemoveOverexposedObjects(ParameterJsonFile, obj_all, rawframes_np)
+        obj_all = LabelOverexposedObjects(ParameterJsonFile, obj_all, rawframes_np)
 
         if SaveFig == True:
-            FindSpots_plotting(rawframes_pre, obj_all, settings, gamma, ExternalSlider)
+            FindSpots_plotting(rawframes_pre, obj_all, settings, gamma)
 
         # save output
         if settings["Plot"]["save_data2csv"] == 1:
@@ -127,7 +119,6 @@ def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, UseLog = False, di
 def FindSpots_plotting(frames_np, output, settings, gamma, ExternalSlider):
     from NanoObjectDetection.PlotProperties import axis_font, title_font
 
-    # params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
     if ExternalSlider == False:
         nd.logger.warning("Warning, RF trys something here...")
         fig = plt.figure()
@@ -574,8 +565,8 @@ def RemoveSpotsInNoGoAreas_loop(stationary_particles, loop_t2_long_fix, obj, min
             
             
 
-def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
-    """ delete objects where the camera sensor was (over)saturated
+def LabelOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
+    """ label objects where the camera sensor was (over)saturated
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
@@ -585,7 +576,7 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
 
     obj_moving["saturated"] = False
     
-    # get index of saturaed column
+    # get index of saturated column
     ix_saturated = obj_moving.columns.get_loc("saturated")
 
     if SaturatedPixelValue == 'No Saturation':
@@ -620,7 +611,7 @@ def RemoveOverexposedObjects(ParameterJsonFile, obj_moving, rawframes_rot):
                 signal_at_max = rawframes_rot[frame,pos_y,pos_x]
                 
             if signal_at_max >= SaturatedPixelValue:
-                nd.logger.debug("Remove overexposed particles at (frame,x,y) = (%i, %i, %i)", frame, pos_x, pos_y)
+                nd.logger.debug("Label overexposed particles at (frame,x,y) = (%i, %i, %i)", frame, pos_x, pos_y)
                 
                 sort_obj_moving.iloc[counter, ix_saturated] = True
                 
@@ -795,7 +786,7 @@ def calc_intensity_fluctuations(t3_gapless, ParameterJsonFile, dark_time = None,
     # MEDIAN FILTER OF MASS
     # CALCULATE RELATIVE STEP HEIGHTS OVER TIME
 
-    see_speckle = settings["Fiber"]["Speckle"]
+    see_speckle = settings["Fiber"]["Mode"] == "Speckle"
     if see_speckle == 1:
         # FIBER WITH SPECKLES!
         # apply rolling median filter on data sorted by particleID
@@ -1124,133 +1115,3 @@ def split_traj_at_long_trajectory(t4_cutted, settings, Min_traj_length = None, M
 
     return t4_cutted
 
-
-
-#def OptimizeParamFindSpots(rawframes_ROI, ParameterJsonFile, SaveFig, gamma = 0.8, diameter=None , minmass=None, separation=None):
-#
-#    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-#
-#    diameter = settings["Find"]["tp_diameter"]
-#    minmass = settings["Find"]["tp_minmass"]
-#    separation = settings["Find"]["tp_separation"]
-#
-#    obj = nd.get_trajectorie.batch_np(rawframes_ROI[0:1,:,:], ParameterJsonFile, diameter = diameter,
-#                                      minmass = minmass, separation = separation)
-#
-#    params, title_font, axis_font = nd.visualize.GetPlotParameters(settings)
-#
-##    mpl.rcParams.update(params)
-#
-#
-#
-#    fig = plt.figure()
-#
-#    plt.imshow(nd.handle_data.DispWithGamma(rawframes_ROI[0,:,:] ,gamma = gamma))
-#
-#
-#    plt.scatter(obj["x"],obj["y"], s = 20, facecolors='none', edgecolors='r', linewidths=0.3)
-#
-##    my_s = rawframes_ROI.shape[2] / 10
-##    my_linewidths = rawframes_ROI.shape[2] / 1000
-##    plt.scatter(obj["x"],obj["y"], s = my_s, facecolors='none', edgecolors='r', linewidths = my_linewidths)
-#
-#
-#    plt.title("Identified Particles in first frame", **title_font)
-#    plt.xlabel("long. Position [Px]")
-#    plt.ylabel("trans. Position [Px]", **axis_font)
-#
-#
-#    if SaveFig == True:
-#        save_folder_name = settings["Plot"]["SaveFolder"]
-#        save_image_name = 'Optimize_First_Frame'
-#
-#        settings = nd.visualize.export(save_folder_name, save_image_name, settings, use_dpi = 300)
-#
-#        # close it because its reopened anyway
-##        plt.close(fig)
-#
-#
-#    return obj, settings
-
-
-# # not really done
-# def RemoveNoGoAreasAroundOverexposedAreas():
-#     # check for saturated/overexposed areas on the chip
-#     my_max = 65520
-
-#     import numpy as np
-
-#     sat_px = np.argwhere(rawframes_rot >= my_max)
-
-#     import numpy as np
-#     import pandas as pd
-#     import time
-
-#     num_sat_px = sat_px.shape[0]
-#     # minimum allowed distance to saturated area
-#     min_distance = settings["Find"]["tp_separation"]
-
-#     min_distance = 10
-
-#     # first frame. variable is used to check if a new frames is reached
-#     frame_sat_px_old = -1
-
-#     #previous position
-#     loop_sat_pos_old = np.zeros(2)
-#     loop_sat_pos = np.zeros(2)
-
-#     for loop_counter, loop_sat_px in enumerate(sat_px):
-#     #    print(loop_counter)
-#         t = time.time()
-#     #    print("avoid saturaed px = ", loop_sat_px)
-
-#         nd.visualize.update_progress("Remove Spots In Overexposed Areas", (loop_counter+1)/num_sat_px)
-
-#         # position of the overexposition
-#         loop_sat_pos[:] = [loop_sat_px[1], loop_sat_px[2]]
-
-
-#         # check the difference to the precious saturated pixel
-
-#         diff_px = np.linalg.norm(loop_sat_pos_old - loop_sat_pos)
-
-#         # if they are neighbouring than ignore it to speed it up
-#         if diff_px > 5:
-#             # frame of the overexposition
-#             frame_sat_px = loop_sat_px[0]
-
-#     #        print("t1 = ", time.time() - t)
-
-#             # only do that if a new frame starts
-#     #        if frame_sat_px != frame_sat_px_old:
-#     #            print("frame:", frame_sat_px)
-#     ##            obj_moving_frame = obj_moving[obj_moving.frame == frame_sat_px]
-#     #            frame_sat_px_old = frame_sat_px
-
-#     #        print("t2 = ", time.time() - t)
-
-#             # SEMI EXPENSIVE STEP: calculate the position and time mismatch between all objects
-#             # and stationary object under investigation
-#     #        mydiff = obj_moving_frame[['x','y']] - [pos_sat_px_x, pos_sat_px_y]
-#             mydiff = obj_moving[obj_moving.frame == frame_sat_px][['y','x']] - loop_sat_pos
-#     #        print("t3 = ", time.time() - t)
-
-#             # get the norm
-#     #        mynorm = np.linalg.norm(mydiff.values,axis=1)
-#             mynorm = np.sqrt(mydiff["y"]**2 + mydiff["x"]**2)
-#     #        print("t4 = ", time.time() - t)
-#             # check for which particles the criteria of minimum distance is fulfilled
-
-#             remove_close_object = mynorm < min_distance
-
-#             remove_loc = remove_close_object.index[remove_close_object].tolist()
-
-#             # keep only the good ones
-#             obj_moving = obj_moving.drop(remove_loc)
-
-#     #        obj_moving = pd.concat([obj_moving_frame[valid_distance], obj_moving[obj_moving.frame != frame_sat_px]])
-#     #        print("t5 = ", time.time() - t)
-
-#             frame_sat_px_old = frame_sat_px
-
-#             loop_sat_pos_old = loop_sat_pos.copy()

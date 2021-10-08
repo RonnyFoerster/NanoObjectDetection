@@ -4,7 +4,7 @@ All the experimental parameters can be found in a json file.
 The json datatype is quite strict with the format. The last entry of a key should not end whith a " , " . Booleans are written as 0 and 1.
 A path does not accept " \ " instead you have to use " \\ ".
 
-########################################################################################################################
+##############################################################################
 
 Exp
 
@@ -13,12 +13,10 @@ Experimental parameters
 | key: NA:
 | description: numerical aperture of the detection objective
 | example: 0.13
-| unit: none
 
 | key: n_immersion
 | description: Refractive index of the objective immersion
 | example: 1.46
-| unit: none
 
 | key: lambda
 | description: wavelength of the detection light (in scattering this is the illumination wavelength)
@@ -39,11 +37,6 @@ Experimental parameters
 | description: size of a camera pixel in object coordinate. This is given by the pixel pitch of the CCD and the magnification of the system. Be aware that the magnification written on an objective is only valid for the correct tube lens length.
 | example: 0.63
 | unit: µm/px
-    
-| key: bit-depth-fac
-| description: 
-| example: 
-| unit:
 
 | key: Temperature
 | description: temperature of the specimen
@@ -55,43 +48,36 @@ Experimental parameters
 | example: 9.5e-16
 | unit: Ns/(um^2) = 1E12 * Ns/(m^2) = 1E15 * mPa * s
 
+| key: Viscosity_auto
+| description: gets the viscosity automatically by solvent and temperature
+| example: 1
+
 | key: solvent
-| description: the kind of liquid that surrounds the nanoobjects under investigation
+| description: liquid inside the channel
 | example: "water"
-| unit: none
-          
-| key: particleConc_inSolvent
-| description: estimated concentration value of the prepared particle solution
-| example: 0.188
-| unit: 1/nL
+
  
-########################################################################################################################
+##############################################################################
 
 Fiber
 
 Here are all the fiber parameters
 
-| key: Shape
-| description: Shape of the fiber channel where the particles are in
-| example: "hex"
-| unit: 
-    
-| key: ARHCF_hex_sidelength_um
-| description: If its an hexagonal ARHCF, the 6 side lengths are inserted here
-| example: [315, 315, 318, 335, 300, 338]
+| key: Mode
+| description: Describes the mode in the channel
+| options: "Speckle", "Gaussian", "Evanscent" (last not implemented)
+   
+| key: Waist
+| description: Beam waist in case of gaussian mode
+| example: 8.6
 | unit: um
-      
-| key: CalcTubeDiameterOutOfSidelength
-| description: Calculate the fiber diameter out of the given side length and fiber shape
-| example: 1
-| unit: boolean
     
 | key: TubeDiameter_nm
 | description: Diameter of fiber channel where the particles are in (distance between parallel walls)
 | example: 10000
 | unit: nm        
           
-########################################################################################################################
+##############################################################################
        
 File
 
@@ -100,72 +86,39 @@ Here are all the file locations of the input.
 | key: data_file_name
 | description: Complete path of the first image
 | example: "C:\\Data\\Mona_Nissen\\40nmgold.fits"
-| unit: 
 
 | key: data_folder_name
 | description: Location of the images
-| example: "C:\\Data\\Mona_Nissen"
-| unit: 
-    
+| example: "C:\\Data\\Mona_Nissen"   
  
 | key: data_type
-| description: File format of the images
+| description: File format of the images. TIF-STACK IS HIGHLY RECOMMENDED, BECAUSE IT READS IN MUCH FASTER
 | example: "fits", "tif_stack" or "tif_series"
-| unit: 
   
+| key: use_num_frame
+| description: umber of 2d tif images that are read in (Only valid for tif-series!).
+| example: 100
+ 
 | key: DefaultParameterJsonFile
 | description: If a json file is incomplete, for example due to an update, the json file is completed by the default value, whose path defined in here.
 | example: "Z:\\Datenauswertung\\19_ARHCF\\190802\\190225_default.json"
-| unit: 
  
 | key: json
 | description: path of the json file (if not given the code will write it into it.)
 | example: "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190227_Au50_922fps_mainChanOnly.json"
-| unit: 
+         
+##############################################################################
    
-########################################################################################################################
-
     
-Simulation
+Logger
 
-In case the data is simulated and not acquired physically the parameters can be found here.
-
-| key: SimulateData
-| description: Boolean if the data shall be simulated
-| example: 1
-| unit: boolean
-
-| key: DiameterOfParticles
-| description: Diameter(s) of the simulated particles (float or list of float)
-| example: [50, 80]
-| unit: nm
-
-| key: NumberOfParticles
-| description: Number(s) of created particles (int or list of int)
-| example: 42
-| unit: 
-
-| key: NumberOfFrames
-| description: Number of simulated frames
-| example: 420
-| unit: frames
-
-| key: mass
-| description: Mass of the particles (float or list of float)
-| example: 100
-| unit: 
-
-| key: EstimationPrecision
-| description: Estimation precision 
-| example: !!! TODO !!!
-| unit: !!! TODO !!!
-
-| key: Max_traj_length
-| description: Maximum trajectory length. Longer trajectories are cut and treated as independent particles at different time points.
-| example: 300
-| unit: frames
+This is the logger (shows all the infos, warning and errors from the code)
+ 
+| key: level
+| description: Gives the minium level of the display loggers an
+| example: "debug", "info", "warning", "error"
     
-########################################################################################################################
+##############################################################################
 
     
 ROI - Region of interest
@@ -175,7 +128,10 @@ Here a subregion (ROI) can be defined. This is especially helpfull for debugging
 | key: Apply
 | description: Boolean if the ROI is applied
 | example: 1
-| unit: boolean
+
+| key: Save
+| description: Boolean if the ROI is saved
+| example: 1
 
 | key: x_min, x_max, y_min, y_max
 | description: min- / maximal value of the ROI
@@ -187,31 +143,7 @@ Here a subregion (ROI) can be defined. This is especially helpfull for debugging
 | example: 100
 | unit: frames
    
-########################################################################################################################
-
-
-Subsampling
-
-A subsampling of data can be useful if the data is highly oversampled or a lower framerate of the camera is sufficent
-A subsampled image is analyzed faster but information is obviously thrown away.
-
-| key: Apply
-| description: Boolean if a subsampling shall be applied
-| example: 1
-| unit: boolean
-    
-| key: fac_xy
-| description: Factor of spatial subsampling.
-| example: 5... means that just every fifth pixel is kept used further
-| unit: px
-    
-| key: fac_frame
-| description: Factor of temporal subsampling.
-| example: 5... means that just every fifth frame is kept
-| unit: frames
-
-########################################################################################################################
-
+##############################################################################
 
 PreProcessing
 
@@ -220,116 +152,101 @@ Standard image processing before the specific MSD stuff starts.
 | key: Remove_CameraOffset
 | description: Boolean if the camera offset is removed
 | example: 1
-| unit: boolen
 
 | key: Remove_Laserfluctuation
 | description: Boolean if the laser fluctuations are removed
 | example: 1
-| unit: boolen
 
 | key: Remove_StaticBackground
 | description: Boolean if the static background is removed
 | example: 1
-| unit: boolen
- 
-| key: RollingPercentilFilter
-| description: Boolean if a rolling filter is applied on the rawimages along the time axis
-| example: 1
-| unit: boolen    
- 
-| key: RollingPercentilFilter_rolling_step
-| description: Number of frames that are binned together as one.
-| example: 10
-| unit: frames    
- 
-| key: RollingPercentilFilter_rolling_length
-| description: Length of the rolling filter. In other words, the number of frames that are averaged
-| example: 100
-| unit: frames    
-     
-| key: RollingPercentilFilter_percentile_filter
-| description: Percentile which is used for the fitlering
-| example: 80
-| unit: %  
+    
+| key: EnhanceSNR
+| description: Convolved with the PSF (for low SNR images, PSF approximated by gauss)
+| example: 1    
+        
+| key: KernelSize
+| description: Kernelsize of gauss filtering
+| example: "auto" or fixed value
+| unit: Pixel
+        
+| key: ZNCC_min
+| description: Threshold of the Zero Normalized Cross Correlation to identify paticle (0 to 1)
+| example: 0.7
 
-| key: ClipNegativeValue
-| description: Boolean, if the negative values are set to 0. Negative values seem unnatural, but contain valuable information	0
-| example: 1
-| unit: boolean  
- 
-| key: Do_or_apply_data_rotation
-| description: Boolean if the rawdata is rotated
-| example: 1
-| unit: boolean  
- 
-| key: rot_angle
-| description: Angle by which the rawdata is rotated
-| example: 0.3
-| unit: degree  
-
-########################################################################################################################
+##############################################################################
 
 
 Help
 
 Start a routine that try to help you find the right parameters.
 
-
 | key: ROI
 | description: Boolean if help with the ROI parameters is wanted
 | example: 1
-| unit: boolean 
  
 | key: Bead brightness
 | description: Boolean if help with the "Bead brightness" is wanted
 | example: 1
-| unit: boolean
     
 | key: Bead size
 | description: Boolean if help with the "Bead size" is wanted
 | example: 1
-| unit: boolean
+    
+| key: TryFrames
+| description: Number of frames the parameter estimation is run for bead brightness and size
+| example: 10
+| unit: frames
+    
+| key: Separation
+| description: Boolean if the separation (distance) between two objects is set automatically
+| example: 1
+    
+| key: GuessLowestDiameter_nm
+| description: Smallest expected diameter. Required to calculated the minimum separation distance.
+| example: 20
+| unit: nm
+    
+| key: drift
+| description: Boolean if the drift correction is on
+| example: 1
 
-########################################################################################################################
+##############################################################################
 
 
 Find
 
 Parameters necessary to find the particles in the image with the Tracky module.
-
- 
-| key: Analyze in log
-| description: Some people like to form the log of a rawimage before proceeding
-| example: 0
-| unit: boolean
     
-| key: Estimated particle size
+| key: tp_diameter
 | description: estimated particle size of an object on the camera. This is required for Trackpy to find it with high accuaray. The help routine is of use if unknown		
 | example: [9.0, 9.0]
 | unit: px
      
-| key:  Estimated particle size (log-scale)		
-| description:  as above (Estimated particle size)
-| example: [9.0, 9.0]
-| unit: px
-     
-| key: Minimal bead brightness	
+| key: tp_minmass
 | description: Minimal brightness a bead must have in order to be classified as an object and not as noise
 | example: 15
-| unit: 
+  
+| key: SaturatedPixelValue
+| description: Pixel value at which a particle is saturated.
+| example: 64000 or "auto" (finds the max value automatically and saves it here)
      
-| key: Separation data
+| key: tp_separation
 | description: 	Minimum distance of two identified particles
 | example: 1.5
 | unit: px
+     
+| key: tp_percentile
+| description: Features must have a peak brighter than pixels in this percentile. This helps eliminate spurious peaks.
+| example: 20
+| unit: %
 
-########################################################################################################################
+##############################################################################
 
 
 Link
     
 Parameters to use the Trackpy module to form trajectories of localized objects of different frames.
-
 
 | key: Dark time
 | description: An object can disappear from on frame to another. A reason can be local intensity fluctuations, for example generated by large stationary objects. The dark time define how long a object can be invisible before defined as lost.
@@ -361,7 +278,7 @@ Parameters to use the Trackpy module to form trajectories of localized objects o
 | example: 500
 | unit: frames
     
-########################################################################################################################
+##############################################################################
 
 StationaryObjects
 
@@ -370,14 +287,13 @@ Some Objects do not move. They might be attached to something. You never know. A
 | key: Analyze fixed spots
 | description: Boolean weather the algorithm shall look for fixed spots
 | example: 1 
-| unit: boolean
     
 | key: Min distance to stationary object
 | description: Stationary objects are bad, because they are normally quite large and interfere with neighbouring particles, which distracts their localzation. Thus, a maximum distance from moving to stationary objects is defined in pixels bright particle cluster)
 | example: 20
 | unit: px
 
-########################################################################################################################
+##############################################################################
 
 
 Split
@@ -392,19 +308,20 @@ Sometimes a trajectory must be cut in two. A reason can be, that the assignment 
 | key: Max_traj_length_keep_tail
 | description: If a trajectory is cutted, there will be a left over. This 'tail' can be kept, so that one trajectore is longer (1), or can be discarded (0) so that all trajectories are of equal length.
 | example: 1
-| unit: boolean
     
+| key: IntensityJump
+| description: if trajectory shall be splitted at to high intensity jumps 
+| example: 1
+
 | key: Max rel median intensity step
 | description: Defines the maximum relativ intensity drop/raise are trajectory can have between to neighbouring pixels.  If the value is exceeded the risk of a wrong assignment is too large. Thus the trajectory is splitted at this jump. 
 | example: 0.5
-| unit: 
 
 | key: ParticleWithLongestTrajBeforeSplit
 | description: Particle ID with the longest trajectory. The longest trajectory can be cutted into the most subtrajectories, which can be all evaluated independently, which gives something like a std/ resolution of the measurement / analysis
 | example: 42 (this value is inserted by the algorithm)
-| unit: ID
 
-########################################################################################################################
+##############################################################################
 
 
 Drift
@@ -416,12 +333,9 @@ only be measured if many particles are present.
 | key: Apply
 | description: Boolean weather a drift correction is performed
 | example: 1
-| unit: boolean
     
 | key: Do transversal drift correction
 | description: Boolean if the drift correction considers are lamiar flow (1) or global drift (0)
-| example: 1
-| unit: 
     
 | key: Drift smoothing frames
 | description: Number of frames the drift is averaged over, since it assumed to change slowly
@@ -431,15 +345,14 @@ only be measured if many particles are present.
 | key: Drift rolling window size
 | description: Lamiar flow: this value gives the total number of neighbouring slices that are used for averaging.
 | example: 5
-| unit:
     
 | key: Min particle per block
 | description: Laminar flow: This is the minimum number of particles in one block
 | example: 40
-| unit: 
+| unit: particles
     
 
-########################################################################################################################
+##############################################################################
 
 MSD
 
@@ -448,138 +361,111 @@ Parameters of the mean-squared-displacement fit.
 | key: Amount summands
 | description: Minimum number of statistically indepent values at each considered lagtime. If a particles does not fulfill this criterion, it is not evaluated further. The higher the value the better the fit.
 | example: 30
-| unit: 
  
 | key: Amount lagtimes auto
 | description: Boolean if the number of lagtimes for the fit is defined automatically
 | example: 1
-| unit: boolean
+
+| key: Estimate_X
+| description: Choose mode to calculate reduced localication accuracy (x), required to choose the optimal lagtimes in the MSD fit
+| options: "Exp", "Theory"
      
-| key: Amount lagtimes
-| description: Amount of lagtimes used for the fit
-| example: 5
+| key: "lagtimes_min" and "lagtimes_max"
+| description: Minimal and maximal considered lagtime for the MSD fit
+| example: 1
 | unit: frames
-     
-| key: effective_fps
-| description: The framerate might be reduced due to subsampling
-| example: 42
-| unit: frames
-     
-| key: effective_Microns_per_pixel
-| description: The magnification might be enhanced due to subsampling
-| example: 0.5
-| unit: um/px
      
 | key: EstimateHindranceFactor
 | description: Boolean if hindrance factor shall be considered (good when particle diameter in the range of the fiber diameter)
 | example: 1
-| unit: boolean
      
 | key: EvalOnlyLongestTraj
 | description: Boolean if only the longest trajectory shall be evaluated
 | example: 1
-| unit: boolean
+
+| key: CheckBrownianMotion
+| description: Boolean if each trajectory is checked for pure Brownian motion by a Kolmogorow-Smirnow-Test
+| example: 1
   
-########################################################################################################################
+##############################################################################
 
 Plot
 
 Parameters that define what is ploted, how it looks like and where it is safed.
  
-| key: Background_Show
+| key: Background
 | description: Show background / dark image
-| example:
-| unit: boolean
-
-| key: Background_Save
-| description: 
-| example:
-| unit: boolean
-
-| key: Laserfluctuation_Show
-| description: Show laserintensity (only valid for if many particles are present) over time
-| example:
-| unit: boolean
-
-| key: Laserfluctuation_Save
-| description: 
-| example:
-| unit: boolean
-
-| key: MSD_fit_Show
-| description: MSD over lagtime
-| example:
-| unit: boolean
-
-| key: MSD_fit_Save
-| description: 
-| example:
-| unit: boolean
-
-| key: Histogramm_Show
-| description: Diameter histogramm
-| example:
-| unit: boolean
-
-| key: Histogramm_Save
-| description: 
-| example:
-| unit: boolean
-
-| key: Histogramm_Bins_Auto
-| description: Automatically sets the number of bins in the diameter histogramm
 | example: 1
-| unit: boolean
-    
-| key: Histogramm_Bins
-| description: Number of bins in the diameter histogramm
+
+| key: Laserfluctuation
+| description: Show laserintensity (only valid for if many particles are present) over time
+| example: 1
+
+| key: MSD_fit
+| description: MSD over lagtime
+| example: 1
+
+| key: Histogramm
+| description: Diameter histogramm
+| example: 1
+
+| key: Histogramm_abs_or_rel
+| description: weighting of the histogramm (abs: no weighting; rel - weight by trajectory length)
+| option: "both", "abs", "rel"
+
+| key: Histogramm_Fit_1_Particle
+| description: Fit Histogram assuming (Ultra-)uniform particle specimen
+| example: 1
+
+| key: Histogramm_time
+| description: Shows time dependent histogram
+| example: 1
+  
+| key: Histogramm_Bin_size_nm
+| description: Width of each bin in nm
 | example: 25
-| unit: 
+  
+| key: Histogramm_Bins
+| description: Number of bins in the diameter histogramm (generated by code!)
+| example: 25
     
 | key: Histogramm_min_max_auto
 | description: Automatically the minimal and maximal diameter in the diameter histogramm
 | example: 1
-| unit: boolean
     
-| key: Histogramm_min
-| description: Minimal diameter in the diameter histogramm
+| key: Histogramm_min and Histogramm_max
+| description: Minimal and maximial diameter in the diameter histogramm
 | example: 30
-| unit: nm
-    
-| key: Histogramm_max
-| description: Maximal diameter in the diameter histogramm
-| example: 100
 | unit: nm
     
 | key: DiamOverTraj_Show
 | description: Diameter of a particle over its trajectory length
-| example:
-| unit: boolean
-    
-| key: DiamOverTraj_Save
-| description: 
-| example:
-| unit: boolean
+| example: 1
+
+| key: DiameterPDF
+| description: Plot diameter probability density function (PDF)
+| example: 1
+
+| key: DiamOverTraj
+| description: Plot diameter probability density function (PDF)
+| example: 1
+
+| key: DiamOverTraj_UseRawMass
+| description: Definese which mass is used for the false colour in DiamOverTraj
+| options: "mean", "median", "max"
 
 | key: fontsize
 | description: Plot fontsize
 | example: 14
-| unit: 
     
 | key: SaveFolder
 | description: Folder where to save it
 | example: "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly"
-| unit:
+| option: "auto" choose the file automatically
     
 | key: save_json
 | description: Boolean weather the properties are saved
 | example: 1
-| unit: boolean
-    
-| key: SaveProperties
-| description: The json file is saved along with the image. This makes it reproduceable
-| example: "Z:\\Datenauswertung\\Mona_Nissen\\Au50_922fps_mainChanOnly\\190305\\16_16_05_Diameter Histogramm.json"
-| unit:
     
 | key: dpi
 | description: dpi of the saved image
@@ -589,30 +475,7 @@ Parameters that define what is ploted, how it looks like and where it is safed.
 | key: save_data2csv
 | description: Boolean weather the data is saved
 | example: 1
-| unit: boolean
 
 
 
-########################################################################################################################
-
-
-Old
- 
-Parameters that are unused but still there in case they turn modern again
-
-| key: Min displacement
-| description: TODO !!!
-| example:5
-| unit: 
-
-| key:Rolling window size
-| description:  TODO !!!
-| example: 5
-| unit: 
-    
-| key: data_file_extension
-| description: File format of the images
-| example: "tif"
-| unit: 
-    
 """

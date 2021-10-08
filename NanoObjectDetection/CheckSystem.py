@@ -157,6 +157,15 @@ def CheckJson_Exist(ParameterJsonFile):
     return settings
 
 
+def UpdateOldKey(settings, key, old_name, new_name):
+    if old_name in settings[key].keys():
+        settings[key][new_name] = settings[key][old_name]
+        del settings[key][old_name]
+        nd.logger.warning("Replace settings[%s][%s] with settings[%s][%s]", key, old_name, key, new_name)
+        
+    return settings
+
+
 def CheckJson_Entries(settings):
     """
     check if all required entires exist, otherwise copy from json \n
@@ -164,26 +173,22 @@ def CheckJson_Entries(settings):
     """
     
     #check if old keys have the new name - rename otherwise
-    if "Estimated particle size" in settings["Find"].keys():
-        settings["Find"]["tp_diameter"] = settings["Find"]["Estimated particle size"]
-        del settings["Find"]["Estimated particle size"]
-        nd.logger.warning("Replace key <Estimated particle size> by <tp_diameter>")
-        
-    if "Minimal bead brightness" in settings["Find"].keys():
-        settings["Find"]["tp_minmass"] = settings["Find"]["Minimal bead brightness"]
-        del settings["Find"]["Minimal bead brightness"]
-        nd.logger.warning("Replace key <Minimal bead brightness> by <tp_minmass>")
-        
-    if "Separation data" in settings["Find"].keys():
-        settings["Find"]["tp_separation"] = settings["Find"]["Separation data"]
-        del settings["Find"]["Separation data"]
-        nd.logger.warning("Replace key <Separation data> by <tp_separation>")
+    UpdateOldKey(settings, "Fiber", "Speckle", "Mode")
+    UpdateOldKey(settings, "Find", "Estimated particle size", "tp_diameter")
+    UpdateOldKey(settings, "Find", "Minimal bead brightness", "tp_minmass")    
+    UpdateOldKey(settings, "Find", "Separation data", "tp_separation") 
+    UpdateOldKey(settings, "Find", "PercentileThreshold", "tp_percentile") 
+    UpdateOldKey(settings, "Plot", "Background_Show", "Background") 
+    UpdateOldKey(settings, "Plot", "Laserfluctuation_Show", "Laserfluctuation") 
+    UpdateOldKey(settings, "Plot", "MSD_fit_Show", "MSD_fit") 
+    UpdateOldKey(settings, "Plot", "Histogramm_Show", "Histogramm") 
+    UpdateOldKey(settings, "Plot", "DiameterPDF_Show", "DiameterPDF") 
+    UpdateOldKey(settings, "Plot", "DiamOverTraj_Show", "DiamOverTraj") 
+    UpdateOldKey(settings, "Plot", "UseRawMass", "DiamOverTraj_UseRawMass") 
     
-    if "PercentileThreshold" in settings["Find"].keys():
-        settings["Find"]["tp_percentile"] = settings["Find"]["PercentileThreshold"]
-        del settings["Find"]["PercentileThreshold"]
-        nd.logger.warning("Replace key <PercentileThreshold> by <tp_percentile>")   
     
+
+
     # memory if sth was wrong
     MissingEntry = False
     
@@ -292,22 +297,7 @@ def CheckJson_specify_default_auto(settings):
         settings["Plot"]["SaveFolder"] = my_path
     
     nd.logger.info("Figures are saved into: %s", settings["Plot"]["SaveFolder"])
-    
-    
-    
-    # same for the save SaveProperties entry
-    if settings["Plot"]["SaveProperties"] == "auto":
-        settings["Plot"]["SaveProperties"] = settings["Plot"]["SaveFolder"]
-    
-    # check if saving folders are valid
-    my_path = settings["Plot"]["SaveProperties"]
-    invalid, my_path = CheckIfFolderGeneratable(my_path)
-     
-    if invalid == True:
-        settings["Plot"]["SaveProperties"] = my_path
-    
-    nd.logger.info("Properties are saved into: %s", settings["Plot"]["SaveProperties"])
-    
+       
   
     return settings
 

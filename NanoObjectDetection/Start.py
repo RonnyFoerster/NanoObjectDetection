@@ -153,7 +153,6 @@ def NewEvaluation():
         
         settings["Fiber"]["Speckle"] = pre_settings["Fiber"]["Speckle"]
         settings["Fiber"]["TubeDiameter_nm"] = pre_settings["Fiber"]["TubeDiameter_nm"]
-        settings["Fiber"]["Mode"] = pre_settings["Fiber"]["Mode"]
         settings["Fiber"]["Waist"] = pre_settings["Fiber"]["Waist"]
         
         
@@ -162,7 +161,6 @@ def NewEvaluation():
         print("Please insert setup parameters: \n")
         
         settings["Fiber"]["TubeDiameter_nm"] = float(input("Channel Diameter [um] = ")) * 1000
-        settings["Fiber"]["Mode"] = str(input("Mode (e.g. gauss): " ))
         settings["Fiber"]["Waist"] = float(input("Beam waist [um] = "))
                   
             

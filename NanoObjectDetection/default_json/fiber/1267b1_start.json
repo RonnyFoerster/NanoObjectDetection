@@ -1,8 +1,7 @@
 {
      "Fiber": {
-          "Speckle": 0,
-          "TubeDiameter_nm": 10500,
-          "Mode": "gauss",
+          "Mode": "Gaussian",
+          "TubeDiameter_nm": 10500
           "Waist": 3
      }
 }

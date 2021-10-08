@@ -526,11 +526,9 @@ def RoiAndSuperSampling(settings, ParameterJsonFile, rawframes_np):
         nd.AdjustSettings.FindROI(rawframes_np)
 
     rawframes_ROI = UseROI(rawframes_np, settings)
+
     
-    # supersampling  
-    rawframes_super = UseSuperSampling(rawframes_ROI, ParameterJsonFile)
-    
-    return rawframes_super
+    return rawframes_ROI
     
 
 
@@ -565,47 +563,7 @@ def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = No
 
 
 
-def UseSuperSampling(image_in, ParameterJsonFile, fac_xy = None, fac_frame = None):
-    """ supersamples the data in x, y and frames by integer numbers
-    
-    e.g.: fac_frame = 5 means that only every fifth frame is kept
-    """
-    
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-    
-    DoSimulation = settings["Simulation"]["SimulateData"]
-    
-    if DoSimulation == 1:
-        nd.logger.info("No data. Do a simulation later on")
-        image_super = 0
-                
-    else:
-        # supersampling  
-        if settings["Subsampling"]["Apply"] == 0:
-            nd.logger.info("Supersampling NOT applied")
-            fac_xy = 1
-            fac_frame = 1
-            
-        else:
-            fac_xy = settings["Subsampling"]['fac_xy']
-            fac_frame = settings["Subsampling"]['fac_frame']           
-            nd.logger.info("Supersampling IS applied. With factors %s in xy and %s in frame ", fac_xy, fac_frame)
-            
-        image_super = image_in[::fac_frame, ::fac_xy, ::fac_xy]
-            
-            
-        settings["MSD"]["effective_fps"] = round(settings["Exp"]["fps"] / fac_frame,2)
-        settings["MSD"]["effective_Microns_per_pixel"] = round(settings["Exp"]["Microns_per_pixel"] / fac_xy,5)
-        
-        
-        if (settings["Subsampling"]["Save"] == 1) and (settings["Subsampling"]["Apply"] == 1):
-            data_folder_name = settings["File"]["data_folder_name"]
-            SaveROIToTiffStack(image_super, data_folder_name)
-        
-        
-        WriteJson(ParameterJsonFile, settings)
-    
-    return image_super
+
 
 
 
