@@ -89,41 +89,48 @@ def Main(t_drift, ParameterJsonFile, min_tracking_frames = None, PlotGlobalDrift
             PlotErrorIfTestFails = False
             
             CheckBrownianMotion = settings["MSD"]["CheckBrownianMotion"]
+
+            if CheckBrownianMotion == True:
+                nd.logger.info("Combination of Drift and Kolmogorov Test is switched of, because it is not validated")
+
+            # here comes the drift correction
+            t_no_drift, my_drift = GlobalEstimation(t_drift, avg_frames)
+
             
-            if CheckBrownianMotion == False:
-                nd.logger.info("Kolmogorow-Smirnow test: off")
-                t_no_drift, my_drift = GlobalEstimation(t_drift, avg_frames)
+            # if CheckBrownianMotion == False:
+            #     nd.logger.info("Kolmogorow-Smirnow test: off")
+            #     t_no_drift, my_drift = GlobalEstimation(t_drift, avg_frames)
                 
-            else:
-                nd.logger.info("Kolmogorow-Smirnow test: on")
-                while PureBrownianMotion == False:
-                    t_no_drift, my_drift = GlobalEstimation(t_drift, avg_frames)
+            # else:
+            #     nd.logger.info("Kolmogorow-Smirnow test: on")
+            #     while PureBrownianMotion == False:
+            #         t_no_drift, my_drift = GlobalEstimation(t_drift, avg_frames)
                
-                    valid_particle_number = t_no_drift.particle.unique()
+            #         valid_particle_number = t_no_drift.particle.unique()
                
-                    # check if the trajectories follow brownian motion after the drift correction.
+            #         # check if the trajectories follow brownian motion after the drift correction.
     
-                    #check if the histogram of each particle displacement is Gaussian shaped
-                    t_no_drift_true_brown_x = nd.get_trajectorie.CheckForPureBrownianMotion(valid_particle_number, t_no_drift, PlotErrorIfTestFails)
+            #         #check if the histogram of each particle displacement is Gaussian shaped
+            #         t_no_drift_true_brown_x = nd.get_trajectorie.CheckForPureBrownianMotion(t_no_drift, PlotErrorIfTestFails)
                     
-                    valid_particle_number_x = t_no_drift_true_brown_x.particle.unique()
+            #         valid_particle_number_x = t_no_drift_true_brown_x.particle.unique()
                     
-                    # check it in y too
-                    t_no_drift_true_brown_xy = nd.get_trajectorie.CheckForPureBrownianMotion(valid_particle_number_x, t_no_drift_true_brown_x, PlotErrorIfTestFails, yEval = True)
+            #         # check it in y too
+            #         t_no_drift_true_brown_xy = nd.get_trajectorie.CheckForPureBrownianMotion(t_no_drift_true_brown_x, PlotErrorIfTestFails, yEval = True)
     
-                    valid_particle_number_xy = t_no_drift_true_brown_xy.particle.unique()
+            #         valid_particle_number_xy = t_no_drift_true_brown_xy.particle.unique()
             
                     
-                    # only when all trajectories return pure brownian motion is fullfilled
-                    if len(t_no_drift) == len(t_no_drift_true_brown_xy):
-                        PureBrownianMotion = True
-                    else:
-                        nd.logger.info("Rerun drift correrction with pure brownian motion particles")
-                        # vaild_id = t_no_drift_true_brown_xy.particle.unique()
-                        t_drift = t_drift[t_drift.particle.isin(valid_particle_number_xy)]
+            #         # only when all trajectories return pure brownian motion is fullfilled
+            #         if len(t_no_drift) == len(t_no_drift_true_brown_xy):
+            #             PureBrownianMotion = True
+            #         else:
+            #             nd.logger.info("Rerun drift correrction with pure brownian motion particles")
+            #             # vaild_id = t_no_drift_true_brown_xy.particle.unique()
+            #             t_drift = t_drift[t_drift.particle.isin(valid_particle_number_xy)]
             
             # remove to short trajectories for further processing
-            t_no_drift = nd.get_trajectorie.filter_stubs(t_no_drift, ParameterJsonFile, FixedParticles = False, BeforeDriftCorrection = False, PlotErrorIfTestFails = False)
+            t_no_drift = nd.get_trajectorie.filter_stubs(t_no_drift, ParameterJsonFile, Mode = "Moving After Drift", PlotErrorIfTestFails = False)
             
 
             # plot the calculated drift
@@ -158,7 +165,7 @@ def Main(t_drift, ParameterJsonFile, min_tracking_frames = None, PlotGlobalDrift
 
     #save the pandas
     if settings["Plot"]["save_data2csv"] == 1:
-        nd.handle_data.pandas2csv(t_no_drift, settings["Plot"]["SaveFolder"], "t5_no_drift")
+        nd.handle_data.pandas2csv(t_no_drift, settings["Plot"]["SaveFolder"], "traj_no_drift")
 
 
     return t_no_drift
