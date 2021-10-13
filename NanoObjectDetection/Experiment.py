@@ -1,19 +1,37 @@
 # -*- coding: utf-8 -*-
 """
+Some functions to calculate and estimate experimental parameters and conditions
+
 Created on Thu Oct  8 12:49:05 2020
 
 @author: foersterronny
 """
+
 import numpy as np
 
 
 
 def Dilution(d_channel, d_goal, mode = "c_stock", c_stock = None):
     """
-    d_channel: diameter of the channel in m
-    d_goal: distance between two NP inside the fiber m
-    mode: parameters given
-    c_stock: NP/ml
+    Calculates the required dilution of a stock solution to have a defined average distance between two nanoparticles
+
+    Parameters
+    ----------
+    d_channel : TYPE
+        diameter of the channel in m.
+    d_goal : TYPE
+        distance between two NP inside the fiber m.
+    mode : TYPE, optional
+        DESCRIPTION. The default is "c_stock".
+    c_stock : TYPE, optional
+        concentration of stock solution in NP/ml. The default is None.
+
+    Returns
+    -------
+    dilution : TYPE
+        Dilution factor.
+
+
     """
     
     #channel crosssection

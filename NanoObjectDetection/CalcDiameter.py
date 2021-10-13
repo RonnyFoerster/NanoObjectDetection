@@ -1409,13 +1409,12 @@ def local_hindrance_fac(H, my_lambda):
     #Eq. 9
     Phi = (1-my_lambda)**2
     Kd = H / Phi
-
     
     return Kd
-    
+  
+  
 
-
-def SummaryEval(settings, rawframes_pre, obj_moving, t1_orig, t2_long, t5_no_drift, t6_final, sizes_df_lin):
+def SummaryEval(settings, rawframes_pre, obj_moving, traj_moving, traj_no_drift, traj_final, sizes_df_lin):
     """
     Plots a lot of info about the entire evaluation
     """
@@ -1438,15 +1437,15 @@ def SummaryEval(settings, rawframes_pre, obj_moving, t1_orig, t2_long, t5_no_dri
     nd.logger.info("Located particles per frames: %.1f", loc_part_frame)
     
     # formed trajectory - min trajectory before drift correction
-    traj_frame_before = len(t2_long) / num_frames
+    traj_frame_before = len(traj_moving) / num_frames
     nd.logger.info("Trajectory per frames - before testing: %.1f", traj_frame_before)
     
     # formed trajectory - min trajectory after drift correction
-    traj_frame_after = len(t5_no_drift) / num_frames
+    traj_frame_after = len(traj_no_drift) / num_frames
     nd.logger.info("Trajectory per frames - after drift correction: %.1f", traj_frame_before)
     
     # valid trajectory - used in msd
-    traj_frame_msd = len(t6_final) / num_frames 
+    traj_frame_msd = len(traj_final) / num_frames 
     nd.logger.info("Trajectory per frames - evaluted by MSD: %.1f", traj_frame_msd)
     
     # analyze components when existing

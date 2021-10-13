@@ -59,6 +59,7 @@ def GetSettingsParameters(settings):
     return temp_water, amount_lagtimes_auto, MSD_fit_Show, MSD_fit_Save, do_rolling
 
 
+
 def CheckIfTrajectoryHasError(nan_tm, traj_length, MinSignificance = 0.1, PlotErrorIfTestFails = False, PlotAlways = False, ID='unknown', processOutput = False):
     nd.logger.error("Function name is old. Use KolmogorowSmirnowTest instead")
     
@@ -94,6 +95,7 @@ def ConcludeResultsRolling(sizes_df_lin_rolling, diff_direct_lin_rolling, diff_s
     return sizes_df_lin_rolling
 
 
+
 def CreateNewMSDPlot(any_successful_check, settings):
     """ for first time call, open a new plot window for the MSD ensemble fit """
     if any_successful_check == False:
@@ -106,7 +108,6 @@ def CreateNewMSDPlot(any_successful_check, settings):
             plt.figure("MSD-Plot", clear = True)
 
     return any_successful_check
-
 
 
 
@@ -154,6 +155,7 @@ def OptimizeTrajLenght(t6_final, ParameterJsonFile, obj_all, microns_per_pixel =
     return sizes_df_lin, any_successful_check
 
 
+
 def RollingPercentilFilter(rawframes_np, settings, PlotIt = True):
     """
     Old function that removes a percentile/median generates background image from the raw data.
@@ -178,6 +180,7 @@ def RollingPercentilFilter(rawframes_np, settings, PlotIt = True):
     nd.logger.info('Remove background by rolling percentile filter: ...finished')
 
     return rawframes_np
+
 
 
 def UseSuperSampling(image_in, ParameterJsonFile, fac_xy = None, fac_frame = None):
@@ -223,6 +226,7 @@ def UseSuperSampling(image_in, ParameterJsonFile, fac_xy = None, fac_frame = Non
     return image_super
 
 
+
 def Correlation(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
     """ produces grid plot for the investigation of particle data correlation
     
@@ -251,6 +255,8 @@ def Correlation(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = N
         
     plt.show()
 
+
+
 def Pearson(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None):
     import NanoObjectDetection as nd
     from NanoObjectDetection.PlotProperties import axis_font
@@ -278,3 +284,21 @@ def Pearson(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None)
                                        settings, data = sizes_df_lin)
 
     plt.show()
+    
+    
+    
+def split_traj(t2_long, t3_gapless, ParameterJsonFile):
+    """ wrapper function for 'split_traj_at_high_steps' , returns both the original
+    output and one without missing time points
+    """
+
+    nd.logger.warning("split_traj is an old function which is not used anymore. Use split_traj_at_high_steps instead.")
+
+
+    t4_cutted, t4_cutted_no_gaps = split_traj_at_high_steps(t2_long, t3_gapless, ParameterJsonFile)
+
+
+    # close gaps to have a continous trajectory
+    # t4_cutted_no_gaps = nd.get_trajectorie.close_gaps(t4_cutted)
+
+    return t4_cutted, t4_cutted_no_gaps
