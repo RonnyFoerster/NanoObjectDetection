@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+This module estimates experimental parameters
+
 Created on Thu Feb 27 15:12:14 2020
 
 @author: foersterronny
@@ -7,16 +9,37 @@ Created on Thu Feb 27 15:12:14 2020
 import NanoObjectDetection as nd
 import numpy as np
 import matplotlib.pyplot as plt
-from pdb import set_trace as bp #debugger
 from scipy import ndimage
 from joblib import Parallel, delayed
 import multiprocessing
-from scipy.ndimage import label, generate_binary_structure
+from scipy.ndimage import generate_binary_structure
 import trackpy as tp
 import scipy.constants
 import time
 
+
 def GaussianKernel(sigma, fac = 6, x_size = None,y_size = None):
+    """
+    Calcualtes a gaussian (Kernel-) function that can be used for filtering later
+
+    Parameters
+    ----------
+    sigma : TYPE
+        sigma of gaussian kernel.
+    fac : TYPE, optional
+        defines the "factor" by which the kernel is larger than the sigma, if x_size or y_size are not given . The default is 6.
+    x_size : TYPE, optional
+        DESCRIPTION. The default is None.
+    y_size : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Returns
+    -------
+    g : TYPE
+        DESCRIPTION.
+
+    """
+    
     #https://martin-thoma.com/zero-mean-normalized-cross-correlation/
     #https://www.w3resource.com/python-exercises/numpy/python-numpy-exercise-79.php
 
@@ -39,6 +62,7 @@ def GaussianKernel(sigma, fac = 6, x_size = None,y_size = None):
     x_lim = int((x_size-1)/2)
     y_lim = int((y_size-1)/2)
         
+    # calculate a 2d Gaussian on the defined (mesh)grid
     # calculate the normal distribution
     x, y = np.meshgrid(np.linspace(-x_lim, x_lim, x_size), np.linspace(-y_lim, y_lim, y_size))
     r = np.sqrt(x*x+y*y)    
@@ -53,14 +77,27 @@ def GaussianKernel(sigma, fac = 6, x_size = None,y_size = None):
 
 
 def zncc(img1, img2):
-    """ calculate Zero Mean Normalized Cross-Correlation 
-    as presented in 
-    https://martin-thoma.com/zero-mean-normalized-cross-correlation/, 27.07.2020
-    
-    img1, img2:     grayscale images (or any matrices) of the same size
     """
+    calculate Zero Mean Normalized Cross-Correlation as presented in 
+    https://martin-thoma.com/zero-mean-normalized-cross-correlation/, 27.07.2020
+
+    Parameters
+    ----------
+    img1 : numpy
+        grayscale image 1.
+    img2 : numpy
+        grayscale image 2 (same size than img1).
+
+    Returns
+    -------
+    zncc: numpy
+        zero normalized cross-correlation
+
+    """
+    
     # Zero Mean Normalized Cross-Correlation
     # https://martin-thoma.com/zero-mean-normalized-cross-correlation/, 27.07.2020
+    
     img1_mean = np.mean(img1)
     img1_std  = np.sqrt(np.mean((img1 - img1_mean)**2))
     
@@ -72,36 +109,28 @@ def zncc(img1, img2):
     else:
         zncc = 0
     
-#    zncc = np.mean((img1 - img1_mean) * (img2 - avg2))/(img1_std * stdDeviation2)
-    
     return zncc
 
 
 
-def SigmaPSF(settings, method = "new"):
-    #estimate best sigma
-    
-    if method == "new":
-        NA = settings["Exp"]["NA"]
-        lambda_nm = settings["Exp"]["lambda"]
-        sigma_nm = nd.Theory.SigmaPSF(NA, lambda_nm)
-    
-    elif method == "old":
-        #https://en.wikipedia.org/wiki/Numerical_aperture
-        NA = settings["Exp"]["NA"]
-        n  = settings["Exp"]["n_immersion"]
-            
-        # fnumber
-        N = 1/(2*np.tan(np.arcsin(NA / n)))
-        
-        # approx PSF by gaussian
-        # https://en.wikipedia.org/wiki/Airy_disk
-        lambda_nm = settings["Exp"]["lambda"]
-        sigma_nm = 0.45 * lambda_nm * N
-        
-    else:
-        nd.logger.error("Input value of method must be new or old")
-    
+def SigmaPSF(settings):
+    """
+    Guess the sigma of gaussian approximation of the PSF
+
+    Parameters
+    ----------
+    settings : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    sigma_px : TYPE
+        DESCRIPTION.
+    """    
+
+    NA = settings["Exp"]["NA"]
+    lambda_nm = settings["Exp"]["lambda"]
+    sigma_nm = nd.Theory.SigmaPSF(NA, lambda_nm)   
     
     sigma_um = sigma_nm / 1000
     sigma_px = sigma_um / settings["Exp"]["Microns_per_pixel"]
@@ -111,47 +140,68 @@ def SigmaPSF(settings, method = "new"):
 
 
 def DiameterForTrackpy(settings):   
+    """
+    Estimated the diameter of point scatterer that trackpy should be given in order to localized it properly
+    """
     
+    # approximante the PSF by a gaussian. get the sigma
     NA = settings["Exp"]["NA"]
     lambda_nm = settings["Exp"]["lambda"]
     
-    # radius_nm = nd.Theory.RayleighPSF(NA, lambda_nm)
     sigma_nm = nd.Theory.SigmaPSF(NA, lambda_nm)
     
-    #2 sigma contains 95% of the photons. Rayleigh ring does not work properly
+    # approximate the diameter as a 2 sigma interval, which contains 95% of the photons. Rayleigh ring does not work properly
     radius_nm = 2*sigma_nm 
     
     radius_um = radius_nm / 1000
     radius_px = radius_um / settings["Exp"]["Microns_per_pixel"]
     diameter_px = 2 * radius_px
     
+    #gauss convolved by gauss of same size to enhance SNR. Result is a gauss with twice the variance
     if settings["PreProcessing"]["EnhanceSNR"] == 1:
-        #gauss convolved by gauss of same size to enhance SNR. Result is a gauss with twice the variance
         diameter_px = np.sqrt(2) * diameter_px
     
-    # must be int
+    # trackpy requires odd integer value for diameter 
     diameter_tp = int(np.ceil(diameter_px))
     
     if (diameter_tp%2) == 0:
-        # value must be odd for trackpy
         diameter_tp = diameter_tp + 1
         
     nd.logger.debug("2-Sigma intervall (0.95 of the energy) within a radius of : %.2f px", radius_px)
     nd.logger.debug("Diameter for trackpy: %s px", diameter_tp)
-    
     
     return diameter_tp
 
 
 
 def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, DoDiameter = False):
-
     """
     Estimate the minmass parameter trackpy requires to locate particles
     1 - Make an intensity independent feature finding by a zero-normalized cross correlation (ZNCC)
     This is computational very demanding
     2 - Optimize trackpy parameters such, that it obtains the same result than ZNCC
     showPlots: number of frames that are shown
+    
+
+    Parameters
+    ----------
+    img1_raw : TYPE
+        raw image.
+    img1 : TYPE
+        processed image that is tossed to trackpy.
+    ParameterJsonFile : TYPE
+        DESCRIPTION.
+    NumShowPlots : TYPE, optional
+        number of frames that are plotted. The default is 1.
+    DoDiameter : Boolean, optional
+        Optimize Diameter and Minmass together. The default is False.
+
+    Returns
+    -------
+    settings : TYPE
+        DESCRIPTION.
+
+
     """    
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -169,16 +219,19 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     num_frames = settings["Help"]["TryFrames"]
     
     if num_frames == "auto":
+        # estimate num_frames 
+        # run the zncc on one frame to estimate how many particles can be found.
         _, num_particles_zncc, _ = FindParticleByZNCC(settings, img1, mychannel, [0], OneFrameOnly=True)
         
         if num_particles_zncc == 0:
             nd.logger.warning("Zero normalized cross correlation (ZNCC) does not find any particle.")
         
-        # check how many frames are needed to get 500 particles
+        # check how many frames are needed to get 200 particles
         wanted_particles = 200
         num_frames = int(np.ceil(wanted_particles / num_particles_zncc)) + 1
         
-        if num_frames > 50: #otherwise computation time is to long
+        # limit the number of investigated frames to 50, otherwise it takes to long
+        if num_frames > 50: 
             nd.logger.warning("Not many partiles found in each frame. To limit computation time, number of frames is limited to 20.")
             num_frames = 50
         
@@ -186,6 +239,7 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
         
         settings["Help"]["TryFrames"] = num_frames 
     
+    # get the frame numbers which are used for parameter estimation
     use_frames = (np.round(np.linspace(0,img1.shape[0]-1, num_frames))).astype(int)
     
     img_in_zncc = img1[use_frames,:,:]
@@ -195,8 +249,9 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     plt.title("img in zncc")
     
     # RUN THE PARTICLE FINDING ROUTINE BY ZNCC
-    img_zncc, num_particles_zncc, pos_particles = FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames)
+    img_zncc, num_particles_zncc, pos_particles = FindParticleByZNCC(settings, img_in_zncc, mychannel, use_frames, OneFrameOnly = False)
 
+    #plot the zncc image
     plt.figure()
     plt.imshow(img_zncc[0,:,:])
     plt.title("zncc")
@@ -209,9 +264,9 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
         img_in_tp[img_in_tp < 0] = 0
         nd.logger.info('Set negative pixel values to 0: ...finished')
     else:
-        nd.logger.info("Negative values in image kept")
+        nd.logger.debug("Negative values in image kept")
 
-
+    # this is the main function for optimization, which tries to find the same particle positions with the quick trackpy than with the precise zncc. saves the optimal parameters in the settings
     settings = OptimizeMinmassInTrackpyMain(settings, img_in_tp, num_particles_zncc, pos_particles, DoDiameter)
 
     
@@ -237,6 +292,7 @@ def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames, OneFrameO
     This function looks for pattern not for intensity
     """
     
+    # make space for the image
     img_zncc = np.zeros_like(img_in_zncc, dtype = 'float')
     
     num_frames = len(use_frames)
@@ -259,15 +315,16 @@ def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames, OneFrameO
         # only allow particles where the channel is estimated to be
         use_img[search_area == 0] = 0
         
-        pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = FindParticlesByZNCC(use_img, settings, num_verbose)
+        # locate the particles by ZNCC
+        pos_particles_loop, num_particles_zncc_loop, img_zncc[ii,:,:] = ZNCC_locate(use_img, settings, num_verbose)
         
         nd.logger.info("Cross-correlation (%s / %s): Frame: %s; Located particles: %i", (ii+1), num_frames, loop_frames, num_particles_zncc_loop)
-        # nd.logger.info("Located particles: %i", num_particles_zncc_loop)
         
         # configure frame saving format
         save_frames = np.tile(loop_frames,[num_particles_zncc_loop,1])
         pos_particles_loop = np.concatenate((pos_particles_loop, save_frames), axis = 1)
         
+        # counter localized particles by zncc
         num_particles_zncc = num_particles_zncc + num_particles_zncc_loop
         
         if loop_frames == 0: #first run
@@ -275,48 +332,35 @@ def FindParticleByZNCC(settings, img_in_zncc, search_area, use_frames, OneFrameO
         else:
             pos_particles = np.concatenate((pos_particles, pos_particles_loop), axis = 0)
 
-    # number of particles that would be nice to have
-    ideal_min_particles = 200
-    
-    #recommend more frames
-    num_particles_zncc_auto = num_particles_zncc + 1
-    
-    ideal_min_frames = (ideal_min_particles/num_particles_zncc_auto) * num_frames
-    ideal_min_frames = int(np.round(ideal_min_frames)+1)
-
     if OneFrameOnly == False:        
-        # plot error only if multiple frames are given, otherwise it is for parameter estimation
-        if num_particles_zncc < 50:
-            nd.logger.error("Less than 50 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
-            
-            time.sleep(10) # give 10 seconds of sleep to show this message properly
-    
-        elif num_particles_zncc < 200:
-            nd.logger.warning("Less than 200 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+        # check if enough particles have been found for proper estimation
         
-            time.sleep(10) # give 10 seconds of sleep to show this message properly
+        if num_particles_zncc < 200:
+            # not enough particles
+            # number of particles that would be nice to have
+            ideal_min_particles = 200
+            
+            #recommend more frames
+            num_particles_zncc_auto = num_particles_zncc + 1
+            
+            ideal_min_frames = (ideal_min_particles/num_particles_zncc_auto) * num_frames
+            ideal_min_frames = int(np.round(ideal_min_frames)+1)
+            
+            if num_particles_zncc < 50:
+                nd.logger.error("Less than 50 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+                
+                time.sleep(10) # give 10 seconds of sleep to show this message properly
+        
+            elif num_particles_zncc < 200:
+                nd.logger.warning("Less than 200 particles found in the given frames. Maybe enhance TryFrames in the settings to %i", ideal_min_frames)
+            
+                time.sleep(10) # give 10 seconds of sleep to show this message properly
 
     return img_zncc, num_particles_zncc, pos_particles
 
 
-def AskBestDiameter(QuestionForUser):
-    """ ask if user is satisfied
-    """
-    valid_answer = False
-    while valid_answer == False:
-        answer = input(QuestionForUser + ' (y/n) :')
-        if answer in ('y','n') == False:
-            print("Warning: press y or n")
-        else:
-            valid_answer = True
-            if answer == 'y':
-                UserSatisfied = True
-            else:
-                UserSatisfied = False
-    return UserSatisfied
 
-
-def FindParticlesByZNCC(img1, settings, num_verbose = 5):
+def ZNCC_locate(img1, settings, num_verbose = 5):
     """
     Find Particles by zero normalized cross-correclation
     """
@@ -331,16 +375,14 @@ def FindParticlesByZNCC(img1, settings, num_verbose = 5):
     else:
         img1_in = img1
         
-    # clip negative values and set datatype to uint16
+    # clip negative values and set datatype to uint16. that is required because otherwise the zncc might devide by 0 add a specific step.
     img1[img1 < 0] = 0
     img1 = np.uint16(img1)
       
     # calculate zero normalized crosscorrelation of image and psf    
-    img_zncc = CorrelateImgAndPSF(img1_in, settings, num_verbose)
+    img_zncc = ZNCCImgAndPSF(img1_in, settings, num_verbose)
     
     # find objects in zncc
-    correl_min = 0.60
-    correl_min = 0.70
     correl_min = settings["PreProcessing"]["ZNCC_min"]
     nd.logger.info("Threshold zncc at %.2f", correl_min)
        
@@ -350,12 +392,16 @@ def FindParticlesByZNCC(img1, settings, num_verbose = 5):
     return pos_particles, num_particles_zncc, img_zncc
 
 
-def CorrelateImgAndPSF(img1, settings, num_verbose = 5):
-    # estimated the minmass for trackpy
+
+def ZNCCImgAndPSF(img1, settings, num_verbose = 5):
+    """
+    ZNCC of an image with the PSF. This cannot be done by a convolution, because the normalization is different for all the kernels
     # img1 is the image that is tested
     # if the image is convolved with the PSF to enhance the SNR, than img1 should be the convolved image
 
-    # print("Correlate Img and PSF: Start")
+    """
+
+    nd.logger.debug("Correlate Img and PSF (zncc): Starting")
         
     #get sigma of PSF
     sigma = SigmaPSF(settings)
@@ -381,27 +427,27 @@ def CorrelateImgAndPSF(img1, settings, num_verbose = 5):
     
     # number of correlation element in one direction
     n = u_min
-    
-    # the zero normalied cross correlation function has a few things that can be precomputed
-#    kernel_stdDeviation = getStandardDeviation(gauss_kernel, n, n, n)
-#    kernel_avg = getAverage(gauss_kernel, n, n, n)
-    
+        
     # here comes the result in
     img_zncc = np.zeros_like(img1, dtype = 'float32')
                    
+    # function that can be executed in parallel
     def zncc_one_line(img1, kernel, loop_u, n):
+        # calculated the zncc of each pixel in a LINE
         img_zncc_loop = np.zeros([img1.shape[1]], dtype = 'float32')
+        # upper and lower limit of the area around the line (required for kernel size n)
         y_min = loop_u - n
         y_max = loop_u + n
         img1_roi_y = img1[y_min: y_max+1,:]
           
         for loop_v in range(v_min, v_max+1):
-            
+            # loop through all the pixels along the line
             x_min = loop_v - n
             x_max = loop_v + n
+            # select the image the kernel has to be applied on
             img1_roi = img1_roi_y[:, x_min: x_max+1]
             
-            # img_zncc_loop[loop_v] = zncc(img1_roi, kernel, loop_u, loop_v, n)
+            # apply the kernel
             img_zncc_loop[loop_v] = zncc(img1_roi, kernel)
             
         return img_zncc_loop
@@ -423,22 +469,21 @@ def CorrelateImgAndPSF(img1, settings, num_verbose = 5):
     # otherwise is the result shifted by u_min and v_min
     img_zncc[u_min:u_max+1:] = img_zncc_roi
 
-    # print("Correlate Img and PSF: Finished")
+    nd.logger.debug("Correlate Img and PSF: Finished")
 
     return img_zncc
 
 
 
-def Convolution_2D(img1, im2):
-    return np.abs(np.fft.fftshift(np.fft.ifft2(np.fft.fft2(img1) * np.fft.fft2(im2))))
-
-
-
 def FindParticles(img_zncc, correl_min):
-    # find the particles insice the zero normalized cross correlation
+    """
+    find the particles insice the zero normalized cross correlation
+    """
     
     #threshold the zncc
     area_with_particle = img_zncc > correl_min
+
+    # each particle might form an AREA where the threshold is exceeded. Thus we need to find the middle of that area
 
     # form region of areas to find middle of each localized particle    
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.label.html#scipy.ndimage.label    
@@ -453,8 +498,10 @@ def FindParticles(img_zncc, correl_min):
     
     # go through all the found particles and average their area as position
     for loop_particles in range(1, num_features+1):
+        # get all the x and y position of a single label
         [y_part_area, x_part_area] = np.where(labeled_array == loop_particles)
         
+        # average the x and y position of each area
         pos_particles[loop_particles-1,:] = [np.int(y_part_area.mean()), np.int(x_part_area.mean())]
     
     return pos_particles, num_features
@@ -462,13 +509,15 @@ def FindParticles(img_zncc, correl_min):
 
 
 def FindChannel(rawframes_super):
-    # returns a boolean saying where the channel (and thus the particle) is
+    """
+    returns a boolean saying where the channel (and thus the particle) is.
+    that function only works well if the SNR is low, meaning that significant amount of water background shows where the channel is
+    """
     
     nd.logger.info("Find the channel: starting...")
     
-    # # a channel can only be, where 90% of the time light is detected (water bg signal)
-    # mychannel_raw = np.percentile(rawframes_super, q = 90, axis = 0) != 0
-
+    # a channel can only be, where 90% of the time light is detected (water bg signal)
+    
     nd.logger.debug("Do the median filter along time dimension")
     num_cores = multiprocessing.cpu_count()
     nd.logger.info("Do that parallel. Number of cores: %s", num_cores)    
@@ -838,35 +887,6 @@ def PlotImageProcessing(img, img_zncc, pos_particles):
 
 
 
-def SaltAndPepperKernel(sigma, fac = 6, x_size = None,y_size = None):
-#https://www.w3resource.com/python-exercises/numpy/python-numpy-exercise-79.php
-    import numpy as np
-    
-    if x_size == None:
-        x_size = np.ceil(fac*2*sigma)
-    
-    if y_size == None:
-        y_size = np.ceil(fac*2*sigma)
-    
-    if np.mod(x_size,2) == 0:
-        print("x_size must be odd; x_size + 1")
-        x_size = x_size + 1        
-    if np.mod(y_size,2) == 0:
-        print("y_size must be odd; y_size + 1")        
-        y_size = y_size + 1
-       
-    x_lim = (x_size-1)/2
-    y_lim = (y_size-1)/2
-        
-    x, y = np.meshgrid(np.linspace(-x_lim, x_lim, x_size), np.linspace(-y_lim, y_lim, y_size))
-    g = 1+np.sqrt(x*x+y*y)    
-
-    g[g > 1] = 0
-    g = g / np.sum(g)
-    
-    return g
-
-
 
 def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None):
     """
@@ -1070,44 +1090,3 @@ def MaxRelIntensityJump(ParameterJsonFile):
 
     return max_rel_jump
 
-
-
-
-## this is the zncc loop, which is in funciton format for parallel computing
-#def zncc_one_line(img1, img2, stdDeviation2, avg2, loop_u, n):
-#    img_zncc_loop = np.zeros([img1.shape[1]], dtype = 'float32')
-#    for loop_v in range(v_min, v_max+1):
-#        img_zncc_loop[loop_v] = zncc(img1, img2, stdDeviation2, avg2, loop_u, loop_v, n)
-#        
-#    return img_zncc_loop
-#    
-#def zncc(img1, img2, stdDeviation2, avg2, u1, v1, n):
-#    #https://martin-thoma.com/zero-mean-normalized-cross-correlation/
-#
-#    stdDeviation1 = getStandardDeviation(img1, u1, v1, n)
-#    avg1 = getAverage(img1, u1, v1, n)
-#
-#    s = 0
-#    for i in range(-n, n+1):
-#        for j in range(-n, n+1):
-#            s += (img1[u1+i][v1+j] - avg1)*(img2[n+i][n+j] - avg2)
-#    return float(s)/((2*n+1)**2 * stdDeviation1 * stdDeviation2)
-#    
-#def MeanOfSubarray(image,kernel_diam):
-#    kernel = np.zeros(image.shape, dtype = 'float32')
-#    
-#    #pm is plus minus
-#    kernel_pm = np.int((kernel_diam-1)/2)
-#    
-#    kernel_area = kernel_diam**2
-#    
-#    # x and y correct and not switched?
-#    mid_y = np.int(np.ceil(kernel.shape[0]/2))
-#    mid_x = np.int(np.ceil(kernel.shape[1]/2))
-#    
-#    #+1 because of sometimes retarded python
-#    kernel[mid_y-kernel_pm:mid_y+kernel_pm+1, mid_x-kernel_pm:mid_x+kernel_pm+1] = 1/kernel_area
-#
-#    mean_subarray = Convolution_2D(image, kernel)
-#    
-#    return mean_subarray

@@ -19,7 +19,6 @@ import os
 from PIL import Image
 import fnmatch
 from skimage import io
-import warnings
 from joblib import Parallel, delayed
 import multiprocessing
 
@@ -28,8 +27,9 @@ import NanoObjectDetection as nd
 
 
 def ReadJson(mypath):
-    # read the json parameter file into a dictionary   
-
+    """
+    read the json parameter file into a dictionary   
+    """
     nd.logger.debug("Read Json file")
 
     with open(mypath) as json_file:
@@ -43,12 +43,12 @@ def ReadJson(mypath):
 
 
 def WriteJson(mypath, settings):
-    """ write the current settings to a json file
+    """
+    write the current settings to a json file
     
     mypath: path to the json file
     settings
-    """
-    
+    """   
     nd.logger.debug("Write Json file")
     
     with open(mypath, 'w') as outfile:
@@ -56,25 +56,9 @@ def WriteJson(mypath, settings):
 
 
 
-def ARHCF_HexToDiameter(side_length):
-    """ calculates the inner and the outer diameter of hexagon
-    
-    side_length: list or array with the six side lengths
-    """
-    # to understand: paint hexagon and look at the 6 subtriangles of equal side length
-    side_length = np.asarray(side_length)
-    radius_outer = np.mean(side_length)
-    radius_inner = np.sqrt(3)/2 * radius_outer
-    
-    diameter_outer = 2*radius_outer
-    diameter_inner = 2*radius_inner
-    
-    return diameter_inner, diameter_outer
-
-
-
 def GetTrajLengthAndParticleNumber(t):
-    """ extract ID and trajectory length of the particle with the longest trajectory
+    """ 
+    extract ID and trajectory length of the particle with the longest trajectory
     
     t: trajectory DataFrame
     """
@@ -97,7 +81,8 @@ def GetTrajLengthAndParticleNumber(t):
 
 
 def Get_min_max_round(array_in, decade):
-    """ get the minimum and maximum of an array rounded to the next decade
+    """
+    get the minimum and maximum of an array rounded to the next decade
     
     This can be useful to get limits of a plot nicely (does not end at 37.9 but at 40)
     decade: precision of np.round
@@ -117,11 +102,7 @@ def Get_min_max_round(array_in, decade):
 
 
 
-
-
-
-
-def SpecificValueOrSettings(try_value,settings, key, entry):
+def SpecificValueOrSettings(try_value, settings, key, entry):
     """ check if a specific value is given. If not the one out of the settings is used
     
     Arg:
@@ -129,21 +110,18 @@ def SpecificValueOrSettings(try_value,settings, key, entry):
     """
     
     
-#    print("key: ", key)
-#    print("entry: ", entry)
-#    bp()
+    # if try_value is None that get the value from the settings 
     if try_value != None:
         use_value = try_value
     else:
-        # if no angle given, than use the one out of the settings
         if settings == None:
             sys.exit("Either value or settings needed")
         else:
-            # use_value = nd.handle_data.GetVarOfSettings(settings, key, entry)
             use_value = settings[key][entry]
     
     settings[key][entry] = use_value
     
+    # print it
     var_type = type(use_value)
     if var_type is int:
         print("%s = %d" %(entry,use_value))
@@ -154,8 +132,7 @@ def SpecificValueOrSettings(try_value,settings, key, entry):
             print("%s = %5.5f" %(entry,use_value))
     elif var_type is list:
         print("%s = " %(entry))
-        print(use_value)
-        
+        print(use_value)    
         
     return use_value, settings
 
@@ -171,49 +148,40 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
     """
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
 
+    # get the file properties
+    data_type = settings["File"]["data_type"]
+    data_folder_name = settings["File"]["data_folder_name"]
+    data_file_name = settings["File"]["data_file_name"]
+    use_num_frame = settings["File"]["use_num_frame"]
+
     
-    DoSimulation = settings["Simulation"]["SimulateData"]
-    
-    if DoSimulation == 1:
-        nd.logger.warning("No data. The simulation is not done NOW, because it does not provide an image it provides already the particle positions. Thus it is done in  nd.get_trajectorie.FindSpots.")
-        rawframes_np = 0
-        
-        
-    else:
-        # get the file properties
-        data_type = settings["File"]["data_type"]
-        data_folder_name = settings["File"]["data_folder_name"]
-        data_file_name = settings["File"]["data_file_name"]
-        use_num_frame = settings["File"]["use_num_frame"]
-    
-        
-        nd.logger.warning('start reading in raw images. (That may take a while...)')
-        # select the read-in-routine by data type
-        if data_type == 'tif_series':
-            if data_folder_name == 0:
-                nd.logger.error('!!! data_folder_name required !!!')
-                sys.exit()
-                
-            else:
-                rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name,use_num_frame)
-        
-        elif data_type == 'tif_stack':
-            if data_file_name == 0:
-                nd.logger.error('!!! data_file_name required !!!')
-                sys.exit()
-            else:
-                rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
-        
-        elif data_type == 'fits':
-            if data_file_name == 0:
-                sys.exit('!!! data_file_name required !!!')
-            else:
-                rawframes_np = nd.handle_data.ReadFits2Numpy(data_file_name)   
+    nd.logger.warning('start reading in raw images. (That may take a while...)')
+    # select the read-in-routine by data type
+    if data_type == 'tif_series':
+        if data_folder_name == 0:
+            nd.logger.error('!!! data_folder_name required !!!')
+            sys.exit()
             
         else:
-            sys.exit('Data type %s' %data_type)
+            rawframes_np = nd.handle_data.ReadTiffSeries2Numpy(data_folder_name,use_num_frame)
+    
+    elif data_type == 'tif_stack':
+        if data_file_name == 0:
+            nd.logger.error('!!! data_file_name required !!!')
+            sys.exit()
+        else:
+            rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
+    
+    elif data_type == 'fits':
+        if data_file_name == 0:
+            sys.exit('!!! data_file_name required !!!')
+        else:
+            rawframes_np = nd.handle_data.ReadFits2Numpy(data_file_name)   
         
-        nd.logger.info('finishied reading in raw images =)')
+    else:
+        sys.exit('Data type %s' %data_type)
+    
+    nd.logger.info('finishied reading in raw images =)')
         
         
     if PerformSanityCheck == True:
@@ -239,7 +207,9 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
 
 
 def CalcBitDepth(image):
-    # calculates the bit-depth of the images, which might differ to the bits a pixel has (e.g. 16bit image, but just 12 bit in depth, meaning that value of 0,16,32 occur but not 1-15 or 17-31)
+    """
+    calculates the bit-depth of the images, which might differ to the bits a pixel has (e.g. 16bit image, but just 12 bit in depth, meaning that value of 0,16,32 occur but not 1-15 or 17-31)
+    """
     
     nd.logger.info("Calculate the bit depth of the camera")
     
@@ -253,10 +223,10 @@ def CalcBitDepth(image):
     wasted_bits = 0
     
     if np.max(test) <= 255:
-        num_bits = 8
         nd.logger.info("8 bit image")
         
         bit_depth = 8 # HG was here
+        
     else:
         # transfered in 16bit - but does it have a dynamic range of 16bit?    
         finished_loop = False
@@ -273,11 +243,13 @@ def CalcBitDepth(image):
             if num_no_mod == num_elements:
                 # bits wasted - try next one
                 wasted_bits = wasted_bits + 1
-            else:
-                # true bit depth found
-                finished_loop = True
-                # test failed
-                wasted_bits = wasted_bits - 1
+                
+            # NOT NEEDED ANYMORE
+            # else:
+            #     # true bit depth found
+            #     finished_loop = True
+            #     # test failed
+            #     wasted_bits = wasted_bits - 1
         
         bit_depth = 16 - wasted_bits
                 
@@ -293,13 +265,12 @@ def CalcBitDepth(image):
 
 
 def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5], last_frame = 1000):
-    """ check if images appear several times
+    """
+    check if images appear several times
     
-    Check the pixel-wise difference and check if the maximum occuring difference is 0. 
-    Than the images are identical. Do not look only at neighbouring frames, but also 
-    in a wider distance (that happend already). 
+    Check the pixel-wise difference and check if the maximum occuring difference is 0. Than the images are identical. Do not look only at neighbouring frames, but also in a wider distance (that happend already). 
     
-    diff_frames:    distance between two analyzed frames
+    diff_frames: distance between two analyzed frames
     
     last_frame: last frame that is considered for calculation
     """
@@ -336,8 +307,9 @@ def CheckForRepeatedFrames(rawframes_np, diff_frame = [1,2,3,4,5], last_frame = 
           nd.logger.info("... no Camera error detected")       
         
 
-def CheckForSaturation(rawframes_np,warnUser=True):
-    """ check if saturation is present in the raw data
+def CheckForSaturation(rawframes_np, warnUser=True):
+    """
+    check if saturation is present in the raw data
     
     Saturation is visible in the intensity histogramm has a peak in the highest intensity bin.
     """
@@ -374,8 +346,6 @@ def CheckForSaturation(rawframes_np,warnUser=True):
     plt.pause(1)
     
     if warnUser==True:
-        ValidInput = False
-        
         IsSaturated = nd.handle_data.GetInput("An intensity histogram should be plotted. The highest intensity bin should not be a peak. If you see such a peak, you probably have saturation. But maybe you choose the exposure time to large on purpuse, ignore saturated areas, because your are interested in something very dim. In this case you should treat your data like you have no saturation.", ["y", "n"])
         
 
@@ -410,25 +380,6 @@ def CheckForSaturation(rawframes_np,warnUser=True):
                 
     return rawframes_np, max_value
     
-
-
-
-# def are_rawframes_saturated(rawframes_np, ignore_saturation = False):
-#     """ check if rawimages are saturated
-    
-#     This is done by looking if the maximum value is 2^x with x an integer which sounds saturated
-#     e.g. if the max value is 1024, this is suspicious
-#     """
-#     brightest_pixel = np.max(rawframes_np)
-    
-#     # is it a multiple of 2^x ... if so it sounds saturated
-#     hot_pixel = float(np.log2(brightest_pixel + 1)).is_integer()
-#     if hot_pixel == True:
-#         if ignore_saturation == False:
-#             sys.exit("Your data seems to be saturated")
-#         else:
-#             print("Your data seems to be saturated - but you dont care...")
-    
     
 
 def ReadTiffStack2Numpy(data_file_name):
@@ -443,7 +394,25 @@ def ReadTiffStack2Numpy(data_file_name):
 
 
 def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress = False, CreateSubFolder = False):
-    """ read a tiff series in """
+    """
+    read a tiff series in
+
+    Parameters
+    ----------
+    data_folder_name : string
+        data_folder_name.
+    use_num_frame : TYPE, optional
+        number of images which are maximal read in. Can have the value "all"
+    ShowProgress : TYPE, optional
+        DESCRIPTION. The default is False.
+    CreateSubFolder : Boolean, optional
+        Moves induvidual tif into a subfolder. The default is False.
+
+    Returns
+    -------
+    image
+
+    """
     
     nd.logger.info('read file: %s', data_folder_name)
     
@@ -462,7 +431,7 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
             
     
     rawframes_np = []
-#    for fname in os.listdir(data_folder_name):
+    
     for fname in sorted(os.listdir(data_folder_name)): #sorted in case it is unsorted
         if ShowProgress == True:
             print("read frame: ", fname)
@@ -488,23 +457,15 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
                 shutil.move(full_path_fname, full_path_fname_new)
 
 
-                # try:
-                #     shutil.move(full_path_fname, full_path_fname_new)
-                # except:
-                #     nd.logger.warning("Tif Folder not existing - one is created")
-                #     os.mkdir(os.path.join(data_folder_name, "tif_series")) 
-                #     shutil.move(full_path_fname, full_path_fname_new)
-            
         else:
             nd.logger.debug('%s is not a >tif<  file. Skipped it.', fname)
     
-    rawframes_np = np.asarray(rawframes_np) # shape = (60000,28,28)
+    rawframes_np = np.asarray(rawframes_np)
     
     #Two hints for the use of tiff series
-    nd.logger.info('\n Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
+    nd.logger.warning('\n Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
     
-    nd.logger.info('\n Tiff series need much longer to be read in than a 3D tiff stack, which can be generated out of the tif-series by ImageJ (FIJI) or similar programs.')
-    
+    nd.logger.info('\n Tiff series need much longer to be read in than a 3D tiff stack, which can be generated out of the tif-series by ImageJ (FIJI) or similar programs.')   
     
     return rawframes_np
 
@@ -521,19 +482,48 @@ def ReadFits2Numpy(data_file_name):
 
 
 def RoiAndSuperSampling(settings, ParameterJsonFile, rawframes_np):
-    # execute ROI and supersampling after each other to save memory
+    """
+    ROI main function
+    """
+    
     if settings["Help"]["ROI"] == 1:
         nd.AdjustSettings.FindROI(rawframes_np)
 
     rawframes_ROI = UseROI(rawframes_np, settings)
-
     
     return rawframes_ROI
-    
+
 
 
 def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = None, frame_min = None, frame_max = None):
-    """ applies a ROI to a given image """ 
+    """
+    applies a ROI to a given image
+
+    Parameters
+    ----------
+    image : numpy
+        DESCRIPTION.
+    settings : TYPE
+        DESCRIPTION.
+    x_min : TYPE, optional
+        DESCRIPTION. The default is None.
+    x_max : TYPE, optional
+        DESCRIPTION. The default is None.
+    y_min : TYPE, optional
+        DESCRIPTION. The default is None.
+    y_max : TYPE, optional
+        DESCRIPTION. The default is None.
+    frame_min : TYPE, optional
+        DESCRIPTION. The default is None.
+    frame_max : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Returns
+    -------
+    image_ROI : TYPE
+        image out.
+
+     """ 
     
     nd.logger.info("Size rawdata \n (frames, height, length): %s", image.shape)
     
@@ -552,24 +542,18 @@ def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = No
        
         image_ROI = image[frame_min : frame_max, y_min : y_max, x_min : x_max]
         
+        # save ROI if required
         if settings["ROI"]["Save"] == 1:
             data_folder_name = settings["File"]["data_folder_name"]
             SaveROIToTiffStack(image_ROI, data_folder_name)
-        
-        
+                
         nd.logger.info("Size ROI \n (frames, height, length): %s", image_ROI.shape)
     
     return image_ROI
 
 
 
-
-
-
-
 def SaveROIToTiffStack(image, data_folder_name):
-    from skimage import io
-
     data_folder_name_roi = data_folder_name + "\\ROI"
     if os.path.isdir(data_folder_name_roi) == False:
         os.makedirs(data_folder_name_roi)
@@ -582,40 +566,9 @@ def SaveROIToTiffStack(image, data_folder_name):
 
 
 
-def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = None):
-    """ rotate the rawimage by rot_angle """
-    import scipy # it's not necessary to import the full library here => to be shortened
-    
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-    
-    Do_rotation = settings["PreProcessing"]["Do_or_apply_data_rotation"]
-    
-    if Do_rotation == True:
-        nd.logger.info('Rotation of rawdata: start removing')
-        rot_angle = settings["PreProcessing"]["rot_angle"]
-
-    
-        if rawframes_np.ndim == 2:
-            im_out = scipy.ndimage.interpolation.rotate(rawframes_np, angle = rot_angle, axes=(1, 0), reshape=True, output=None, order=1, mode='constant', cval=0.0, prefilter=True)
-        else:
-            im_out = scipy.ndimage.interpolation.rotate(rawframes_np, angle = rot_angle, axes=(1, 2), reshape=True, output=None, order=1, mode='constant', cval=0.0, prefilter=True)
-
-        nd.logger.info("Rotation of rawdata: Applied with an angle of %d" %rot_angle)
-        
-    else:
-        im_out = rawframes_np
-        nd.logger.info("Rotation of rawdata: Not Applied")
-
-    nd.handle_data.WriteJson(ParameterJsonFile, settings)
-
-    return im_out
-
-
-
 def min_rawframes(rawframes_np, display = False):
     """ minimum projection along the frames, display if wanted """
     
-    import NanoObjectDetection as nd
     rawframes_min = np.min(rawframes_np,axis=0)
     
     if display == True:
@@ -630,6 +583,7 @@ def min_rawframes(rawframes_np, display = False):
 
 def max_rawframes(rawframes_np, display = False):
     """ maximum projection along the frames, display if wanted """
+    
     rawframes_max = np.max(rawframes_np,axis=0)
     if display == True:
         plt.imshow(rawframes_max)
@@ -640,6 +594,7 @@ def max_rawframes(rawframes_np, display = False):
 
 def mean_rawframes(rawframes_np, display = False):
     """ calculate the mean along the frames, display if wanted """
+    
     rawframes_mean = np.mean(rawframes_np,axis=0)
     if display == True:
         plt.imshow(rawframes_mean)
@@ -663,11 +618,23 @@ def percentile_rawframes(rawframes_np, percentile, display = False):
     
 def total_intensity(rawframes_np, display = False):
     """
-    tot_intensity: total intensity in each frame
-    rel_intensity: relative intensity with respect to the mean
-    can be used to remove laser fluctuations
+    Calculated the intensity in each frame. This can be used to remove laser fluctuations or so.
+
+    Parameters
+    ----------
+    rawframes_np : TYPE
+        DESCRIPTION.
+    display : TYPE, optional
+        DESCRIPTION. The default is False.
+
+    Returns
+    -------
+    tot_intensity : TYPE
+        total intensity in each frame.
+    rel_intensity : TYPE
+        relative intensity with respect to the mean. 
     """
-    import NanoObjectDetection as nd
+
     # intensity in each frame
     tot_intensity = np.sum(rawframes_np,axis=(1,2))
     
@@ -677,7 +644,6 @@ def total_intensity(rawframes_np, display = False):
     if display == True:
         nd.visualize.Plot1DPlot(rel_intensity, "Laser Fluctuations", "Frame", "Relative Laser Intensity")
     
-        
     return tot_intensity, rel_intensity
 
 
@@ -691,121 +657,13 @@ def NormImage(image):
 
 
 
-def DispWithGamma(image, gamma = 0.5, display = False):
+def DispWithGamma(image, gamma = 0.5):
     "gamma correction of an image"
     image = NormImage(image)
     print(gamma)
     image = image ** gamma
     return image
        
-
-
-def LogData(rawframes):
-    """ calculate ln (log_e) of input """
-    # Stefan loves the log
-    rawframes_log=np.log(rawframes)
-    rawframes_log_median=np.median(rawframes_log)
-    rawframes_log[rawframes_log==-np.inf]=rawframes_log_median
-    rawframes_log[rawframes_log<0]=0     
-            
-    return rawframes_log
-   
-
-#def MaxROI(image):
-#    "Return the maximum ROI of a given array"
-#    ROI = {'min_x' : 0,
-#           'max_x' : image.shape[1]-1,
-#           'min_y' : 0,
-#           'max_y' : image.shape[2]-1,
-#           'min_frame' : 0,
-#           'max_frame' : image.shape[0]-1}
-#    return ROI
-#
-#
-#def ChangeROI(settings,x_min = False, x_max = False, y_min = False, y_max = False,
-#              frame_min = False, frame_max = False):
-#    "Change the ROI settings"
-#    if x_min != False:
-#        settings["ROI"]['x_min'] = x_min
-#    if x_max != False:
-#        settings["ROI"]['x_max'] = x_max
-#    if y_min != False:
-#        settings["ROI"]['y_min'] = y_min
-#    if y_max != False:
-#        settings["ROI"]['y_max'] = y_max
-#    if frame_min != False:
-#        settings["ROI"]['min_frame'] = frame_min
-#    if frame_max != False:
-#        settings["ROI"]['max_frame'] = frame_max
-#        
-#    return settings
-#
-#
-#        
-## Crop image to the region of interest only (if needed re-define cropping parameters above):
-#def crop(img): 
-#    x_min = x_min_global
-#    x_max = x_max_global
-#    y_min = y_min_global
-#    y_max = y_max_global 
-#    #return img[y_min:y_max,x_min:x_max,0] # ATTENTION: This form is used for images that are stored as 2d-data (*tif)!
-#    return img[y_min:y_max,x_min:x_max] # ATTENTION: Use this form if not using 2d-data (e.g. *.bmp)!
-##rawframes = pims.ImageSequence(data_folder_name + '\\' + '*.' + data_file_extension, process_func=crop)
-## ATTENTION: Data get's cut into a smaller part here above. When data should be rotated, it's better to do this first and then cut
-#"""
-#Remark
-#Depending on how data is stored, the return needs an additional "0".
-#The procedure here can be used to crop the image to a smaller slice first. 
-#Yet, when rotating the image lateron, it's better not to do this, but to crop after rotation.
-#"""
-
-def GetVarOfSettings(settings, key, entry):
-    """ read the variable inside a dictonary
-    
-    settings: dict
-    key: type of setting
-    entry: variable name
-    old function - should no be in use anymore
-    """
-    
-    print("nd.handle_data.GetVarOfSettings is an old function, which should not be used anymore. Consider replacing it by settings[key][entry].")
-    
-    if entry in list(settings[key].keys()):
-        # get value
-        value = settings[key][entry]
-        
-    else:
-        print("!!! Parameter settings['%s']['%s'] not found !!!" %(key, entry))
-        # see if defaul file is available
-        if "DefaultParameterJsonFile" in list(settings["Exp"].keys()):
-            print('!!! Default File found !!!')
-            path_default = settings["Exp"]["DefaultParameterJsonFile"]
-            
-            settings_default = ReadJson(path_default)
-            default_value = settings_default[key][entry]
-            
-            ReadDefault = 'invalid'
-            while (ReadDefault in ["y", "n"]) == False:
-                # Do until input is useful
-                ReadDefault = nd.handle_data.GetInput("Shall default value %s been used?" %default_value, ["y", "n"])
-            
-            if ReadDefault == "y":
-                value = default_value
-
-            else:
-                SetYourself = 'invalid'
-                while (SetYourself in ["y", "n"]) == False:
-                    # Do until input is useful
-                    ReadDefault = nd.handle_data.GetInput("Do you wanna set the value yourself?", ["y", "n"])
-
-                 
-                if ReadDefault == "y":
-                    value = input("Ok. Set the value of settings['%s']['%s']: " %(key, entry))
-                else:
-                    sys.exit("Well... you had your chances!")
-                                               
-    return value
-
 
 
 def GetNumberVerbose():
@@ -824,7 +682,23 @@ def GetNumberVerbose():
     
     
 def GetInput(InputText, ListAllowedValues):
-    "This function checks if inserted value of the input function are valid"
+    """
+    This function checks if inserted value of the input function are valid
+
+    Parameters
+    ----------
+    InputText : STRING
+        Text that is displayed on the screen.
+    ListAllowedValues : List
+        List of allowed values which are accepted as input.
+
+    Returns
+    -------
+    value : TYPE
+        user value that is valid
+
+    """
+    
     
     valid = False
     
@@ -844,22 +718,35 @@ def GetInput(InputText, ListAllowedValues):
         nd.logger.debug("Input converted into int")
     except:
         nd.logger.debug("Input stays string")
-    
-        
-        
+  
     return value
 
 
 
 def MakeIntParallel(image_in, dtype):
-    num_cores = multiprocessing.cpu_count()
+    """
+    Datatype conversion from float to int
 
-    num_lines = image_in.shape[1]
+    Parameters
+    ----------
+    image_in : TYPE
+        image.
+    dtype : STRING
+        options: 'int16' or 'uint16'.
 
-    inputs = range(num_lines)
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+    """
     
+    # prepare parallelization
+    num_cores = multiprocessing.cpu_count()
+    num_lines = image_in.shape[1]
+    inputs = range(num_lines)
     num_verbose = nd.handle_data.GetNumberVerbose()
     
+    # define the function that will be executed later in parallel
     def DoParallel(im_in, dtype):
         if dtype == 'int16':
             im_in = (np.round(im_in)).astype("int16")
@@ -868,7 +755,7 @@ def MakeIntParallel(image_in, dtype):
         
         return im_in 
     
-    # execute background estimation in parallel for each line
+    # execute function in parallel for each line
     image_out_list = Parallel(n_jobs=num_cores, verbose = num_verbose)(delayed(DoParallel)(image_in[:,loop_line,:], dtype) for loop_line in inputs)
 
     # make list to numpy
@@ -880,8 +767,27 @@ def MakeIntParallel(image_in, dtype):
     return image_out
 
 
+
 def pandas2csv(my_pandas, save_folder_name, save_file_name, write_index = False):
-    # save a pandas to a csv
+    """
+    save a pandas to a csv
+
+    Parameters
+    ----------
+    my_pandas : pandas
+        variable to save.
+    save_folder_name : TYPE
+        DESCRIPTION.
+    save_file_name : TYPE
+        DESCRIPTION.
+    write_index : TYPE, optional
+        write row names. The default is False.
+
+    Returns
+    -------
+    None.
+
+    """
     
     # creates full path name and creates folders if required
     my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
@@ -897,7 +803,8 @@ def pandas2csv(my_pandas, save_folder_name, save_file_name, write_index = False)
     
 def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = True):
     """
-    Runs SaveTifSeriesAsStack to all Directories in a given path. The tif files must be in the subdirectories
+    Loops through a folder with a set of subfolders (different experimental data) which contain tif series and converts each of the series into a single 3d-tif stack (fast for reading in.)
+
 
     Parameters
     ----------

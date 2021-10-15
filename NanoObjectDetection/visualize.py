@@ -322,8 +322,6 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
         histogramm_max = settings["Plot"]["Histogramm_max"]
         y_min_max = [histogramm_min, histogramm_max]
     
-    # histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
-    # histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
     
     if yEval == True:
         my_title = "Trans. Particle size over tracking time"

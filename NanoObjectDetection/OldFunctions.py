@@ -7,6 +7,84 @@ Store old function that are not used anymore, but maybe are of use later, for de
 @author: foersterronny
 """
 
+
+def GetVarOfSettings(settings, key, entry):
+    """ read the variable inside a dictonary
+    
+    settings: dict
+    key: type of setting
+    entry: variable name
+    old function - should no be in use anymore
+    """
+    
+    print("nd.handle_data.GetVarOfSettings is an old function, which should not be used anymore. Consider replacing it by settings[key][entry].")
+    
+    if entry in list(settings[key].keys()):
+        # get value
+        value = settings[key][entry]
+        
+    else:
+        print("!!! Parameter settings['%s']['%s'] not found !!!" %(key, entry))
+        # see if defaul file is available
+        if "DefaultParameterJsonFile" in list(settings["Exp"].keys()):
+            print('!!! Default File found !!!')
+            path_default = settings["Exp"]["DefaultParameterJsonFile"]
+            
+            settings_default = ReadJson(path_default)
+            default_value = settings_default[key][entry]
+            
+            ReadDefault = 'invalid'
+            while (ReadDefault in ["y", "n"]) == False:
+                # Do until input is useful
+                ReadDefault = nd.handle_data.GetInput("Shall default value %s been used?" %default_value, ["y", "n"])
+            
+            if ReadDefault == "y":
+                value = default_value
+
+            else:
+                SetYourself = 'invalid'
+                while (SetYourself in ["y", "n"]) == False:
+                    # Do until input is useful
+                    ReadDefault = nd.handle_data.GetInput("Do you wanna set the value yourself?", ["y", "n"])
+
+                 
+                if ReadDefault == "y":
+                    value = input("Ok. Set the value of settings['%s']['%s']: " %(key, entry))
+                else:
+                    sys.exit("Well... you had your chances!")
+                                               
+    return value
+
+
+def RotImages(rawframes_np, ParameterJsonFile, Do_rotation = None, rot_angle = None):
+    """ rotate the rawimage by rot_angle """
+    import scipy # it's not necessary to import the full library here => to be shortened
+    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)
+    
+    Do_rotation = settings["PreProcessing"]["Do_or_apply_data_rotation"]
+    
+    if Do_rotation == True:
+        nd.logger.info('Rotation of rawdata: start removing')
+        rot_angle = settings["PreProcessing"]["rot_angle"]
+
+    
+        if rawframes_np.ndim == 2:
+            im_out = scipy.ndimage.interpolation.rotate(rawframes_np, angle = rot_angle, axes=(1, 0), reshape=True, output=None, order=1, mode='constant', cval=0.0, prefilter=True)
+        else:
+            im_out = scipy.ndimage.interpolation.rotate(rawframes_np, angle = rot_angle, axes=(1, 2), reshape=True, output=None, order=1, mode='constant', cval=0.0, prefilter=True)
+
+        nd.logger.info("Rotation of rawdata: Applied with an angle of %d" %rot_angle)
+        
+    else:
+        im_out = rawframes_np
+        nd.logger.info("Rotation of rawdata: Not Applied")
+
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)
+
+    return im_out
+
+
 def GetSettingsParameters(settings):
     """
     Get required parameters out of the settings
