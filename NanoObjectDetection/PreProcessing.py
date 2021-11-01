@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 from scipy import ndimage
 from joblib import Parallel, delayed
 import multiprocessing
-import scipy 
 
 
 def Main(rawframes_np, ParameterJsonFile):
@@ -22,89 +21,94 @@ def Main(rawframes_np, ParameterJsonFile):
     1 - LASER FLUCTUATION: reduced by normalizing every image to have the same total intensity
     2 - CAMERA OFFSET: subtracted by defined value
     3 - BACKGROUND (BG): Estimated bg for each pixel by median filter over time
-    4 - TIME DEPENDENT BACKGROUND: Similar to 3 but background can change in time
-    this should be avoided. If the bg changes in the experiment, that setup should be optimized
-    5 - CLIP NEGATIVE VALUE: RF does not like this at all
-    6 - ENHANCE SNR: Convolve image with PSF- maintains signal, while reducing noise
-    7 - ROTATE RAW IMAGE: Should be avoided experimentally, but if it happened with rare specimen...
+    4 - ENHANCE SNR: Convolve image with PSF- maintains signal, while reducing noise
+    
+
+    Parameters
+    ----------
+    rawframes_np : TYPE
+        rawimage.
+    ParameterJsonFile : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    rawframes_np : TYPE
+        processed raw image.
+    static_background : TYPE
+        background image.
+
     """
     
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
-    DoSimulation = settings["Simulation"]["SimulateData"]
 
-    
     # required float instead of int and make negative value (bg subtraction) possible
     nd.logger.info("convert image into float32 for following image processing")
     rawframes_np = np.float32(rawframes_np)
     
-    
-    if DoSimulation == 1:
-        nd.logger.info("No data. Do a simulation later on")
-        rawframes_np = 0
-                
+
+    # 1 - LASER FLUCTUATION
+    if settings["PreProcessing"]["Remove_Laserfluctuation"] == 1:
+        rawframes_np = RemoveLaserfluctuation(rawframes_np, settings)
     else:
-        # 1 - LASER FLUCTUATION
-        if settings["PreProcessing"]["Remove_Laserfluctuation"] == 1:
-            rawframes_np = RemoveLaserfluctuation(rawframes_np, settings)
-        else:
-            nd.logger.info('Laser fluctuations: not removed')
+        nd.logger.info('Laser fluctuations: not removed')
 
 
-        # 2 - CAMERA OFFSET
-        if settings["PreProcessing"]["Remove_CameraOffset"] == 1:
-            rawframes_np = SubtractCameraOffset(rawframes_np, settings)
-        else:
-            nd.logger.info('Constant camera background: not removed')
+    # 2 - CAMERA OFFSET
+    if settings["PreProcessing"]["Remove_CameraOffset"] == 1:
+        rawframes_np = SubtractCameraOffset(rawframes_np, settings)
+    else:
+        nd.logger.info('Constant camera background: not removed')
+
     
-        
-        # 3 - BACKGROUND (BG)
-        if settings["PreProcessing"]["Remove_StaticBackground"] == 1:            
-            rawframes_np, static_background = Remove_StaticBackground(rawframes_np, settings)  
-        else:
-            static_background = "NotDone"
-            nd.logger.info('Static background: not removed')
-    
-        # 4 - TIME DEPENDENT BACKGROUND (RollingPercentilFilter removed)
+    # 3 - BACKGROUND (BG)
+    if settings["PreProcessing"]["Remove_StaticBackground"] == 1:            
+        rawframes_np, static_background = Remove_StaticBackground(rawframes_np, settings)  
+    else:
+        static_background = "NotDone"
+        nd.logger.info('Static background: not removed')
 
 
-        # 5 - ENHANCE SNR
-        if settings["PreProcessing"]["EnhanceSNR"] == 1:            
-            rawframes_np, settings = ConvolveWithPSF_Main(rawframes_np, settings)   
-        else:
-            nd.logger.info('Image SNR not enhanced by a gaussian average')
+    # 4 - ENHANCE SNR
+    if settings["PreProcessing"]["EnhanceSNR"] == 1:            
+        rawframes_np, settings = ConvolveWithPSF_Main(rawframes_np, settings)   
+    else:
+        nd.logger.info('Image SNR not enhanced by a gaussian average')
  
-
-            
-            
-            
-        # # 7 - CLIP NEGATIVE VALUE
-        # if settings["PreProcessing"]["ClipNegativeValue"] == 1:
-        #     nd.logger.info('Set negative pixel values to 0: staring...')
-        #     nd.logger.warning("Ronny does not love clipping.")
-        #     rawframes_np[rawframes_np < 0] = 0
-        #     nd.logger.info('Set negative pixel values to 0: ...finished')
-        # else:
-        #     nd.logger.info("Negative values in image kept")
-
-        
-        # Transform to correct (ideal) dtype
-        # rawframes_np = IdealDType(rawframes_np, settings)
-        
-        # Transform to int dtype, because trackpy requires this
-        # uint16 or int 16 is good compromise from precision and memory
-        rawframes_np, settings = MakeInt16(rawframes_np, settings)
+    
+    # Transform to int dtype, because trackpy requires this
+    # uint16 or int 16 is good compromise from precision and memory
+    rawframes_np, settings = MakeInt16(rawframes_np, settings)
 
 
-        # save the settings
-        nd.handle_data.WriteJson(ParameterJsonFile, settings)
+    # save the settings
+    nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
     return rawframes_np, static_background
 
 
 
 def MakeInt16(rawframes_np, settings):
-    #make a uint16 or int16 dtype out of float
+    """
+    make a uint16 or int16 dtype out of float
+
+    Parameters
+    ----------
+    rawframes_np : TYPE
+        DESCRIPTION.
+    settings : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    rawframes_np : TYPE
+        DESCRIPTION.
+    settings : TYPE
+        DESCRIPTION.
+
+    """
+
     nd.logger.info("Convert image to integer DType: starting...")
     
     min_value = np.min(rawframes_np) #check later if negative
@@ -116,11 +120,12 @@ def MakeInt16(rawframes_np, settings):
     if min_value < 0:
         # SIGNED dtype needed
         img_scale_fac = max_int16/max_value
+        
+        # faster than standard multiplication
         rawframes_np = np.multiply(rawframes_np, img_scale_fac, out = rawframes_np)
         
         rawframes_np  = nd.handle_data.MakeIntParallel(rawframes_np, "int16")
-        # rawframes_np = np.round(rawframes_np, out = rawframes_np)
-        # rawframes_np = rawframes_np.astype("int16")
+
         
         nd.logger.info("DType: int16")
     else :
@@ -129,8 +134,6 @@ def MakeInt16(rawframes_np, settings):
         rawframes_np = np.multiply(rawframes_np, img_scale_fac, out = rawframes_np)
         
         rawframes_np  = nd.handle_data.MakeIntParallel(rawframes_np, "uint16")
-        # rawframes_np = np.round(rawframes_np, out = rawframes_np)
-        # rawframes_np = rawframes_np.astype("uint16")
         
         nd.logger.info("DType: uint16")
         
@@ -139,24 +142,33 @@ def MakeInt16(rawframes_np, settings):
 
     return rawframes_np, settings
 
-
-
-def TryInt16(rawframes_np):
-    rawframes_np = np.round(rawframes_np)
-    rawframes_np = rawframes_np.astype("uint16")
-    
-    return rawframes_np
                 
 
 def SubtractCameraOffset(rawframes_np, settings, PlotIt = True):
+    """
+    Calculates and subtracted the camera offset
+
+    Parameters
+    ----------
+    rawframes_np : TYPE
+        DESCRIPTION.
+    settings : TYPE
+        DESCRIPTION.
+    PlotIt : TYPE, optional
+        DESCRIPTION. The default is True.
+
+    Returns
+    -------
+    rawframes_np : TYPE
+        DESCRIPTION.
+
+    """
+    
     nd.logger.info('Remove constant camera background: starting...')
     
-    #That generates one image that holds the minimum-vaues for each pixel of all times
-    rawframes_pixelCountOffsetArray = nd.handle_data.min_rawframes(rawframes_np)
-        
     # calculates the minimum of all pixel counts. Assumption:
     # this is the total offset
-    offsetCount=np.min(rawframes_pixelCountOffsetArray) 
+    offsetCount=np.min(rawframes_np) 
     
     # I'm now subtracting the offset (only the offset, not the full background) from the complete data. Assumption:
     # Whenever there is a change in intensity, e.g. by fluctuations in incoupling,the lightsource etc., this affects mututally background and signal
@@ -169,13 +181,33 @@ def SubtractCameraOffset(rawframes_np, settings, PlotIt = True):
         nd.visualize.Plot2DImage(rawframes_np[0,:,0:500], title = "Raw Image (x=[0:500])", xlabel = "x [Px]", ylabel = "y [Px]", ShowColorBar = False)
     
     
-    print('Remove constant camera background: ...finished')  
+    nd.logger.info('Remove constant camera background: ...finished')  
     
     return rawframes_np
 
 
 
 def RemoveLaserfluctuation(rawframes_np, settings, PlotIt = True):
+    """
+    Calculates and undoes laser fluctuations.
+    This is based on the idea that the total brightness in each image should be constant and is only changed by the incoming laser intensity
+
+    Parameters
+    ----------
+    rawframes_np : TYPE
+        DESCRIPTION.
+    settings : TYPE
+        DESCRIPTION.
+    PlotIt : TYPE, optional
+        DESCRIPTION. The default is True.
+
+    Returns
+    -------
+    rawframes_np : TYPE
+        DESCRIPTION.
+
+    """
+    
     nd.logger.info('Removing laser fluctuations: starting...')
     nd.logger.warning("WARNING - this needs a roughly constant amount of particles in the object!")
     
@@ -184,7 +216,7 @@ def RemoveLaserfluctuation(rawframes_np, settings, PlotIt = True):
     # Mean-counts of a given frame
     tot_intensity, rel_intensity = nd.handle_data.total_intensity(rawframes_np, Laserfluctuation_Show)
     
-    # rawframes_np = rawframes_np / rel_intensity[:, None, None]
+    # normalize rawimages
     rawframes_np = np.divide(rawframes_np, rel_intensity[:, None, None], out = rawframes_np)
 
 
@@ -231,10 +263,21 @@ def StaticBackground_Mean(rawframes_np_loop):
     Calculate the background by a combination of mean and median
     E.g. [0,0,0,0,0,1,1,1,1] --> median: 0, mean: 0.44
     but  [0,0,0,0,1,1,1,1,1] --> median: 1, mean: 0.55
-    
-    1 - sort the values in each pixel
+
+    1 - sort the values in each pixel along time
     2 - grab the middle percentile from 30% to 70%. Do a mean here.
     
+
+    Parameters
+    ----------
+    rawframes_np_loop : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    static_background : TYPE
+        DESCRIPTION.
+
     """
     
     min_percentile = int(0.3*rawframes_np_loop.shape[0])
@@ -246,7 +289,30 @@ def StaticBackground_Mean(rawframes_np_loop):
  
            
 
-def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Background_Save = False, ShowColorBar = True):
+def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, ShowColorBar = True):
+    """
+    Calculates and removes static background
+
+    Parameters
+    ----------
+    rawframes_np : TYPE
+        DESCRIPTION.
+    settings : TYPE
+        DESCRIPTION.
+    Background_Show : Boolean, optional
+        Show the background image. The default is False.
+    ShowColorBar : Boolean, optional
+        Show a colorbar of the displayed background image. The default is True.
+
+    Returns
+    -------
+    rawframes_np : TYPE
+        DESCRIPTION.
+    static_background : TYPE
+        DESCRIPTION.
+
+    """
+    
     nd.logger.info('Remove static background: starting...')
     Background_Show = settings["Plot"]['Background']
 
@@ -254,11 +320,11 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     Subtracting back-ground and take out points that are constantly bright
     '''
 
+    # calculate the background - this is done in parallel (loop over the lines) due to the large data
     # prepare multiprocessing (parallel computing)
     num_cores = multiprocessing.cpu_count()
     nd.logger.info("Do that parallel. Number of cores: %s", num_cores)    
     
-    num_frames = rawframes_np.shape[0]
     num_lines = rawframes_np.shape[1]
     
     inputs = range(num_lines)
@@ -272,16 +338,12 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
     static_background = np.asarray(static_background_list)
 
     # Remove the background
-    # rawframes_np_no_bg = rawframes_np - static_background 
     rawframes_np = np.subtract(rawframes_np, static_background, out = rawframes_np)
 
 
     if Background_Show == True:
-        #plt.imshow(static_background)
         nd.visualize.Plot2DImage(static_background,title = "Background image", xlabel = "[Px]", ylabel = "[Px]", ShowColorBar = ShowColorBar)
-            
-
-    
+                
     
     nd.logger.info('Remove static background: ...finished')
     
@@ -291,102 +353,109 @@ def Remove_StaticBackground(rawframes_np, settings, Background_Show = False, Bac
 
 def ConvolveWithPSF_2D(image_frame, gauss_kernel_rad):
     """
-    convolves a 2d image with a gaussian kernel by multipliying in fourierspace
+    convolves a 2d image with a gaussian kernel by multipliying in fourierspace    
+
+    Parameters
+    ----------
+    image_frame : TYPE
+        DESCRIPTION.
+    gauss_kernel_rad : TYPE
+        gaussian kernel size in px.
+
+    Returns
+    -------
+    image_frame_filtered : TYPE
+        DESCRIPTION.
+
     """
 
-    PSF_Type = "Gauss"
-    if PSF_Type == "Gauss":
-        image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
+
+    image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad, gauss_kernel_rad])))
 
     
     return image_frame_filtered
 
 
 
-def ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True):
+def ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad):
     """
-    convolves a 3d image with a gaussian kernel. Select seriell or parallel type of 2D execution
+    Convolves a 3d image with a gaussian kernel. Do this in parallel by looping over each frame    
+
+    Parameters
+    ----------
+    rawframes_np : TYPE
+        DESCRIPTION.
+    gauss_kernel_rad : TYPE
+        gaussian kernel size in px.
+
+    Returns
+    -------
+    None.
+
     """
+
+    nd.logger.info("Do it parallel")
 
     #get number of frames for iteration    
     num_frames = rawframes_np.shape[0] 
-
-    if DoParallel == False:
-        nd.logger.warning("OLD METHOD - Do it seriell")
-
-        # create space to save it in
-        rawframes_filtered = np.zeros_like(rawframes_np)
-        
-        nd.logger.debug("Do FT of: %s frames. That might take a while", num_frames)
-        for loop_frames in range(num_frames):
-            rawframes_filtered[loop_frames,:,:] = ConvolveWithPSF_2D(rawframes_np[loop_frames,:,:], gauss_kernel_rad)
-            
-            # show the progres every 100 frames            
-            if np.mod(loop_frames,100) == 0:
-                print("Number of frames done: ", loop_frames)
-              
-    else:
-        nd.logger.info("Do it parallel")
-        
-        # setup and execute parallel processing of the filterung
-        num_cores = multiprocessing.cpu_count()
-        nd.logger.info("Number of parallel cores: %s", num_cores)
-        
-        inputs = range(num_frames)
     
-        rawframes_filtered_list = Parallel(n_jobs=num_cores, verbose = 5)(delayed(ConvolveWithPSF_2D)(rawframes_np[loop_frame,:,:].copy(), gauss_kernel_rad) for loop_frame in inputs)
-            
-        nd.logger.info("Collect parallel results.")
+    # setup and execute parallel processing of the filterung
+    num_cores = multiprocessing.cpu_count()
+    nd.logger.info("Number of parallel cores: %s", num_cores)
     
-        # make it into a proper array
-        rawframes_filtered = np.asarray(rawframes_filtered_list)
+    inputs = range(num_frames)
+
+    rawframes_filtered_list = Parallel(n_jobs=num_cores, verbose = 5)(delayed(ConvolveWithPSF_2D)(rawframes_np[loop_frame,:,:].copy(), gauss_kernel_rad) for loop_frame in inputs)
         
-        nd.logger.info("Parallel finished")
+    nd.logger.info("Collect parallel results.")
+
+    # make it into a proper array
+    rawframes_filtered = np.asarray(rawframes_filtered_list)
+    
+    nd.logger.info("Parallel finished")
         
     
     return rawframes_filtered
 
 
 
+def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, PlotIt = True):  
+    """
+    Convolve the rawdata by the PSF to reduce noise while maintaining the signal. This is the main function
 
-def ConvolveWithPSF_Parameter(PSF_Type, settings):
-    # set parameters depending on PSF type.
-    
-    if PSF_Type == "Gauss":
-        # Standard Gaussian PSF
-        # estimate PSF by experimental settings
-        if settings["PreProcessing"]["KernelSize"] == 'auto':        
-            settings["PreProcessing"]["KernelSize"] = nd.ParameterEstimation.SigmaPSF(settings)
-        
-        # set PSF Kernel
-        gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
-            
-        nd.logger.info("Gauss Kernel in px: %.2f", gauss_kernel_rad)
-    
-    elif PSF_Type == "Airy":
-        # CalcAiryDisc(settings, rawframes_np[0,:,:])
-        gauss_kernel_rad = 0    
-        nd.logger.error("RF: Implements the AIRY DISC")
-        # Calculate the Airy disc for the given experimental parameters
-        # this is for data with little or now aberrations
-    
-     
-    json_path = settings["File"]["json"]   
-    nd.handle_data.WriteJson(json_path, settings)
-     
-    return gauss_kernel_rad
+    Parameters
+    ----------
+    rawframes_np : TYPE
+        DESCRIPTION.
+    settings : TYPE
+        DESCRIPTION.
+    ShowFirstFrame : TYPE, optional
+        Show Convoled Image. The default is False.
+    ShowColorBar : TYPE, optional
+        Display Colorbar. The default is True.
+    PlotIt : TYPE, optional
+        Show Raw image. The default is True.
 
+    Returns
+    -------
+    rawframes_np : TYPE
+        convolved image
+    settings : TYPE
+        DESCRIPTION.
 
-def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowColorBar = True, ExternalSlider = False, PlotIt = True):  
-    # Convolve the rawdata by the PSF to reduce noise while maintaining the signal. This is the main function
+    """
+
     
     nd.logger.info('Enhance SNR by convolving image with PSF: starting...')
 
     #gets the gaussian kernel size for the convolution- other types not implemented yet     
-    PSF_Type = "Gauss"
-    gauss_kernel_rad = ConvolveWithPSF_Parameter(PSF_Type, settings)
-
+    if settings["PreProcessing"]["KernelSize"] == 'auto':        
+        settings["PreProcessing"]["KernelSize"] = nd.ParameterEstimation.SigmaPSF(settings)
+    
+    gauss_kernel_rad = settings["PreProcessing"]["KernelSize"]
+    
     ImageIs2D = (rawframes_np.ndim == 2)
+
     # save for later
     if PlotIt == True:
         if ImageIs2D:
@@ -394,18 +463,16 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
         else:
             show_im = rawframes_np[0,:,0:500]
 
+    # here comes the convolution (overwrite existing data to save memory)
     if ImageIs2D:
-        rawframes_filtered = ConvolveWithPSF_2D(rawframes_np, gauss_kernel_rad)
+        rawframes_np = ConvolveWithPSF_2D(rawframes_np, gauss_kernel_rad)
         
     else:
-        #3D case requires efficent looping over the frames
-        
-        # rawframes_filtered = ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True)
-        rawframes_np = ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad, DoParallel = True)
+        rawframes_np = ConvolveWithPSF_3D(rawframes_np, gauss_kernel_rad)
                 
 
     # Do some plotting if requries  
-    if (ExternalSlider == False) and (ShowFirstFrame == True):
+    if ShowFirstFrame == True:
         if ImageIs2D:
             disp_data = rawframes_np
         else:
@@ -419,47 +486,4 @@ def ConvolveWithPSF_Main(rawframes_np, settings, ShowFirstFrame = False, ShowCol
     nd.logger.info('Enhance SNR by convolving image with PSF: ...finished')
     
     return rawframes_np, settings
-
-
-
-def CalcAiryDisc(settings, img):
-    import pyotf.otf
-    
-    wl = settings["Exp"]["lambda"]
-    na = settings["Exp"]["NA"]
-    ni = settings["Exp"]["n_immersion"]
-    res = settings["Exp"]["Microns_per_pixel"] * 1000
-    size_x = int(img.shape[0])
-    size_y = int(img.shape[1])
-    size = int(np.max([size_x, size_y]))
-    zres = res
-    zsize = 99
-    
-    args = (wl, na, ni, res, size, zres, zsize)
-    # wl, na, ni, res, size, zres=None, zsize=None, vec_corr="none", condition="sine"
-    kwargs = dict(vec_corr="none", condition="none")
-    psf3d = pyotf.otf.SheppardPSF(*args, **kwargs)
-    
-    psfi3d = psf3d.PSFi
-    
-    #get focus slice
-    psfi2d = psfi3d[50,:,:]
-    
-    psfi2d = psfi2d /np.max(psfi2d)
-
-    # cut out psf same size as image
-    center = int(np.ceil(size/2))
-    
-    left_border_x = int(np.ceil(size/2 - size_x/2))
-    right_border_x = left_border_x + size_x
-
-    left_border_y = int(np.ceil(size/2 - size_y/2))
-    right_border_y = left_border_y + size_y
-    
-    
-    print(center, left_border_x, right_border_x)
-
-    psfi2d_roi = psfi2d[left_border_x : right_border_x, left_border_y : right_border_y]
-
-    return psfi2d_roi
 
