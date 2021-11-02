@@ -14,7 +14,6 @@ import numpy as np # Library for array-manipulation
 import matplotlib.pyplot as plt # Libraries for plotting
 import sys
 import json
-import astropy.io.fits as pyfits
 import os 
 from PIL import Image
 import fnmatch
@@ -171,12 +170,6 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
             sys.exit()
         else:
             rawframes_np = nd.handle_data.ReadTiffStack2Numpy(data_file_name)
-    
-    elif data_type == 'fits':
-        if data_file_name == 0:
-            sys.exit('!!! data_file_name required !!!')
-        else:
-            rawframes_np = nd.handle_data.ReadFits2Numpy(data_file_name)   
         
     else:
         sys.exit('Data type %s' %data_type)
@@ -466,16 +459,6 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
     nd.logger.warning('\n Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
     
     nd.logger.info('\n Tiff series need much longer to be read in than a 3D tiff stack, which can be generated out of the tif-series by ImageJ (FIJI) or similar programs.')   
-    
-    return rawframes_np
-
-
-
-def ReadFits2Numpy(data_file_name):
-    """ read a fits image in """
-    
-    open_fits = pyfits.open(data_file_name)
-    rawframes_np = open_fits[0].data
     
     return rawframes_np
 

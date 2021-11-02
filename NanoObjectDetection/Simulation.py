@@ -20,6 +20,7 @@ import scipy
 import scipy.signal
 from scipy.constants import Boltzmann as k_b
 
+# import miepython as mp
 
 import trackpy as tp
 
@@ -687,129 +688,126 @@ def n_water20(wl):
 
 
 
-def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True, n_medium = 1.333):
-    """ calculate the scattering and absorption crosssection of a spherical particle
+# def CalcCrossSection(d, material = "gold", at_lambda_nm = None, do_print = True, n_medium = 1.333):
+#     """ calculate the scattering and absorption crosssection of a spherical particle
 
-    https://miepython.readthedocs.io/en/latest/02_efficiencies.html?highlight=scattering%20cross%20section
-    https://opensky.ucar.edu/islandora/object/technotes%3A232/datastream/PDF/view
+#     https://miepython.readthedocs.io/en/latest/02_efficiencies.html?highlight=scattering%20cross%20section
+#     https://opensky.ucar.edu/islandora/object/technotes%3A232/datastream/PDF/view
 
-    Parameters
-    ----------
-    d :             particle diameter in nm
-    material :      particle material (implemented: gold, silver, polystyrene, DNA, silica)
-    at_lambda_nm :  wavelength of the incident light, "None" creates a plot for the full VIS range
-    do_print :      print the results if TRUE
-    n_medium :      refr. index of surrounding medium, "None" uses Daimon2007 data for water at 20°C
+#     Parameters
+#     ----------
+#     d :             particle diameter in nm
+#     material :      particle material (implemented: gold, silver, polystyrene, DNA, silica)
+#     at_lambda_nm :  wavelength of the incident light, "None" creates a plot for the full VIS range
+#     do_print :      print the results if TRUE
+#     n_medium :      refr. index of surrounding medium, "None" uses Daimon2007 data for water at 20°C
 
-    Returns
-    -------
-    C_Scat, C_Abs : scattering and absorption cross section in nm^2
-    """
-
-    import miepython as mp
-    import numpy as np
-    import matplotlib.pyplot as plt
-
-    if d > 1:
-        print("WARNING: d should be given in the unit of meters!")
-
-    # import the parameters from online library
-    if material == 'gold':
-        data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
-    elif material == "silver":
-        data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Ag/Johnson.txt', delimiter='\t')
-    elif material == "polystyrene":
-        data = np.genfromtxt('https://refractiveindex.info/tmp/data/organic/C8H8%20-%20styrene/Sultanova.txt', delimiter='\t')
-    elif material == "DNA":
-        data = np.genfromtxt('https://refractiveindex.info/tmp/data/other/human%20body/DNA/Inagaki.txt', delimiter='\t')
-    elif material == "silica":
-        data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/SiO2/Malitson.txt', delimiter='\t')
-
-    # data is stacked so need to rearrange
-    N = len(data)//2
-    lambda_um = data[1:N,0]
-
-    if n_medium == None:
-        if at_lambda_nm == None:
-            n_medium = np.array([n_water20(lam) for lam in lambda_um])
-        else:
-            n_medium = n_water20(at_lambda_nm)
-
-#    lambda_um = lambda_um / n_medium
-
-    m_real = data[1:N,1]
-
-    # some of the data do not have any complex part. than the reading in fails
-
-    num_nan = len(data[np.isnan(data)])
-    if num_nan == 4:
-        m_imag = data[N+1:,1]
-    else:
-        m_imag = np.zeros_like(m_real)
-
-    #lambda_um = lambda_um[30:35]
-    # m_real = m_real[30:35]
-    # m_imag = m_imag[30:35]
-
-#    print("lambda_um: ", lambda_um)
-#    print("m_real: ", m_real)
-#    print("m_imag: ", m_imag)
+#     Returns
+#     -------
+#     C_Scat, C_Abs : scattering and absorption cross section in nm^2
+#     """
 
 
-    r_um = d*1e6/2 #radius in microns
-    r_nm = r_um * 1000
+#     if d > 1:
+#         print("WARNING: d should be given in the unit of meters!")
 
-#    print("particle radius in nm: ", r_nm)
+#     # import the parameters from online library
+#     if material == 'gold':
+#         data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Au/McPeak.txt', delimiter='\t')
+#     elif material == "silver":
+#         data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/Ag/Johnson.txt', delimiter='\t')
+#     elif material == "polystyrene":
+#         data = np.genfromtxt('https://refractiveindex.info/tmp/data/organic/C8H8%20-%20styrene/Sultanova.txt', delimiter='\t')
+#     elif material == "DNA":
+#         data = np.genfromtxt('https://refractiveindex.info/tmp/data/other/human%20body/DNA/Inagaki.txt', delimiter='\t')
+#     elif material == "silica":
+#         data = np.genfromtxt('https://refractiveindex.info/tmp/data/main/SiO2/Malitson.txt', delimiter='\t')
 
-    x = n_medium*2*np.pi*r_um/lambda_um;
-    m = (m_real - 1.0j * m_imag) / n_medium
+#     # data is stacked so need to rearrange
+#     N = len(data)//2
+#     lambda_um = data[1:N,0]
 
-    qext, qsca, qback, g = mp.mie(m,x)
+#     if n_medium == None:
+#         if at_lambda_nm == None:
+#             n_medium = np.array([n_water20(lam) for lam in lambda_um])
+#         else:
+#             n_medium = n_water20(at_lambda_nm)
 
-    # print("lambda_um: ", lambda_um[34])
-    # print("m_re: ", m_real[34])
-    # print("m_im: ", m_imag[34])
-    # print("x: ", x[34])
-    # print("m: ", m[34])
-    # print(mp.mie(m[34],x[34]))
+# #    lambda_um = lambda_um / n_medium
 
-    qabs = (qext - qsca)
-    absorb  = qabs * np.pi * r_nm**2
-    scat   = qsca * np.pi * r_nm**2
-    extinct = qext* np.pi * r_nm**2
+#     m_real = data[1:N,1]
 
-    lambda_nm = 1000 * lambda_um
+#     # some of the data do not have any complex part. than the reading in fails
 
-    if at_lambda_nm  == None:
-#        plt.plot(lambda_nm,qext,'g.-')
-#        plt.plot(lambda_nm,qext - qsca,'r.-')
-        plt.plot(lambda_nm,qsca,'k.-')
-        plt.xlabel("Wavelength (nm)")
-        plt.ylabel("Efficency")
-        plt.title("Scattering efficency for %.1f nm %s spheres" % (r_nm*2,material))
-        plt.xlim([400, 800])
+#     num_nan = len(data[np.isnan(data)])
+#     if num_nan == 4:
+#         m_imag = data[N+1:,1]
+#     else:
+#         m_imag = np.zeros_like(m_real)
 
-        plt.figure()
-        plt.plot(lambda_nm,scat,'r.-')
-        plt.xlabel("Wavelength (nm)")
-        plt.ylabel("Cross section ($nm^2$)")
-        plt.title("Scattering cross section for %.1f nm %s spheres" % (r_nm*2,material))
+#     #lambda_um = lambda_um[30:35]
+#     # m_real = m_real[30:35]
+#     # m_imag = m_imag[30:35]
 
-        plt.xlim(300,800)
-        plt.show()
+# #    print("lambda_um: ", lambda_um)
+# #    print("m_real: ", m_real)
+# #    print("m_imag: ", m_imag)
 
-        C_Abs = absorb
-        C_Scat = scat
 
-    else:
-        C_Scat = np.interp(at_lambda_nm, lambda_nm, scat)
-        C_Abs   = np.interp(at_lambda_nm, lambda_nm, absorb)
-        if do_print == True:
-            print("Size parameter: ", np.interp(at_lambda_nm, lambda_nm, x))
-            print("Scattering efficency: ", np.interp(at_lambda_nm, lambda_nm, qsca))
-            print("Scattering cross-section [nm²]: ", C_Scat)
+#     r_um = d*1e6/2 #radius in microns
+#     r_nm = r_um * 1000
 
-    return C_Scat, C_Abs
+# #    print("particle radius in nm: ", r_nm)
+
+#     x = n_medium*2*np.pi*r_um/lambda_um;
+#     m = (m_real - 1.0j * m_imag) / n_medium
+
+#     qext, qsca, qback, g = mp.mie(m,x)
+
+#     # print("lambda_um: ", lambda_um[34])
+#     # print("m_re: ", m_real[34])
+#     # print("m_im: ", m_imag[34])
+#     # print("x: ", x[34])
+#     # print("m: ", m[34])
+#     # print(mp.mie(m[34],x[34]))
+
+#     qabs = (qext - qsca)
+#     absorb  = qabs * np.pi * r_nm**2
+#     scat   = qsca * np.pi * r_nm**2
+#     extinct = qext* np.pi * r_nm**2
+
+#     lambda_nm = 1000 * lambda_um
+
+#     if at_lambda_nm  == None:
+# #        plt.plot(lambda_nm,qext,'g.-')
+# #        plt.plot(lambda_nm,qext - qsca,'r.-')
+#         plt.plot(lambda_nm,qsca,'k.-')
+#         plt.xlabel("Wavelength (nm)")
+#         plt.ylabel("Efficency")
+#         plt.title("Scattering efficency for %.1f nm %s spheres" % (r_nm*2,material))
+#         plt.xlim([400, 800])
+
+#         plt.figure()
+#         plt.plot(lambda_nm,scat,'r.-')
+#         plt.xlabel("Wavelength (nm)")
+#         plt.ylabel("Cross section ($nm^2$)")
+#         plt.title("Scattering cross section for %.1f nm %s spheres" % (r_nm*2,material))
+
+#         plt.xlim(300,800)
+#         plt.show()
+
+#         C_Abs = absorb
+#         C_Scat = scat
+
+#     else:
+#         C_Scat = np.interp(at_lambda_nm, lambda_nm, scat)
+#         C_Abs   = np.interp(at_lambda_nm, lambda_nm, absorb)
+#         if do_print == True:
+#             print("Size parameter: ", np.interp(at_lambda_nm, lambda_nm, x))
+#             print("Scattering efficency: ", np.interp(at_lambda_nm, lambda_nm, qsca))
+#             print("Scattering cross-section [nm²]: ", C_Scat)
+
+#     return C_Scat, C_Abs
 
 
 
@@ -1362,185 +1360,6 @@ def SplitTrajectory(eval_t2):
         #get frame length of trajectory
 
     return eval_t2
-
-
-
-
-
-
-
-def LocalAccuracyVsObjective():
-
-    objective = np.array([
-                 [0.1, 1],
-                 [0.25, 1],
-                 [0.5, 1],
-                 [0.75, 1],
-                 [1.3, 1.46]
-                 ])
-
-    num_z = 5
-#    my_z = np.arange(0,num_z)
-    my_z = np.linspace(0,8,num_z)
-
-    loc_acu = np.zeros([num_z, np.shape(objective)[0]])
-    signal  = np.zeros_like(loc_acu)
-
-    for ii,use_objective in enumerate(objective):
-        print("Iterate new objective")
-
-        my_NA = use_objective[0]
-        my_n = use_objective[1]
-        for zz, loop_z in enumerate(my_z):
-            print("Iterate new focus")
-            mypsf, image, correl, loc_acu[zz, ii], signal[zz, ii] = DefocusCrossCorrelation(NA = my_NA, n=my_n, sampling_z = 1000, shape_z = 50, use_z = zz, ShowPlot = False)
-
-
-    plt.figure()
-    plt.subplot(211)
-    plt.semilogy(my_z, loc_acu, ':x')
-    plt.ylabel("loc accuracy [nm]", fontsize = 14)
-    plt.xlabel("z [um]", fontsize = 14)
-    plt.xlim([0, num_z+1])
-    plt.legend(objective[:,0], title = "NA", fontsize = 14, title_fontsize = 14)
-
-    plt.subplot(212)
-    plt.semilogy(my_z, signal, ':x')
-    plt.ylabel("Signal [a. u.]", fontsize = 14)
-    plt.xlabel("z [um]", fontsize = 14)
-    plt.xlim([0, num_z+1])
-    plt.legend(objective[:,0], title = "NA", fontsize = 14, title_fontsize = 14)
-
-
-    return loc_acu
-
-
-
-def DefocusCrossCorrelation(NA = 0.25, n=1, sampling_z = None, shape_z = None, use_z = 0, ShowPlot = True):
-    mpl.rc('image', cmap = 'gray')
-
-    total_photons = 20000
-
-    empsf, arg_psf = nd.Theory.PSF(NA,n, sampling_z, shape_z)
-
-
-    mypsf = nd.Theory.RFT2FT(empsf.slice(use_z))
-    mypsf = mypsf / np.sum(mypsf)
-
-    num_det_photons = total_photons * nd.Simulation.DetectionEfficency(arg_psf["num_aperture"], arg_psf["refr_index"])
-
-    obj = np.zeros_like(mypsf)
-    obj[np.int(0.8*arg_psf["shape"][1]),np.int(1.1*arg_psf["shape"][1])] = 1
-
-
-    #make image
-    import scipy
-    image_no_noise = np.real(scipy.signal.fftconvolve(obj, mypsf, mode = 'same'))
-    image_no_noise[image_no_noise<0] = 1E-10
-    image_no_noise = image_no_noise / np.sum(image_no_noise) * num_det_photons
-
-    #background
-    bg_no_noise = np.zeros_like(mypsf)
-    bg_no_noise[:,:] = 1
-    sigma_bg = 2.4 #Basler cam
-
-    # simulated several noisy images to find out the localization accuracy of the center of mass approach
-    num_runs = 5
-    com = np.zeros([num_runs,2])
-    signal = np.zeros(num_runs)
-
-    for ii in range (num_runs):
-#        print("argument PSF: ", arg_psf)
-#        print("Number of detected photons: ", num_det_photons)
-
-        image = np.random.poisson(image_no_noise)
-        bg    = np.random.normal(0, sigma_bg, bg_no_noise.shape)
-        bg[bg<0] = 0
-
-        image = np.round(image + bg)
-        image[image < 0] = 0
-
-        psf_zn = mypsf -np.mean(mypsf) #zero normalized psf
-        correl = scipy.signal.correlate(image, mypsf, mode = 'same', method = 'fft')
-        correl_zn = scipy.signal.correlate(image - np.mean(image), psf_zn, mode = 'same', method = 'fft')
-
-        # find the particle
-        my_diam = 7
-        mylocate = tp.locate(correl, diameter = my_diam, separation = 50, preprocess = False, topn = 1)
-
-        com[ii,:] = mylocate[["y", "x"]].values
-
-        #select brightes spot only
-#        print("numer of found particles: ", len(mylocate))
-        mylocate = mylocate.sort_values("mass").iloc[0]
-
-        com[ii,:] = mylocate[["y", "x"]].values
-
-        signal[ii] = mylocate["mass"] / (np.mean(correl) * np.pi * (my_diam/2)**2)
-
-
-    #localization accuracy
-    loc_acu = np.std(com)
-    signal = np.mean(signal)
-
-    #into nm
-
-    loc_acu = loc_acu * arg_psf["sampling"][1]
-
-    if ShowPlot == True:
-        print("mean center of mass = ", np.mean(com,axis = 0))
-        print("std center of mass = ", np.std(com,axis = 0))
-        print("std center of mass total = ", loc_acu )
-
-        import matplotlib.pyplot as plt
-        # plt.rcParams['figure.figsize'] = [100, 5]
-        plt.figure(figsize=(15, 10))
-        # plt.rcParams['figure.figsize'] = [100, 5]
-
-
-        fsize = 20
-        plt.subplot(231)
-        plt.imshow(obj)
-        plt.title("object", fontsize = fsize)
-
-
-        plt.subplot(232)
-        plt.imshow(image_no_noise)
-        plt.title("image - without noise", fontsize = fsize)
-
-        plt.subplot(233)
-        plt.imshow(image)
-        plt.title("image - with noise", fontsize = fsize)
-
-        # plt.subplot(334)
-        # plt.imshow(mypsf)
-        # plt.title("correl - PSF")
-
-        plt.subplot(234)
-        plt.imshow(correl)
-        plt.title("image - SNR improved", fontsize = fsize)
-        plt.xlabel("[Px]", fontsize = fsize)
-        plt.ylabel("[Px]", fontsize = fsize)
-
-        # plt.subplot(234)
-        # plt.imshow(psf_zn)
-        # plt.title("correl - PSF zn")
-
-        plt.subplot(235)
-        plt.imshow(correl_zn)
-        plt.title("image - SNR improved 2", fontsize = fsize)
-
-        plt.subplot(236)
-        rl_decon = nd.Theory.DeconRLTV(image, mypsf, 0.01, num_iterations = 100)
-        # rl_decon = nd.Theory.DeconRLTV(image, mypsf, 0.0, num_iterations = 20)
-        plt.imshow(rl_decon)
-        plt.title("Richardson-Lucy", fontsize = fsize)
-
-        plt.show()
-#        rawframes_filtered[loop_frames,:,:] = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(rawframes_np[loop_frames,:,:]), sigma=[gauss_kernel_rad  ,gauss_kernel_rad])))
-
-
-    return mypsf, image, correl, loc_acu, signal, empsf
 
 
 

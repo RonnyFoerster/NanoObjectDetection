@@ -12,19 +12,32 @@ import numpy as np
 import pandas as pd
 import NanoObjectDetection as nd
 
-from pdb import set_trace as bp #debugger
-
 
 
 def GetCI_Interval(probability, grid, ratio_in_ci):
-    """ get the confidence interval (CI) of a probability density function (PDF)
+    """
+    get the boundaries of the confidence interval (CI) of a probability density function (PDF)
     
     NB: This should work on both equidistant and non-equidistant grids.
-    
-    probability : PDF (y) values
-    grid : x values
-    ratio_in_ci : confidence interval (CI)
+
+    Parameters
+    ----------
+    probability : TYPE
+        PDF (y) values.
+    grid : TYPE
+        x values.
+    ratio_in_ci : TYPE
+        confidence interval (CI).
+
+    Returns
+    -------
+    value_min : TYPE
+        DESCRIPTION.
+    value_max : TYPE
+        DESCRIPTION.
     """
+    
+    
     grid_steps = abs(grid[:-1]-grid[1:])
     if grid_steps[0] > grid_steps[-1]: # duplicate smallest entry (either the first or the last)
         grid_steps = np.append(grid_steps, grid_steps[-1]) 
@@ -52,6 +65,9 @@ def GetCI_Interval(probability, grid, ratio_in_ci):
 
 
 def GetMeanStdMedian(data):
+    """
+    Calculates mean, standarddeviation and median of an array
+    """
     my_mean   = np.mean(data)
     my_std    = np.std(data)
     my_median = np.median(data)

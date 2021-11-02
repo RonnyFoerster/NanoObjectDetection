@@ -19,17 +19,11 @@ import numpy as np # library for array-manipulation
 import pandas as pd # library for DataFrame handling
 import trackpy as tp # trackpy offers all tools needed for the analysis of diffusing particles
 import seaborn as sns # allows boxplots to be put in one graph
-#sns.reset_orig()
 import math # offering some maths functions
-import matplotlib
-#matplotlib.rcParams['text.usetex'] = False
-#matplotlib.rcParams['text.latex.unicode'] = False
 import matplotlib.pyplot as plt # libraries for plotting
-from matplotlib import animation # allows to create animated plots and videos from them
 import json
 import sys
 import datetime
-from pdb import set_trace as bp #debugger
 import scipy
 import os.path
 import time

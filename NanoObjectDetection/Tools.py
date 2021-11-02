@@ -7,17 +7,10 @@ Created on Fri Apr  5 08:54:11 2019
 
 
 import numpy as np
-import pandas as pd
-import matplotlib
-# False since deprecated from version 3.0
-#matplotlib.rcParams['text.usetex'] = False
-#matplotlib.rcParams['text.latex.unicode'] = False
 import logging
 
-#import matplotlib.pyplot as plt # Libraries for plotting
 import NanoObjectDetection as nd
 
-from pdb import set_trace as bp #debugger
 from packaging import version
 import trackpy as tp
 
@@ -25,7 +18,21 @@ import trackpy as tp
 
 
 def LoggerSetLevel(level, TryLogger = False):
-    #set the level when a logging message is plotted
+    """
+    set the minimum level when a logging message is plotted    
+
+    Parameters
+    ----------
+    level : TYPE
+        options: "debug", "info", "warning", "error", "critical".
+    TryLogger : TYPE, optional
+        DESCRIPTION. The default is False.
+
+    Returns
+    -------
+    None.
+
+    """
        
     if level == "debug":
         nd.logger.setLevel(logging.DEBUG)
@@ -48,59 +55,19 @@ def LoggerSetLevel(level, TryLogger = False):
         nd.logger.critical("TEST LOGGER MODE: <critical> ON")
 
 
-def CameraCalibration(folder_dark,folder_bright,subsampling = 0):
-    print("THIS IS UNDER CONSTRUCTION. USE CAL_READNOISE FROM RAINER INSTEAD")
-    """
-    Calculates the camera properties gain and readout noise
-    Plots the variance over the intensity
-    Requires: 
-        1 - bright image: 
-            wide histogramm
-            not saturated
-            unfocussed (no strutures in the image)
-            stable light source
-            around 100 frames of the same scene
-        2 - dark image:
-            no light reaches the detector
-            around 100 frames of the same scene
-            
-    Result:
-        1 - camera gain
-        2 - readout noise
-    """
-    
-    
-    # read dark image
-#    folder_dark = r"Z:\Data\Shiqi\gain of camera\0,00007s no light 12 bit\100frames"
-    dark_orig = nd.handle_data.ReadTiffSeries2Numpy(folder_dark)
-    
-    
-    # read bright image
-#    folder_bright = r"Z:\Data\Shiqi\gain of camera\0,00007s lamp 12bit\100frames"
-    bright_orig = nd.handle_data.ReadTiffSeries2Numpy(folder_bright)
-    
-    
-    # subsampling
-    if subsampling != 0:
-        dark_sub    = dark_orig[:,::subsampling,::subsampling]
-        bright_sub  = bright_orig[:,::subsampling,::subsampling]
-    else:
-        dark_sub    = dark_orig
-        bright_sub  = bright_orig
-    
-    
-    # process dark
-    dark_mean = np.mean(dark_sub,(2,3))        
-#    dark_var  = np.var(bright_sub,(2,3))            
-    readout_noise = np.std(dark_sub,(2,3))   
-    
-    
-    bright_mean = np.mean(bright_sub,(2,3))        
-    bright_var  = np.var(bright_sub,(2,3))        
 
 
 def GetTpVersion():
-    #return the main version of trackpy
+    """
+    return the main version of trackpy
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
+    
     tp_4 = '0.4'
     tp_5 = '0.5'
     tp_version = version.parse(tp.__version__)
