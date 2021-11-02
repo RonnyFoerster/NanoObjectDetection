@@ -12,16 +12,26 @@ set up everything from scratch to evaluate new experimental data
 import NanoObjectDetection as nd
 import shutil
 import os
-#from pdb import set_trace as bp #debugger
 import json
 from tkinter import filedialog
 
 
 
 def NewEvaluation():
-    # In[Data Path and Type]
+    """
+    Run this function to prepare new data set for evalution
+
+    Returns
+    -------
+    None.
+
+    """
     
-    datatype = nd.handle_data.GetInput("Is your data stored in : \n 1 - a single file (tif-stack) or \n 2 - multiple files (tif-series) ?", ["1", "2"])
+    datatype = nd.handle_data.GetInput("Is your data stored in : \
+                                       \n 1 - a single file (tif-stack) or \
+                                       \n 2 - multiple files (tif-series) ?\
+                                       \n\n"
+                                       , ["1", "2"])
 
     # select data type
     if datatype == 1:
@@ -59,7 +69,8 @@ def NewEvaluation():
         settings = json.load(json_file)
     
 
-    # In[Setup Parameters]
+    # Setup Parameters
+    # Choose predefined experimental configurations (Objective, Microscope, Camera)
     
     pre_select = nd.handle_data.GetInput("Please select a number: \
           \n The following setups are implemented \
@@ -74,6 +85,7 @@ def NewEvaluation():
         , ["1", "2", "3", "4", "5", "6", "7"])
     
     
+    # load the predefined configuration into the parameter file
     if pre_select in [2,3,4,5,6,7]:
         nd_path = os.path.dirname(nd.__file__)
         
@@ -111,16 +123,16 @@ def NewEvaluation():
         settings["Exp"]["Temperature"]       = pre_settings["Exp"]["Temperature"]
         
     else:
-        print("No standard objective given. \n")
-        print("Please insert setup parameters: \n")
+        nd.logger.warning("No standard objective given.")
+        nd.logger.info("Please insert setup parameters:")
         settings["Exp"]["NA"]                = float(input("NA = "))
         settings["Exp"]["Microns_per_pixel"] = float(input("Microns per pixel [um/px] = "))
         settings["Exp"]["Temperature"]       = float(input("Temperature [K] (22C = 295K) = "))
         
             
             
-    # In[Fiber Parameters]
-    
+    # Fiber Parameters
+    # choose predefined fiber parameters
     pre_select = nd.handle_data.GetInput("Please select a number: \
           \n The following fibers are implemented \
           \n 1 - new \
@@ -131,7 +143,7 @@ def NewEvaluation():
         , ["1", "2", "3", "4"])
     
     
-    if pre_select in [2,3]:
+    if pre_select in [2,3,4]:
         nd_path = os.path.dirname(nd.__file__)
         
         if pre_select == 2:
@@ -144,7 +156,7 @@ def NewEvaluation():
             path_json_origin = nd_path + "\\default_json\\fiber\\1267b1_start.json"
             nd.logger.warning("RF: FIRST RUN: CHECK IF THAT WORKS PROPERLY!")
             
-        elif pre_select == 3:
+        elif pre_select == 4:
             nd.logger.info("Load: LightCage.json")
             path_json_origin = nd_path + "\\default_json\\fiber\\LightCage.json"
             
@@ -157,25 +169,25 @@ def NewEvaluation():
         
         
     else:
-        print("No standard fiber given. \n")
-        print("Please insert setup parameters: \n")
+        nd.logger.warning("No standard fiber given.")
+        nd.logger.info("Please insert setup parameters:")
         
         settings["Fiber"]["TubeDiameter_nm"] = float(input("Channel Diameter [um] = ")) * 1000
         settings["Fiber"]["Waist"] = float(input("Beam waist [um] = "))
                   
             
-    # In[Experimental Parameters]
-    print("Please insert experimental parameters: \n")
-    settings["Exp"]["lambda"]            = float(input("lambda [nm] = "))
-    settings["Exp"]["fps"]               = float(input("fps = "))
+    #Experimental Parameters
+    nd.logger.info("Please insert experimental parameters.")
+    settings["Exp"]["lambda"]            = float(input("Wavelength [nm] = "))
+    settings["Exp"]["fps"]               = float(input("Framerate [fps] = "))
     settings["Exp"]["ExposureTime"]      = float(input("Exposure Time [ms] = ")) / 1000
     
-    
+    # Get temperature and corresponding viscocity
     adjustT = nd.handle_data.GetInput("Temperature, solvent and viscosity: \
                                       \n 0 - Default (T = 295.0 K (22°C); solvent = water; viscosity (9.5e-16 Ns/um^2)) \
                                       \n 1 - RECOMMENDED - adjust yourself"
                                       , ["0","1"])
-    # adjustT = input("Do you want to use \n[0] the default values for temperature (295.0 K), solvent (water) and viscosity (9.5e-16 Ns/um^2) or \n[1] adjust them?\n")
+
     if adjustT == 1:
         temp = 273.15 + float(input("Temperature [C] = "))
         settings["Exp"]["Temperature"] = temp # [K]
@@ -184,14 +196,14 @@ def NewEvaluation():
         settings["Exp"]["Viscosity"] = nd.Experiment.GetViscosity(temp,solv)
 
 
-    
+    # get the full path of the data
     settings["File"]["data_file_name"]   = os.path.normpath(data_file_name)
     settings["File"]["data_folder_name"] = os.path.normpath(data_folder_name)
     settings["File"]["data_type"]        = os.path.normpath(data_type)
 
 
     # In[Help Functions Parameters]
-    help_options = nd.handle_data.GetInput("\nWhich help functions do you want to use? \
+    help_options = nd.handle_data.GetInput("Which help functions do you want to use? \
             \n 0 - none \
             \n 1 - auto \
             \n 2 - select yourself \n", ["0", "1", "2"])
@@ -243,14 +255,14 @@ def NewEvaluation():
                 ["0", "auto"])
 
 
-    # In[Save Everything]
+    # Save Everything
+    # Make slash and backslash right
     settings["File"]["json"] = mypath.replace("/","\\")
 
     # save the stuff   
     nd.handle_data.WriteJson(mypath.replace("/","\\"), settings)    
 
-    # print("Make slash and backslash right")
-
+    
     print("\nGo to \n{}\n in the explorer and open the py-script and json parameter file.".format(dir_results.replace("/","\\")))
     
     

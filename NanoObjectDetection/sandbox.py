@@ -2,13 +2,14 @@
 """
 Created on Tue Mar 10 13:45:19 2020
 
+This is a module where new functions can be stored and tried
+
 @author: foersterronny
 """
 import numpy as np # library for array-manipulation
 import matplotlib.pyplot as plt # libraries for plotting
 from matplotlib.animation import FuncAnimation
 from matplotlib.gridspec import GridSpec
-from pdb import set_trace as bp #debugger
 from joblib import Parallel, delayed
 import multiprocessing
 
