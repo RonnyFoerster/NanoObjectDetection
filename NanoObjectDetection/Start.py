@@ -262,7 +262,9 @@ def NewEvaluation():
     # save the stuff   
     nd.handle_data.WriteJson(mypath.replace("/","\\"), settings)    
 
-    
+    # did not no where to put this best.
+    nd.logger.info("Information: You can insert the startup.py to your Python Programming to load all the required packages automatically.")        
+
     print("\nGo to \n{}\n in the explorer and open the py-script and json parameter file.".format(dir_results.replace("/","\\")))
     
     

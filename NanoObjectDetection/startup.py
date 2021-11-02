@@ -2,6 +2,8 @@
 """
 Created on Thu Mar 19 09:30:48 2020
 
+This is a startup file that can be used of the user to load important module automatically
+
 @author: foersterronny
 """
 
