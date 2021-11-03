@@ -3,13 +3,10 @@
 Created on Tue Feb  5 12:23:39 2019
 
 @author: Ronny Förster, Stefan Weidlich, Mona Nissen
-"""
 
-
-
-"""
 collection of plotting functions for visualization
 
+This is not documented in detail, because it is written by many people.
 
 ******************************************************************************
 Importing neccessary libraries
@@ -29,11 +26,7 @@ import os.path
 import time
 
 import NanoObjectDetection as nd
-
-## unused for the moment:
-#import time
-#from matplotlib.animation import FuncAnimation, PillowWriter
-#from matplotlib.animation import FuncAnimation
+from NanoObjectDetection.PlotProperties import axis_font, title_font, params
 
 
 def SetXYLim(x_min_max = None, y_min_max = None):
@@ -46,82 +39,60 @@ def SetXYLim(x_min_max = None, y_min_max = None):
         plt.ylim([y_min_max[0], y_min_max[1]])
 
 
-
-def Plot1DPlot(plot_np,title = None, xlabel = None, ylabel = None, settings = None):
+def Plot1DPlot(plot_np, title = None, xlabel = None, ylabel = None, settings = None):
     """ plot 1D-data in standardized format as line plot """
     
     import NanoObjectDetection as nd
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
     
     plt.figure()
     plt.plot(plot_np)
     plt.title(title, **title_font)
     plt.xlabel(xlabel, **axis_font)
     plt.ylabel(ylabel, **axis_font)
-    
-    
+        
     if settings != None:
         nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm", settings, data = plot_np)
 
 
 
-def Plot2DPlot(x_np,y_np,title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':', x_lim = None, y_lim = None, y_ticks = None, semilogx = False, FillArea = False, Color = None):
-    """ plot 2D-data in standardized format as line plot """
-    
-    from NanoObjectDetection.PlotProperties import axis_font, title_font, params
-#    sns.reset_orig()
-    
-    plt.style.use(params)
-    
-    plt.figure()
-    if semilogx == False:
-        if Color == None:
-            plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
-        else:
-            plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha, color = Color)
-            
-        if FillArea == True:
-            plt.fill_between(x_np,y_np, y2 = 0, color = Color, alpha=0.5)
-    else:
-        plt.semilogx(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
-        import matplotlib.ticker
+def Plot2DScatter(x_np, y_np, c = None, title = None, xlabel = None, ylabel = None, myalpha = 1, x_min_max = None, y_min_max = None, log = False, cmap = None, ShowLegend = False, ShowLegendTitle = None):
+    """
+    plot 2D-data in standardized format as individual, scattered points
 
-        ax = plt.gca()
-        ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        ax.get_xaxis().set_minor_formatter(matplotlib.ticker.ScalarFormatter())
-        
-    plt.title(title, **title_font)
-    plt.xlabel(xlabel, **axis_font)
-    plt.ylabel(ylabel, **axis_font)
+    Parameters
+    ----------
+    x_np : TYPE
+        x-data.
+    y_np : TYPE
+        y-data.
+    c : TYPE, optional
+        value of the data that is displayed in color. The default is None.
+    title : TYPE, optional
+        DESCRIPTION. The default is None.
+    xlabel : TYPE, optional
+        DESCRIPTION. The default is None.
+    ylabel : TYPE, optional
+        DESCRIPTION. The default is None.
+    myalpha : TYPE, optional
+        transparency of scatterer. The default is 1.
+    x_min_max : TYPE, optional
+        x limits. The default is None.
+    y_min_max : TYPE, optional
+        y limits. The default is None.
+    log : TYPE, optional
+        log scale. The default is False.
+    cmap : TYPE, optional
+        color maps. The default is None.
+    ShowLegend : TYPE, optional
+        DESCRIPTION. The default is False.
+    ShowLegendTitle : TYPE, optional
+        DESCRIPTION. The default is None.
 
-#    matplotlib.rcParams.update(params)
+    Returns
+    -------
+    None.
 
-    
-
-    if x_lim != None:
-        plt.xlim(x_lim)
-        
-    if y_lim != None:
-        plt.ylim(y_lim)
-                
-    if y_ticks != None:
-        frame1 = plt.gca() 
-        frame1.axes.yaxis.set_ticks(y_ticks)
-
-
-    nd.PlotProperties
-    plt.style.use(params)
-    
-    ax = plt.gca()
-    return ax
-
-
-
-def Plot2DScatter(x_np, y_np, c = None, title = None, xlabel = None, ylabel = None, myalpha = 1,
-                  x_min_max = None, y_min_max = None, log = False, cmap = None, ShowLegend = False, ShowLegendTitle = None):
-    """ plot 2D-data in standardized format as individual, scattered points """
-    
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
+    """
 
     plt.figure()
     plt.scatter(x_np,y_np, c=c, cmap=cmap, vmin = 0, alpha = myalpha, linewidths  = 0)    
@@ -173,7 +144,6 @@ def Plot2DScatter(x_np, y_np, c = None, title = None, xlabel = None, ylabel = No
         from matplotlib.ticker import ScalarFormatter
         plt.gca().xaxis.set_major_formatter(ScalarFormatter())
         plt.gca().yaxis.set_major_formatter(ScalarFormatter())
-
         
 
     if ShowLegend == True:
@@ -183,11 +153,30 @@ def Plot2DScatter(x_np, y_np, c = None, title = None, xlabel = None, ylabel = No
         else: 
             cbar.set_label(ShowLegendTitle)
 
-def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None, ShowColorBar = True):
-    """ plot image in standardized format """
-    
-    from NanoObjectDetection.PlotProperties import axis_font, title_font, params
 
+
+def Plot2DImage(array_np, title = None, xlabel = None, ylabel = None, ShowColorBar = True):
+    """
+    plot image in standardized format
+
+    Parameters
+    ----------
+    array_np : TYPE
+        2d numpy array.
+    title : TYPE, optional
+        DESCRIPTION. The default is None.
+    xlabel : TYPE, optional
+        DESCRIPTION. The default is None.
+    ylabel : TYPE, optional
+        DESCRIPTION. The default is None.
+    ShowColorBar : TYPE, optional
+        DESCRIPTION. The default is True.
+
+    Returns
+    -------
+    None.
+
+    """
     
     plt.figure()
     plt.imshow(array_np, cmap='gray')
@@ -200,96 +189,67 @@ def Plot2DImage(array_np,title = None, xlabel = None, ylabel = None, ShowColorBa
     
     
 
-def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None, yEval = False):
-    """ plot and/or save diameter histogram (or other statistics) for analyzed particles 
-    (main function)
+def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, yEval = False):
     """
-    import NanoObjectDetection as nd
+    Main Function that plot and/or save diameter histogram (or other statistics) for analyzed particles 
+    
+    Parameters
+    ----------
+    ParameterJsonFile : TYPE
+        DESCRIPTION.
+    sizes_df_lin : TYPE
+        DESCRIPTION.
+    any_successful_check : TYPE
+        Boolean if any particle is evaluated.
+    yEval : TYPE, optional
+        Boolean if x or y direction is evaluated. The default is False.
+
+    Returns
+    -------
+    None.
+
+    """
     
     # check for NaN values in DataFrame
     if pd.isna(sizes_df_lin).sum().sum() > 0:
         # drop rows with missing values (e.g. from invalid diameter calculations)
         sizes_df_lin = sizes_df_lin.dropna()
-        print('ATTENTION: NaN values were detected in sizes_df_lin. Please check it carefully.\n'
-              'In the following plots, rows with NaN values are ignored.\n\n')
+        nd.logger.warning('ATTENTION: NaN values were detected in sizes_df_lin. Please check it carefully. In the following plots, rows with NaN values are ignored.')
 
     if any_successful_check == False:
-        print("NO PARTICLE WAS MEASURED LONG ENOUGH FOR A GOOD STATISTIC !")
+        nd.logger.error("No particle was measued long enough to fulfill the required precision")
+        
     else:
         settings = nd.handle_data.ReadJson(ParameterJsonFile)
         
-        show_hist = settings["Plot"]["Histogramm"]
-        
-        if show_hist:
+        if settings["Plot"]["Histogramm"]:
+            # show diameter histogramm
             do_weighting = settings["Plot"]["Histogramm_abs_or_rel"]
+            
             if do_weighting in ["both", "abs"]:
+                # absoluted weighting (each particle counts equally)
                 DiameterHistogramm(ParameterJsonFile, sizes_df_lin, weighting = False, yEval = yEval)
+                
             if do_weighting in ["both", "rel"]:
+                # relative weighting (by trajectory length)
                 DiameterHistogramm(ParameterJsonFile, sizes_df_lin, weighting = True, yEval = yEval)
 
 
-        show_pdf = settings["Plot"]["DiameterPDF"]
-        if show_pdf:
+        if settings["Plot"]["DiameterPDF"]:
+            # show diamter PDF
             PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, yEval = yEval)
-
         
         show_diam_traj = settings["Plot"]["DiamOverTraj_Show"]
         if show_diam_traj:
+            # Show the diameter over the trajectory length
+            # Select which brightness is used for false color coding (max, mean, median)
             color_type = settings["Plot"]["DiamOverTraj_UseRawMass"]
-            DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin.sort_values("rawmass_mean"), show_diam_traj, show_diam_traj, color_type = color_type, yEval = yEval)
+            
+            DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin.sort_values("rawmass_mean"), show_plot = True, save_plot = True, color_type = color_type, yEval = yEval)
 
-
-        show_hist_time = settings["Plot"]["Histogramm_time_"]
-        if show_hist_time:
+        if settings["Plot"]["Histogramm_time"]:
+            # Show the diameter over time development
             DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin)
-#            PlotDiameter2DHistogramm(ParameterJsonFile, sizes_df_lin, show_hist_time, save_hist_time)
-
-
-        show_correl, save_correl = settings["Plot"]["Correlation_Show"], settings["Plot"]["Correlation_Save"]
-        if show_correl or save_correl:
-            Correlation(ParameterJsonFile, sizes_df_lin, show_correl, save_correl)
-            
-            
-        show_pearson, save_pearson = settings["Plot"]["Pearson_Show"], settings["Plot"]["Pearson_Save"]
-        if show_pearson or save_pearson:
-            Pearson(ParameterJsonFile, sizes_df_lin, show_pearson, save_pearson)
-
-
-
-def corrfunc(x, y, **kws):
-    """ auxiliary function for applying Pearson statistics on (diameter) data """
-    
-    pearson, _ = scipy.stats.pearsonr(x, y)
-    ax = plt.gca()
-    ax.annotate("p = {:.2f}".format(pearson),
-                xy=(.1, .9), xycoords=ax.transAxes)
-    
-
-
-def ShowAllCorrel(sizes_df_lin,min_correl = 0.4):
-    mycorr = sizes_df_lin.corr()
-    mycorr_np = np.abs(mycorr.values)
-    mycorr_high = (mycorr_np > min_correl) & (mycorr_np < 1)  
-    
-    # get position of high correlation
-    index_corr_high = np.argwhere(mycorr_high)
-
-    # removed mirror side
-    index_corr_high = index_corr_high[index_corr_high[:,0] > index_corr_high[:,1]]
-    
-    mycol = sizes_df_lin.columns
-    mycol_corr = mycol[index_corr_high]
-    
-    for num_loop, (col1, col2) in enumerate(zip(mycol_corr[:,0],mycol_corr[:,1])):
-        print(col1,col2)
-        
-        Plot2DScatter(sizes_df_lin[col1],sizes_df_lin[col2],
-                      title = "Correlated Parameters",
-                      xlabel = col1, ylabel = col2, myalpha = 1)
-#        plt.plot(,sizes_df_lin[col2],'x')
-        
-    
-    plt.show()
 
 
 
@@ -297,26 +257,26 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     """ plot (and save) calculated particle diameters vs. the number of frames
     where the individual particle is visible (in standardized format) """
         
-    import NanoObjectDetection as nd
 
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
    
     plot_diameter = sizes_df_lin["diameter"]
     plot_traj_length = sizes_df_lin["valid frames"] 
    
-    Histogramm_min_max_auto = settings["Plot"]["Histogramm_min_max_auto"]
-    
-    if Histogramm_min_max_auto == 1:
+    # diameter boudaries of the histogramm
+    if settings["Plot"]["Histogramm_min_max_auto"] == 1:
+        # estimate
         histogramm_min = np.round(np.min(sizes_df_lin.diameter) - 5, -1)
         histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)
         y_min_max = nd.handle_data.Get_min_max_round(plot_diameter,1)
         
     else:
+        # load
         histogramm_min = settings["Plot"]["Histogramm_min"]
         histogramm_max = settings["Plot"]["Histogramm_max"]
         y_min_max = [histogramm_min, histogramm_max]
     
-    
+    # title of the plot
     if yEval == True:
         my_title = "Trans. Particle size over tracking time"
     else:
@@ -325,9 +285,11 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
     my_ylabel = "Diameter [nm]"
     my_xlabel = "Trajectory length [frames]"
     
+    # get the trajectory length boundaries
     x_min_max = nd.handle_data.Get_min_max_round(plot_traj_length, 2)
     x_min_max[0] = 0
     
+    # choose kind of brightness is used in the false colour map
     if color_type == None:
         my_c = sizes_df_lin["rawmass_mean"]
     
@@ -344,10 +306,10 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
             my_c = sizes_df_lin["rawmass_max"]
             ShowLegendTitle = "Max Brightness"
     
-    Plot2DScatter(plot_traj_length, plot_diameter, c = my_c, title = my_title, 
-                  xlabel = my_xlabel, ylabel = my_ylabel,
-                  myalpha = 0.9, x_min_max = x_min_max, y_min_max = y_min_max, log = True, cmap = 'jet', ShowLegend = True, ShowLegendTitle = ShowLegendTitle)
+    # plot it
+    Plot2DScatter(plot_traj_length, plot_diameter, c = my_c, title = my_title, xlabel = my_xlabel, ylabel = my_ylabel, myalpha = 0.9, x_min_max = x_min_max, y_min_max = y_min_max, log = True, cmap = 'jet', ShowLegend = True, ShowLegendTitle = ShowLegendTitle)
  
+    # export if required
     if save_plot == True:
         if yEval == True:
             my_title = "DiameterOverTrajLength_trans"
@@ -358,26 +320,27 @@ def DiameterOverTrajLenght(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
 
 
 
-def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, save_plot = None, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None):
-    """ plot (and save) temporal evolution of the diameter histogram """
+def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin):
+    """
+    plot (and save) temporal evolution of the diameter histogram
+    """
     
-    #import NanoObjectDetection as nd
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
-        
-    Histogramm_Show = settings["Plot"]['Histogramm_time']
     
     binning = settings["Plot"]["Histogramm_Bins"]
     
     nd.logger.error("RF 211008: Binning must be updated!")
     
-    Histogramm_min_max_auto = settings["Plot"]["Histogramm_min_max_auto"]
-    if Histogramm_min_max_auto == 1:
-
+    # diameter boudaries of the histogramm
+    if settings["Plot"]["Histogramm_min_max_auto"] == 1:
+        # estimate
         histogramm_min = np.round(np.min(sizes_df_lin.diameter) - 5, -1)
-        histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)
-        
-    histogramm_min, settings = nd.handle_data.SpecificValueOrSettings(histogramm_min, settings, "Plot", "Histogramm_min")
-    histogramm_max, settings = nd.handle_data.SpecificValueOrSettings(histogramm_max, settings, "Plot", "Histogramm_max")
+        histogramm_max = np.round(np.max(sizes_df_lin.diameter) + 5, -1)       
+    else:
+        # load
+        histogramm_min = settings["Plot"]["Histogramm_min"]
+        histogramm_max = settings["Plot"]["Histogramm_max"]
+
     
     xlabel = 'Diameter [nm]'
     ylabel = 'Absolute occurrence' # better: "Absolute number of occurrences"?
@@ -385,15 +348,14 @@ def DiameterHistogrammTime(ParameterJsonFile, sizes_df_lin, show_plot = None, sa
 
     nd.visualize.PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min, histogramm_max, title, xlabel, ylabel)
   
-    if Histogramm_Show == True:
+    if settings["Plot"]['Histogramm_time'] == True:
         settings = nd.visualize.export(settings["Plot"]["SaveFolder"], "Diameter_Histogramm_Time", settings, data = sizes_df_lin)
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
 
 
 
-def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 10000, 
-                           title = '', xlabel = '', ylabel = '', mycol='C0', my_range = None):
+def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 10000, title = '', xlabel = '', ylabel = '', mycol='C0', my_range = None):
     """ plot a histogram of particles sizes
 
     Parameters
@@ -407,24 +369,22 @@ def PlotDiameterHistogramm(sizes, binning, histogramm_min = 0, histogramm_max = 
     ax : AxesSubplot object
 
     """
-    from NanoObjectDetection.PlotProperties import axis_font, title_font
-    # import NanoObjectDetection as nd
 
-#    plt.figure()
     fig, ax = plt.subplots()
+    
+    # choose the diameters between the limits
     diameters = sizes
     show_diameters = diameters[(diameters >= histogramm_min) & (diameters <= histogramm_max)]
 
+    # get the histogram data
     values_hist, positions_hist = np.histogram(sizes, bins = binning, range = my_range)
-    # histogram of sizes, only taking into account 
+    
+    # create the histogram
     plt.hist(show_diameters, bins=binning, range = my_range, color=mycol) 
 
-    # sns.distplot(show_diameters, bins=binning, rug=True, rug_kws={"alpha": 0.4}, kde=False,color=mycol) 
-    #those that are below threshold size as defined in the initial parameters
-#    plt.rc('text', usetex=True)
+    # label it
     plt.rc('text', usetex=False)
     plt.title(title, **title_font)
-    #   plt.ylabel(r'absolute occurrence')
     plt.ylabel(ylabel, **axis_font)
     plt.xlabel(xlabel, **axis_font)
     plt.grid(True)
@@ -537,15 +497,6 @@ def PlotDiameter2DHistogramm(sizes_df_lin, binning, histogramm_min = 0, histogra
     
     # plt.show()      
 
-    
-
-def NumberOfBinsAuto(mydata, average_height = 4):
-    number_of_points = len(mydata)
-    
-    bins = int(np.ceil(number_of_points / average_height))
-    
-    return bins
-
 
 
 def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, histogramm_max = None, Histogramm_min_max_auto = None, binning = None, weighting=False, num_dist_max=2, fitInvSizes=True, showInfobox=True, fitNdist=False, showICplot=False, showInvHist=False, yEval = False):
@@ -602,7 +553,6 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
     my_range = (min_diam, min_diam + bin_number * bin_nm)
         
     if binning is None:
-        #binning = np.arange(settings["Plot"]["Histogramm_Bins"])
         binning = settings["Plot"]["Histogramm_Bins"]
         
     if Histogramm_min_max_auto is None:
@@ -622,10 +572,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
     
     if showInvHist:
         inv_diams = 1000/sizes # 1/um
-        values_invHist, ax0 = PlotDiameterHistogramm(inv_diams, 40, histogramm_min = inv_diams.min(), 
-                                                     histogramm_max = inv_diams.max(), 
-                                                     xlabel='Inv. diameter [1/$\mu$m]', 
-                                                     ylabel=ylabel, title=title, mycol='C3')
+        values_invHist, ax0 = PlotDiameterHistogramm(inv_diams, 40, histogramm_min = inv_diams.min(), histogramm_max = inv_diams.max(), xlabel='Inv. diameter [1/$\mu$m]', ylabel=ylabel, title=title, mycol='C3')
         max_invHist = values_invHist.max()
     else:
         ax0 = 'none'
@@ -646,21 +593,14 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
         if fitNdist == False: 
             nd.logger.info("Show equivalent (reciprocal) Gaussian in the plot.")
             # consider only one contributing particle size
-            mean, median, CV = \
-                nd.visualize.PlotReciprGauss1Size(ax, diam_grid, grid_stepsizes, 
-                                                  max_hist, sizes, fitInvSizes)
+            mean, median, CV = nd.visualize.PlotReciprGauss1Size(ax, diam_grid, grid_stepsizes, max_hist, sizes, fitInvSizes)
+            
             nd.logger.info("Parameters: mean={:.2f}, median={:.2f}, CV={:.2f}".format(mean,median,100*CV))
             
         else:
             nd.logger.info("Model the (inverse) sizes distribution as a mixture of Gaussians.")
             # consider between 1 and num_dist_max contributing particle sizes
-            diam_means, CVs, weights, medians = \
-                nd.visualize.PlotReciprGaussNSizes(ax, diam_grid, grid_stepsizes,
-                                                   max_hist, sizes, fitInvSizes, 
-                                                   num_dist_max=num_dist_max,
-                                                   showICplot=showICplot, axInv=ax0,
-                                                   max_hist_inv=max_invHist, 
-                                                   showInvHist=showInvHist)
+            diam_means, CVs, weights, medians = nd.visualize.PlotReciprGaussNSizes(ax, diam_grid, grid_stepsizes, max_hist, sizes, fitInvSizes, num_dist_max=num_dist_max,showICplot=showICplot, axInv=ax0, max_hist_inv=max_invHist, showInvHist=showInvHist)
                 # weights should be the same, no matter if inverse or not
                 # CVs as well (at least approximately)
             
@@ -796,10 +736,29 @@ def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True, fitI
     y_lim = [0, 1.1*np.max(PDF)]
 
     # plot it!
-    ax = nd.visualize.Plot2DPlot(grid, PDF, title, xlabel, ylabel, mylinestyle = "-",  
-                                 mymarker = "", x_lim = x_lim, y_lim = y_lim, y_ticks = [0,0.01], 
-                                 semilogx = False, FillArea = fillplot, Color = mycolor)
+    plt.style.use(params)
     
+    plt.figure()
+
+    plt.plot(grid, PDF, marker = "", linestyle  = "-", color = mycolor)
+    plt.fill_between(grid, PDF, y2 = 0, color = mycolor, alpha=0.5)
+
+    plt.title(title, **title_font)
+    plt.xlabel(xlabel, **axis_font)
+    plt.ylabel(ylabel, **axis_font)
+
+    plt.xlim(x_lim)
+    plt.ylim(y_lim)
+                
+    frame1 = plt.gca() 
+    frame1.axes.yaxis.set_ticks([0,0.01])
+
+    nd.PlotProperties
+    plt.style.use(params)
+    
+    ax = plt.gca()
+
+
     if plotVlines: # plot lines for mean, median and CI-intervals
         nd.visualize.PlotVlines(ax, PDF, grid, mean, median, CI68, CI95, mycolor)
     
@@ -814,7 +773,7 @@ def PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, plotInSizesSpace=True, fitI
         
         if nComponentsFit == 1: # consider only one contributing particle size   
         
-            if not(plotInSizesSpace) and not(fitInInverseSpace):
+            if not(plotInSizesSpace) and not(fitInInvSpace):
                 nd.logger.warning("Fitting a distribution in sizes space and plotting it in the inversed is not implemented.")
                 nd.logger.info("No fit was computed.")
             else:
@@ -1114,34 +1073,6 @@ def PlotReciprGaussNSizes(ax, diam_grid, grid_stepsizes, max_y, sizes, fitInvSiz
 
 
 
-# def PlotGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, weighting=False, useAIC=False, showICplot=False):
-#     """ plot Gaussian fits on top of a histogram/PDF
-    
-#     probably a bit redundant... but at least it's working reliably
-#     """    
-#     # use Gaussian mixture model (GMM) fitting to get best parameters
-#     diam_means, diam_stds, weights = \
-#         nd.statistics.StatisticDistribution(sizes, weighting=weighting,
-#                                             num_dist_max=num_dist_max,
-#                                             showICplot=showICplot, useAIC=useAIC)
-    
-#     # compute individual Gaussian functions from GMM fitted parameters 
-#     dist = np.array([weights[n]*myGauss(diam_grid,diam_means[n],diam_stds[n]) 
-#                      for n in range(weights.size)])
-    
-#     # calculate sum of all distributions
-#     dsum = dist.sum(axis=0)
-#     # normalize dsum to histogram/PDF max. value...
-#     normFactor = max_y / dsum.max()
-#     dsum = normFactor * dsum
-#     dist = normFactor * dist # and the individual distributions accordingly
-    
-#     ax.plot(diam_grid,dist.transpose(),ls='--')
-#     ax.plot(diam_grid,dist.sum(axis=0),color='k')
-    
-#     return diam_means, diam_stds, weights
-
-
 
 def PlotInfobox1N(ax, sizes):
     """ add textbox to a plot containing statistical information 
@@ -1245,10 +1176,6 @@ def update_progress(job_title, progress):
     if progress >= 1: msg += " DONE\r\n"
     sys.stdout.write(msg)
     sys.stdout.flush()
-
-
-
-    
 
 
 def CreateFileAndFolderName(folder_name, file_name, d_type = 'png'):

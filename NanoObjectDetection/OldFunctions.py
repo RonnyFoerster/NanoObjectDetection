@@ -380,3 +380,94 @@ def split_traj(t2_long, t3_gapless, ParameterJsonFile):
     # t4_cutted_no_gaps = nd.get_trajectorie.close_gaps(t4_cutted)
 
     return t4_cutted, t4_cutted_no_gaps
+
+
+def Plot2DPlot(x_np, y_np, title = None, xlabel = None, ylabel = None, myalpha = 1, mymarker = 'x', mylinestyle  = ':', x_lim = None, y_lim = None, y_ticks = None, semilogx = False, FillArea = False, Color = None):
+    """ plot 2D-data in standardized format as line plot """
+        
+    plt.style.use(params)
+    
+    plt.figure()
+    if semilogx == False:
+        if Color == None:
+            plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
+        else:
+            plt.plot(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha, color = Color)
+            
+        if FillArea == True:
+            plt.fill_between(x_np,y_np, y2 = 0, color = Color, alpha=0.5)
+    else:
+        plt.semilogx(x_np,y_np, marker = mymarker, linestyle  = mylinestyle, alpha = myalpha)
+        import matplotlib.ticker
+
+        ax = plt.gca()
+        ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax.get_xaxis().set_minor_formatter(matplotlib.ticker.ScalarFormatter())
+        
+    plt.title(title, **title_font)
+    plt.xlabel(xlabel, **axis_font)
+    plt.ylabel(ylabel, **axis_font)
+
+    if x_lim != None:
+        plt.xlim(x_lim)
+        
+    if y_lim != None:
+        plt.ylim(y_lim)
+                
+    if y_ticks != None:
+        frame1 = plt.gca() 
+        frame1.axes.yaxis.set_ticks(y_ticks)
+
+
+    nd.PlotProperties
+    plt.style.use(params)
+    
+    ax = plt.gca()
+    return ax
+
+def corrfunc(x, y, **kws):
+    """ auxiliary function for applying Pearson statistics on (diameter) data """
+    
+    pearson, _ = scipy.stats.pearsonr(x, y)
+    ax = plt.gca()
+    ax.annotate("p = {:.2f}".format(pearson),
+                xy=(.1, .9), xycoords=ax.transAxes)
+    
+    
+def NumberOfBinsAuto(mydata, average_height = 4):
+    """
+    Estiamtes how many bins are requried to get a good histogram
+    """
+    number_of_points = len(mydata)
+    
+    bins = int(np.ceil(number_of_points / average_height))
+    
+    return bins
+
+
+# def PlotGaussNSizes(ax, diam_grid, max_y, sizes, num_dist_max=2, weighting=False, useAIC=False, showICplot=False):
+#     """ plot Gaussian fits on top of a histogram/PDF
+    
+#     probably a bit redundant... but at least it's working reliably
+#     """    
+#     # use Gaussian mixture model (GMM) fitting to get best parameters
+#     diam_means, diam_stds, weights = \
+#         nd.statistics.StatisticDistribution(sizes, weighting=weighting,
+#                                             num_dist_max=num_dist_max,
+#                                             showICplot=showICplot, useAIC=useAIC)
+    
+#     # compute individual Gaussian functions from GMM fitted parameters 
+#     dist = np.array([weights[n]*myGauss(diam_grid,diam_means[n],diam_stds[n]) 
+#                      for n in range(weights.size)])
+    
+#     # calculate sum of all distributions
+#     dsum = dist.sum(axis=0)
+#     # normalize dsum to histogram/PDF max. value...
+#     normFactor = max_y / dsum.max()
+#     dsum = normFactor * dsum
+#     dist = normFactor * dist # and the individual distributions accordingly
+    
+#     ax.plot(diam_grid,dist.transpose(),ls='--')
+#     ax.plot(diam_grid,dist.sum(axis=0),color='k')
+    
+#     return diam_means, diam_stds, weights

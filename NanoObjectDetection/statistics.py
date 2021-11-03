@@ -11,7 +11,8 @@ collection of functions for statistical information on the tracking data
 import numpy as np
 import pandas as pd
 import NanoObjectDetection as nd
-
+import matplotlib.pyplot as plt # libraries for plotting
+from NanoObjectDetection.PlotProperties import axis_font, title_font, params
 
 
 def GetCI_Interval(probability, grid, ratio_in_ci):
@@ -229,12 +230,20 @@ def StatisticDistribution(sizesInv, num_dist_max=10, showICplot=False, useAIC=Fa
         (k: number of fitting parameters,
          n: number of observation points in the sample) '''
     
-    if showICplot==True:
-        ax0 = nd.visualize.Plot2DPlot(N, AIC,
-                                      title = 'Akaike (-) and Bayesian (--)', 
-                                      xlabel = 'number of components', 
-                                      ylabel = 'information criterion',
-                                      mymarker = 'x', mylinestyle = '-')
+    if showICplot==True:        
+        plt.style.use(params)
+        plt.figure()
+        plt.plot(N, AIC, marker = 'x', linestyle  = '-')
+        
+        plt.title('Akaike (-) and Bayesian (--)', **title_font)
+        plt.xlabel('number of components', **axis_font)
+        plt.ylabel('information criterion', **axis_font)
+        
+        nd.PlotProperties
+        plt.style.use(params)
+        
+        ax0 = plt.gca()
+        
         ax0.plot(N, BIC, 'x--')
     
     if useAIC==True:
