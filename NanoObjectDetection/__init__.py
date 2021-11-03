@@ -33,7 +33,6 @@ from . import teaching
 from . import Theory
 from . import Tools
 from . import Tutorial
-from . import wlsice
 from . import visualize
 
 
