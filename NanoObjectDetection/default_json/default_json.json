@@ -5,7 +5,7 @@
           "lambda": 532,
           "fps": 922,
           "ExposureTime": 0.001,
-          "Microns_per_pixel": 0.477
+          "Microns_per_pixel": 0.477,
           "Temperature": 295.0,
           "Viscosity": 9.5e-16,
           "Viscosity_auto": 0,
@@ -93,8 +93,8 @@
           "Amount lagtimes auto": 1,
           "Estimate_X": "Exp",
           "lagtimes_min": 1,
-          "lagtimes_max": 3
-          "EstimateHindranceFactor": 1
+          "lagtimes_max": 3,
+          "EstimateHindranceFactor": 1,
           "EvalOnlyLongestTraj": 0,
           "CheckBrownianMotion": 1
      },
@@ -126,11 +126,11 @@
           "PDF_min": 0.0,
           "PDF_max": 1000.0,
           "PDF_show_fit": 0,
-          "DiamOverTraj": 1
+          "DiamOverTraj": 1,
           "DiamOverTraj_UseRawMass": "mean",
           "fontsize": 14,
           "SaveFolder": "auto",
-          "save_json": 1
+          "save_json": 1,
           "save_data2csv": 1,
           "dpi": 300
      },
