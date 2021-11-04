@@ -47,16 +47,7 @@ def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, max_iterations = 1
         DESCRIPTION.
     """
 
-    settings = nd.handle_data.ReadJson(ParameterJsonFile)
-
-
-    # CLIP NEGATIVE VALUE (to be compatibile with previous versions)
-    if settings["PreProcessing"]["ClipNegativeValue"] == 1:
-        nd.logger.warning('Clipping negative error is not recommended, because it has many negative side effects.')
-        nd.logger.info('Set negative pixel values to 0: starting...')
-        rawframes_pre[rawframes_pre < 0] = 0
-        nd.logger.info('Set negative pixel values to 0: ...finished')
-    
+    settings = nd.handle_data.ReadJson(ParameterJsonFile)    
 
     # get the parameters
     diameter = settings["Find"]["tp_diameter"]

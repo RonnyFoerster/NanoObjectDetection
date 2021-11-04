@@ -149,13 +149,11 @@ def NewEvaluation():
         if pre_select == 2:
             nd.logger.info("Load: Fiber 1250b3")
             path_json_origin = nd_path + "\\default_json\\fiber\\1250b3.json"
-            nd.logger.warning("RF: FIRST RUN: CHECK IF THAT WORKS PROPERLY!")
-            
+                        
         elif pre_select == 3:
             nd.logger.info("Load: Fiber 1267b1_start")
             path_json_origin = nd_path + "\\default_json\\fiber\\1267b1_start.json"
-            nd.logger.warning("RF: FIRST RUN: CHECK IF THAT WORKS PROPERLY!")
-            
+                        
         elif pre_select == 4:
             nd.logger.info("Load: LightCage.json")
             path_json_origin = nd_path + "\\default_json\\fiber\\LightCage.json"
@@ -163,9 +161,9 @@ def NewEvaluation():
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)
         
-        settings["Fiber"]["Speckle"] = pre_settings["Fiber"]["Speckle"]
         settings["Fiber"]["TubeDiameter_nm"] = pre_settings["Fiber"]["TubeDiameter_nm"]
         settings["Fiber"]["Waist"] = pre_settings["Fiber"]["Waist"]
+        settings["Fiber"]["Mode"] = pre_settings["Fiber"]["Mode"]
         
         
     else:
@@ -174,6 +172,7 @@ def NewEvaluation():
         
         settings["Fiber"]["TubeDiameter_nm"] = float(input("Channel Diameter [um] = ")) * 1000
         settings["Fiber"]["Waist"] = float(input("Beam waist [um] = "))
+        settings["Fiber"]["Mode"] = (input("Fiber mode [Speckle, Gaussian or Evanescent]: "))
                   
             
     #Experimental Parameters

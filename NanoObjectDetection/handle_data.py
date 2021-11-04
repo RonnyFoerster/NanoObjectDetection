@@ -191,7 +191,7 @@ def ReadData2Numpy(ParameterJsonFile, PerformSanityCheck=True):
             settings["Find"]["SaturatedPixelValue"] = max_value
 
     # check bit depth
-    bit_depth, min_value_distance = CalcBitDepth(rawframes_np)
+    # bit_depth, min_value_distance = CalcBitDepth(rawframes_np)
 
 
     nd.handle_data.WriteJson(ParameterJsonFile, settings)

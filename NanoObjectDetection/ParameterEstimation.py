@@ -258,13 +258,6 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
 
     # CLIP NEGATIVE VALUE
     img_in_tp = img_in_zncc.copy()
-    if settings["PreProcessing"]["ClipNegativeValue"] == 1:
-        nd.logger.info('Set negative pixel values to 0: staring...')
-        nd.logger.warning("Ronny does not love clipping.")
-        img_in_tp[img_in_tp < 0] = 0
-        nd.logger.info('Set negative pixel values to 0: ...finished')
-    else:
-        nd.logger.debug("Negative values in image kept")
 
     # this is the main function for optimization, which tries to find the same particle positions with the quick trackpy than with the precise zncc. saves the optimal parameters in the settings
     settings = OptimizeMinmassInTrackpyMain(settings, img_in_tp, num_particles_zncc, pos_particles, DoDiameter)
@@ -1174,8 +1167,6 @@ def MaxRelIntensityJump(ParameterJsonFile):
         I_offset = np.min([I_start, I_end], axis = 0)
         
         rel_dI = np.abs(dI/I_offset)
-        
-        plt.plot(r[dr_px:], rel_dI)
         
         # get the maximum value and save it
         max_rel_jump = np.max(rel_dI)
