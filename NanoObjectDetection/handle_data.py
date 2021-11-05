@@ -473,7 +473,7 @@ def RoiAndSuperSampling(settings, ParameterJsonFile, rawframes_np):
         nd.AdjustSettings.FindROI(rawframes_np)
 
     rawframes_ROI = UseROI(rawframes_np, settings)
-    
+        
     return rawframes_ROI
 
 
@@ -508,7 +508,7 @@ def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = No
 
      """ 
     
-    nd.logger.info("Size rawdata \n (frames, height, length): %s", image.shape)
+    nd.logger.info("Size rawdata \n (frames, height, width): %s", image.shape)
     
     if settings["ROI"]["Apply"] == 0:
         nd.logger.info("ROI NOT applied")
@@ -530,7 +530,7 @@ def UseROI(image, settings, x_min = None, x_max = None, y_min = None, y_max = No
             data_folder_name = settings["File"]["data_folder_name"]
             SaveROIToTiffStack(image_ROI, data_folder_name)
                 
-        nd.logger.info("Size ROI \n (frames, height, length): %s", image_ROI.shape)
+        nd.logger.info("Size ROI \n (frames, height, width): %s", image_ROI.shape)
     
     return image_ROI
 
