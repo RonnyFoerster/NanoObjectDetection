@@ -109,7 +109,8 @@ def Plot2DScatter(x_np, y_np, c = None, title = None, xlabel = None, ylabel = No
         #make it log and look pretty
         ax.set_xscale('log')
         
-        x_label = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000]
+        # x_label = [1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000]
+        x_label = np.array([1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000])
         
         ax.set_xticks(x_label)
         
@@ -119,7 +120,8 @@ def Plot2DScatter(x_np, y_np, c = None, title = None, xlabel = None, ylabel = No
         plt.xlim([x_min, x_max])
         
         ax.set_yscale('log')
-        y_label = [1, 2, 3, 4, 6, 10, 15, 20, 30, 40, 60, 80 ,100, 150, 200, 300, 400, 600, 800, 1000]
+        # y_label = [1, 2, 3, 4, 6, 10, 15, 20, 30, 40, 60, 80 ,100, 150, 200, 300, 400, 600, 800, 1000]
+        y_label = np.array([1, 2, 3, 4, 6, 10, 15, 20, 30, 40, 60, 80 ,100, 150, 200, 300, 400, 600, 800, 1000])
         ax.set_yticks(y_label)
         
         #check which labels are around the values
@@ -239,7 +241,7 @@ def PlotDiameters(ParameterJsonFile, sizes_df_lin, any_successful_check, yEval =
             # show diamter PDF
             PlotDiameterPDF(ParameterJsonFile, sizes_df_lin, yEval = yEval)
         
-        show_diam_traj = settings["Plot"]["DiamOverTraj_Show"]
+        show_diam_traj = settings["Plot"]["DiamOverTraj"]
         if show_diam_traj:
             # Show the diameter over the trajectory length
             # Select which brightness is used for false color coding (max, mean, median)
@@ -535,8 +537,6 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     # read in plotting parameters
-    Histogramm_Show = settings["Plot"]
-    
     min_diam = np.floor(np.min(sizes))
     max_diam = np.ceil(np.max(sizes))
 
@@ -560,7 +560,7 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
         
     if Histogramm_min_max_auto == 1:
         settings["Plot"]["Histogramm_min"] = np.round(np.min(sizes) - 5, -1)
-        settings["Plot"]["Histogramm_min"] = np.round(np.max(sizes) + 5, -1)
+        settings["Plot"]["Histogramm_max"] = np.round(np.max(sizes) + 5, -1)
         
     histogramm_min = settings["Plot"]["Histogramm_min"]
     histogramm_max = settings["Plot"]["Histogramm_max"]
@@ -607,19 +607,18 @@ def DiameterHistogramm(ParameterJsonFile, sizes_df_lin, histogramm_min = None, h
             if showInfobox==True:
                 nd.visualize.PlotInfoboxMN(ax, diam_means, CVs, weights, medians)
             
-    if Histogramm_Show == True:
-        if yEval == True:
-            if weighting == True:
-                my_title = "Diameter_Histogramm-tran-weighted"
-            else:
-                my_title = "Diameter_Histogramm-tran-unweighted"
+    if yEval == True:
+        if weighting == True:
+            my_title = "Diameter_Histogramm-tran-weighted"
         else:
-            if weighting == True:
-                my_title = "Diameter_Histogramm-long-weighted"
-            else:
-                my_title = "Diameter_Histogramm-long-unweighted"
+            my_title = "Diameter_Histogramm-tran-unweighted"
+    else:
+        if weighting == True:
+            my_title = "Diameter_Histogramm-long-weighted"
+        else:
+            my_title = "Diameter_Histogramm-long-unweighted"
             
-        settings = nd.visualize.export(settings["Plot"]["SaveFolder"], my_title, settings, data = sizes_df_lin, ShowPlot = Histogramm_Show)
+    settings = nd.visualize.export(settings["Plot"]["SaveFolder"], my_title, settings, data = sizes_df_lin, ShowPlot = True)
         
         
     nd.handle_data.WriteJson(ParameterJsonFile, settings) 
