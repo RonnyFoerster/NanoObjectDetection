@@ -130,7 +130,7 @@ def Main(t_drift, ParameterJsonFile, min_tracking_frames = None, PlotGlobalDrift
             #             t_drift = t_drift[t_drift.particle.isin(valid_particle_number_xy)]
             
             # remove to short trajectories for further processing
-            t_no_drift = nd.get_trajectorie.filter_stubs(t_no_drift, ParameterJsonFile, Mode = "Moving After Drift", PlotErrorIfTestFails = False)
+            t_no_drift = nd.get_trajectorie.filter_stubs(t_no_drift, ParameterJsonFile, Mode = "Moving After Drift")
             
 
             # plot the calculated drift

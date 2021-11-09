@@ -79,7 +79,7 @@ def GetTpVersion():
     elif tp_version >= version.parse(tp_5):
         tp_version = 5
         
-    nd.logger.debug("Trackpy main version: %s", 5)
+    # nd.logger.debug("Trackpy main version: %s", 5)
     
     return tp_version
 

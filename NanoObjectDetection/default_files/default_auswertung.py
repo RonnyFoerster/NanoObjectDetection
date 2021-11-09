@@ -43,7 +43,7 @@ nd.AdjustSettings.Main(rawframes_super, rawframes_pre, ParameterJsonFile)
     
 
 #%% find the objects
-obj_all, objects_per_frame = nd.get_trajectorie.FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile)
+obj_all = nd.get_trajectorie.FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile)
 
 
 #%% identify static objects
@@ -64,7 +64,7 @@ traj_no_drift = nd.Drift.Main(traj_moving, ParameterJsonFile, PlotGlobalDrift = 
 
 
 #%% only long trajectories are used in the MSD plot in order to get a good fit
-traj_final = nd.get_trajectorie.filter_stubs(traj_no_drift, ParameterJsonFile, Mode = "Moving After Drift", PlotErrorIfTestFails = False)
+traj_final = nd.get_trajectorie.filter_stubs(traj_no_drift, ParameterJsonFile, Mode = "Moving After Drift")
 
 
 #%% calculate the MSD and process to diffusion and diameter - LONGITUDINAL
