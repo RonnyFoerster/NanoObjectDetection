@@ -28,7 +28,7 @@ import NanoObjectDetection as nd
 #fovlength = settings["Exp"]["Microns_per_pixel"] * len(rawframes_rot[0,0,:]) 
 
 
-def ParticleCount(obj_matrix,totalframe):
+def ParticleCount(obj_matrix, totalframe, UseLog = False):
     """ calculate the number of visible particles (= found objects) in all frames 
     
     obj_matrix: DataFrame as created by the nd.get_trajectorie.FindSpots function
@@ -39,6 +39,13 @@ def ParticleCount(obj_matrix,totalframe):
     
     for fnum in range(totalframe): # look through all frames and count particles present
         obj_per_frame[fnum] = len(obj_matrix[obj_matrix.frame==fnum])
+    
+    if UseLog == True:
+        # plot how many particles have been located
+        obj_per_frame_mean = obj_per_frame.describe()[1]
+        obj_per_frame_std = obj_per_frame.describe()[2]
+        
+        nd.logger.info("Particles per frame: %.1f +- %.1f", obj_per_frame_mean, obj_per_frame_std)
     
     return obj_per_frame
 

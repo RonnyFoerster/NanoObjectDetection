@@ -438,7 +438,7 @@ Parameters that define what is ploted, how it looks like and where it is safed.
 | example: 30
 | unit: nm
     
-| key: DiamOverTraj_Show
+| key: DiamOverTraj
 | description: Diameter of a particle over its trajectory length
 | example: 1
 

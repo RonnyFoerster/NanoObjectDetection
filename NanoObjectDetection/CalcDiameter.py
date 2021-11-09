@@ -267,7 +267,7 @@ def MSDFitLagtimes(settings, eval_tm, amount_lagtimes_auto = None):
         
         # start value accoring to Michaelt 2010
         lagtimes_min = 1
-        lagtimes_max = np.int(traj_length/10)
+        lagtimes_max = 100
         
         # lagtimes must be 2 at least
         if lagtimes_max == 1:
@@ -277,12 +277,6 @@ def MSDFitLagtimes(settings, eval_tm, amount_lagtimes_auto = None):
         if lagtimes_max > 100:
             lagtimes_max = 100
         
-        # special rule for simulated data of very long track lengths
-        if settings["Simulation"]["SimulateData"] == 1:
-            if traj_length > 10:
-                nd.logger.warning("Ronny is not sure if this satisfies every user!")
-                nd.logger.debug("Use 100 Lagtimes as a starting value, instead of TrajLength/100")
-                lagtimes_max = 10
         
         nd.logger.debug("Currently considered lagtimes (offset, slope): %s", lagtimes_max)              
         

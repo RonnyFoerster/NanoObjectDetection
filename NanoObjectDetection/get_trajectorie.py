@@ -108,9 +108,8 @@ def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, max_iterations = 1
     if settings["Plot"]["save_data2csv"] == 1:
         nd.handle_data.pandas2csv(obj_all, settings["Plot"]["SaveFolder"], "obj_all")
 
-    objects_per_frame = nd.particleStats.ParticleCount(obj_all, rawframes_pre.shape[0])
-    print(objects_per_frame.describe())
-
+    nd.particleStats.ParticleCount(obj_all, rawframes_pre.shape[0], UseLog = True)
+    
     return obj_all
 
 
@@ -331,8 +330,6 @@ def Link(obj, ParameterJsonFile, SearchFixedParticles = False):
             nd.handle_data.pandas2csv(traj, settings["Plot"]["SaveFolder"], "traj_moving")            
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
-
-
     
     return traj
 

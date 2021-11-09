@@ -13,7 +13,7 @@ import NanoObjectDetection as nd
 
 
 
-def Main(t_drift, ParameterJsonFile, min_tracking_frames = None, PlotGlobalDrift = True, SaveDriftPlots = True, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False):
+def Main(t_drift, ParameterJsonFile, PlotGlobalDrift = True, SaveDriftPlots = True, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False):
     
     """
     Calculate and remove overall drift from trajectories
@@ -75,10 +75,9 @@ def Main(t_drift, ParameterJsonFile, min_tracking_frames = None, PlotGlobalDrift
         avg_frames             = settings["Drift"]["Avg frames"]    
         rolling_window_size    = settings["Drift"]["Drift rolling window size"]    
         min_particle_per_block = settings["Drift"]["Min particle per block"]    
-        # min_tracking_frames   = settings["Link"]["Min_tracking_frames"]
 
 
-        # to different types of drift correction
+        # two different types of drift correction
         
         if LaminarFlow == False:
             # Attention: This ignores laminar flow, but needs fewer frames (and thus time) to get a good estimation
@@ -446,7 +445,6 @@ def TransversalEstimation(settings, t_drift, drift_smoothing_frames, rolling_win
     # Set this, if y-depending-drift-correction is to be used
     t_no_drift = t_no_drift_sub 
     
-#        t_no_drift = tp.filter_stubs(t_no_drift, min_tracking_frames) 
     t_no_drift = t_no_drift.sort_values('frame')
     
     # insert y_range
@@ -477,6 +475,6 @@ def DriftCorrection(t_drift, ParameterJsonFile, Do_transversal_drift_correction 
     
     nd.logger.warning("This is an old function. Use nd.Drift.Main from now on. It is still executed.")
     
-    t5_no_drift = Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None, min_particle_per_block = None, min_tracking_frames = None, PlotGlobalDrift = True, SaveDriftPlots = True, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False)
+    t5_no_drift = Main(t_drift, ParameterJsonFile, Do_transversal_drift_correction = None, drift_smoothing_frames = None, rolling_window_size = None, min_particle_per_block = None, PlotGlobalDrift = True, SaveDriftPlots = True, PlotDriftAvgSpeed = False, PlotDriftTimeDevelopment = False, PlotDriftFalseColorMapFlow = False, PlotDriftVectors = False, PlotDriftFalseColorMapSpeed = False, PlotDriftCorrectedTraj = False)
     
     return t5_no_drift
