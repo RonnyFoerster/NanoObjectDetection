@@ -96,6 +96,11 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, proc
     
     # return the number of prints you see during execution, depending on your logger mode
     num_verbose = nd.handle_data.GetNumberVerbose()
+                                                                  
+    for jj in particle_list_value:
+        print(jj)
+        MSD_par(t6_final_use[t6_final_use.particle == jj].copy(), settings, yEval, any_successful_check, t_beforeDrift)
+        
 
     # Estimate diameter out of trajectory in parallel (see joblib for detailed information)
     output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(MSD_par)(t6_final_use[t6_final_use.particle == jj].copy(), settings, yEval, any_successful_check, t_beforeDrift) for jj in particle_list_value)
@@ -267,7 +272,7 @@ def MSDFitLagtimes(settings, eval_tm, amount_lagtimes_auto = None):
         
         # start value accoring to Michaelt 2010
         lagtimes_min = 1
-        lagtimes_max = 100
+        lagtimes_max = int(np.ceil(traj_length/10))
         
         # lagtimes must be 2 at least
         if lagtimes_max == 1:
