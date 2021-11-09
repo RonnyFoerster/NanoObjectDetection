@@ -73,6 +73,8 @@ def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, max_iterations = 1
 
 
     # convert image to int16 otherwise trackpy performs a min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
+    rawframes_pre = nd.PreProcessing.MakeInt16(rawframes_pre, AllowNonPosValues = False)
+    
     if isinstance(rawframes_pre, np.float) == True:
         np.logger.warning("Given image is of datatype float. It is converted to int16. That is prone to errors for poor SNR; slow and memory waisting.")
         rawframes_pre = np.int16(rawframes_pre)

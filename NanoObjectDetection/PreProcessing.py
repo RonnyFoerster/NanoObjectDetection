@@ -79,7 +79,7 @@ def Main(rawframes_np, ParameterJsonFile):
     
     # Transform to int dtype, because trackpy requires this
     # uint16 or int 16 is good compromise from precision and memory
-    rawframes_np, settings = MakeInt16(rawframes_np, settings)
+    # rawframes_np, settings = MakeInt16(rawframes_np, settings, AllowNegValues = True)
 
 
     # save the settings
@@ -89,7 +89,7 @@ def Main(rawframes_np, ParameterJsonFile):
 
 
 
-def MakeInt16(rawframes_np, settings):
+def MakeInt16(rawframes_np, AllowNonPosValues = False):
     """
     make a uint16 or int16 dtype out of float
 
@@ -97,8 +97,8 @@ def MakeInt16(rawframes_np, settings):
     ----------
     rawframes_np : TYPE
         DESCRIPTION.
-    settings : TYPE
-        DESCRIPTION.
+    AllowNonPosValues  : TYPE
+        If False add offset sothat all values are positiv .
 
     Returns
     -------
@@ -112,6 +112,14 @@ def MakeInt16(rawframes_np, settings):
     nd.logger.info("Convert image to integer DType: starting...")
     
     min_value = np.min(rawframes_np) #check later if negative
+    
+    if AllowNonPosValues == False:
+        # value to ensure only positive values
+        # add_value = -min_value + 1
+        # rawframes_np = np.add(rawframes_np, add_value, out = rawframes_np)
+        rawframes_np[rawframes_np <= 0] = 1
+        min_value = np.min(rawframes_np) #check later if negative
+    
     max_value = np.max(np.abs(rawframes_np))
 
     max_uint16 = 2**16-1
@@ -140,7 +148,7 @@ def MakeInt16(rawframes_np, settings):
 
     nd.logger.info("Convert image to integer DType ...finished")    
 
-    return rawframes_np, settings
+    return rawframes_np
 
                 
 

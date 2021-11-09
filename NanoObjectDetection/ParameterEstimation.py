@@ -258,6 +258,8 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
 
     # CLIP NEGATIVE VALUE
     img_in_tp = img_in_zncc.copy()
+    
+    img_in_tp = nd.PreProcessing.MakeInt16(img_in_tp, AllowNonPosValues = False)
 
     # this is the main function for optimization, which tries to find the same particle positions with the quick trackpy than with the precise zncc. saves the optimal parameters in the settings
     settings = OptimizeMinmassInTrackpyMain(settings, img_in_tp, num_particles_zncc, pos_particles, DoDiameter)
@@ -622,8 +624,14 @@ def OptimizeMinmassInTrackpyMain(settings, img1, num_particles_zncc, pos_particl
     
         num_verbose = nd.handle_data.GetNumberVerbose()
                 
+        tp.quiet(True)
+        
         # Do the minmass optimization in parallel for different diameters
         output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(OptimizeMinmassInTrackpy)(img1, loop_diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile, DoLog = False) for loop_diameter in inputs)
+
+    
+        if nd.logger.getEffectiveLevel() <= 10:
+            tp.quiet(suppress=False)
 
         # the ideal diameter must be choosen by hand. It is recognized by a uniform distribution of the subpixel accuracy.
         for ii,jj in enumerate(inputs):
@@ -749,10 +757,10 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
         nd.logger.info("Separation: %s", separation)
         nd.logger.info("percentile: %s", percentile)
     
-    # switch logger ouf for this optimization
-    if nd.logger.getEffectiveLevel() >= 20:
+    # # switch logger ouf for this optimization
+    # if nd.logger.getEffectiveLevel() >= 20:
         # Switch the logging of for the moment
-        tp.quiet(suppress=True)
+    # tp.quiet(suppress=True)
     
     count_loops = 0
     
@@ -764,14 +772,14 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
         if DoLog:
             if count_loops%10 == 0:
             #plot every ten iterations
-                nd.logger.info("Iteration: %s with minmass: %s", count_loops, minmass)
+                nd.logger.info("Start Iteration: %s with minmass: %s", count_loops, minmass)
             else:
-                nd.logger.debug("Iteration: %s with minmass: %s", count_loops, minmass)
+                nd.logger.debug("Start Iteration: %s with minmass: %s", count_loops, minmass)
             
         count_loops = count_loops + 1    
         
         # localize the particles
-        output = tp.batch(img1, diameter, minmass = minmass, separation = separation, max_iterations = 10, preprocess = DoPreProcessing, percentile = percentile)
+        output = tp.batch(img1, diameter, minmass = minmass, separation = separation, max_iterations = 10, preprocess = DoPreProcessing, percentile = percentile, processes = 1)
         
         # num of found particles by trackpy
         num_particles_trackpy = len(output)
@@ -794,11 +802,11 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             
             if DoLog: nd.logger.debug("5 times more feactures than expected. Enhance threshold!")
             # + 1 is required to ensure that minmass is increasing, although the value might be small
-            minmass = np.int(minmass * 1.5) + 10
+            minmass = np.int(minmass * 1.2) + 10
             
         elif num_particles_trackpy > (2 * num_particles_zncc):
             if DoLog: nd.logger.debug("2 times more feactures than expected. Enhance threshold!")
-            minmass = np.int(minmass * 1.2) + 10
+            minmass = np.int(minmass * 1.1) + 10
             
         else:
             # trackpy and znnc have similar results. so make some fine tuning in small steps
@@ -907,9 +915,9 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
 
     obj_all = tp.batch(img1, diameter, minmass = minmass_optimum, separation = diameter, max_iterations = 10, preprocess = DoPreProcessing)
       
-    if nd.logger.getEffectiveLevel() >= 20:
+    # if nd.logger.getEffectiveLevel() >= 20:
         # Switch the logging back on
-        tp.quiet(suppress=False)
+    tp.quiet(suppress=False)
     
     # num of found particles by trackpy
     num_particles_trackpy = len(obj_all)
