@@ -377,9 +377,21 @@ def ConvolveWithPSF_2D(image_frame, gauss_kernel_rad):
 
     """
 
+    UseRft = True
 
-    image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad, gauss_kernel_rad])))
+    if UseRft == False:
+        nd.logger.debug("FFT is used in Gaussian filter")
+        # old was
+        image_frame_filtered = np.real(np.fft.ifft2(ndimage.fourier_gaussian(np.fft.fft2(image_frame), sigma=[gauss_kernel_rad, gauss_kernel_rad])))
 
+    else:
+        nd.logger.debug("RFT is used in Gaussian filter")
+        n = image_frame.shape[1]
+        
+        image_frame_filtered = np.fft.irfft2(ndimage.fourier_gaussian(np.fft.rfft2(image_frame), sigma=[gauss_kernel_rad, gauss_kernel_rad], n = n))
+    
+    # get back to float32
+    image_frame_filtered = image_frame_filtered.astype("float32")
     
     return image_frame_filtered
 

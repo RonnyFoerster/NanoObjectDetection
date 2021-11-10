@@ -379,7 +379,7 @@ def ZNCC_locate(img1, settings, num_verbose = 5):
     
     # find objects in zncc
     correl_min = settings["PreProcessing"]["ZNCC_min"]
-    nd.logger.info("Threshold zncc at %.2f", correl_min)
+    nd.logger.debug("Threshold zncc at %.2f", correl_min)
        
     # get positions of located spots and number of located particles
     pos_particles, num_particles_zncc = FindParticles(img_zncc, correl_min)
