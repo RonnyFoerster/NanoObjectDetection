@@ -8,9 +8,6 @@ Created on Fri Oct 23 11:18:16 2020
 import numpy as np # library for array-manipulation
 import matplotlib.pyplot as plt # libraries for plotting
 from matplotlib import animation # allows to create animated plots and videos from them
-import datetime
-from pdb import set_trace as bp #debugger
-import scipy
 import os.path
 
 import NanoObjectDetection as nd
@@ -20,17 +17,18 @@ from matplotlib.gridspec import GridSpec
 
 def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, ParameterJsonFile): 
        
+    # read the settings
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     # dont let sizes_df_lin overwrite the original pandas
     sizes_df_lin = sizes_df_lin.copy()
     
+    # standard gamma for higher visibility of dim features
     my_gamma = 0.7
-
-    num_points_pdf = 100
 
     microns_per_pixel = settings["Exp"]["Microns_per_pixel"]
 
+    # define some global variable to have them inside the animation
     global my_font_size
     my_font_size = 16
     my_font_size_title = 22
@@ -38,18 +36,18 @@ def AnimateDiameterAndRawData_Big(rawframes_rot, sizes_df_lin, traj, ParameterJs
     global ColorbarDone
     ColorbarDone = False
     
+    #make the particles id from 1 to N sothat the animation can show the particles ID without jumps
     id_particle = sizes_df_lin.particle.unique()
     
+    # get the trajectories of the particles that are evaluated and create a column that can hold the retrieved diameter
     traj = traj[traj.particle.isin(id_particle)][["frame", "particle", "x", "y"]].copy()
       
     traj["diameter"] = 0
+
     
-    #make the particles id from 1 to N
-    particles_id = sizes_df_lin.particle.unique()
+    nd.logger.debug("Insert the retrieved diameter into the trajectory and sort the trajectories")
     
-    nd.logger.debug("Insert the retrieved diameter into the trajectory")
-    
-    for new_id, old_id in enumerate(particles_id):
+    for new_id, old_id in enumerate(id_particle):
         nd.logger.debug("Old parameter ID: %.0f", old_id)
         nd.logger.debug("New parameter ID: %.0f", new_id)
         traj.loc[traj.particle == old_id, "diameter"] = sizes_df_lin.loc[sizes_df_lin.particle == old_id, "diameter"].values[0]
