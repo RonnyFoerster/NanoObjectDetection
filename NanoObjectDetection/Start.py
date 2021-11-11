@@ -139,11 +139,12 @@ def NewEvaluation():
           \n 2 - 1250b3 \
           \n 3 - 1276b1_start \
           \n 4 - 18um Lightcage \
+          \n 5 - No Fiber\
           \n\n"
-        , ["1", "2", "3", "4"])
+        , ["1", "2", "3", "4", "5"])
     
     
-    if pre_select in [2,3,4]:
+    if pre_select in [2, 3, 4, 5]:
         nd_path = os.path.dirname(nd.__file__)
         
         if pre_select == 2:
@@ -157,6 +158,10 @@ def NewEvaluation():
         elif pre_select == 4:
             nd.logger.info("Load: LightCage.json")
             path_json_origin = nd_path + "\\default_json\\fiber\\LightCage.json"
+            
+        elif pre_select == 5:
+            nd.logger.info("Load: NoFiber.json")
+            path_json_origin = nd_path + "\\default_json\\fiber\\NoFiber.json"
             
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)

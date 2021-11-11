@@ -140,6 +140,7 @@
           "y_min": 30,
           "y_max": 120,
           "gamma": 0.5,
-          "frames_tot": 5
+          "frames_tot": 5,
+          "accelerate": 1
      }
 }
