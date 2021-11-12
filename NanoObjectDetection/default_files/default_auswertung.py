@@ -82,3 +82,5 @@ sizes_df_lin_y, any_successful_check = nd.CalcDiameter.Main2(traj_final, Paramet
 nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin_y, any_successful_check, yEval = True)
 
 
+#%% Animation
+nd.Animate.AnimateDiameterAndRawData_Big(rawframes_np, sizes_df_lin_x.copy(), traj_final, ParameterJsonFile, DoSave = False)
