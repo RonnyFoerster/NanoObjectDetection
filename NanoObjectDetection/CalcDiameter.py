@@ -112,7 +112,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, proc
     for ii,jj in enumerate(output_list):
         # copy only the valid
         if type(jj[0]) == str:
-            nd.logger.debug("remove to short trajectory")
+            nd.logger.debug("remove to short trajectory of particle id: %.0f", particle_list_value[ii])
         else:
             size_df_lin_valid.append(jj[0])
             
@@ -775,8 +775,8 @@ def UpdateP_Min(settings, eval_tm, msd_fit_para, diff_direct_lin, amount_frames_
         #max lagtime for a(offset) and b(slope)
         lagtimes_max = np.array([p_min_b, p_min_a], dtype = 'int')
 
-    # check if input and output number of lagtimes is identical - continue or finish optimization then
-    if np.min(lagtimes_max_old == lagtimes_max):
+    # check if input and output number of lagtimes (FOR THE SLOPE) is identical - continue or finish optimization then
+    if np.min(lagtimes_max_old[1] == lagtimes_max[1]):
         OptimizingStatus = "Successful"
     else:
         OptimizingStatus = "Continue"
