@@ -97,7 +97,7 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
         frames_per_second   = settings["Exp"]["fps"]
         microns_per_pixel   = settings["Exp"]["Microns_per_pixel"]
         temp_water          = settings["Exp"]["Temperature"]
-        solvent = settings["Exp"]["solvent"]
+        solvent             = settings["Exp"]["solvent"]
         
         FoVheight = settings["Fiber"]["TubeDiameter_nm"]*0.001 /microns_per_pixel # px
 
@@ -108,26 +108,32 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
 
 
     if settings["Exp"]["Viscosity_auto"] == 1:
-        visc_water = nd.handle_data.GetViscocity(temperature = temp_water, solvent = solvent)
+        visc_water = nd.Experiment.GetViscosity(temperature = temp_water, solvent = solvent)
+        
     else:
         visc_water = settings["Exp"]["Viscosity"]
 
     # ========== up to here, parameters should be completely defined ============
 
+    # ensure that diameter is a list
     if not(type(diameter)==list):
         diameter = [diameter]
+    
+    # ensure that num_particles is a list
     if not(type(num_particles)==list):
         num_particles = [num_particles] * len(diameter) # adjust list lengths
     else:
         if not(len(num_particles)==len(diameter)):
             nd.logging.warning('Given diameters and number of particles are not equal. Please adjust.')
-            # this provides the info... an error will be thrown later in the loop automatically
+
+           
+    # ensure that mass is a list
     if not(type(mass)==list):
         mass = [mass] * len(diameter) # adjust list lengths
     else:
         if not(len(mass)==len(diameter)):
             nd.logging.warning('Given diameters and mass values are not equal. Please adjust.')
-            # this provides the info... an error will be thrown later in the loop automatically
+
 
     output = pd.DataFrame()
     # loop over all given diameters
@@ -143,17 +149,9 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
             start_pos = np.column_stack((start_pos_x, start_pos_y)) # px
 
 
-        if oldSim==True:
-            objall = GenerateRandomWalk_old(diameter[n_d], num_particles[n_d], frames, frames_per_second,
-                                            ep = EstimationPrecision,
-                                            mass = mass[n_d], microns_per_pixel = microns_per_pixel,
-                                            temp_water = temp_water, visc_water = visc_water)
-        else:
-            objall = GenerateRandomWalk(diameter[n_d], num_particles[n_d], frames,
-                                        frames_per_second, ep = EstimationPrecision,
-                                        mass = mass[n_d], microns_per_pixel = microns_per_pixel,
-                                        temp_water = temp_water, visc_water = visc_water,
-                                        start_pos = start_pos)
+        #here comes the true random walk
+        objall = GenerateRandomWalk(diameter[n_d], num_particles[n_d], frames, frames_per_second, ep = EstimationPrecision, mass = mass[n_d], microns_per_pixel = microns_per_pixel, temp_water = temp_water, visc_water = visc_water, start_pos = start_pos)
+
 
         # adjust the particle IDs so that they don't appear twice (or more)
         if any(output):
@@ -170,9 +168,7 @@ def PrepareRandomWalk(ParameterJsonFile = None, diameter = 100, num_particles = 
     return output
 
 
-# def CalcDiffusionCoefficent(radius_m, temp_water = 293, visc_water = 0.001):
-#     diffusion = (k_b*temp_water)/(6*math.pi *visc_water * radius_m) # [um^2/s]
-#     return diffusion
+
 
 
 def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp = 0,
@@ -311,8 +307,6 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
 
 
     # average of microsteps position in each frame and particle. this is where the center of mass of the localization is
-    # pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()[["x","y"]]
-
     if NumDims == 1:
         pos_avg = sim_part[sim_part.step == "exp"].groupby(["particle", "frame"]).mean()["x"]
     elif NumDims == 2:
@@ -364,480 +358,7 @@ def GenerateRandomWalk(diameter, num_particles, frames, frames_per_second, t_exp
         if NumDims == 2:
             sim_part_tm.y = sim_part_tm.y + np.random.normal(0, sim_part_tm.ep)
 
-
     return sim_part_tm
-
-
-def GenerateRandomWalk_old(diameter, num_particles, frames, frames_per_second,
-                           RatioDroppedFrames=0, ep=0, mass=1, microns_per_pixel=0.477,
-                           temp_water=295, visc_water=9.5e-16):
-    """ previous function - restored for comparison and re-running of older scripts
-
-    simulate a random walk of Brownian diffusion and return it as Pandas.DataFrame as
-    if it came from real data
-
-    diameter:       particle size in nm
-    num_particles:  number of particles to simulate
-    frames:         number of frames to simulate
-    frames_per_second
-    ep = 0:         estimation precision
-    mass = 1:       mass of the particle
-    microns_per_pixel = 0.477
-    temp_water = 295 K
-    visc_water = 9.5e-16:
-    """
-
-    print("Random walk parameters: \
-          \n diameter = {} \
-          \n num_particles = {} \
-          \n frames = {} \
-          \n frames_per_second = {} \
-          \n ep = {} \
-          \n mass = {} \
-          \n microns_per_pixel = {} \
-          \n temp_water = {} \
-          \n visc_water = {}" \
-          .format(diameter,num_particles,frames,frames_per_second,ep,mass,\
-          microns_per_pixel,temp_water,visc_water))
-
-    const_Boltz = k_b
-
-    radius_m = diameter/2 * 1e-9 # in m
-    # diffusion constant of the simulated particle (Stokes-Einstein eq.)
-    sim_part_diff = (const_Boltz*temp_water)/(6*math.pi *visc_water * radius_m)
-    # unit sim_part_diff = um^2/s
-
-    print("Diffusion coefficent: ", sim_part_diff)
-
-    # [mum^2/s] x-diffusivity of simulated particle
-    sim_part_sigma_um = np.sqrt(2*sim_part_diff / frames_per_second)
-    sim_part_sigma_x = sim_part_sigma_um / microns_per_pixel
-    # [pixel/frame] st.deviation for simulated particle's x-movement (in pixel units!)
-
-    # generating list to hold frames:
-    sim_part_frame=[]
-    for sim_frame in range(frames):
-        sim_part_frame.append(sim_frame)
-    sim_part_frame_list=sim_part_frame*num_particles
-
-    # generating lists to hold particle IDs and
-    # step lengths in x and y direction, coming from a Gaussian distribution
-    sim_part_part=[]
-    sim_part_x=[]
-    sim_part_y=[]
-
-    drop_rate = RatioDroppedFrames
-
-
-    for sim_part in range(num_particles):
-        loop_frame_drop = 0
-        for sim_frame in range(frames):
-            sim_part_part.append(sim_part)
-            sim_part_x.append(np.random.normal(loc=0,scale=sim_part_sigma_x))
-            sim_part_y.append(np.random.normal(loc=0,scale=sim_part_sigma_x))
-            # Is that possibly wrong??
-
-
-
-    # Putting the results into a df and formatting correctly:
-    sim_part_tm=pd.DataFrame({'x':sim_part_x, \
-                              'y':sim_part_y,  \
-                              'mass':mass, \
-                              'ep': ep, \
-                              'frame':sim_part_frame_list, \
-                              'particle':sim_part_part, \
-                              "size": 0, \
-                              "ecc": 0, \
-                              "signal": 0, \
-                              "raw_mass": mass, \
-                              "rel_step": mass})
-
-    # calculate cumulative sums to get position values from x- and y-steps for the full random walk
-    sim_part_tm.x=sim_part_tm.groupby('particle').x.cumsum()
-    sim_part_tm.y=sim_part_tm.groupby('particle').y.cumsum()
-
-
-#    sim_part_tm.index=sim_part_tm.frame # old method RF 190408
-#    copies frame to index and thus exists twice. not good
-#    bp()
-
-    # here come the localization precision ep on top
-    if ep>0:
-        sim_part_tm.x = sim_part_tm.x + np.random.normal(0,ep,len(sim_part_tm.x))
-        sim_part_tm.y = sim_part_tm.y + np.random.normal(0,ep,len(sim_part_tm.x))
-
-
-    return sim_part_tm
-
-
-
-def VelocityByExternalForce(F_ext, radius, visc_water):
-    #visc_water is the dynamic viscosity (Ns/m^2).
-
-    v = F_ext / (6 * pi * radius * visc_water)
-
-    return v
-
-
-
-def MaximumNAByFocusDepth(dof, lambda_nm, n):
-    '''
-    dof - depth of focus in nm
-    lambda_nm - wavelength in nm
-    n - refractive index immersion oil
-    '''
-    NA = np.sqrt((2*lambda_nm*n) / dof)
-
-    return NA
-#https://www.microscopyu.com/microscopy-basics/depth-of-field-and-depth-of-focus
-
-
-
-def DetectionEfficency(NA,n):
-    alpha = np.arcsin(NA/n) #opening angle
-    ster = 2*np.pi*(1-np.cos(alpha)) # steradiant
-    DE = ster / (4*np.pi)# Detection efficency
-
-    return DE
-
-
-
-def MassOfNP(d_nm,rho):
-
-    r_m = (d_nm/1E9) / 2
-    V = 4/3*pi*np.power(r_m,2)
-
-    m = V*rho
-
-    return m
-
-
-
-def LoopSimulation():
-    # Makes several run of the random walk for several particle numbers and frames to get a good statistic
-    if 1 == 1:
-        frames = 1000
-        iterations = 3
-        num_particles = [5, 10, 25, 50, 100, 200, 400, 800]
-    else:
-        frames = 1000
-        iterations = 1
-        num_particles = [200]
-
-    num_diff_particles = len(num_particles)
-
-    num_eval_particles = np.zeros([iterations, num_diff_particles, frames])
-    num_eval_particles_per_frame = np.zeros([iterations, num_diff_particles, frames])
-
-    for loop_num, loop_num_particles in enumerate(num_particles):
-        print("number of particles", loop_num_particles)
-        for loop_iter in range(iterations):
-            print("num iteration: ", loop_iter)
-            num_eval_particles[loop_iter,loop_num,:], num_eval_particles_per_frame[loop_iter,loop_num,:], volume_nl, t_unconf, t_conf, eval_t1, eval_t2 = ConcentrationVsNN(frames, loop_num_particles)
-
-    print("done")
-
-    conc_per_nl = list(np.round(np.asarray(num_particles)/volume_nl, 0).astype("int"))
-
-    PlotSimulationResults(num_particles, conc_per_nl, frames, num_eval_particles, num_eval_particles_per_frame)
-
-    return num_eval_particles, num_eval_particles_per_frame, t_unconf, t_conf, eval_t1, eval_t2
-
-
-
-def PlotSimulationResults(num_particles, conc_per_nl, frames, num_eval_particles, num_eval_particles_per_frame, RelDrop = False):
-    # Plot it all
-
-    PlotNumberParticlesPerFrame(num_particles, conc_per_nl, frames, num_eval_particles_per_frame, RelDrop)
-    PlotNumberDifferentParticle(num_particles, conc_per_nl, frames, num_eval_particles, RelDrop)
-
-
-
-def PlotNumberParticlesPerFrame(num_particles, conc_per_nl, frames, num_eval_particles_per_frame, RelDrop = False):
-    # Plot the Number of Particles that can be evaluated in average in a frame
-    eval_part_mean = np.mean(num_eval_particles_per_frame, axis = 0)
-    eval_part_std = np.std(num_eval_particles_per_frame, axis = 0)
-
-    min_traj = np.arange(0,frames)
-
-    rel_error = nd.CalcDiameter.DiffusionError(min_traj, "gain missing", 0, 0, 2)[0]
-
-    #get position of rel error
-    disp_rel_array = [0.20, 0.10, 0.08, 0.06, 0.05, 0.04]
-
-    ax2_value_pos = np.zeros_like(disp_rel_array)
-
-    for loop_index, loop_disp_rel_array in enumerate(disp_rel_array):
-        ax2_value_pos[loop_index] = np.where(rel_error < loop_disp_rel_array)[0][0]
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    for loop_num, loop_num_particles in enumerate(num_particles):
-#        plt.plot(min_traj, eval_part_mean[loop_num,:])
-        show_mean = eval_part_mean[loop_num,:]
-        show_std = eval_part_std[loop_num,:]
-        show_rel_mean = show_mean / show_mean[0] * 100
-        if RelDrop == False:
-            ax1.plot(min_traj, show_mean, label= str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num]))
-        else:
-            ax1.plot(min_traj, show_rel_mean, label= str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num]))
-#        ax1.errorbar(min_traj, show_mean, show_std, label= str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num]))
-
-
-    ax1.set_title("Number of evaluable particles in a frame", fontsize = 16)
-    ax1.set_xlim([0,1.4*frames])
-    ax1.set_xlabel("Minium Trajectory length", fontsize = 14)
-
-    if RelDrop == False:
-        ax1.set_ylim([0,np.max(num_particles)*1.1])
-        ax1.set_ylabel("Number of evaluated particles", fontsize = 14)
-    else:
-        ax1.set_ylim([0,105])
-        ax1.set_ylabel("Relative number of evaluated particles [%]", fontsize = 14)
-
-    ax1.grid()
-
-    ax1.legend(title = 'N | c [N/nl]', title_fontsize = 14)#, bbox_to_anchor=(0.5, -0.05), shadow=True, ncol=2)
-
-    # make second axis with rel. error
-    ax2 = ax1.twiny()
-    ax2.set_xticks(ax2_value_pos)
-    ax2.set_xticklabels(list((np.asarray(disp_rel_array)*100).astype("int")))
-    ax2.set_xlim([0,1.4*frames])
-    ax2.set_xlabel("Minimum rel. error [%]", fontsize = 14)
-
-
-
-def PlotNumberDifferentParticle(num_particles, conc_per_nl, frames, num_eval_particles, RelDrop = False):
-    # Plot the Number of Particles that can be evaluated out of an entire ensemble
-    avg_part_mean = np.mean(num_eval_particles, axis = 0)
-    avg_part_std = np.std(num_eval_particles, axis = 0)
-
-    min_traj = np.arange(0,frames)
-    rel_error = nd.CalcDiameter.DiffusionError(min_traj, "gain missing", 0, 0, 2)[0]
-
-    #get position of rel error
-    disp_rel_array = [0.20, 0.10, 0.08, 0.06, 0.05, 0.04]
-
-    ax2_value_pos = np.zeros_like(disp_rel_array)
-
-    for loop_index, loop_disp_rel_array in enumerate(disp_rel_array):
-        ax2_value_pos[loop_index] = np.where(rel_error < loop_disp_rel_array)[0][0]
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-
-    for loop_num, loop_num_particles in enumerate(num_particles):
-        show_mean = avg_part_mean[loop_num,:]
-        show_std = avg_part_std[loop_num,:]
-        show_rel_mean = show_mean / show_mean[0] * 100
-        if RelDrop == False:
-            ax1.plot(min_traj, show_mean, label= str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num]))
-        else:
-            ax1.plot(min_traj, show_rel_mean, label = str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num]))
-
-#        ax1.fill_between(min_traj, show_mean - show_std, show_mean + show_std)
-#        ax1.errorbar(min_traj, show_mean, show_std, label= str(loop_num_particles) + " | "+ str(conc_per_nl[loop_num]))
-#        plt.loglog(min_traj, show_mean, label= str(loop_num_particles))
-
-    ax1.set_title("Number of DIFFERENT evaluable particles", fontsize = 16)
-
-    ax1.set_xlim([0,1.4*frames])
-    ax1.set_xlabel("Minium Trajectory length", fontsize = 14)
-
-
-
-    if RelDrop == False:
-        ax1.set_ylim([0,np.max(num_particles)*1.1])
-        ax1.set_ylabel("Number of evaluated particles", fontsize = 14)
-    else:
-        ax1.set_ylim([0,105])
-        ax1.set_ylabel("Relative number of evaluated particles [%]", fontsize = 14)
-
-#    ax1.set_ylim([1, 1000])
-
-
-    ax1.grid()
-
-    ax1.legend(title = 'N | c [N/nl]', title_fontsize = 14)
-
-
-    # make second axis with rel. error
-    ax2 = ax1.twiny()
-    ax2.set_xticks(ax2_value_pos)
-    ax2.set_xticklabels(list((np.asarray(disp_rel_array)*100).astype("int")))
-    ax2.set_xlim([0,1.4*frames])
-    ax2.set_xlabel("Minimum rel. error [%]", fontsize = 14)
-
-
-
-def BestConcentration(eval_particles, conc_per_nl, frames):
-    #Plot the concentration with the hightes number of evaluated particle
-    num_eval = np.mean(eval_particles,0)
-
-    best_c = np.zeros_like(num_eval[0,:])
-
-    for loop_id,loop_c in enumerate(best_c):
-        best_c_pos = np.where(num_eval[:,loop_id] == np.max(num_eval[:,loop_id]))[0][0]
-        best_c[loop_id] = conc_per_nl[best_c_pos]
-
-    #find edges
-    edges = np.where((best_c[1:] - best_c[0:-1]) != 0)[0][:]
-
-    min_traj = np.arange(0,frames)
-
-    min_traj = np.arange(0,frames)
-    rel_error = nd.CalcDiameter.DiffusionError(min_traj, "gain missing", 0, 0, 2)[0]
-
-    #get position of rel error
-    disp_rel_array = [0.20, 0.10, 0.08, 0.06, 0.05, 0.04]
-
-    ax2_value_pos = np.zeros_like(disp_rel_array)
-
-    for loop_index, loop_disp_rel_array in enumerate(disp_rel_array):
-        ax2_value_pos[loop_index] = np.where(rel_error < loop_disp_rel_array)[0][0]
-
-    min_traj_grid = (edges[1:] + edges[:-1])/2
-    best_c_grid = best_c[edges[:-1]+1]
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    ax1.plot(min_traj_grid,best_c_grid, 'x')
-
-    ax1.set_xlabel("Minium Traj", fontsize = 14)
-    ax1.set_ylabel("Ideal concentraion [N/nl]", fontsize = 14)
-
-    ax1.set_xlim([0, frames])
-    ax1.set_ylim([0, 1.1*np.max(conc_per_nl)])
-    ax1.grid()
-
-    # make second axis with rel. error
-    ax2 = ax1.twiny()
-    ax2.set_xticks(ax2_value_pos)
-    ax2.set_xticklabels(list((np.asarray(disp_rel_array)*100).astype("int")))
-    ax2.set_xlim([0,1.4*frames])
-    ax2.set_xlabel("Minimum rel. error [%]", fontsize = 14)
-
-    return
-
-
-
-def ConcentrationVsNN(frames, num_particles):
-    # Main Function to find out the relation between concentration and evaluatable particles
-    import scipy
-
-    kb = scipy.constants.k
-    pi = scipy.constants.pi
-
-    # numerical grid
-    x_size = 630
-    y_size = 35
-
-    #volume like a cylinder
-    volume_nl = pi * ((y_size*1e-5/2)**2) * x_size*1e-5 *1e9
-
-    # experimental parameters
-    diameter = 40 #nm
-    frames_per_second = 100
-    exposure_time = 1/frames_per_second
-    microns_per_pixel = 1
-    temp_water = 295
-    visc_water_Pas = 1e-3
-    visc_water = visc_water_Pas / 1e12
-    resolution = 1
-
-    if num_particles < 2:
-        raise ValueError("Number of particles must be at least 2!")
-
-    # calc parameters
-    radius_m = diameter/2 * 1e-9 # in m
-    diffusion = (kb*temp_water)/(6*pi *visc_water * radius_m) # [um^2/s]
-
-    sigma_diffusion = np.sqrt(2*exposure_time*diffusion)
-    max_displacement = 5*sigma_diffusion
-    min_separation   = 2*max_displacement
-
-    max_displacement = 3.15
-    min_separation   = 1.89
-
-
-
-    # get the trajectories
-    t_unconf, t_conf = SimulateTrajectories(x_size, y_size, num_particles, diameter, frames, frames_per_second, microns_per_pixel, temp_water, visc_water, max_displacement, PrintParameter = False)
-
-    #nearest neighbor
-    nn = t_conf.groupby("frame").apply(tp.static.proximity)
-
-    # get trajectory into same format
-    t_conf = t_conf.sort_values("frame").set_index(["frame","particle"])
-
-    t_conf["nn"]=nn
-
-    eval_t1 = t_conf.reset_index()
-
-#    # get distance to nearest neighboor
-#    print("Calc Nearest Neighbour")
-#    eval_t1 = CalcNearestNeighbor(t)
-
-    eval_t1["find_possible"] = eval_t1["nn"] > min_separation
-    eval_t1["link_possible"] = eval_t1["dr"] < max_displacement
-    eval_t1["link_same_particle"] = eval_t1["nn"] > eval_t1["dr"]
-
-    #dr and nn are NaN for first frame - so remove the false entries
-    eval_t1.loc[np.isnan(eval_t1["dr"]),["link_possible", "link_same_particle"]] = True
-
-
-    eval_t1["valid"] = eval_t1["link_possible"] & eval_t1["find_possible"] & eval_t1["link_same_particle"]
-
-#    print("Split Trajectory")
-    eval_t2 = eval_t1.sort_values(["particle","frame"])
-    eval_t2["true_particle"] = eval_t2["particle"]
-    eval_t2["new_traj"] = eval_t2["particle"]
-    eval_t2["new_traj"] = 0
-
-
-    #new trajectory, where trajectory is not valied
-    eval_t2.loc[eval_t2.valid == False, "new_traj"] = 1
-
-    #new trajectory, where new particle begins
-    eval_t2.loc[eval_t2.particle.diff(1) == 1, "new_traj"] = 1
-
-    eval_t2["particle"] = np.cumsum(eval_t2["new_traj"])
-
-    eval_t2.reset_index()
-
-#    eval_t2 = eval_t2.sort_values(["frame","particle"])
-
-#    eval_t2 = SplitTrajectory(eval_t1.copy())
-
-    #evaluate how much can be evaluated
-    traj_length = eval_t2.groupby("particle").count().x
-
-    # get LUT particle to true_particle
-    lut_particle_id = eval_t2.groupby("particle").mean().true_particle
-
-    # this save how many of the given particles are evaluated at some point of the movie
-    num_eval_particles = np.zeros(frames)
-
-    # this save how many particles are evaluated in a frame
-    num_eval_particles_per_frame = np.zeros(frames)
-
-
-    for min_traj_length_loop in np.arange(0,frames):
-        # index of particles with trajectory of sufficent length
-        eval_particles_loc = traj_length[traj_length >= min_traj_length_loop].index
-
-        # number of evaluated particles
-        try:
-            num_eval_particles[min_traj_length_loop] = len(lut_particle_id.loc[eval_particles_loc].unique())
-        except:
-            nd.logger.warning("Something went wrong!")
-
-        # average number of evaluated particles in a frame
-        num_eval_particles_per_frame[min_traj_length_loop] = traj_length.loc[eval_particles_loc].sum() / frames
-
-
-    return num_eval_particles, num_eval_particles_per_frame, volume_nl, t_unconf, t_conf, eval_t1, eval_t2
 
 
 
@@ -870,126 +391,10 @@ def CheckTrajLeavesConfinement(t_part, x_min, x_max, y_min, y_max):
 
 
 
-def SimulateTrajectories(x_size, y_size, num_particles, diameter, frames, frames_per_second,
-                         microns_per_pixel, temp_water, visc_water, max_displacement, PrintParameter = True):
-    """ simulate the random walk
-
-    MN2011 obsolete function?
-    """
-
-    start_pos = np.random.rand(num_particles,2)
-    start_pos[0,:] = 0.5 # particle under investigation is in the middle
-    start_pos[:,0] = start_pos[:,0] * x_size
-    start_pos[:,1] = start_pos[:,1] * y_size
-
-    #central particle
-    tm = GenerateRandomWalk(diameter, num_particles, frames, frames_per_second,
-                            microns_per_pixel = microns_per_pixel, temp_water = temp_water,
-                            visc_water = visc_water, PrintParameter = PrintParameter)
-
-    t = tm[["dx", "x", "dy", "y", "frame", "particle"]].copy()
-
-    # move to starting position
-    t["x"] = t["x"] + np.repeat(start_pos[:,0],frames)
-    t["y"] = t["y"] + np.repeat(start_pos[:,1],frames)
-
-    t_conf = None
-
-    # do confinement
-    for loop_particle in range(num_particles):
-        #select particle
-        t_part = t[t.particle == loop_particle]
-        t_part = t_part.set_index("frame")
-
-        leaves, direction, exit_frame = nd.Simulation.CheckTrajLeavesConfinement(t_part, 0, x_size, 0, y_size)
-
-        while leaves == True:
-            # do until entire trajectory is inside confinement
-            if direction == "x":
-                #reflect particle
-                t_part.loc[exit_frame,"dx"] = -t_part.loc[exit_frame,"dx"]
-                #make new cumsum and shift to starting point again
-                t_part["x"] = t_part["dx"].cumsum() + start_pos[loop_particle,0]
-
-            if direction == "y":
-                t_part.loc[exit_frame,"dy"] = -t_part.loc[exit_frame,"dy"]
-                t_part["y"] = t_part["dy"].cumsum() + start_pos[loop_particle,1]
-
-            leaves, direction, exit_frame = nd.Simulation.CheckTrajLeavesConfinement(t_part, 0, x_size, 0, y_size)
-
-        if t_conf is None:
-            t_conf = t_part
-        else:
-            t_conf = t_conf.append(t_part)
-
-    t_conf = t_conf.reset_index()
-
-    t_conf["dr"] =  np.sqrt(np.square(t_conf.x.diff(1)) + np.square(t_conf.y.diff(1)))
-
-    new_part = t_conf.particle.diff(1) != 0
-    t_conf.loc[new_part,"dr"] = np.nan
-
-    return t, t_conf
-
-
-
-def SplitTrajectory(eval_t2):
-    # splits trajectory if linkind failed
-
-    num_particles = len(eval_t2.groupby("particle"))
-    #particle id next new particle gets
-    free_part_id = num_particles
-
-    eval_t2["true_particle"] = eval_t2["particle"]
-
-
-    for loop_particles in range (0,num_particles):
-        print(loop_particles)
-        #select data for current particle
-        valid_link = eval_t2[eval_t2.particle == loop_particles]["valid"]
-
-        #check where the linking failed because the particle move more than the allowed maximal displacement
-        linking_failed = (valid_link == False)
-
-        #get frame where linking failed and new trajectory must start
-        frames_new_traj = list(np.where(linking_failed))[0]
-
-        first_change = True
-
-        for frame_split_traj in frames_new_traj:
-            if first_change == True:
-                eval_t2.loc[(eval_t2.particle == loop_particles) & (eval_t2.frame > frame_split_traj),"particle"] = free_part_id
-                first_change = False
-            else:
-                eval_t2.loc[(eval_t2.particle == free_part_id-1) & (eval_t2.frame > frame_split_traj),"particle"] = free_part_id
-
-            free_part_id += 1
-
-        #get frame length of trajectory
-
-    return eval_t2
-
-
-
-def RandomSamplesFromDistribution(N,mean,CV,seed=None):
-    """ generate N randomly chosen sizes from a Gaussian distribution
-    with given mean and CV (coefficient of variation = std/mean)
-    """
-    # use Generator(PCG64) from numpy
-    if seed == None:
-        rng = np.random.default_rng()
-    else:
-        rng = np.random.default_rng(seed=seed)
-
-    sigma = CV*mean
-    sample = rng.normal(mean, sigma, N)
-
-    return sample
-
-
-
 def RandomWalkCrossSection(settings = None, D = None, traj_length = None, dt = None, r_max = None, num_particles = 10, ShowHist = False, ShowTraj = False, ShowReflection = False):
     """
+    THIS IS A RANDOM WALK IN THE CROSS-SECTION OF THE FIBER CHANNEL
+    
     nd.Simulation.RandomWalkCrossSection(D = 13, traj_length=10000, dt=1/500, r_max = 8, ShowTraj = True, num_particles = 10, ShowReflection = True)
     """
 
@@ -1156,6 +561,8 @@ def Test_ReflectTraj():
     nd.Simulation.ReflectTraj(+5.5, 0 , 0.5, +4, 6)
     nd.Simulation.ReflectTraj(+1, 5 , -0, +5, 6)
 
+
+
 def ReflectTraj(x1, y1, dx, dy, r, ShowReflection = False):
     """reflects particle trajectory it leaves a given circle"""
 
@@ -1249,13 +656,4 @@ def ChangeCordSystem(theta, dx_c, dy_c, x_in, y_in):
 
     return x_out, y_out
 
-def HistDistanceBetweenParticles():
-    num_part = 200
-    
-    pos = np.sort(np.random.random(num_part)*4000)
-    
-    diff = pos[1:]-pos[:-1]
-    
-    min_dist = np.min([diff[:-1], diff[1:]], axis = 0)
-    
-    plt.hist(min_dist, bins = int(num_part/5))
+

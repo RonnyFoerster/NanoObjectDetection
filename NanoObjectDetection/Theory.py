@@ -203,6 +203,44 @@ def IntensityInFiber(P, radius, Mode = 'Peak' ):
     return I_illu
 
 
+def VelocityByExternalForce(F_ext, radius, visc_water):
+    #visc_water is the dynamic viscosity (Ns/m^2).
+
+    v = F_ext / (6 * pi * radius * visc_water)
+
+    return v
+
+
+def MaximumNAByFocusDepth(dof, lambda_nm, n):
+    '''
+    dof - depth of focus in nm
+    lambda_nm - wavelength in nm
+    n - refractive index immersion oil
+    
+    #https://www.microscopyu.com/microscopy-basics/depth-of-field-and-depth-of-focus
+    '''
+    NA = np.sqrt((2*lambda_nm*n) / dof)
+
+    return NA
+
+
+def DetectionEfficency(NA,n):
+    alpha = np.arcsin(NA/n) #opening angle
+    ster = 2*np.pi*(1-np.cos(alpha)) # steradiant
+    DE = ster / (4*np.pi)# Detection efficency
+
+    return DE
+
+
+def MassOfNP(d_nm,rho):
+
+    r_m = (d_nm/1E9) / 2
+    V = 4/3*pi*np.power(r_m,2)
+
+    m = V*rho
+
+    return m
+
 
 # def RadiationForce(I, C_scat, C_abs, n_media = 1.333):   
 #     """ 

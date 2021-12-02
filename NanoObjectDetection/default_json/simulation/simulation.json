@@ -1,0 +1,23 @@
+{
+     "Exp": {
+          "fps": 500,
+          "Microns_per_pixel": 0.477,
+          "Temperature": 295.0,
+          "solvent": "water",
+          "Viscosity_auto": 1
+     },
+     "Fiber": {
+          "TubeDiameter_nm": 16000
+     },
+     "Simulation": {
+          "DiameterOfParticles": 100,
+          "NumberOfParticles": 5,
+          "mass": 0,
+          "NumberOfFrames": 100,
+          "EstimationPrecision": 0,
+          "FoVlength": 100
+     },
+     "Logger": {
+          "level": "info"
+     }
+}
