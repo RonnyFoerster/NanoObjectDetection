@@ -123,7 +123,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, proc
     sizes_df_lin = pd.concat(size_df_lin_valid)
 
     # plot the predefined figures
-    Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, yEval)
+    sizes_df_lin = Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, yEval)
           
     return sizes_df_lin, any_successful_check                            
     
@@ -176,7 +176,7 @@ def Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, 
     
     nd.logger.info("WARNING sizes_df_lin_rolling is removed!!!")
     
-
+    return sizes_df_lin
 
 
 def SelectTrajectories(t6_final, settings):
