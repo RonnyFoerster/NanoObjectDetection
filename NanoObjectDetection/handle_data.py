@@ -802,6 +802,8 @@ def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = 
 
     """      
     
+    nd.logger.warning("211208_RF: Check if this is working properly now")
+    
     # get files in given path
     subdir = os.listdir(main_data_folder_name)
     
@@ -812,11 +814,12 @@ def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = 
         
         # check if file is a directory - continue if TRUE
         if os.path.isdir(data_folder_name) == True:   
-            data_tif_name = main_data_folder_name + "\\" + subdir_loop + "\\" + subdir_loop + ".tif"
+            data_tif_name = subdir_loop + ".tif"
             
             # Convert 2d tif list to 3d tif image in subdirectoy
             SaveTifSeriesAsStack(data_folder_name, CreateSubFolder = True, data_tif_name = data_tif_name)
     
+    nd.logger.warning("211208_RF: Check if this is working properly now")
     
     
 def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True, CreateSubFolder = False, data_tif_name = None):
