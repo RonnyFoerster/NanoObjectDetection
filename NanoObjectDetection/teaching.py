@@ -66,6 +66,38 @@ def TruthVsResponse(mean, fhwm_truth, sigma_meas, num_particles):
 
 
 
+def Correl(a,b):
+    a = (a - np.mean(a)) / (np.std(a) * len(a))
+    b = (b - np.mean(b)) / (np.std(b))
+    c = np.correlate(a, b, 'same')
+    
+    return c
 
 
+def ZnccLevel():
+    from scipy.stats import norm
+    import matplotlib.pyplot as plt
+    import numpy as np 
+    
+    Photons = 1000
+    bg = 100
+    
+    #initialize a normal distribution with frozen in mean=-1, std. dev.= 1
+    Gauss = norm(loc = 5, scale = 0.5)
+    
+    x = np.arange(0, 10, .1)
+    
+    PSF = Gauss.pdf(x)
+    PSF = PSF / np.max(PSF)
+    I_image = PSF * Photons + bg
+    
+    I_image = np.random.poisson(I_image)
+    
+    #plot the pdfs of these normal distributions 
+    plt.plot(x, I_image)
+    
+    cc = nd.teaching.Correl(PSF, I_image)
+    plt.plot(x, cc)
+    
+    
 
