@@ -78,26 +78,53 @@ def ZnccLevel():
     from scipy.stats import norm
     import matplotlib.pyplot as plt
     import numpy as np 
-    
-    Photons = 1000
-    bg = 100
-    
+        
     #initialize a normal distribution with frozen in mean=-1, std. dev.= 1
-    Gauss = norm(loc = 5, scale = 0.5)
+    Gauss = norm(loc = 5, scale = 0.1)
     
     x = np.arange(0, 10, .1)
     
     PSF = Gauss.pdf(x)
     PSF = PSF / np.max(PSF)
-    I_image = PSF * Photons + bg
     
-    I_image = np.random.poisson(I_image)
+    Photons = 300
+    bg = 100
+    I_image_1 = PSF * Photons + bg
+    
+    Photons = 50
+    I_image_2 = PSF * Photons + bg
+    
+    I_image_1 = np.random.poisson(I_image_1)
+    I_image_2 = np.random.poisson(I_image_2)    
     
     #plot the pdfs of these normal distributions 
-    plt.plot(x, I_image)
+    fix,axs = plt.subplots(2,3)
+    axs[0,0].plot(x, I_image_1, ':x')
+    axs[0,0].set_title("Bright Image")
+    axs[0,0].set_xlabel("x [px]")
+    axs[0,0].set_ylabel("I [a.u.]")
     
-    cc = nd.teaching.Correl(PSF, I_image)
-    plt.plot(x, cc)
     
+    axs[1,0].plot(x, I_image_2, ':x')
+    axs[1,0].set_title("Dim Image")
+    axs[1,0].set_xlabel("x [px]")
+    axs[1,0].set_ylabel("I [a.u.]")
+
+    axs[0,1].plot(x, PSF, ':x')
+    axs[0,1].set_title("PSF (Correlation function)")
+    axs[0,1].set_xlabel("x [px]")
+    axs[0,1].set_ylabel("I [a.u.]")
+    
+    cc1 = nd.teaching.Correl(PSF, I_image_1)
+    axs[0,2].plot(x, cc1)
+    axs[0,2].set_title("Cross-Correlation")
+    axs[0,2].set_xlabel("x [px]")
+    axs[0,2].set_ylabel("I [a.u.]")
+
+    cc2 = nd.teaching.Correl(PSF, I_image_2)
+    axs[1,2].plot(x, cc2)    
+    axs[1,2].set_title("Cross-Correlation")
+    axs[1,2].set_xlabel("x [px]")
+    axs[1,2].set_ylabel("I [a.u.]")
     
 
