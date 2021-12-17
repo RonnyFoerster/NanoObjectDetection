@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt # Libraries for plotting
 import NanoObjectDetection as nd
 
 
-def ForceUltraUniformParticle(sizes_df_lin, ShowPlot = False):
+def ForceUltraUniformParticle(settings, sizes_df_lin, ShowPlot = False):
     """
     Removes particles that do not fit into the Ultra Uniform Particle Hypothesis
     """
@@ -22,6 +22,8 @@ def ForceUltraUniformParticle(sizes_df_lin, ShowPlot = False):
     
     # sort the data after valid frames - so sort them by precision!
     data = data.sort_values(["valid frames"])
+    
+    data_orig = data.copy()
     
     # rolling parameter
     roll_area = 100
@@ -130,6 +132,10 @@ def ForceUltraUniformParticle(sizes_df_lin, ShowPlot = False):
                 my_ax.set_ylabel("Diameter [nm]")
                 my_ax.set_yscale("log")
                 my_ax.set_xscale("log")
+                
+                
+        my_title = "Force-Ultra-uniform"
+        nd.visualize.export(settings["Plot"]["SaveFolder"], my_title, settings, data = data_orig)
                 
                 
     return sizes_df_lin

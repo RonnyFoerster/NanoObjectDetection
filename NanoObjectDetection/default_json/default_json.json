@@ -41,6 +41,7 @@
           "Remove_CameraOffset": 1,
           "Remove_Laserfluctuation": 0,
           "Remove_StaticBackground": 1,
+          "AllowNonPosValues": 0,
           "EnhanceSNR": 0,
           "KernelSize": "auto",
           "ZNCC_min": 0.70

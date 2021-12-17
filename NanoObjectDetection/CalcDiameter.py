@@ -163,7 +163,7 @@ def Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, 
     
     
     if settings["PostProcessing"]["ForceUltraUniform"] == 1:
-        sizes_df_lin = nd.PostProcessing.ForceUltraUniformParticle(sizes_df_lin, ShowPlot = True)
+        sizes_df_lin = nd.PostProcessing.ForceUltraUniformParticle(settings, sizes_df_lin, ShowPlot = True)
     
     if any_successful_check == False:
         nd.logger.warning("No particle made it to the end!")

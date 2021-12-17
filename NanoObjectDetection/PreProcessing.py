@@ -22,6 +22,7 @@ def Main(rawframes_np, ParameterJsonFile):
     2 - CAMERA OFFSET: subtracted by defined value
     3 - BACKGROUND (BG): Estimated bg for each pixel by median filter over time
     4 - ENHANCE SNR: Convolve image with PSF- maintains signal, while reducing noise
+    5 - MAKE INTEGER: Trackpy Required int input
     
 
     Parameters
@@ -77,15 +78,19 @@ def Main(rawframes_np, ParameterJsonFile):
         nd.logger.info('Image SNR not enhanced by a gaussian average')
  
     
+
+    # 5 - MAKE INTEGER  
     # Transform to int dtype, because trackpy requires this
     # uint16 or int 16 is good compromise from precision and memory
-    # rawframes_np, settings = MakeInt16(rawframes_np, settings, AllowNegValues = True)
+    AllowNonPosValues = settings["PreProcessing"]["AllowNonPosValues"]
+    
+    rawframes_int = MakeInt16(rawframes_np.copy(), AllowNonPosValues = AllowNonPosValues)
 
 
     # save the settings
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
-    return rawframes_np, static_background
+    return rawframes_np, rawframes_int, static_background
 
 
 
@@ -117,6 +122,9 @@ def MakeInt16(rawframes_np, AllowNonPosValues = False):
         # value to ensure only positive values
         # add_value = -min_value + 1
         # rawframes_np = np.add(rawframes_np, add_value, out = rawframes_np)
+        
+        nd.logger.info("Set non positive values to 1")
+        
         rawframes_np[rawframes_np <= 0] = 1
         min_value = np.min(rawframes_np) #check later if negative
     
@@ -139,12 +147,13 @@ def MakeInt16(rawframes_np, AllowNonPosValues = False):
     else :
         # UNSIGNED dtype possible
         img_scale_fac = max_uint16/max_value
+
         rawframes_np = np.multiply(rawframes_np, img_scale_fac, out = rawframes_np)
         
         rawframes_np  = nd.handle_data.MakeIntParallel(rawframes_np, "uint16")
         
         nd.logger.info("DType: uint16")
-        
+    
 
     nd.logger.info("Convert image to integer DType ...finished")    
 
