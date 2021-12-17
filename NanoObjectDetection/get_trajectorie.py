@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt # Libraries for plotting
 
 
 
-def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, max_iterations = 10, SaveFig = False, gamma = 0.8, DoParallel = True):
+def FindSpots(rawframes_np, rawframes_int, ParameterJsonFile, max_iterations = 10, SaveFig = False, gamma = 0.8, DoParallel = True):
     """
     wrapper for trackpy routine tp.batch, which spots particles
 
@@ -73,15 +73,15 @@ def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, max_iterations = 1
 
 
     # convert image to int16 otherwise trackpy performs a min-max-stretch of the data in tp.preprocessing.convert_to_int - that is horrible.
-    rawframes_pre = nd.PreProcessing.MakeInt16(rawframes_pre, AllowNonPosValues = False)
+    # rawframes_pre = nd.PreProcessing.MakeInt16(rawframes_pre, AllowNonPosValues = False)
     
-    if isinstance(rawframes_pre, np.float) == True:
+    if isinstance(rawframes_int, np.float) == True:
         np.logger.warning("Given image is of datatype float. It is converted to int16. That is prone to errors for poor SNR; slow and memory waisting.")
-        rawframes_pre = np.int16(rawframes_pre)
+        rawframes_int = np.int16(rawframes_int)
 
 
     # HERE HAPPENS THE LOCALIZATION OF THE PARTICLES
-    obj_all = FindSpots_tp(rawframes_pre, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = DoParallel)
+    obj_all = FindSpots_tp(rawframes_int, diameter, minmass, separation, max_iterations, DoPreProcessing, percentile, DoParallel = DoParallel)
 
     # check if any particle is found. If not reduce minmass
     if obj_all.empty:
@@ -102,13 +102,13 @@ def FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile, max_iterations = 1
 
     # plot it
     if SaveFig == True:
-        FindSpots_plotting(rawframes_pre, obj_all, settings, gamma)
+        FindSpots_plotting(rawframes_int, obj_all, settings, gamma)
 
     # save output
     if settings["Plot"]["save_data2csv"] == 1:
         nd.handle_data.pandas2csv(obj_all, settings["Plot"]["SaveFolder"], "obj_all")
 
-    nd.particleStats.ParticleCount(obj_all, rawframes_pre.shape[0], UseLog = True)
+    nd.particleStats.ParticleCount(obj_all, rawframes_int.shape[0], UseLog = True)
     
     return obj_all
 

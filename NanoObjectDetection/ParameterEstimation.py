@@ -174,7 +174,7 @@ def DiameterForTrackpy(settings):
 
 
 
-def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, DoDiameter = False):
+def MinmassAndDiameterMain(img1_raw, img1, img_in_tp, ParameterJsonFile, NumShowPlots = 1, DoDiameter = False, AllowNonPosValues = False):
     """
     Estimate the minmass parameter trackpy requires to locate particles
     1 - Make an intensity independent feature finding by a zero-normalized cross correlation (ZNCC)
@@ -188,6 +188,8 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     img1_raw : TYPE
         raw image.
     img1 : TYPE
+        processed image that is tossed to zncc.
+    img_in_tp : TYPE
         processed image that is tossed to trackpy.
     ParameterJsonFile : TYPE
         DESCRIPTION.
@@ -231,9 +233,9 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
         num_frames = int(np.ceil(wanted_particles / num_particles_zncc)) + 1
         
         # limit the number of investigated frames to 50, otherwise it takes to long
-        if num_frames > 50: 
-            nd.logger.warning("Not many partiles found in each frame. To limit computation time, number of frames is limited to 20.")
-            num_frames = 50
+        if num_frames > 100: 
+            nd.logger.warning("Not many partiles found in each frame. To limit computation time, number of frames is limited to 100.")
+            num_frames = 100
         
         nd.logger.info("Estimated number of tested frames: %i", num_frames)
         
@@ -243,6 +245,7 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     use_frames = (np.round(np.linspace(0,img1.shape[0]-1, num_frames))).astype(int)
     
     img_in_zncc = img1[use_frames,:,:]
+    img_in_tp = img_in_tp[use_frames,:,:]
     
     plt.figure()
     plt.imshow(img_in_zncc[0,:,:])
@@ -257,9 +260,9 @@ def MinmassAndDiameterMain(img1_raw, img1, ParameterJsonFile, NumShowPlots = 1, 
     plt.title("zncc")
 
     # CLIP NEGATIVE VALUE
-    img_in_tp = img_in_zncc.copy()
+    # img_in_tp = img_in_zncc.copy()
     
-    img_in_tp = nd.PreProcessing.MakeInt16(img_in_tp, AllowNonPosValues = False)
+    # img_in_tp = nd.PreProcessing.MakeInt16(img_in_tp, AllowNonPosValues = AllowNonPosValues)
 
     # this is the main function for optimization, which tries to find the same particle positions with the quick trackpy than with the precise zncc. saves the optimal parameters in the settings
     settings = OptimizeMinmassInTrackpyMain(settings, img_in_tp, num_particles_zncc, pos_particles, DoDiameter)
@@ -626,6 +629,10 @@ def OptimizeMinmassInTrackpyMain(settings, img1, num_particles_zncc, pos_particl
                 
         tp.quiet(True)
         
+        # for loop_diameter in inputs:
+        #     nd.logger.info("loop diameter: %i", loop_diameter)
+        #     output_list = OptimizeMinmassInTrackpy(img1, loop_diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile, DoLog = True)
+        
         # Do the minmass optimization in parallel for different diameters
         output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(OptimizeMinmassInTrackpy)(img1, loop_diameter, separation, num_particles_zncc, pos_particles, minmass_start = 1, DoPreProcessing = DoPreProcessing, percentile = percentile, DoLog = False) for loop_diameter in inputs)
 
@@ -797,16 +804,16 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             nd.logger.debug("Found particles (zncc): %s", num_particles_zncc)        
 
                
-        # if far too many particles are found the threshold must be increased significantly
+        # if far too many particles are found the threshold must be increased significantly      
         if num_particles_trackpy > (5 * num_particles_zncc):
             
             if DoLog: nd.logger.debug("5 times more feactures than expected. Enhance threshold!")
             # + 1 is required to ensure that minmass is increasing, although the value might be small
-            minmass = np.int(minmass * 1.2) + 10
+            minmass = int(minmass * 1.2) + 10
             
         elif num_particles_trackpy > (2 * num_particles_zncc):
             if DoLog: nd.logger.debug("2 times more feactures than expected. Enhance threshold!")
-            minmass = np.int(minmass * 1.1) + 10
+            minmass = int(minmass * 1.1) + 10
             
         else:
             # trackpy and znnc have similar results. so make some fine tuning in small steps

@@ -34,16 +34,16 @@ rawframes_super = nd.handle_data.RoiAndSuperSampling(settings, ParameterJsonFile
 
 
 #%% standard image preprocessing
-rawframes_pre, static_background = nd.PreProcessing.Main(rawframes_super, ParameterJsonFile)
+rawframes_pre, rawframes_int, static_background = nd.PreProcessing.Main(rawframes_super, ParameterJsonFile)
 
 
 #%% help with the parameters for finding objects 
 settings = nd.handle_data.ReadJson(ParameterJsonFile)
-nd.AdjustSettings.Main(rawframes_super, rawframes_pre, ParameterJsonFile)
+nd.AdjustSettings.Main(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile)
     
 
 #%% find the objects
-obj_all = nd.get_trajectorie.FindSpots(rawframes_np, rawframes_pre, ParameterJsonFile)
+obj_all = nd.get_trajectorie.FindSpots(rawframes_np, rawframes_int, ParameterJsonFile)
 
 
 #%% identify static objects

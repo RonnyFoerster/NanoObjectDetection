@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 
 
-def Main(rawframes_super, rawframes_pre, ParameterJsonFile):
+def Main(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile):
     """
     Runs the various routines for optimiting and estimating the localizing and trackpy parameters of trackpy
 
@@ -74,7 +74,7 @@ def Main(rawframes_super, rawframes_pre, ParameterJsonFile):
         
         if mode_diameter == "manual":
             # the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
-            FindMinmass(rawframes_super, rawframes_pre, ParameterJsonFile, DoDiameter = False)
+            FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = False)
             
         # optimize PSF diameter
         FindDiameter(rawframes_pre, ParameterJsonFile)  
@@ -84,7 +84,7 @@ def Main(rawframes_super, rawframes_pre, ParameterJsonFile):
         DoDiameter = True
             
     # optimize minmass to identify particle
-    FindMinmass(rawframes_super, rawframes_pre, ParameterJsonFile, DoDiameter = DoDiameter)
+    FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = DoDiameter)
         
                 
 
@@ -271,7 +271,7 @@ def AskIfUserSatisfied(QuestionForUser):
   
 
 
-def FindMinmass(rawframes_super, rawframes_pre, ParameterJsonFile, DoDiameter = False):
+def FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = False):
     """
     Estimated the minmass value that trackpy uses in its feature finding routine
     The value have to be choosen such that dim featues are still reconized, while noise is not mistaken as a particle. See also nd.AdjustSettings.AskMethodToImprove
@@ -302,7 +302,9 @@ def FindMinmass(rawframes_super, rawframes_pre, ParameterJsonFile, DoDiameter = 
         
     elif settings["Help"]["Bead brightness"] == "auto":
         # automatic
-        settings = nd.ParameterEstimation.MinmassAndDiameterMain(rawframes_super, rawframes_pre, ParameterJsonFile, DoDiameter = DoDiameter)
+        AllowNonPosValues = settings["PreProcessing"]["AllowNonPosValues"]
+        
+        settings = nd.ParameterEstimation.MinmassAndDiameterMain(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = DoDiameter, AllowNonPosValues = AllowNonPosValues)
         
         # save results
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
