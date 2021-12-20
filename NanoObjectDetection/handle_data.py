@@ -407,7 +407,8 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
 
     """
     
-    nd.logger.info('read file: %s', data_folder_name)
+    if ShowProgress == True:
+        nd.logger.info('read file: %s', data_folder_name)
     
     if use_num_frame == "all":
         use_num_frame = 1000000000
@@ -419,7 +420,8 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
         
         #check if directory exists
         if os.path.isdir(path_subfolder) == False:
-            nd.logger.info("Create tif subfolder to move images into")
+            if ShowProgress == True:
+                nd.logger.info("Create tif subfolder to move images into")
             os.mkdir(path_subfolder) 
             
     
@@ -455,10 +457,11 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
     
     rawframes_np = np.asarray(rawframes_np)
     
-    #Two hints for the use of tiff series
-    nd.logger.warning('\n Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
-    
-    nd.logger.info('\n Tiff series need much longer to be read in than a 3D tiff stack, which can be generated out of the tif-series by ImageJ (FIJI) or similar programs.')   
+    if ShowProgress == True:
+        #Two hints for the use of tiff series
+        nd.logger.warning('\n Be sure that tiff series in right order (0002.tif and not 2.tif (which will be sorted after 10.tif))')
+        
+        nd.logger.info('\n Tiff series need much longer to be read in than a 3D tiff stack, which can be generated out of the tif-series by ImageJ (FIJI) or similar programs.')   
     
     return rawframes_np
 
@@ -784,7 +787,7 @@ def pandas2csv(my_pandas, save_folder_name, save_file_name, write_index = False)
     
     
     
-def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = True):
+def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = True, DoParallel = False):
     """
     Loops through a folder with a set of subfolders (different experimental data) which contain tif series and converts each of the series into a single 3d-tif stack (fast for reading in.)
 
@@ -805,9 +808,8 @@ def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = 
     # get files in given path
     subdir = os.listdir(main_data_folder_name)
     
-    # loop through all files
-    for subdir_loop in subdir:
-        print(subdir_loop)
+    
+    def LoopFunction(subdir_loop, main_data_folder_name, CreateSubFolder, ShowProgress):
         data_folder_name = main_data_folder_name + "\\" + subdir_loop
         
         # check if file is a directory - continue if TRUE
@@ -815,8 +817,31 @@ def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = 
             data_tif_name = subdir_loop + ".tif"
             
             # Convert 2d tif list to 3d tif image in subdirectoy
-            SaveTifSeriesAsStack(data_folder_name, CreateSubFolder = True, data_tif_name = data_tif_name)
+            SaveTifSeriesAsStack(data_folder_name, CreateSubFolder = CreateSubFolder, data_tif_name = data_tif_name, ShowProgress = ShowProgress)
     
+    
+    if DoParallel == False:
+        # loop through all files
+        nd.logger.info("Loop through the folders seriell")
+        for subdir_loop in subdir:
+            print(subdir_loop)
+            LoopFunction(subdir_loop, main_data_folder_name, CreateSubFolder, ShowProgress = True)
+    
+    else:
+        nd.logger.info("Loop through the folders parallel")
+        # nd.logger.error("THIS IS NOT WORKING CURRENTLY FOR AN UNKNOWN REASON !")
+        
+        num_cores = multiprocessing.cpu_count()
+        num_verbose = nd.handle_data.GetNumberVerbose()
+        
+        # no more cores than folders
+        if num_cores > len(subdir):
+            num_cores = len(subdir)
+        
+        Parallel(n_jobs=num_cores, verbose = num_verbose)(delayed(LoopFunction)(subdir_loop, main_data_folder_name, CreateSubFolder, ShowProgress = False) for subdir_loop in subdir)
+        
+        
+        
     
     
 def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True, CreateSubFolder = False, data_tif_name = None):
@@ -848,7 +873,8 @@ def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True, CreateSubFolder 
     else:
         data_folder_name_tif = data_folder_name + "\\" + data_tif_name
 
-    print(data_folder_name_tif)
+    if ShowProgress == True:
+        print(data_folder_name_tif)
 
     # saves 3d tif
     io.imsave(data_folder_name_tif, rawframes_np)
