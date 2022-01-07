@@ -1008,7 +1008,12 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     
     temp_water = settings["Exp"]["Temperature"]
     visc_water = settings["Exp"]["Viscosity"]
+    t_exp      = settings["Exp"]["ExposureTime"]
     Dark_frame  = settings["Link"]["Dark time"]
+
+    # sigma of the PSF  
+    sigma_PSF_nm = nd.Theory.SigmaPSF(settings["Exp"]["NA"], settings["Exp"]["lambda"])
+    sigma_PSF_px = sigma_PSF_nm / (settings["Exp"]["Microns_per_pixel"]*1000)
 
     # ask for the smallest expected diameter, which sets the largest expected diffusion
     if GuessLowestDiameter_nm == None:
@@ -1026,6 +1031,19 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     MaxDiffusion_squm = DiameterToDiffusion(temp_water,visc_water,GuessLowestDiameter_m)
     
     nd.logger.info("Maximum expected diffusion in squm per second: %s", np.round(MaxDiffusion_squm,2))
+
+    # Check if motion blur can happen (expected movement larger than PSF width)
+    avg_diff_nm = np.sqrt(2*t_exp*MaxDiffusion_squm) / 1000
+    
+    nd.logger.error("CHECK IF THIS RUNS AS IT SHOULD!")
+    if avg_diff_nm > sigma_PSF_nm:
+        nd.logger.warning("Motion blur should occur (exp to long for diffusion of expected smallestes particle)")
+                
+        # set avg_diff_nm != sigma_PSF_nm and solve for t_exp
+        t_exp_max = (sigma_PSF_nm / 1000)**2 / (2*MaxDiffusion_squm)
+        
+        nd.logger.info("Exposure time should not exceed: %.2f ms", t_exp_max * 1000)
+
     
     MaxDiffusion_sqpx = MaxDiffusion_squm / (settings["Exp"]["Microns_per_pixel"]**2)
     # Think about sigma of the diffusion probability is sqrt(2Dt)
@@ -1058,9 +1076,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     # 7sigma leads to 1 in a million of mixing up two particle by nearest neighbor linking
     Min_Separation_diff = 7 * sigma_diff_px
     
-    # sigma of the PSF  
-    sigma_PSF_nm = nd.Theory.SigmaPSF(settings["Exp"]["NA"], settings["Exp"]["lambda"])
-    sigma_PSF_px = sigma_PSF_nm / (settings["Exp"]["Microns_per_pixel"]*1000)
+
 
     # seperate two gaussian by 6 sigma (meaning 3 sigma on each particle (3 sigma = beyond 99.7%))
     Min_Separation_PSF = 6 * sigma_PSF_px
