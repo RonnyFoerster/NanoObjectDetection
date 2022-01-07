@@ -63,24 +63,20 @@ traj_moving = nd.get_trajectorie.Link(obj_moving, ParameterJsonFile, SearchFixed
 traj_no_drift = nd.Drift.Main(traj_moving, ParameterJsonFile, PlotGlobalDrift = True)
 
 
-#%% only long trajectories are used in the MSD plot in order to get a good fit
-traj_final = nd.get_trajectorie.filter_stubs(traj_no_drift, ParameterJsonFile, Mode = "Moving After Drift")
-
-
 #%% calculate the MSD and process to diffusion and diameter - LONGITUDINAL
-sizes_df_lin_x, any_successful_check = nd.CalcDiameter.Main2(traj_final, ParameterJsonFile, MSD_fit_Show = True)
+sizes_df_lin_x, any_successful_check, traj_final_x  = nd.CalcDiameter.Main2(traj_no_drift, ParameterJsonFile, MSD_fit_Show = True)
 
-nd.CalcDiameter.SummaryEval(settings, rawframes_pre, obj_moving, traj_moving, traj_no_drift, traj_final, sizes_df_lin_x)
+nd.CalcDiameter.SummaryEval(settings, rawframes_pre, obj_moving, traj_moving, traj_no_drift, traj_final_x, sizes_df_lin_x)
 
 #%% visualize results - LONGITUDINAL
 nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin_x, any_successful_check)
 
 
 #%% repeat for TRANSVERSAL direction
-sizes_df_lin_y, any_successful_check = nd.CalcDiameter.Main2(traj_final, ParameterJsonFile, MSD_fit_Show = True, yEval = True)
+sizes_df_lin_y, any_successful_check, traj_final_y = nd.CalcDiameter.Main2(traj_no_drift, ParameterJsonFile, MSD_fit_Show = True, yEval = True)
 
 nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin_y, any_successful_check, yEval = True)
 
 
 #%% Animation
-nd.Animate.AnimateDiameterAndRawData_Big(rawframes_np, sizes_df_lin_x.copy(), traj_final, ParameterJsonFile, DoSave = False)
+nd.Animate.AnimateDiameterAndRawData_Big(rawframes_np, sizes_df_lin_x.copy(), traj_final_x, ParameterJsonFile, DoSave = False)

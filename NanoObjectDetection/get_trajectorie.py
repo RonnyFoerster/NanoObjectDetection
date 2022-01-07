@@ -313,7 +313,7 @@ def Link(obj, ParameterJsonFile, SearchFixedParticles = False):
     else:
         Mode = "Fixed"
     
-    traj = filter_stubs(traj_all, ParameterJsonFile, Mode = Mode)
+    traj = filter_stubs(traj_all, ParameterJsonFile, Mode = Mode, save_data2csv = False)
 
 
     #cut intensity steps for moving particles if switched on
@@ -325,9 +325,9 @@ def Link(obj, ParameterJsonFile, SearchFixedParticles = False):
     # save the csv if required
     if settings["Plot"]["save_data2csv"] == 1:
         if SearchFixedParticles == False:
-            nd.handle_data.pandas2csv(traj, settings["Plot"]["SaveFolder"], "traj_fixed")
+            nd.handle_data.pandas2csv(traj, settings["Plot"]["SaveFolder"], "traj_moving")
         else:
-            nd.handle_data.pandas2csv(traj, settings["Plot"]["SaveFolder"], "traj_moving")            
+            nd.handle_data.pandas2csv(traj, settings["Plot"]["SaveFolder"], "traj_fixed")            
     
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
     
@@ -340,7 +340,7 @@ link_df = Link
 
 
 
-def filter_stubs(traj_all, ParameterJsonFile, Mode = None, FixedParticles = False, BeforeDriftCorrection = False):
+def filter_stubs(traj_all, ParameterJsonFile, Mode = None, FixedParticles = False, BeforeDriftCorrection = False, save_data2csv = None):
     """
     wrapper for tp.filter_stubs, which filters out too short trajectories, including a check whether a trajectory is close enough to random Brownian motion
 
@@ -424,7 +424,11 @@ def filter_stubs(traj_all, ParameterJsonFile, Mode = None, FixedParticles = Fals
     DisplayNumDroppedTraj(traj_all, traj_min_length, Mode)
 
     #save the pandas
-    if settings["Plot"]["save_data2csv"] == 1:
+    if save_data2csv == None:
+        save_data2csv = settings["Plot"]["save_data2csv"]
+    
+    
+    if save_data2csv == 1:
         if Mode == "Fixed":
             file_name = "traj_fixed"
         elif Mode == "Moving Before Drift":

@@ -127,10 +127,7 @@ def Main(t_drift, ParameterJsonFile, PlotGlobalDrift = True, SaveDriftPlots = Tr
             #             nd.logger.info("Rerun drift correrction with pure brownian motion particles")
             #             # vaild_id = t_no_drift_true_brown_xy.particle.unique()
             #             t_drift = t_drift[t_drift.particle.isin(valid_particle_number_xy)]
-            
-            # remove to short trajectories for further processing
-            t_no_drift = nd.get_trajectorie.filter_stubs(t_no_drift, ParameterJsonFile, Mode = "Moving After Drift")
-            
+                        
 
             # plot the calculated drift
             if PlotGlobalDrift == True:
@@ -161,6 +158,9 @@ def Main(t_drift, ParameterJsonFile, PlotGlobalDrift = True, SaveDriftPlots = Tr
             #     nd.visualize.DriftCorrectedTraj(tm_sub)
         
         nd.logger.info("Drift correction: ...finished")
+
+        # remove to short trajectories for further processing
+        t_no_drift = nd.get_trajectorie.filter_stubs(t_no_drift, ParameterJsonFile, Mode = "Moving After Drift", save_data2csv = False)
 
     #save the pandas
     if settings["Plot"]["save_data2csv"] == 1:
