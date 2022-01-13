@@ -22,7 +22,7 @@ import multiprocessing
 from joblib import Parallel, delayed
 
 
-def MSD_par(eval_tm, settings, yEval, any_successful_check, t_beforeDrift):
+def MSD_par(eval_tm, settings, eval_dim, any_successful_check, t_beforeDrift):
     """
     Function that calculates MSD, fits it, optimizes the parameters and estimates the diameter out of the trajectory. This function is executed in parallel later
 
@@ -32,8 +32,8 @@ def MSD_par(eval_tm, settings, yEval, any_successful_check, t_beforeDrift):
         trajectory of a single particle.
     settings : TYPE
         DESCRIPTION.
-    yEval : boolean
-        defines which direction is evaluated.
+    eval_dim : String
+        defines which direction is evaluated. Can be x,y or 2d
     any_successful_check : boolean
         help variable that defines if any particle was evaluated successfully.
     t_beforeDrift : pandas
@@ -49,7 +49,7 @@ def MSD_par(eval_tm, settings, yEval, any_successful_check, t_beforeDrift):
     """
     
     # run the trajectory to results routine
-    sizes_df_particle, OptimizingStatus = OptimizeMSD(eval_tm, settings, yEval, any_successful_check, t_beforeDrift = t_beforeDrift)
+    sizes_df_particle, OptimizingStatus = OptimizeMSD(eval_tm, settings, eval_dim, any_successful_check, t_beforeDrift = t_beforeDrift)
 
     # OptimizingStatus return
     if OptimizingStatus == "Successful":
@@ -62,10 +62,23 @@ def MSD_par(eval_tm, settings, yEval, any_successful_check, t_beforeDrift):
     return sizes_df_lin, any_successful_check 
 
 
-def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, processOutput = True, t_beforeDrift = None):
+def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = None, eval_dim = "x", processOutput = True, t_beforeDrift = None):
     """
     Main function to retrieve the diameter ouf of an trajectory
     """
+    
+    if yEval != None:
+        if yEval == True:
+            eval_dim = "y"
+        else:
+            eval_dim  = "x"
+            
+        nd.logger.info("yEval is an old keyword. Use Eval instead with the values x, y or 2d")
+    
+    if eval_dim not in ("x", "y", "2d"):
+       nd.logger.error("Eval_dim must be x, y or 2d") 
+    
+    del yEval
     
     # read the parameters
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
@@ -96,14 +109,10 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, proc
     
     # return the number of prints you see during execution, depending on your logger mode
     num_verbose = nd.handle_data.GetNumberVerbose()
-                                                                  
-    # for jj in particle_list_value:
-    #     print(jj)
-    #     MSD_par(t6_final_use[t6_final_use.particle == jj].copy(), settings, yEval, any_successful_check, t_beforeDrift)
-        
+                                                                          
 
     # Estimate diameter out of trajectory in parallel (see joblib for detailed information)
-    output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(MSD_par)(t6_final_use[t6_final_use.particle == jj].copy(), settings, yEval, any_successful_check, t_beforeDrift) for jj in particle_list_value)
+    output_list = Parallel(n_jobs=num_cores, verbose=num_verbose)(delayed(MSD_par)(t6_final_use[t6_final_use.particle == jj].copy(), settings, eval_dim, any_successful_check, t_beforeDrift) for jj in particle_list_value)
 
     
     # separate valid and invalid entries from output_list and story all valid into size_df_lin_valid
@@ -123,12 +132,20 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = False, proc
     sizes_df_lin = pd.concat(size_df_lin_valid)
 
     # plot the predefined figures
-    sizes_df_lin = Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, yEval)
-          
-    return sizes_df_lin, any_successful_check                            
+    sizes_df_lin = Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, eval_dim)
+
+    # get the evaluated trajectories      
+    id_eval_particle = list(sizes_df_lin.particle)
+    traj_final = t6_final[t6_final.particle.isin(id_eval_particle)]
+    
+    #save the pandas
+    if settings["Plot"]["save_data2csv"] == 1:
+        nd.handle_data.pandas2csv(traj_final, settings["Plot"]["SaveFolder"], "traj_final")
+    
+    return sizes_df_lin, any_successful_check, traj_final                            
     
 
-def Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, yEval):
+def Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, eval_dim = "x"):
     """
     Plots the defined figures in settings
 
@@ -142,7 +159,7 @@ def Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, 
         DESCRIPTION.
     ParameterJsonFile : TYPE
         DESCRIPTION.
-    yEval : TYPE
+    eval_dim : TYPE
         DESCRIPTION.
 
     Returns
@@ -172,7 +189,7 @@ def Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, 
         nd.logger.error("RF 211004: implement this!")
       
     else:
-        ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin, yEval = yEval)       
+        ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin, eval_dim)       
     
     nd.logger.info("WARNING sizes_df_lin_rolling is removed!!!")
     
@@ -298,7 +315,7 @@ def MSDFitLagtimes(settings, eval_tm, amount_lagtimes_auto = None):
 
 
 
-def ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin, yEval = False):
+def ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin, eval_dim = "x"):
     """
     Exports/Save the results
 
@@ -310,7 +327,7 @@ def ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin, yEval = False):
         DESCRIPTION.
     sizes_df_lin : TYPE
         DESCRIPTION.
-    yEval : TYPE, optional
+    eval_dim : TYPE, optional
         DESCRIPTION. The default is False.
 
     Returns
@@ -323,14 +340,14 @@ def ExportResultsMain(ParameterJsonFile, settings, sizes_df_lin, yEval = False):
     
     if settings["Plot"]["save_data2csv"] == True:
         # save the summary pandas sizes_df_lin
-        sizes_df_lin2csv(settings, sizes_df_lin, yEval = yEval)        
+        sizes_df_lin2csv(settings, sizes_df_lin, eval_dim = eval_dim)        
     
     # write settings to parameter file ParameterJsonFile
     nd.handle_data.WriteJson(ParameterJsonFile, settings)
 
 
 
-def sizes_df_lin2csv(settings, sizes_df_lin, yEval = False):
+def sizes_df_lin2csv(settings, sizes_df_lin, eval_dim = "x"):
     """
     Saves the pandas type sizes_df_lin to a csv
 
@@ -352,10 +369,13 @@ def sizes_df_lin2csv(settings, sizes_df_lin, yEval = False):
     save_folder_name = settings["Plot"]["SaveFolder"]
     
     # choose transversal or longitudinal file name
-    if yEval == True:
-        save_file_name = "sizes_df_lin_trans"
-    else:
+    if eval_dim == "x":
         save_file_name = "sizes_df_lin_long"
+    elif eval_dim == "y":
+        save_file_name = "sizes_df_lin_trans"
+    elif eval_dim == "2d":
+        save_file_name = "sizes_df_lin_2d"
+    
         
     # get full path where data shall be stored
     my_dir_name, entire_path_file, time_string = nd.visualize.CreateFileAndFolderName(save_folder_name, save_file_name, d_type = 'csv')
@@ -367,7 +387,7 @@ def sizes_df_lin2csv(settings, sizes_df_lin, yEval = False):
 
 
 
-def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, max_counter = None, lagtimes_min = None, lagtimes_max = None, t_beforeDrift = None):
+def OptimizeMSD(eval_tm, settings, eval_dim, any_successful_check, max_counter = None, lagtimes_min = None, lagtimes_max = None, t_beforeDrift = None):
     """
     Calculates the MSD, finds the optimal number of fitting points (iterativly), fits the MSD-curve and saves the retrieved values to a large pandas sizes_df_particle
 
@@ -377,8 +397,8 @@ def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, max_counter = No
         trajectory of a single particle.
     settings : TYPE
         DESCRIPTION.
-    yEval : TYPE
-        DESCRIPTION.
+    eval_dim : String
+        defines which direction is evaluated. Can be x,y or 2d
     any_successful_check : TYPE
         DESCRIPTION.
     MSD_fit_Show : TYPE, optional
@@ -425,7 +445,7 @@ def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, max_counter = No
         # calculate MSD
         nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm = \
         CalcMSD(eval_tm_valid, settings, lagtimes_min = lagtimes_min, 
-                lagtimes_max = lagtimes_max, yEval = yEval)
+                lagtimes_max = lagtimes_max, eval_dim = eval_dim)
         
         # just continue if there are enough data points
         if enough_values in ["TooShortTraj", "TooManyHoles"]:
@@ -447,7 +467,7 @@ def OptimizeMSD(eval_tm, settings, yEval, any_successful_check, max_counter = No
                 # Avg each lagtime and fit the MSD Plot
                 # calc MSD and fit linear function through it
                 msd_fit_para, diff_direct_lin, diff_std = \
-                AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1)
+                AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, eval_dim)
                         
                 # recalculate fitting range p_min if auto is selected
                 if amount_lagtimes_auto == 1:
@@ -844,7 +864,7 @@ def RedXOutOfMsdFit(slope, offset, t_frame):
 
 
 
-def AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1):
+def AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_lagt1, eval_dim = "x"):
     """
     wrapper for AvgMsd and FitMSD
 
@@ -885,14 +905,14 @@ def AvgAndFitMSD(nan_tm_sq, settings, lagtimes_min, lagtimes_max, amount_frames_
 
     # fit a linear function through it
     msd_fit_para, diff_direct_lin, diff_std = \
-    FitMSD(lagt_direct, amount_frames_lagt1, msd_direct, msd_direct_std)                    
+    FitMSD(lagt_direct, amount_frames_lagt1, msd_direct, msd_direct_std, eval_dim)                    
 
     return msd_fit_para, diff_direct_lin, diff_std
 
 
 
 def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5, 
-            lagtimes_min = 1, lagtimes_max = 2, yEval = False):
+            lagtimes_min = 1, lagtimes_max = 2, eval_dim = "x"):
     """ calculate all squared displacement values for a given trajectory
 
     Parameters
@@ -909,6 +929,8 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
         DESCRIPTION. The default is 1.
     lagtimes_max : int, optional
         max lagtime for slope and offset. The default is 2.
+    eval_dim : String
+        defines which direction is evaluated. Can be x,y or 2d
 
     Returns
     -------
@@ -959,25 +981,39 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
         
         my_columns = range(lagtimes_min, max_lagtimes_max + 1)
         my_columns = [0, *my_columns]
-        nan_tm = pd.DataFrame(index=np.arange(min_frame,max_frame+1),columns = my_columns) 
+        
         
         # sort trajectory by frame 
         eval_tm = eval_tm.set_index("frame")
         
         # fill column 0 with position of respective frame. choose y or x direction. transition from pixels to real distance by calibrated magnification
-        if yEval == False:
-            nan_tm[0] = eval_tm.x * microns_per_pixel 
-        else:
-            nan_tm[0] = eval_tm.y * microns_per_pixel
+        if eval_dim in ("x", "2d"):
+            nan_tm_x = pd.DataFrame(index=np.arange(min_frame,max_frame+1),columns = my_columns) 
+            nan_tm_x[0] = eval_tm.x * microns_per_pixel 
+            
+            # calculate the displacement for all individual lagtimes
+            # and store it in the corresponding column
+            for lagtime in range(lagtimes_min, max_lagtimes_max + 1):
+                nan_tm_x[lagtime] = nan_tm_x[0].diff(lagtime) 
+            
+        if eval_dim in ("y", "2d"):
+            nan_tm_y = pd.DataFrame(index=np.arange(min_frame,max_frame+1),columns = my_columns) 
+            nan_tm_y[0] = eval_tm.y * microns_per_pixel
+            
+            # calculate the displacement for all individual lagtimes
+            # and store it in the corresponding column
+            for lagtime in range(lagtimes_min, max_lagtimes_max + 1):
+                nan_tm_y[lagtime] = nan_tm_y[0].diff(lagtime) 
     
-        # calculate the displacement for all individual lagtimes
-        # and store it in the corresponding column
-        for lagtime in range(lagtimes_min, max_lagtimes_max + 1):
-            nan_tm[lagtime] = nan_tm[0].diff(lagtime) 
-        
+    
         # count the number of valid frames (i.e. != nan)
-        amount_frames_lagt1 = nan_tm[1].count()
-        amount_frames_lagt_max = nan_tm[max_lagtimes_max].count() 
+        # that is sufficent in one directions, because gaps appear in x and y togehter
+        if eval_dim in ("x", "2d"):
+            amount_frames_lagt1 = nan_tm_x[1].count()
+            amount_frames_lagt_max = nan_tm_x[max_lagtimes_max].count() 
+        else:
+            amount_frames_lagt1 = nan_tm_y[1].count()
+            amount_frames_lagt_max = nan_tm_y[max_lagtimes_max].count()     
 
         # check if too many holes are in the trajectory
         # i.e. not enough statistically independent data present
@@ -990,7 +1026,16 @@ def CalcMSD(eval_tm, settings = None, microns_per_pixel = 1, amount_summands = 5
 
         else:
             enough_values = True    
+            
+            if eval_dim == "x":
+                nan_tm = nan_tm_x
+            elif eval_dim == "y":                
+                nan_tm = nan_tm_y
+            else:
+                nan_tm = np.hypot(nan_tm_x, nan_tm_y)
+                
             nan_tm_sq = nan_tm**2 # square all displacement values
+                
      
     return nan_tm_sq, amount_frames_lagt1, enough_values, traj_length, nan_tm
     
@@ -1069,7 +1114,7 @@ def AvgMsd(nan_tm_sq, frames_per_second, lagtimes_min = 1, lagtimes_max = 2):
 
 
 
-def FitMSD(lagt_direct, amount_frames_lagt1, msd_direct, msd_direct_std):
+def FitMSD(lagt_direct, amount_frames_lagt1, msd_direct, msd_direct_std, eval_dim = "x"):
     """
     Fits a linear function through the MSD data
 
@@ -1112,8 +1157,13 @@ def FitMSD(lagt_direct, amount_frames_lagt1, msd_direct, msd_direct_std):
 
     np.warnings.filterwarnings('default')
 
-    # slope = 2 * Diffusion_coefficent
-    diff_direct_lin = np.squeeze(fit_values_slope[0]/2)
+    if eval_dim in ("x", "y"):
+        # slope = 2 * Diffusion_coefficent
+        diff_direct_lin = np.squeeze(fit_values_slope[0]/2)
+    elif eval_dim == "2d":
+        # slope = 4 * Diffusion_coefficent
+        diff_direct_lin = np.squeeze(fit_values_slope[0]/4)
+    
         
     msd_fit_para = [fit_values_slope[0], fit_values_offset[1]]    
     
