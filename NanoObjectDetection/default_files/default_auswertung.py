@@ -64,18 +64,31 @@ traj_no_drift = nd.Drift.Main(traj_moving, ParameterJsonFile, PlotGlobalDrift = 
 
 
 #%% calculate the MSD and process to diffusion and diameter - LONGITUDINAL
-sizes_df_lin_x, any_successful_check, traj_final_x  = nd.CalcDiameter.Main2(traj_no_drift, ParameterJsonFile, MSD_fit_Show = True)
+eval_dim = "x"
 
-nd.CalcDiameter.SummaryEval(settings, rawframes_pre, obj_moving, traj_moving, traj_no_drift, traj_final_x, sizes_df_lin_x)
+sizes_df_lin_x, any_successful_check, traj_final_x  = nd.CalcDiameter.Main2(traj_no_drift, ParameterJsonFile, MSD_fit_Show = True, eval_dim = eval_dim)
 
-#%% visualize results - LONGITUDINAL
-nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin_x, any_successful_check)
+nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin_x, any_successful_check, eval_dim = eval_dim)
 
 
 #%% repeat for TRANSVERSAL direction
-sizes_df_lin_y, any_successful_check, traj_final_y = nd.CalcDiameter.Main2(traj_no_drift, ParameterJsonFile, MSD_fit_Show = True, yEval = True)
+eval_dim = "y"
 
-nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin_y, any_successful_check, yEval = True)
+sizes_df_lin_y, any_successful_check, traj_final_y = nd.CalcDiameter.Main2(traj_no_drift, ParameterJsonFile, MSD_fit_Show = True, eval_dim = eval_dim)
+
+nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin_y, any_successful_check, eval_dim = eval_dim)
+
+
+#%% repeat for 2d evaluation
+eval_dim = "2d"
+
+sizes_df_lin2, any_successful_check, traj_final2 = nd.CalcDiameter.Main2(traj_no_drift, ParameterJsonFile, MSD_fit_Show = True, eval_dim = eval_dim)
+
+nd.visualize.PlotDiameters(ParameterJsonFile, sizes_df_lin2, any_successful_check, eval_dim = eval_dim)
+
+
+#%% visualize results - LONGITUDINAL
+nd.CalcDiameter.SummaryEval(settings, rawframes_pre, obj_moving, traj_moving, traj_no_drift, traj_final_x, sizes_df_lin_x)
 
 
 #%% Animation
