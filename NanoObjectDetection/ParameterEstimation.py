@@ -1035,7 +1035,7 @@ def FindMaxDisplacementTrackpy(ParameterJsonFile, GuessLowestDiameter_nm = None)
     # Check if motion blur can happen (expected movement larger than PSF width)
     avg_diff_nm = np.sqrt(2*t_exp*MaxDiffusion_squm) / 1000
     
-    nd.logger.error("CHECK IF THIS RUNS AS IT SHOULD!")
+    nd.logger.error("CHECK IF THIS RUNS AS IT SHOULD WITH NEW DATA!")
     if avg_diff_nm > sigma_PSF_nm:
         nd.logger.warning("Motion blur should occur (exp to long for diffusion of expected smallestes particle)")
                 
