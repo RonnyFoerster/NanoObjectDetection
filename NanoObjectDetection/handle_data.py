@@ -868,13 +868,23 @@ def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True, CreateSubFolder 
     # reads all images
     rawframes_np = ReadTiffSeries2Numpy(data_folder_name, ShowProgress = ShowProgress, CreateSubFolder = CreateSubFolder)
     
+    num_frames = rawframes_np.shape[0]
+    
     if data_tif_name == None:
         data_folder_name_tif = data_folder_name + "\\3d_stack.tif"
     else:
         data_folder_name_tif = data_folder_name + "\\" + data_tif_name
+
 
     if ShowProgress == True:
         print(data_folder_name_tif)
 
     # saves 3d tif
     io.imsave(data_folder_name_tif, rawframes_np)
+
+    if num_frames > 1000:
+        # additional with first 1000 frames
+        data_folder_name_tif_1000 = data_folder_name + "\\3d_stack_1000frames.tif"
+        
+        nd.logger.info("Save first 1000 frames in an extra file for faster testing")
+        io.imsave(data_folder_name_tif_1000, rawframes_np[:1000,:,:])
