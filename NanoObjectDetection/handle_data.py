@@ -879,7 +879,7 @@ def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True, CreateSubFolder 
     if ShowProgress == True:
         print(data_folder_name_tif)
 
-    nd.logger.info("Save 3d tif image ...")
+    print("Save 3d tif image ...")
     # saves 3d tif
     io.imsave(data_folder_name_tif, rawframes_np)
 
@@ -887,7 +887,7 @@ def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True, CreateSubFolder 
         # additional with first 1000 frames
         data_folder_name_tif_1000 = data_folder_name + "\\3d_stack_1000frames.tif"
         
-        nd.logger.info("Save first 1000 frames in an extra file for faster testing...")
+        print("Save first 1000 frames in an extra file for faster testing...")
         io.imsave(data_folder_name_tif_1000, rawframes_np[:1000,:,:])
         
-    nd.logger.info("Converting into 3d stack finished.")
+    print("Converting into 3d stack finished.")
