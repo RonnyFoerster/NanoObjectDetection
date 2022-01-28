@@ -57,7 +57,7 @@
           "Intensity Jump": "auto"
      },
      "Find": {
-          "tp_diameter": 13,
+          "tp_diameter": 7,
           "tp_minmass": 500.0,
           "SaturatedPixelValue": "auto",
           "tp_separation": 15,
@@ -119,9 +119,9 @@
           "Histogramm_time": 0,
           "Histogramm_Bin_size_nm": 2,
           "Histogramm_Bins": 3,
-          "Histogramm_min_max_auto": 1,
-          "Histogramm_min": 0,
-          "Histogramm_max": 200.0,
+          "Histogramm_min_max_auto": 0,
+          "Histogramm_min": 10,
+          "Histogramm_max": 100.0,
           "DiameterPDF": 0,
           "DiameterPDF_min_max_auto": 1,
           "PDF_min": 0.0,
