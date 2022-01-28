@@ -13,7 +13,7 @@ import NanoObjectDetection as nd
 import numpy as np 
 import trackpy as tp
 import matplotlib.pyplot as plt
-
+import sys
 
 
 def Main(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile):
@@ -45,17 +45,21 @@ def Main(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile):
     mode_intensity   = settings["Help"]["Intensity Jump"]
 
     # check if input is valid
-    if mode_separation not in ["manual", "auto"]:
-        nd.logger.error("Need auto or manual in settings[Help][Separation]")   
+    if mode_separation not in [0, "manual", "auto"]:
+        nd.logger.error("Need auto or manual in settings[Help][Separation]") 
+        sys.exit()
         
-    if mode_diameter not in ["manual", "auto"]:
+    if mode_diameter not in [0, "manual", "auto"]:
         nd.logger.error("Need auto or manual in settings[Help][Bead size]")  
+        sys.exit()
         
-    if mode_minmass not in ["manual", "auto"]:
+    if mode_minmass not in [0, "manual", "auto"]:
         nd.logger.error("Need auto or manual in settings[Help][Bead brightness]")
+        sys.exit()
 
-    if mode_intensity not in ["manual", "auto"]:
+    if mode_intensity not in [0, "manual", "auto"]:
         nd.logger.error("Need auto or manual in settings[Help][Intensity Jump]")
+        sys.exit()
     
 
 
@@ -68,16 +72,17 @@ def Main(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile):
         nd.ParameterEstimation.MaxRelIntensityJump(ParameterJsonFile)        
  
     # predicts diameter and minmass, which are connected and must be calculated as a team
-    if (mode_diameter == "manual") or (mode_minmass == "manual"):
+    if (mode_diameter in ("manual", 0)) or (mode_minmass == "manual"):
         # calculate them a bit iterative
         DoDiameter = False
         
         if mode_diameter == "manual":
             # the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
             FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = False)
-            
-        # optimize PSF diameter
-        FindDiameter(rawframes_pre, ParameterJsonFile)  
+        
+        elif  mode_diameter == "auto":
+            # optimize PSF diameter
+            FindDiameter(rawframes_pre, ParameterJsonFile)  
 
     else:
         #run the full auto routine and optimize both together
