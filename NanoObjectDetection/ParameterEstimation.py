@@ -780,13 +780,19 @@ def OptimizeMinmassInTrackpy(img1, diameter, separation, num_particles_zncc, pos
             if count_loops%10 == 0:
             #plot every ten iterations
                 nd.logger.info("Start Iteration: %s with minmass: %s", count_loops, minmass)
+                # localize the particles
+                output = tp.batch(img1, diameter, minmass = minmass, separation = separation, max_iterations = 10, preprocess = DoPreProcessing, percentile = percentile, processes = 1)
+                
             else:
                 nd.logger.debug("Start Iteration: %s with minmass: %s", count_loops, minmass)
+                tp.quiet(suppress=True)
+                # localize the particles
+                output = tp.batch(img1, diameter, minmass = minmass, separation = separation, max_iterations = 10, preprocess = DoPreProcessing, percentile = percentile, processes = 1)
+                tp.quiet(suppress=False)
             
         count_loops = count_loops + 1    
         
-        # localize the particles
-        output = tp.batch(img1, diameter, minmass = minmass, separation = separation, max_iterations = 10, preprocess = DoPreProcessing, percentile = percentile, processes = 1)
+        
         
         # num of found particles by trackpy
         num_particles_trackpy = len(output)
