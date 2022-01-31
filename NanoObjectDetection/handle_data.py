@@ -386,7 +386,7 @@ def ReadTiffStack2Numpy(data_file_name):
 
 
 
-def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress = False, CreateSubFolder = False):
+def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress = False, CreateSubFolder = False, MinImageNumber = 100):
     """
     read a tiff series in
 
@@ -407,55 +407,63 @@ def ReadTiffSeries2Numpy(data_folder_name, use_num_frame = "all", ShowProgress =
 
     """
     
+    rawframes_np = []
+    
     if ShowProgress == True:
         nd.logger.info('read file: %s', data_folder_name)
     
     if use_num_frame == "all":
         use_num_frame = 1000000000
     num_frames_count = 0
-    
-    # create the subfolder the images are moved to, if the feature is switched on
-    if CreateSubFolder == True:
-        path_subfolder = os.path.join(data_folder_name, "tif_series")
         
-        #check if directory exists
-        if os.path.isdir(path_subfolder) == False:
+    num_files = len(os.listdir(data_folder_name))
+    
+    if num_files < MinImageNumber:
+        nd.logger.error("Not enough images in the folder. Maybe this is the wrong folder?")
+        
+
+    
+    else:
+        # create the subfolder the images are moved to, if the feature is switched on
+        if CreateSubFolder == True:
+            path_subfolder = os.path.join(data_folder_name, "tif_series")
+            
+            #check if directory exists
+            if os.path.isdir(path_subfolder) == False:
+                if ShowProgress == True:
+                    nd.logger.info("Create tif subfolder to move images into")
+                os.mkdir(path_subfolder) 
+                
+        
+        for fname in sorted(os.listdir(data_folder_name)): #sorted in case it is unsorted
             if ShowProgress == True:
-                nd.logger.info("Create tif subfolder to move images into")
-            os.mkdir(path_subfolder) 
-            
+                print("read frame: ", fname)
+            else:
+                nd.logger.debug("read frame: %s", fname)
+            is_tif = fnmatch.fnmatch(fname, '*.tif')
+            is_tiff = fnmatch.fnmatch(fname, '*.tiff')
+            if is_tif or is_tiff:
+                full_path_fname = os.path.join(data_folder_name, fname)
+                im = Image.open(full_path_fname)
+                imarray = np.array(im)
+                rawframes_np.append(imarray)
+                
+                num_frames_count = num_frames_count + 1
+                if num_frames_count >= use_num_frame: # break loop if number of frames is reached
+                    nd.logger.warning("Stop reading in after %s frames are read in", num_frames_count)
+                    break
+                
+                #move image if feature is switched on
+                if CreateSubFolder == True:
+                    full_path_fname_new = os.path.join(path_subfolder, fname)
+                    nd.logger.debug("store in: %s", full_path_fname_new)
+                    shutil.move(full_path_fname, full_path_fname_new)
     
-    rawframes_np = []
     
-    for fname in sorted(os.listdir(data_folder_name)): #sorted in case it is unsorted
-        if ShowProgress == True:
-            print("read frame: ", fname)
-        else:
-            nd.logger.debug("read frame: %s", fname)
-        is_tif = fnmatch.fnmatch(fname, '*.tif')
-        is_tiff = fnmatch.fnmatch(fname, '*.tiff')
-        if is_tif or is_tiff:
-            full_path_fname = os.path.join(data_folder_name, fname)
-            im = Image.open(full_path_fname)
-            imarray = np.array(im)
-            rawframes_np.append(imarray)
-            
-            num_frames_count = num_frames_count + 1
-            if num_frames_count >= use_num_frame: # break loop if number of frames is reached
-                nd.logger.warning("Stop reading in after %s frames are read in", num_frames_count)
-                break
-            
-            #move image if feature is switched on
-            if CreateSubFolder == True:
-                full_path_fname_new = os.path.join(path_subfolder, fname)
-                nd.logger.debug("store in: %s", full_path_fname_new)
-                shutil.move(full_path_fname, full_path_fname_new)
-
-
-        else:
-            nd.logger.debug('%s is not a >tif<  file. Skipped it.', fname)
+            else:
+                nd.logger.debug('%s is not a >tif<  file. Skipped it.', fname)
     
-    rawframes_np = np.asarray(rawframes_np)
+        rawframes_np = np.asarray(rawframes_np)
     
     if ShowProgress == True:
         #Two hints for the use of tiff series
@@ -816,8 +824,11 @@ def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = 
         if os.path.isdir(data_folder_name) == True:   
             data_tif_name = subdir_loop + ".tif"
             
-            # Convert 2d tif list to 3d tif image in subdirectoy
-            SaveTifSeriesAsStack(data_folder_name, CreateSubFolder = CreateSubFolder, data_tif_name = data_tif_name, ShowProgress = ShowProgress)
+            try:
+                # Convert 2d tif list to 3d tif image in subdirectoy
+                SaveTifSeriesAsStack(data_folder_name, CreateSubFolder = CreateSubFolder, data_tif_name = data_tif_name, ShowProgress = ShowProgress)
+            except:
+                nd.logger.warning("An error occured. Likely there are not only tif in the folder?")
     
     
     if DoParallel == False:
@@ -868,26 +879,31 @@ def SaveTifSeriesAsStack(data_folder_name, ShowProgress = True, CreateSubFolder 
     # reads all images
     rawframes_np = ReadTiffSeries2Numpy(data_folder_name, ShowProgress = ShowProgress, CreateSubFolder = CreateSubFolder)
     
-    num_frames = rawframes_np.shape[0]
-    
-    if data_tif_name == None:
-        data_folder_name_tif = data_folder_name + "\\3d_stack.tif"
+    if rawframes_np == []:
+        nd.logger.error("Read in image is empty")
+        
     else:
-        data_folder_name_tif = data_folder_name + "\\" + data_tif_name
-
-
-    if ShowProgress == True:
-        print(data_folder_name_tif)
-
-    print("Save 3d tif image ...")
-    # saves 3d tif
-    io.imsave(data_folder_name_tif, rawframes_np)
-
-    if num_frames > 1000:
-        # additional with first 1000 frames
-        data_folder_name_tif_1000 = data_folder_name + "\\3d_stack_1000frames.tif"
+    
+        num_frames = rawframes_np.shape[0]
         
-        print("Save first 1000 frames in an extra file for faster testing...")
-        io.imsave(data_folder_name_tif_1000, rawframes_np[:1000,:,:])
-        
-    print("Converting into 3d stack finished.")
+        if data_tif_name == None:
+            data_folder_name_tif = data_folder_name + "\\3d_stack.tif"
+        else:
+            data_folder_name_tif = data_folder_name + "\\" + data_tif_name
+    
+    
+        if ShowProgress == True:
+            print(data_folder_name_tif)
+    
+        print("Save 3d tif image ...")
+        # saves 3d tif
+        io.imsave(data_folder_name_tif, rawframes_np)
+    
+        if num_frames > 1000:
+            # additional with first 1000 frames
+            data_folder_name_tif_1000 = data_folder_name + "\\3d_stack_1000frames.tif"
+            
+            print("Save first 1000 frames in an extra file for faster testing...")
+            io.imsave(data_folder_name_tif_1000, rawframes_np[:1000,:,:])
+            
+        print("Converting into 3d stack finished.")
