@@ -62,7 +62,7 @@ def MSD_par(eval_tm, settings, eval_dim, any_successful_check, t_beforeDrift):
     return sizes_df_lin, any_successful_check 
 
 
-def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = None, eval_dim = "x", processOutput = True, t_beforeDrift = None):
+def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = None, eval_dim = "x", processOutput = True, t_beforeDrift = None, save_z_score  = False):
     """
     Main function to retrieve the diameter ouf of an trajectory
     """
@@ -132,7 +132,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = None, eval_
     sizes_df_lin = pd.concat(size_df_lin_valid)
 
     # plot the predefined figures
-    sizes_df_lin = Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, eval_dim)
+    sizes_df_lin = Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, eval_dim, save_z_score )
 
     # get the evaluated trajectories      
     id_eval_particle = list(sizes_df_lin.particle)
@@ -145,7 +145,7 @@ def Main2(t6_final, ParameterJsonFile, MSD_fit_Show = False, yEval = None, eval_
     return sizes_df_lin, any_successful_check, traj_final                            
     
 
-def Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, eval_dim = "x"):
+def Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, eval_dim = "x", save_z_score  = False):
     """
     Plots the defined figures in settings
 
@@ -180,7 +180,7 @@ def Main2Plots(sizes_df_lin, settings, any_successful_check, ParameterJsonFile, 
     
     
     if settings["PostProcessing"]["ForceUltraUniform"] == 1:
-        sizes_df_lin = nd.PostProcessing.ForceUltraUniformParticle(settings, sizes_df_lin, ShowPlot = True)
+        sizes_df_lin = nd.PostProcessing.ForceUltraUniformParticle(settings, sizes_df_lin, ShowPlot = True, save_z_score = save_z_score )
     
     if any_successful_check == False:
         nd.logger.warning("No particle made it to the end!")

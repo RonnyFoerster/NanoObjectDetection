@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt # Libraries for plotting
 import NanoObjectDetection as nd
 
 
-def ForceUltraUniformParticle(settings, sizes_df_lin, ShowPlot = False):
+def ForceUltraUniformParticle(settings, sizes_df_lin, ShowPlot = False, save_z_score = False):
     """
     Removes particles that do not fit into the Ultra Uniform Particle Hypothesis
     """
@@ -78,6 +78,9 @@ def ForceUltraUniformParticle(settings, sizes_df_lin, ShowPlot = False):
             cbar01.set_label("Max Brightness")
             
             CreatePlot = False
+            
+            if save_z_score  == True:
+                nd.handle_data.pandas2csv(data, settings["Plot"]["SaveFolder"], "z_score_before")
         
         if np.max(data["z"]) < z_max:
             # if all z-score are below the threshold the uniform particle hypothesis is true
@@ -136,6 +139,8 @@ def ForceUltraUniformParticle(settings, sizes_df_lin, ShowPlot = False):
                 
         my_title = "Force-Ultra-uniform"
         nd.visualize.export(settings["Plot"]["SaveFolder"], my_title, settings, data = data_orig)
-                
+         
+        if save_z_score  == True:
+            nd.handle_data.pandas2csv(data, settings["Plot"]["SaveFolder"], "z_score_after")
                 
     return sizes_df_lin
