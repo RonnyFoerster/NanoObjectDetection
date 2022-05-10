@@ -1,0 +1,147 @@
+{
+     "Exp": {
+          "NA": 0.25,
+          "n_immersion": 1,
+          "lambda": 532.0,
+          "fps": 450.0,
+          "ExposureTime": 0.0019,
+          "Microns_per_pixel": 0.3467,
+          "Temperature": 295.15,
+          "Viscosity": 9.54396189082893e-16,
+          "Viscosity_auto": 0,
+          "solvent": "water"
+     },
+     "Fiber": {
+          "Mode": "Gaussian",
+          "Waist": 3,
+          "TubeDiameter_nm": 16000
+     },
+     "File": {
+          "data_file_name": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\tutorial\\TestData\\9nm_AuNp\\210504_9nm_V4.tif",
+          "data_folder_name": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\tutorial\\TestData\\9nm_AuNp",
+          "data_type": "tif_stack",
+          "use_num_frame": "all",
+          "DefaultParameterJsonFile": "C:\\Users\\foersterronny\\Documents\\GitHub\\NanoObjectDetection\\NanoObjectDetection\\default_json\\default_json.json",
+          "json": "C:\\Users\\foersterronny\\Desktop\\Test-Tutorial\\9nm\\parameter.json"
+     },
+     "Logger": {
+          "level": "info"
+     },
+     "ROI": {
+          "Apply": 0,
+          "Save": 0,
+          "x_min": 0,
+          "x_max": 100000,
+          "y_min": 0,
+          "y_max": 100000,
+          "frame_min": 0,
+          "frame_max": 3000
+     },
+     "PreProcessing": {
+          "Remove_CameraOffset": 1,
+          "Remove_Laserfluctuation": 0,
+          "Remove_StaticBackground": 1,
+          "EnhanceSNR": 1,
+          "KernelSize": 1.288952985289876,
+          "ZNCC_min": 0.7
+     },
+     "Help": {
+          "ROI": 0,
+          "Bead brightness": "auto",
+          "Bead size": "auto",
+          "TryFrames": 50,
+          "Separation": "auto",
+          "GuessLowestDiameter_nm": 9,
+          "Drift": "auto",
+          "Intensity Jump": "auto"
+     },
+     "Find": {
+          "tp_diameter": 13,
+          "tp_minmass": 371385,
+          "SaturatedPixelValue": "No Saturation",
+          "tp_separation": 22,
+          "tp_percentile": 20
+     },
+     "Link": {
+          "Dark time": 1,
+          "Dwell time stationary objects": 100,
+          "Max displacement": 11,
+          "Max displacement fix": 0.3,
+          "Min tracking frames before drift": 10.0,
+          "Min_tracking_frames": 20.0
+     },
+     "StationaryObjects": {
+          "Analyze fixed spots": 1,
+          "Min distance to stationary object": 20
+     },
+     "Split": {
+          "Max_traj_length": 1000000.0,
+          "Max_traj_length_keep_tail": 0,
+          "IntensityJump": 0,
+          "Max rel median intensity step": 158.659,
+          "ParticleWithLongestTrajBeforeSplit": 976
+     },
+     "Drift": {
+          "Apply": 1,
+          "Avg frames": 35,
+          "LaminarFlow": 0,
+          "Drift rolling window size": 5,
+          "Min particle per block": 40.0
+     },
+     "MSD": {
+          "Amount summands": 10,
+          "Amount lagtimes auto": 1,
+          "Estimate_X": "Exp",
+          "lagtimes_min": 1,
+          "lagtimes_max": 3,
+          "EstimateHindranceFactor": 1,
+          "EvalOnlyLongestTraj": 0,
+          "CheckBrownianMotion": 1
+     },
+     "Time": {
+          "DoRolling": 0,
+          "Frames": 100,
+          "skip_image_fac": 10
+     },
+     "PostProcessing": {
+          "MinimalBrightness": 0,
+          "MaxDiameter": 0,
+          "ForceUltraUniform": 1
+     },
+     "Plot": {
+          "Background": 0,
+          "Laserfluctuation": 0,
+          "MSD_fit": 0,
+          "Histogramm": 1,
+          "Histogramm_abs_or_rel": "both",
+          "Histogramm_Fit_1_Particle": 1,
+          "Histogramm_time": 0,
+          "Histogramm_Bin_size_nm": 2,
+          "Histogramm_Bins": 47,
+          "Histogramm_min_max_auto": 1,
+          "Histogramm_min": 0.0,
+          "Histogramm_max": 110.0,
+          "DiameterPDF": 0,
+          "DiameterPDF_min_max_auto": 1,
+          "PDF_min": 0.0,
+          "PDF_max": 1000.0,
+          "PDF_show_fit": 0,
+          "DiamOverTraj": 1,
+          "DiamOverTraj_UseRawMass": "mean",
+          "fontsize": 14,
+          "SaveFolder": "C:\\Users\\foersterronny\\Desktop\\Test-Tutorial\\9nm\\analysis",
+          "save_json": 1,
+          "save_data2csv": 1,
+          "dpi": 300,
+          "SaveProperties": "C:\\Users\\foersterronny\\Desktop\\Test-Tutorial\\9nm\\analysis\\211110\\12_02_14_Diameter_Histogramm-tran-weighted.json"
+     },
+     "Animation": {
+          "x_min": 0,
+          "x_max": 999,
+          "y_min": 0,
+          "y_max": 79,
+          "gamma": 0.5,
+          "frames_tot": 7,
+          "accelerate": 1
+     }
+}
