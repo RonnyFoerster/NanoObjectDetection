@@ -43,6 +43,22 @@ def ForceUltraUniformParticle(settings, sizes_df_lin, ShowPlot = False, save_z_s
     # Boolean that says if the remaining particles fullfill the Ultra Uniform Particle Hypothesis 
     UniFormDiameter = False
 
+    # true particle have a DIFFUSION within a Gaussian distribution
+    UniFormDiffusion = False
+
+    num_particles = len(data)
+
+    if num_particles < 10:
+        nd.logger.warning("Not enough particles for ulra-uniform test")
+        UniFormDiameter = True
+        UniFormDiffusion = True
+        ShowPlot = False
+        
+    elif num_particles < 100:
+        nd.logger.info("Not enough particles for full ulra-uniform test")
+        # make rolling area smaller
+        roll_area = num_particles - 2    
+    
     
     if ShowPlot == True:
         # create 2x2 subplot if wanted
@@ -92,8 +108,7 @@ def ForceUltraUniformParticle(settings, sizes_df_lin, ShowPlot = False, save_z_s
 
     
     
-    # true particle have a DIFFUSION within a Gaussian distribution
-    UniFormDiffusion = False
+    
     
     # do the same thing for the diffusion now!
     while UniFormDiffusion == False:
