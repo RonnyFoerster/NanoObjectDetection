@@ -652,7 +652,7 @@ def OptimizeMinmassInTrackpyMain(settings, img1, num_particles_zncc, pos_particl
         valid_input = False
         
         while valid_input == False:
-            nd.logger.info("The histogramm should be flat. They should not have a dip in the middle! ")
+            nd.logger.info("The histogramm should be flat. They should not have a dip in the middle! The diameter should be choosen as small as possible!")
             
             try:
                 diameter = input("Which diameter is best [dtype interger]: ")        
