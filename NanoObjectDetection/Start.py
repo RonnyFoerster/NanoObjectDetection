@@ -185,7 +185,8 @@ def NewEvaluation():
     settings["Exp"]["lambda"]            = float(input("Wavelength [nm] = "))
     settings["Exp"]["fps"]               = float(input("Framerate [fps] = "))
     settings["Exp"]["ExposureTime"]      = float(input("Exposure Time [ms] = ")) / 1000
-    
+    settings["Help"]["GuessLowestDiameter_nm"] = float(input("What is the lower limit of diameter (in nm) you expect?\n"))
+        
     # Get temperature and corresponding viscocity
     adjustT = nd.handle_data.GetInput("Temperature, solvent and viscosity: \
                                       \n 0 - Default (T = 295.0 K (22°C); solvent = water; viscosity (9.5e-16 Ns/um^2)) \
@@ -210,7 +211,8 @@ def NewEvaluation():
     help_options = nd.handle_data.GetInput("Which help functions do you want to use? \
             \n 0 - none \
             \n 1 - auto \
-            \n 2 - select yourself \n", ["0", "1", "2"])
+            \n 2 - auto, but known image diameter\
+            \n 3 - select yourself \n", ["0", "1", "2", "3"])
                 
     if help_options == 0:
         nd.logger.info("Switch all help functions off.")
@@ -225,6 +227,14 @@ def NewEvaluation():
         settings["Help"]["ROI"] = 0
         settings["Help"]["Bead brightness"] = "auto"
         settings["Help"]["Bead size"] = "auto"
+        settings["Help"]["Separation"] = "auto"
+        settings["Help"]["Drift"] = "auto"
+        
+    elif help_options == 2:
+        nd.logger.info("Switch recommended help functions on.")
+        settings["Help"]["ROI"] = 0
+        settings["Help"]["Bead brightness"] = "auto"
+        settings["Help"]["Bead size"] = 0
         settings["Help"]["Separation"] = "auto"
         settings["Help"]["Drift"] = "auto"
 
@@ -257,6 +267,17 @@ def NewEvaluation():
                 \n 0 = no \
                 \n auto - fully automized parameter estimation \n",
                 ["0", "auto"])
+
+    if settings["Help"]["Bead size"] == 0:
+        valid_input = False
+        while valid_input == False:
+            myin = float(input("What is the image diameter (odd integer) \n"))
+            
+            if myin%2 == 1:
+                valid_input = True
+                settings["Find"]["tp_diameter"]  = int(myin)
+            else:
+                nd.logger.warning("that was not an odd integer")
 
 
     # Save Everything

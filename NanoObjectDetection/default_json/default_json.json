@@ -1,13 +1,12 @@
 {
      "Exp": {
-          "NA": 0.13,
-          "n_immersion": 1,
-          "lambda": 532,
-          "fps": 922,
-          "ExposureTime": 0.001,
-          "Microns_per_pixel": 0.477,
-          "Temperature": 295.0,
-          "Viscosity": 9.5e-16,
+          "NA": "unknown",
+          "lambda": "unknown",
+          "fps": "unknown",
+          "ExposureTime": "unknown",
+          "Microns_per_pixel": "unknown",
+          "Temperature": "unknown",
+          "Viscosity": "unknown",
           "Viscosity_auto": 0,
           "solvent": "water"
      },
@@ -57,8 +56,8 @@
           "Intensity Jump": "auto"
      },
      "Find": {
-          "tp_diameter": 7,
-          "tp_minmass": 500.0,
+          "tp_diameter": "unknown",
+          "tp_minmass": "unknown",
           "SaturatedPixelValue": "auto",
           "tp_separation": 15,
           "tp_percentile": 20
@@ -66,7 +65,7 @@
      "Link": {
           "Dark time": 1,
           "Dwell time stationary objects": 100,
-          "Max displacement": 3,
+          "Max displacement": "unknown",
           "Max displacement fix": 0.3,
           "Min tracking frames before drift": 10.0,
           "Min_tracking_frames": 50.0
