@@ -67,28 +67,6 @@ def Main(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile):
     if mode_separation == 1:
         nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        
 
-    # predicts the expected intensity jump
-<<<<<<< Updated upstream
-    if mode_intensity == "auto":
-        nd.ParameterEstimation.MaxRelIntensityJump(ParameterJsonFile)
-        
-        
-    # predicts diameter and minmass, which are connected and must be calculated as a team
-    if (mode_diameter in ("manual", 0)) or (mode_minmass == "manual"):
-        # calculate them a bit iterative
-        
-        DoDiameter = False
-        
-        if mode_diameter == "manual":
-            # the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
-            nd.logger.warning("the auto functions are supposed to work better")
-            FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = False)
-        
-        elif  mode_diameter == "auto":
-            # optimize PSF diameter
-            nd.logger.warning("the auto functions are supposed to work better")
-            FindDiameter(rawframes_pre, ParameterJsonFile)  
-=======
     if mode_intensity == 1:
         nd.ParameterEstimation.MaxRelIntensityJump(ParameterJsonFile)        
 
@@ -110,31 +88,6 @@ def Main(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile):
             
         else:
             nd.logger.debug("Minmass and diameter not optimized.")
-        
-        
-    
-   
- 
-    # # predicts diameter and minmass, which are connected and must be calculated as a team
-    # if (mode_diameter in ("manual", 0)) or (mode_minmass == "manual"):
-    #     # calculate them a bit iterative
-    #     DoDiameter = False
-        
-    #     if mode_diameter == "manual":
-    #         # the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
-    #         FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = False)
-        
-    #     elif  mode_diameter == "auto":
-    #         # optimize PSF diameter
-    #         FindDiameter(rawframes_pre, ParameterJsonFile)  
->>>>>>> Stashed changes
-
-    # else:
-    #     #run the full auto routine and optimize both together
-    #     DoDiameter = True
-            
-    # # optimize minmass to identify particle
-    # FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = DoDiameter)
         
                 
 
