@@ -47,13 +47,13 @@
      },
      "Help": {
           "ROI": 0,
-          "Bead brightness": "auto",
-          "Bead size": "auto",
-          "TryFrames": "auto",
-          "Separation": "auto",
+          "Bead brightness": 1,
+          "Bead size": 1,
+          "TryFrames": 1,
+          "Separation": 1,
           "GuessLowestDiameter_nm": "unknown",
-          "Drift": "auto",
-          "Intensity Jump": "auto"
+          "Drift": 1,
+          "Intensity Jump": 1
      },
      "Find": {
           "tp_diameter": "unknown",

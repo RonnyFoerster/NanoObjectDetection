@@ -62,7 +62,7 @@ def Main(t_drift, ParameterJsonFile, PlotGlobalDrift = True, SaveDriftPlots = Tr
         # leave saturated data point out, because they are not precisely localized
         t_drift = t_drift[t_drift.saturated == False]
         
-        if settings["Help"]["Drift"] == "auto":
+        if settings["Help"]["Drift"] == 1:
             #estimate how many frames it needs to have enough particle to make the drift estimation
             num_particles_per_frame = t_drift.groupby("frame")["particle"].count().mean()
 

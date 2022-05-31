@@ -192,6 +192,60 @@ def CheckJson_Entries(settings):
     UpdateOldKey(settings, "Drift", "Do transversal drift correction", "LaminarFlow")
     
     
+    # remove old key arguments manual and auto, to the new values 0 and 1, respectively.
+    if settings["Help"]["Separation"] == "manual":
+        nd.logger.warning("<Help><Separtion> value was manual --> changed to 0")
+        settings["Help"]["Separation"] = 0
+    
+    if settings["Help"]["Separation"] == "auto":
+        nd.logger.warning("<Help><Separtion> value was auto --> changed to 1")
+        settings["Help"]["Separation"] = 1
+
+
+    if settings["Help"]["Bead size"] == "manual":
+        nd.logger.warning("<Help><Bead size> value was manual --> changed to 0")
+        settings["Help"]["Bead size"] = 0
+    
+    if settings["Help"]["Bead size"] == "auto":
+        nd.logger.warning("<Help><Bead size> value was auto --> changed to 1")
+        settings["Help"]["Bead size"] = 1
+     
+        
+    if settings["Help"]["Bead brightness"] == "manual":
+        nd.logger.warning("<Help><Bead brightness> value was manual --> changed to 0")
+        settings["Help"]["Bead brightness"] = 0
+    
+    if settings["Help"]["Bead brightness"] == "auto":
+        nd.logger.warning("<Help><Bead brightness> value was auto --> changed to 1")
+        settings["Help"]["Bead brightness"] = 1        
+
+
+    if settings["Help"]["Intensity Jump"] == "manual":
+        nd.logger.warning("<Help><Intensity Jump> value was manual --> changed to 0")
+        settings["Help"]["Intensity Jump"] = 0
+    
+    if settings["Help"]["Intensity Jump"] == "auto":
+        nd.logger.warning("<Help><Intensity Jump> value was auto --> changed to 1")
+        settings["Help"]["Intensity Jump"] = 1              
+
+
+    if settings["Help"]["Drift"] == "manual":
+        nd.logger.warning("<Help><Drift> value was manual --> changed to 0")
+        settings["Help"]["Drift"] = 0
+    
+    if settings["Help"]["Drift"] == "auto":
+        nd.logger.warning("<Help><Drift> value was auto --> changed to 1")
+        settings["Help"]["Drift"] = 1   
+    
+        
+    if settings["Help"]["TryFrames"] == "manual":
+        nd.logger.warning("<Help><TryFrames> value was manual --> changed to 0")
+        settings["Help"]["TryFrames"] = 0
+    
+    if settings["Help"]["TryFrames"] == "auto":
+        nd.logger.warning("<Help><TryFrames> value was auto --> changed to 1")
+        settings["Help"]["TryFrames"] = 1   
+
 
 
     # memory if sth was wrong

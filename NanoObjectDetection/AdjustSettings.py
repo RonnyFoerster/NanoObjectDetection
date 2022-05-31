@@ -45,29 +45,30 @@ def Main(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile):
     mode_intensity   = settings["Help"]["Intensity Jump"]
 
     # check if input is valid
-    if mode_separation not in [0, "manual", "auto"]:
-        nd.logger.error("Need auto or manual in settings[Help][Separation]") 
+    if mode_separation not in [0, 1]:
+        nd.logger.error("Need 0 or 1 in settings[Help][Separation]") 
         sys.exit()
         
-    if mode_diameter not in [0, "manual", "auto"]:
-        nd.logger.error("Need auto or manual in settings[Help][Bead size]")  
+    if mode_diameter not in [0, 1]:
+        nd.logger.error("Need 0 or 1 in settings[Help][Bead size]")  
         sys.exit()
         
-    if mode_minmass not in [0, "manual", "auto"]:
-        nd.logger.error("Need auto or manual in settings[Help][Bead brightness]")
+    if mode_minmass not in [0, 1]:
+        nd.logger.error("Need 0 or 1 in settings[Help][Bead brightness]")
         sys.exit()
 
-    if mode_intensity not in [0, "manual", "auto"]:
-        nd.logger.error("Need auto or manual in settings[Help][Intensity Jump]")
+    if mode_intensity not in [0, 1]:
+        nd.logger.error("Need 0 or 1 in settings[Help][Intensity Jump]")
         sys.exit()
     
 
 
     # predicts the distance a particle can move between two frames and how close two beads can be without risk of wrong assignment
-    if mode_separation == "auto":
+    if mode_separation == 1:
         nd.ParameterEstimation.FindMaxDisplacementTrackpy(ParameterJsonFile)        
 
     # predicts the expected intensity jump
+<<<<<<< Updated upstream
     if mode_intensity == "auto":
         nd.ParameterEstimation.MaxRelIntensityJump(ParameterJsonFile)
         
@@ -87,13 +88,53 @@ def Main(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile):
             # optimize PSF diameter
             nd.logger.warning("the auto functions are supposed to work better")
             FindDiameter(rawframes_pre, ParameterJsonFile)  
+=======
+    if mode_intensity == 1:
+        nd.ParameterEstimation.MaxRelIntensityJump(ParameterJsonFile)        
 
+
+    # predicts diameter and minmass, which are connected and must be calculated as a team
+    if mode_minmass == 1:
+        if mode_diameter == 1:
+            DoDiameter = True
+        else:
+            DoDiameter = False
+ 
+        # optimize minmass to identify particle
+        FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = DoDiameter)           
+     
     else:
-        #run the full auto routine and optimize both together
-        DoDiameter = True
+        if mode_diameter == 1:
+            settings["Find"]["tp_diameter"] = nd.ParameterEstimation.DiameterForTrackpy(settings)
+            nd.handle_data.WriteJson(ParameterJsonFile, settings)  
             
-    # optimize minmass to identify particle
-    FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = DoDiameter)
+        else:
+            nd.logger.debug("Minmass and diameter not optimized.")
+        
+        
+    
+   
+ 
+    # # predicts diameter and minmass, which are connected and must be calculated as a team
+    # if (mode_diameter in ("manual", 0)) or (mode_minmass == "manual"):
+    #     # calculate them a bit iterative
+    #     DoDiameter = False
+        
+    #     if mode_diameter == "manual":
+    #         # the minmass needs to be guessed first, in order to identifiy particles whose diameter can then be optimized   
+    #         FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = False)
+        
+    #     elif  mode_diameter == "auto":
+    #         # optimize PSF diameter
+    #         FindDiameter(rawframes_pre, ParameterJsonFile)  
+>>>>>>> Stashed changes
+
+    # else:
+    #     #run the full auto routine and optimize both together
+    #     DoDiameter = True
+            
+    # # optimize minmass to identify particle
+    # FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile, DoDiameter = DoDiameter)
         
                 
 
@@ -305,11 +346,11 @@ def FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     # choose Minmass estimation function
-    if settings["Help"]["Bead brightness"] in ["manual", 1]:
+    if settings["Help"]["Bead brightness"] == "manual":
         # semi-automatic
         FindMinmass_manual(rawframes_pre, ParameterJsonFile)
         
-    elif settings["Help"]["Bead brightness"] == "auto":
+    elif settings["Help"]["Bead brightness"] == 1:
         # automatic
         AllowNonPosValues = settings["PreProcessing"]["AllowNonPosValues"]
         
