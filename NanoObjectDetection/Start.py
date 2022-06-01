@@ -225,36 +225,37 @@ def NewEvaluation():
     elif help_options == 1:
         nd.logger.info("Switch recommended help functions on.")
         settings["Help"]["ROI"] = 0
-        settings["Help"]["Bead brightness"] = "auto"
-        settings["Help"]["Bead size"] = "auto"
-        settings["Help"]["Separation"] = "auto"
-        settings["Help"]["Drift"] = "auto"
+        settings["Help"]["Bead brightness"] = 1
+        settings["Help"]["Bead size"] = 1
+        settings["Help"]["Separation"] = 1
+        settings["Help"]["Drift"] = 1
         
     elif help_options == 2:
         nd.logger.info("Switch recommended help functions on.")
         settings["Help"]["ROI"] = 0
-        settings["Help"]["Bead brightness"] = "auto"
+        settings["Help"]["Bead brightness"] = 1
         settings["Help"]["Bead size"] = 0
-        settings["Help"]["Separation"] = "auto"
-        settings["Help"]["Drift"] = "auto"
+        settings["Help"]["Separation"] = 1
+        settings["Help"]["Drift"] = 1
 
     else:        
         nd.logger.info("Choose the help functions on your own.")
-        settings["Help"]["ROI"] = nd.handle_data.GetInput("Do you want help with the >region of intertest (ROI)< ?", ["0", "1"])
+        settings["Help"]["ROI"] = nd.handle_data.GetInput("Do you want help with the >region of intertest (ROI)< ? \
+                \n 0 - no \
+                \n 1 - yes \n",
+                ["0", "1"])
        
         
         settings["Help"]["Bead brightness"] = nd.handle_data.GetInput("Do you want help with the >minimal bead brightness< ? \
                 \n 0 - no \
-                \n manual - manual setting the value with help \
-                \n auto - fully automized parameter estimation \n",
-                ["0", "manual", "auto"])
+                \n 1 - fully automized parameter estimation \n",
+                ["0", "1"])
             
         
         settings["Help"]["Bead size"] = nd.handle_data.GetInput("Do you want help with the >bead size< ? \
                 \n 0 = no \
-                \n manual - manual setting the value with help \
-                \n auto - fully automized parameter estimation \n",
-                ["0", "manual", "auto"])
+                \n 1 - fully automized parameter estimation \n",
+                ["0", "1"])
         
             
         settings["Help"]["Separation"] = nd.handle_data.GetInput("Do you want help with the maximum allowed movement of a particle between two frames >Max Displacement< and the minimal distance to beads must have >Separation Data<? \
@@ -265,8 +266,8 @@ def NewEvaluation():
     
         settings["Help"]["Drift"] = nd.handle_data.GetInput("Do you want help how many frames are used to average the drift out of the system >Drift smoothing frames<? \
                 \n 0 = no \
-                \n auto - fully automized parameter estimation \n",
-                ["0", "auto"])
+                \n 1 - fully automized parameter estimation \n",
+                ["0", "1"])
 
     if settings["Help"]["Bead size"] == 0:
         valid_input = False
