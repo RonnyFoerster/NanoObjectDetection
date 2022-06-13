@@ -220,7 +220,7 @@ def MinmassAndDiameterMain(img1_raw, img1, img_in_tp, ParameterJsonFile, NumShow
     # select several frames to make the parameter estimation with
     num_frames = settings["Help"]["TryFrames"]
     
-    if num_frames == "auto":
+    if num_frames == "unknown":
         # estimate num_frames 
         # run the zncc on one frame to estimate how many particles can be found.
         _, num_particles_zncc, _ = FindParticleByZNCC(settings, img1, mychannel, [0], OneFrameOnly=True)

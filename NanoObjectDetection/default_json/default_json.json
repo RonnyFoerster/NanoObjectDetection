@@ -49,7 +49,7 @@
           "ROI": 0,
           "Bead brightness": 1,
           "Bead size": 1,
-          "TryFrames": 1,
+          "TryFrames": "unknown",
           "Separation": 1,
           "GuessLowestDiameter_nm": "unknown",
           "Drift": 1,

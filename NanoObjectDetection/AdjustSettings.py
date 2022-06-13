@@ -299,7 +299,7 @@ def FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile
     settings = nd.handle_data.ReadJson(ParameterJsonFile)
     
     # choose Minmass estimation function
-    if settings["Help"]["Bead brightness"] == "manual":
+    if settings["Help"]["Bead brightness"] == 0:
         # semi-automatic
         FindMinmass_manual(rawframes_pre, ParameterJsonFile)
         
@@ -313,7 +313,7 @@ def FindMinmass(rawframes_super, rawframes_pre, rawframes_int, ParameterJsonFile
         nd.handle_data.WriteJson(ParameterJsonFile, settings)
         
     else:        
-        nd.logging.warning("Bead size not adjusted. Use 'manual' or 'auto' if you want to do it.")
+        nd.logging.warning("Bead size not adjusted. Use 0 or 1 if you want to do it.")
 
     return
     
