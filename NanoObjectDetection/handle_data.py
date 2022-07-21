@@ -20,7 +20,7 @@ import fnmatch
 from skimage import io
 from joblib import Parallel, delayed
 import multiprocessing
-
+import psutil
 
 import NanoObjectDetection as nd
 
@@ -795,7 +795,7 @@ def pandas2csv(my_pandas, save_folder_name, save_file_name, write_index = False)
     
     
     
-def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = True, DoParallel = False):
+def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = True, DoParallel = False, ram_per_folder = 15):
     """
     Loops through a folder with a set of subfolders (different experimental data) which contain tif series and converts each of the series into a single 3d-tif stack (fast for reading in.)
 
@@ -806,6 +806,8 @@ def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = 
         Path to the folder where the required subfolders are in.
     CreateSubFolder : TYPE, optional
         Move tif to subsubdirectory in each subdirectory. The default is True.
+    ram_per_folder : INT, optional
+        expected GB each folder needs in RAM to convert.
 
     Returns
     -------
@@ -842,7 +844,22 @@ def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = 
         nd.logger.info("Loop through the folders parallel")
         # nd.logger.error("THIS IS NOT WORKING CURRENTLY FOR AN UNKNOWN REASON !")
         
-        num_cores = multiprocessing.cpu_count()
+        num_cores_max = multiprocessing.cpu_count()
+        
+        # limit number of cores otherwise RAM will be overloaded
+        free_ram_gb = psutil.virtual_memory().available/(1024**3)
+        nd.logger.info("Free RAM [GB]: %.1f", free_ram_gb)
+        
+        num_cores = int(np.floor(free_ram_gb/ram_per_folder))
+        
+        if num_cores < 1:
+            num_cores = 1
+         
+        if num_cores > num_cores_max:
+            num_cores = num_cores_max
+          
+        nd.logger.info("Number of parallel processed folder: %i", num_cores)
+            
         num_verbose = nd.handle_data.GetNumberVerbose()
         
         # no more cores than folders
