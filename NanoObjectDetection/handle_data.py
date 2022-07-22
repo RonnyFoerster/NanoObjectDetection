@@ -795,7 +795,7 @@ def pandas2csv(my_pandas, save_folder_name, save_file_name, write_index = False)
     
     
     
-def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = True, DoParallel = False, ram_per_folder = 15):
+def SaveTifSeriesAsStack_MainDirectory(main_data_folder_name, CreateSubFolder = True, DoParallel = False, ram_per_folder = 10):
     """
     Loops through a folder with a set of subfolders (different experimental data) which contain tif series and converts each of the series into a single 3d-tif stack (fast for reading in.)
 
