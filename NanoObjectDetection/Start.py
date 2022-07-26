@@ -120,14 +120,14 @@ def NewEvaluation():
         
         settings["Exp"]["NA"]                = pre_settings["Exp"]["NA"]
         settings["Exp"]["Microns_per_pixel"] = pre_settings["Exp"]["Microns_per_pixel"]
-        settings["Exp"]["Temperature"]       = pre_settings["Exp"]["Temperature"]
+        # settings["Exp"]["Temperature"]       = pre_settings["Exp"]["Temperature"]
         
     else:
         nd.logger.warning("No standard objective given.")
         nd.logger.info("Please insert setup parameters:")
         settings["Exp"]["NA"]                = float(input("NA = "))
         settings["Exp"]["Microns_per_pixel"] = float(input("Microns per pixel [um/px] = "))
-        settings["Exp"]["Temperature"]       = float(input("Temperature [K] (22C = 295K) = "))
+        # settings["Exp"]["Temperature"]       = float(input("Temperature [K] (22C = 295K) = "))
         
             
             
@@ -199,19 +199,26 @@ def NewEvaluation():
     settings["Exp"]["ExposureTime"]      = float(input("Exposure Time [ms] = ")) / 1000
     settings["Help"]["GuessLowestDiameter_nm"] = float(input("What is the lower limit of diameter (in nm) you expect?\n"))
         
+    temp = 273.15 + float(input("Temperature [C] = "))
+    settings["Exp"]["Temperature"] = temp # [K]
+    
     # Get temperature and corresponding viscocity
-    adjustT = nd.handle_data.GetInput("Temperature, solvent and viscosity: \
-                                      \n 0 - Default (T = 295.0 K (22°C); solvent = water; viscosity (9.5e-16 Ns/um^2)) \
-                                      \n 1 - RECOMMENDED - adjust yourself"
+    adjustT = nd.handle_data.GetInput("Get fluid and viscosity: \
+                                      \n 0 - Fluid is water (viscosity calculated automatically) \
+                                      \n 1 - Insert liquid and viscosity yourself"
                                       , ["0","1"])
 
-    if adjustT == 1:
-        temp = 273.15 + float(input("Temperature [C] = "))
-        settings["Exp"]["Temperature"] = temp # [K]
-        solv = input("Solvent (standard is water; dont use quotes): ")
+    if adjustT == 0:
+        solv = "water"
         settings["Exp"]["solvent"] = solv
         settings["Exp"]["Viscosity"] = nd.Experiment.GetViscosity(temp,solv)
 
+    else:
+        solv = input("Solvent (standard is water; dont use quotes): ")
+        visc = float(input("Viscosity [mPa * s] = "))
+        visc = visc * 1E-15 # transfer into funny unit N/(um^2)*s from mPa*s
+        
+        settings["Exp"]["Viscosity"]       = visc
 
     # get the full path of the data
     settings["File"]["data_file_name"]   = os.path.normpath(data_file_name)
