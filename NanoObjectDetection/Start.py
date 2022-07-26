@@ -140,8 +140,9 @@ def NewEvaluation():
           \n 3 - 1276b1_start \
           \n 4 - 18um Lightcage \
           \n 5 - No Fiber\
+          \n 6 - Insert Capillary \
           \n\n"
-        , ["1", "2", "3", "4", "5"])
+        , ["1", "2", "3", "4", "5", "6"])
     
     
     if pre_select in [2, 3, 4, 5]:
@@ -163,12 +164,23 @@ def NewEvaluation():
             nd.logger.info("Load: NoFiber.json")
             path_json_origin = nd_path + "\\default_json\\fiber\\NoFiber.json"
             
+            
         with open(path_json_origin) as json_file:
             pre_settings = json.load(json_file)
         
         settings["Fiber"]["TubeDiameter_nm"] = pre_settings["Fiber"]["TubeDiameter_nm"]
         settings["Fiber"]["Waist"] = pre_settings["Fiber"]["Waist"]
         settings["Fiber"]["Mode"] = pre_settings["Fiber"]["Mode"]
+      
+        
+    elif pre_select == 6:
+        nd.logger.info("Insert capillary")
+        
+        settings["Fiber"]["TubeDiameter_nm"] = float(input("Channel Diameter [um] = ")) * 1000
+        
+        # approximation of waist half the diameter. could be larger or smaller!
+        settings["Fiber"]["Waist"] = settings["Fiber"]["TubeDiameter_nm"] / 2 / 1000
+        settings["Fiber"]["Mode"] = "Gaussian"        
         
         
     else:
